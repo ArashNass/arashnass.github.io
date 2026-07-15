@@ -14,6 +14,6 @@ domain to those sites:
 | `/` | personal-site (this repo) | arash-hub |
 | `/earthquake_rupture/` | earthquake-rupture | arash-earthquake-rupture |
 | `/world_faults/` | world-faults | arash-world-faults |
-| `/dashboard/` | earthquake-dashboard | arash-eq-dashboard |
+| `/dashboard/` | earthquake-dashboard | GitHub Pages (arashnass.github.io) |
 
 Any commit to `main` goes live automatically via Netlify.

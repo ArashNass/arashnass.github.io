@@ -3,5 +3,5 @@
 /earthquake_rupture/* https://arash-earthquake-rupture.netlify.app/:splat  200
 /world_faults         https://arash-world-faults.netlify.app/              200
 /world_faults/*       https://arash-world-faults.netlify.app/:splat        200
-/dashboard            https://arash-eq-dashboard.netlify.app/              200
-/dashboard/*          https://arash-eq-dashboard.netlify.app/:splat        200
+/dashboard            https://arashnass.github.io/earthquake-dashboard/            200
+/dashboard/*          https://arashnass.github.io/earthquake-dashboard/:splat      200
