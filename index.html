@@ -1,129 +1,79 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Arash Nassirpour - Interactive Earthquake Tools and Live Earthquake Dashboard</title>
-<meta name="description" content="Free interactive earthquake tools: a 3D fault rupture model explaining strike, dip and rake, a world map of tectonic plates and fault lines, and a live dashboard of the largest recent earthquakes, updated every 6 hours." />
+<meta name="description" content="Free interactive earthquake tools: a 3D fault rupture model explaining strike, dip and rake, a world map of tectonic plates and fault lines, a live dashboard of the largest recent earthquakes, and a reinforced concrete section design tool." />
 <link rel="canonical" href="https://arashnassirpour.com/" />
-<meta property="og:title" content="Arash Nassirpour - Interactive Earthquake Tools and Live Earthquake Dashboard" />
-<meta property="og:description" content="Free interactive earthquake tools: a 3D fault rupture model explaining strike, dip and rake, a world map of tectonic plates and fault lines, and a live dashboard of the largest recent earthquakes, updated every 6 hours." />
+<meta property="og:title" content="Arash Nassirpour - Structural and Earthquake Engineering Tools" />
+<meta property="og:description" content="Interactive models, live seismic data, and section design. Free, in your browser." />
 <meta property="og:url" content="https://arashnassirpour.com/" />
 <meta property="og:type" content="website" />
 <meta property="og:site_name" content="Arash Nassirpour" />
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<style>
-:root{
-  --bg:#f6f7fb;
-  --card:#ffffff;
-  --ink:#101522;
-  --muted:#667085;
-  --line:#e5e7ef;
-  --accent:#2458ff;
-  --accent-soft:#eef3ff;
-  --shadow:0 24px 70px rgba(16,21,34,.08);
-}
-*{box-sizing:border-box}
-html,body{margin:0;min-height:100%;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--ink)}
-body{display:flex;align-items:center;justify-content:center;padding:28px}
-.page{width:min(980px,100%)}
-.nav{display:flex;justify-content:space-between;align-items:center;margin-bottom:36px;color:var(--muted);font-size:14px;font-weight:600}
-.logo{display:flex;align-items:center;gap:10px;color:var(--ink)}
-.mark{width:34px;height:34px;border-radius:11px;background:var(--ink);color:white;display:grid;place-items:center;font-weight:800;font-size:12px;letter-spacing:.04em}
-.hero{background:linear-gradient(180deg,#fff 0%,#fbfcff 100%);border:1px solid var(--line);border-radius:32px;padding:44px;box-shadow:var(--shadow)}
-.kicker{display:inline-flex;align-items:center;gap:8px;background:var(--accent-soft);color:var(--accent);font-size:13px;font-weight:700;padding:8px 12px;border-radius:999px;margin-bottom:20px}
-.kicker::before{content:"";width:7px;height:7px;border-radius:99px;background:var(--accent)}
-h1{font-size:clamp(34px,6vw,64px);line-height:1.02;letter-spacing:-.055em;margin:0;max-width:760px}
-.lead{font-size:clamp(16px,2vw,19px);line-height:1.65;color:var(--muted);max-width:680px;margin:20px 0 0}
-.tools{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;margin-top:34px}
-.tool{display:block;text-decoration:none;color:inherit;background:var(--card);border:1px solid var(--line);border-radius:24px;padding:24px;transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease}
-.tool:hover{transform:translateY(-3px);border-color:#c8d2ff;box-shadow:0 18px 40px rgba(36,88,255,.10)}
-.icon{width:44px;height:44px;border-radius:15px;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;margin-bottom:18px}
-.tool h2{font-size:21px;letter-spacing:-.025em;margin:0 0 8px}
-.tool p{margin:0;color:var(--muted);line-height:1.55;font-size:14.5px}
-.cta{display:flex;align-items:center;gap:8px;margin-top:20px;color:var(--accent);font-weight:800;font-size:14px}
-.footer{display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-top:22px;color:var(--muted);font-size:12.5px;padding:0 4px}
-.footer a{color:var(--muted);text-underline-offset:3px}
-@media(max-width:760px){body{align-items:flex-start;padding:18px}.nav{margin-bottom:18px}.hero{padding:28px;border-radius:24px}.tools{grid-template-columns:1fr}.footer{display:block;line-height:1.7}}
-</style>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <!-- Google Analytics -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-0WERZ6WKQY"></script>
 <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag("js",new Date());gtag("config","G-0WERZ6WKQY");</script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Inter,'Segoe UI',system-ui,sans-serif;background:#fafafa;color:#111827;min-height:100vh;display:flex;flex-direction:column;-webkit-font-smoothing:antialiased}
+main{flex:1;width:100%;max-width:880px;margin:0 auto;padding:56px 24px 64px}
+h1{font-size:31px;font-weight:600;letter-spacing:-.02em;margin-bottom:10px}
+.lead{font-size:15px;color:#5f6673;margin-bottom:36px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.card{display:flex;gap:16px;align-items:flex-start;border:1px solid #e5e7eb;border-radius:14px;padding:20px 22px;background:#fff;text-decoration:none;color:inherit;transition:border-color .15s ease,transform .15s ease,box-shadow .15s ease}
+.card:hover{border-color:#c9cdd4;transform:translateY(-2px);box-shadow:0 6px 18px rgba(17,24,39,.06)}
+.card-ic{flex-shrink:0;margin-top:2px}
+.card-ic svg{width:22px;height:22px;display:block}
+.card-t{display:block;font-size:15px;font-weight:600;margin-bottom:4px}
+.card-d{display:block;font-size:13px;color:#5f6673;line-height:1.55}
+@media(max-width:680px){main{padding:36px 16px 48px}h1{font-size:24px}.grid{grid-template-columns:1fr}.card[style]{grid-column:auto !important}}
+</style>
 </head>
-<body style="flex-direction:column;padding:0">
-  <div style="flex:1;display:flex;align-items:center;justify-content:center;width:100%;padding:28px"><main class="page">
-
-<!-- shared site navigation -->
-<nav class="sw-bar"><style>
-.sw-bar{position:relative;z-index:2000;background:#101522;font-family:Inter,'Segoe UI',system-ui,sans-serif;display:flex;justify-content:space-between;align-items:center;padding:9px 18px;font-size:13px;flex-shrink:0;line-height:1}
-.sw-bar a{color:#aab3c5;text-decoration:none;font-weight:600;margin-left:16px;transition:color .15s}
-.sw-bar a:hover{color:#fff}
-.sw-bar a.sw-home{margin-left:0;font-weight:800;color:#fff}
-.sw-bar a.sw-on{color:#fff;border-bottom:2px solid #2458ff;padding-bottom:2px}
-@media(max-width:560px){.sw-bar{font-size:12px;padding:8px 12px}.sw-bar a{margin-left:10px}}
-</style><a class="sw-home sw-on" href="/">Home</a><div><a href="/earthquake-rupture/">Fault mechanism</a><a href="/world-faults/">Global faults</a><a href="/earthquake-dashboard/">Latest earthquakes</a><a href="/rc-section-designer/">Section designer</a></div></nav>
-
-
-    <section class="hero">
-      <h1>See how earthquakes work, and what is happening right now.</h1>
-      <p class="lead">A 3D model that shows how faults rupture, a world map of tectonic plates and fault lines, a live dashboard tracking the largest recent earthquakes, and a reinforced concrete section design tool.</p>
-
-      <div class="tools" aria-label="Available tools">
-        <a class="tool" href="/earthquake_rupture/">
-          <div class="icon" aria-hidden="true">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M3 16h18M5 16l3-8 4 12 3-8 2 4" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          </div>
-          <h2>Fault mechanism</h2>
-          <p>Watch a fault move in 3D. Pick a mechanism, adjust strike, dip and rake, and play the slip animation to see exactly how the ground shifts.</p>
-          <span class="cta">Explore the 3D model →</span>
-        </a>
-
-        <a class="tool" href="/world_faults/">
-          <div class="icon" aria-hidden="true">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2.2"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-          </div>
-          <h2>Global faults</h2>
-          <p>Spin the globe to see tectonic plate boundaries, 22 named fault systems, and every significant earthquake from the last 30 days.</p>
-          <span class="cta">Open the world map →</span>
-        </a>
-
-        <a class="tool" href="/dashboard/">
-          <div class="icon" aria-hidden="true">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M4 12h3l2-6 4 12 2-6h5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="19" cy="5" r="2.4" fill="currentColor"/></svg>
-          </div>
-          <h2>Latest earthquakes</h2>
-          <p>The five largest recent earthquakes: shaking maps, aftershock forecasts and impact reports. Updates itself every 6 hours.</p>
-          <span class="cta">See the latest events →</span>
-        </a>
-
-        <a class="tool" href="/rc-section-designer/">
-          <div class="icon" aria-hidden="true">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><rect x="4" y="5" width="16" height="14" rx="2" stroke="currentColor" stroke-width="2.2"/><circle cx="8.5" cy="9" r="1.4" fill="currentColor"/><circle cx="15.5" cy="9" r="1.4" fill="currentColor"/><circle cx="8.5" cy="15" r="1.4" fill="currentColor"/><circle cx="15.5" cy="15" r="1.4" fill="currentColor"/></svg>
-          </div>
-          <h2>Section designer</h2>
-          <p>Design reinforced concrete sections: N-M interaction diagrams, biaxial surfaces and code checks to ACI 318 and Eurocode 2, with PDF and Excel reports.</p>
-          <span class="cta">Open the designer →</span>
-        </a>
-
-        <a class="tool" href="https://www.youtube.com/@Structural.Analysis" target="_blank" rel="noopener">
-          <div class="icon" aria-hidden="true">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><rect x="3" y="6" width="18" height="12" rx="3.5" stroke="currentColor" stroke-width="2.2"/><path d="M10.5 9.6v4.8l4.2-2.4-4.2-2.4z" fill="currentColor"/></svg>
-          </div>
-          <h2>YouTube channel</h2>
-          <p>Video lessons and walkthroughs on structural analysis and earthquake engineering, from the maker of these tools.</p>
-          <span class="cta">Watch on YouTube →</span>
-        </a>
-
-
-
-      </div>
-    </section>
-
-    <footer class="footer">
-      <span>© 2026 Arash Nassirpour &middot; <a href="https://www.youtube.com/@Structural.Analysis" target="_blank" rel="noopener" style="color:inherit">YouTube</a> &middot; <a href="https://www.linkedin.com/in/arashnassirpour/" target="_blank" rel="noopener" style="color:inherit">LinkedIn</a></span>
-    </footer>
-  </main></div>
+<body>
+<!-- shared site header -->
+<header class="site-hd"><style>
+.site-hd{background:#fff;border-bottom:1px solid #e5e7eb;font-family:Inter,'Segoe UI',system-ui,sans-serif;flex-shrink:0}
+.site-hd .hd-in{max-width:1080px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;padding:13px 24px}
+.site-hd a{text-decoration:none;color:#5f6673;font-size:12.5px;font-weight:500;transition:color .15s}
+.site-hd a:hover{color:#111827}
+.site-hd .hd-home{color:#111827;font-size:13.5px;font-weight:600}
+.site-hd .hd-links{display:flex;align-items:center;gap:24px}
+.site-hd .hd-on{color:#111827;border-bottom:1.5px solid #2458ff;padding-bottom:2px}
+.site-hd .hd-sep{color:#d1d5db;font-size:12px;user-select:none}
+.site-hd .hd-ic{display:inline-flex;color:#5f6673}
+.site-hd .hd-ic:hover{color:#111827}
+.site-hd .hd-ic svg{width:17px;height:17px}
+@media(max-width:680px){.site-hd .hd-in{padding:11px 14px}.site-hd .hd-links{gap:13px}.site-hd a{font-size:11.5px}.site-hd .hd-sep{display:none}}
+</style><div class="hd-in"><a class="hd-home" href="/">Home</a><nav class="hd-links"><a href="/earthquake-rupture/">Fault mechanism</a><a href="/world-faults/">Global faults</a><a href="/earthquake-dashboard/">Latest earthquakes</a><a href="/rc-section-designer/">Section designer</a><span class="hd-sep">|</span><a class="hd-ic" href="https://www.youtube.com/@Structural.Analysis" target="_blank" rel="noopener" aria-label="YouTube"><svg viewBox="0 0 24 24" fill="none"><rect x="2.5" y="5.5" width="19" height="13" rx="3.5" stroke="currentColor" stroke-width="1.8"/><path d="M10.3 9.4v5.2l4.6-2.6-4.6-2.6z" fill="currentColor"/></svg></a><a class="hd-ic" href="https://www.linkedin.com/in/arashnassirpour/" target="_blank" rel="noopener" aria-label="LinkedIn"><svg viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="18" height="18" rx="3" stroke="currentColor" stroke-width="1.8"/><path d="M8 10.5V17M8 7.2v.1M12 17v-3.7c0-1.3.9-2.3 2.2-2.3 1.3 0 2.3 1 2.3 2.3V17" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></a></nav></div></header>
+<main>
+  <h1>Structural and earthquake engineering tools</h1>
+  <p class="lead">Interactive models, live seismic data, and section design.</p>
+  <div class="grid">
+      <a class="card" href="/earthquake-rupture/">
+        <span class="card-ic"><svg viewBox="0 0 24 24" fill="none" stroke="#534AB7" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9L12 3z"/><path d="M12 12l8-4.5M12 12v9M12 12L4 7.5"/></svg></span>
+        <span><span class="card-t">Fault mechanism</span><span class="card-d">A fault moving in 3D &mdash; strike, dip and rake.</span></span>
+      </a>
+      <a class="card" href="/world-faults/">
+        <span class="card-ic"><svg viewBox="0 0 24 24" fill="none" stroke="#0F6E56" stroke-width="1.9" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.7 2.6 4 5.6 4 9s-1.3 6.4-4 9c-2.7-2.6-4-5.6-4-9s1.3-6.4 4-9z"/></svg></span>
+        <span><span class="card-t">Global faults</span><span class="card-d">Plate boundaries, named faults, recent quakes.</span></span>
+      </a>
+      <a class="card" href="/earthquake-dashboard/">
+        <span class="card-ic"><svg viewBox="0 0 24 24" fill="none" stroke="#A32D2D" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l2.5-7 5 14 2.5-7h4"/></svg></span>
+        <span><span class="card-t">Latest earthquakes</span><span class="card-d">Live briefing of the largest recent events.</span></span>
+      </a>
+      <a class="card" href="/rc-section-designer/">
+        <span class="card-ic"><svg viewBox="0 0 24 24" fill="none" stroke="#854F0B" stroke-width="1.9"><rect x="4.5" y="5" width="15" height="14" rx="1.5"/><circle cx="9" cy="9.5" r="1.1" fill="#854F0B" stroke="none"/><circle cx="15" cy="9.5" r="1.1" fill="#854F0B" stroke="none"/><circle cx="9" cy="14.5" r="1.1" fill="#854F0B" stroke="none"/><circle cx="15" cy="14.5" r="1.1" fill="#854F0B" stroke="none"/></svg></span>
+        <span><span class="card-t">Section designer</span><span class="card-d">N-M interaction and code checks for RC sections.</span></span>
+      </a>
+      <a class="card" href="https://www.youtube.com/@Structural.Analysis" target="_blank" rel="noopener" style="grid-column:1/-1">
+        <span class="card-ic"><svg viewBox="0 0 24 24" fill="none" stroke="#993C1D" stroke-width="1.9"><rect x="2.5" y="5.5" width="19" height="13" rx="3.5"/><path d="M10.3 9.4v5.2l4.6-2.6-4.6-2.6z" fill="#993C1D" stroke="none"/></svg></span>
+        <span><span class="card-t">YouTube channel</span><span class="card-d">Video lessons on structural analysis and earthquake engineering.</span></span>
+      </a>
+  </div>
+</main>
+<footer style="background:#fff;border-top:1px solid #e5e7eb;padding:14px 24px;text-align:center;font:400 11.5px Inter,'Segoe UI',system-ui,sans-serif;color:#8b909c;flex-shrink:0">&copy; 2026 Arash Nassirpour</footer>
 </body>
 </html>
