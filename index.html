@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Arash Nassirpour | Earthquake Tools</title>
+<meta name="description" content="Interactive earthquake rupture and world fault tools by Arash Nassirpour." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f6f7fb;
+  --card:#ffffff;
+  --ink:#101522;
+  --muted:#667085;
+  --line:#e5e7ef;
+  --accent:#2458ff;
+  --accent-soft:#eef3ff;
+  --shadow:0 24px 70px rgba(16,21,34,.08);
+}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--ink)}
+body{display:flex;align-items:center;justify-content:center;padding:28px}
+.page{width:min(980px,100%)}
+.nav{display:flex;justify-content:space-between;align-items:center;margin-bottom:36px;color:var(--muted);font-size:14px;font-weight:600}
+.logo{display:flex;align-items:center;gap:10px;color:var(--ink)}
+.mark{width:34px;height:34px;border-radius:11px;background:var(--ink);color:white;display:grid;place-items:center;font-weight:800;font-size:12px;letter-spacing:.04em}
+.hero{background:linear-gradient(180deg,#fff 0%,#fbfcff 100%);border:1px solid var(--line);border-radius:32px;padding:44px;box-shadow:var(--shadow)}
+.kicker{display:inline-flex;align-items:center;gap:8px;background:var(--accent-soft);color:var(--accent);font-size:13px;font-weight:700;padding:8px 12px;border-radius:999px;margin-bottom:20px}
+.kicker::before{content:"";width:7px;height:7px;border-radius:99px;background:var(--accent)}
+h1{font-size:clamp(34px,6vw,64px);line-height:1.02;letter-spacing:-.055em;margin:0;max-width:760px}
+.lead{font-size:clamp(16px,2vw,19px);line-height:1.65;color:var(--muted);max-width:680px;margin:20px 0 0}
+.tools{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;margin-top:34px}
+.tool{display:block;text-decoration:none;color:inherit;background:var(--card);border:1px solid var(--line);border-radius:24px;padding:24px;transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease}
+.tool:hover{transform:translateY(-3px);border-color:#c8d2ff;box-shadow:0 18px 40px rgba(36,88,255,.10)}
+.icon{width:44px;height:44px;border-radius:15px;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;margin-bottom:18px}
+.tool h2{font-size:21px;letter-spacing:-.025em;margin:0 0 8px}
+.tool p{margin:0;color:var(--muted);line-height:1.55;font-size:14.5px}
+.cta{display:flex;align-items:center;gap:8px;margin-top:20px;color:var(--accent);font-weight:800;font-size:14px}
+.footer{display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-top:22px;color:var(--muted);font-size:12.5px;padding:0 4px}
+.footer a{color:var(--muted);text-underline-offset:3px}
+@media(max-width:760px){body{align-items:flex-start;padding:18px}.nav{margin-bottom:18px}.hero{padding:28px;border-radius:24px}.tools{grid-template-columns:1fr}.footer{display:block;line-height:1.7}}
+</style>
+</head>
+<body>
+  <main class="page">
+    <nav class="nav" aria-label="Site navigation">
+      <div class="logo"><span class="mark">EQ</span><span>Arash Nassirpour</span></div>
+      <span>Interactive earthquake tools</span>
+    </nav>
+
+    <section class="hero">
+      <div class="kicker">Earthquake visualisation studio</div>
+      <h1>Explore fault movement and global tectonic activity.</h1>
+      <p class="lead">Interactive tools for understanding earthquake rupture geometry, world fault systems, and recent significant earthquakes - plus a live rapid response dashboard.</p>
+
+      <div class="tools" aria-label="Available tools">
+        <a class="tool" href="/earthquake_rupture/">
+          <div class="icon" aria-hidden="true">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M3 16h18M5 16l3-8 4 12 3-8 2 4" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <h2>Earthquake rupture</h2>
+          <p>Adjust strike, dip, and rake in a 3D block model to see how different fault mechanisms move.</p>
+          <span class="cta">Open rupture tool →</span>
+        </a>
+
+        <a class="tool" href="/world_faults/">
+          <div class="icon" aria-hidden="true">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2.2"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          </div>
+          <h2>World faults</h2>
+          <p>Spin the globe to view major plate boundaries, named faults, and recent earthquake activity.</p>
+          <span class="cta">Open world map →</span>
+        </a>
+
+        <a class="tool" href="/dashboard/">
+          <div class="icon" aria-hidden="true">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M4 12h3l2-6 4 12 2-6h5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="19" cy="5" r="2.4" fill="currentColor"/></svg>
+          </div>
+          <h2>Rapid EQ dashboard</h2>
+          <p>Live briefing of the largest recent earthquakes: ShakeMaps, aftershock forecasts, and impact intelligence. Refreshes automatically.</p>
+          <span class="cta">Open live dashboard →</span>
+        </a>
+
+      </div>
+    </section>
+
+    <footer class="footer">
+      <span>Built for learning and exploration, not for hazard assessment or navigation.</span>
+      <span>© 2026 Arash Nassirpour</span>
+    </footer>
+  </main>
+</body>
+</html>
