@@ -48,14 +48,13 @@ h1{font-size:clamp(34px,6vw,64px);line-height:1.02;letter-spacing:-.055em;margin
 
 <!-- shared site navigation -->
 <nav class="sw-bar"><style>
-.sw-bar{position:relative;z-index:2000;background:#101522;font-family:Inter,'Segoe UI',system-ui,sans-serif;display:flex;justify-content:space-between;align-items:center;padding:9px 18px;font-size:13px;flex-shrink:0}
+.sw-bar{position:relative;z-index:2000;background:#101522;font-family:Inter,'Segoe UI',system-ui,sans-serif;display:flex;justify-content:space-between;align-items:center;padding:9px 18px;font-size:13px;flex-shrink:0;line-height:1}
 .sw-bar a{color:#aab3c5;text-decoration:none;font-weight:600;margin-left:16px;transition:color .15s}
 .sw-bar a:hover{color:#fff}
-.sw-bar .sw-home{display:flex;align-items:center;gap:9px;margin-left:0;color:#fff;font-weight:800}
-.sw-bar .sw-mark{width:24px;height:24px;border-radius:7px;background:#2458ff;color:#fff;display:grid;place-items:center;font-size:10px;font-weight:800}
-.sw-bar .sw-on{color:#fff;border-bottom:2px solid #2458ff;padding-bottom:2px}
-@media(max-width:560px){.sw-bar{font-size:12px;padding:8px 12px}.sw-bar a{margin-left:10px}.sw-home span:last-child{display:none}}
-</style><a class="sw-home" href="https://arashnassirpour.com/"><span>Arash Nassirpour</span></a><div><a href="https://arashnassirpour.com/earthquake_rupture/">Rupture</a><a href="https://arashnassirpour.com/world_faults/">World faults</a><a href="https://arashnassirpour.com/dashboard/">Dashboard</a></div></nav>
+.sw-bar a.sw-home{margin-left:0;font-weight:800;color:#fff}
+.sw-bar a.sw-on{color:#fff;border-bottom:2px solid #2458ff;padding-bottom:2px}
+@media(max-width:560px){.sw-bar{font-size:12px;padding:8px 12px}.sw-bar a{margin-left:10px}}
+</style><a class="sw-home sw-on" href="https://arashnassirpour.com/">Home</a><div><a href="https://arashnassirpour.com/earthquake_rupture/">Fault mechanism</a><a href="https://arashnassirpour.com/world_faults/">Global faults</a><a href="https://arashnassirpour.com/dashboard/">Latest earthquakes</a></div></nav>
 
 
     <section class="hero">
@@ -67,7 +66,7 @@ h1{font-size:clamp(34px,6vw,64px);line-height:1.02;letter-spacing:-.055em;margin
           <div class="icon" aria-hidden="true">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M3 16h18M5 16l3-8 4 12 3-8 2 4" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
           </div>
-          <h2>3D fault rupture model</h2>
+          <h2>Fault mechanism</h2>
           <p>Watch a fault move in 3D. Pick a mechanism, adjust strike, dip and rake, and play the slip animation to see exactly how the ground shifts.</p>
           <span class="cta">Explore the 3D model →</span>
         </a>
@@ -76,7 +75,7 @@ h1{font-size:clamp(34px,6vw,64px);line-height:1.02;letter-spacing:-.055em;margin
           <div class="icon" aria-hidden="true">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2.2"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
           </div>
-          <h2>World fault map</h2>
+          <h2>Global faults</h2>
           <p>Spin the globe to see tectonic plate boundaries, 22 named fault systems, and every significant earthquake from the last 30 days.</p>
           <span class="cta">Open the world map →</span>
         </a>
@@ -85,7 +84,7 @@ h1{font-size:clamp(34px,6vw,64px);line-height:1.02;letter-spacing:-.055em;margin
           <div class="icon" aria-hidden="true">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M4 12h3l2-6 4 12 2-6h5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="19" cy="5" r="2.4" fill="currentColor"/></svg>
           </div>
-          <h2>Live earthquake dashboard</h2>
+          <h2>Latest earthquakes</h2>
           <p>The five largest recent earthquakes: shaking maps, aftershock forecasts and impact reports. Updates itself every 6 hours.</p>
           <span class="cta">See the latest events →</span>
         </a>
