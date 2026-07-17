@@ -134,8 +134,8 @@ h1{font-size:31px;font-weight:600;letter-spacing:-.02em;margin-bottom:10px}
           <label for="cf-message">Message</label>
           <textarea id="cf-message" name="message" required></textarea>
         </div>
-        <button class="submit-btn" type="submit">Send message</button>
-        <div class="form-note">This opens your email app with the message pre-filled, addressed to arash.nassirpour@gmail.com.</div>
+        <button class="submit-btn" type="submit" id="cf-submit">Send message</button>
+        <div class="form-note" id="cf-status">Sent directly to arash.nassirpour@gmail.com.</div>
       </form>
     </div>
   </div>
@@ -156,18 +156,41 @@ h1{font-size:31px;font-weight:600;letter-spacing:-.02em;margin-bottom:10px}
 </style><div class="ft-in"><span class="ft-copy">&copy; 2026 Arash Nassirpour. All rights reserved.</span><nav class="ft-links"><a href="/contact/">Contact</a><a class="ft-ic" href="https://www.youtube.com/@Structural.Analysis" target="_blank" rel="noopener" aria-label="YouTube"><svg viewBox="0 0 24 24" fill="none"><rect x="2.5" y="5.5" width="19" height="13" rx="3.5" stroke="currentColor" stroke-width="1.8"/><path d="M10.3 9.4v5.2l4.6-2.6-4.6-2.6z" fill="currentColor"/></svg></a><a class="ft-ic" href="https://www.linkedin.com/in/arashnassirpour/" target="_blank" rel="noopener" aria-label="LinkedIn"><svg viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="18" height="18" rx="3" stroke="currentColor" stroke-width="1.8"/><path d="M8 10.5V17M8 7.2v.1M12 17v-3.7c0-1.3.9-2.3 2.2-2.3 1.3 0 2.3 1 2.3 2.3V17" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></a></nav></div></footer>
 
 <script>
-document.getElementById('contact-form').addEventListener('submit', function(e){
-  e.preventDefault();
-  var name = document.getElementById('cf-name').value.trim();
-  var email = document.getElementById('cf-email').value.trim();
-  var message = document.getElementById('cf-message').value.trim();
-  var subject = 'Website contact from ' + name;
-  var body = message + '\n\n---\nFrom: ' + name + ' (' + email + ')';
-  var mailto = 'mailto:arash.nassirpour@gmail.com'
-    + '?subject=' + encodeURIComponent(subject)
-    + '&body=' + encodeURIComponent(body);
-  window.location.href = mailto;
-});
+(function(){
+  var form = document.getElementById('contact-form');
+  var btn = document.getElementById('cf-submit');
+  var status = document.getElementById('cf-status');
+  var defaultStatus = status.textContent;
+
+  form.addEventListener('submit', function(e){
+    e.preventDefault();
+    btn.disabled = true;
+    btn.textContent = 'Sending…';
+    status.textContent = defaultStatus;
+    status.style.color = '#8b909c';
+
+    fetch('https://formspree.io/f/mqerpgob', {
+      method: 'POST',
+      headers: { 'Accept': 'application/json' },
+      body: new FormData(form)
+    }).then(function(response){
+      if (response.ok) {
+        form.reset();
+        btn.textContent = 'Send message';
+        btn.disabled = false;
+        status.textContent = 'Message sent — thanks, I\u2019ll get back to you soon.';
+        status.style.color = '#178a4c';
+      } else {
+        return response.json().then(function(data){ throw data; });
+      }
+    }).catch(function(){
+      btn.textContent = 'Send message';
+      btn.disabled = false;
+      status.textContent = 'Something went wrong. Please email arash.nassirpour@gmail.com directly.';
+      status.style.color = '#c0281f';
+    });
+  });
+})();
 </script>
 </body>
 </html>
