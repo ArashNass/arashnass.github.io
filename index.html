@@ -33,7 +33,11 @@ h1{font-size:31px;font-weight:600;letter-spacing:-.02em;margin-bottom:10px}
 .about h2{font-size:16px;font-weight:600;margin-bottom:12px}
 .about p{font-size:13.5px;color:#5f6673;line-height:1.7;margin-bottom:12px}
 .about p:last-child{margin-bottom:0}
-.about .about-edu{font-size:12px;color:#8b909c;margin-top:16px;padding-top:16px;border-top:1px solid #f0f1f3}
+.about .about-edu{margin-top:16px;padding-top:16px;border-top:1px solid #f0f1f3}
+.about .about-edu-label{font-size:11px;font-weight:600;color:#9ca3af;text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px}
+.about .about-edu ul{list-style:none;display:flex;flex-direction:column;gap:6px}
+.about .about-edu li{font-size:12.5px;color:#5f6673;line-height:1.5;padding-left:14px;position:relative}
+.about .about-edu li::before{content:"";position:absolute;left:0;top:7px;width:5px;height:5px;border-radius:50%;background:#c9cdd4}
 @media(max-width:680px){main{padding:36px 16px 48px}h1{font-size:24px}.grid{grid-template-columns:1fr}.card[style]{grid-column:auto !important}}
 </style>
 <script type="application/ld+json">
@@ -155,7 +159,14 @@ h1{font-size:31px;font-weight:600;letter-spacing:-.02em;margin-bottom:10px}
     <h2>About</h2>
     <p>I'm Arash, a Director at Willis (WTW), where I assess how buildings and infrastructure hold up against natural perils, mainly earthquake, flood, windstorm, tsunami, and hailstorm. I also consult on natural catastrophe and risk engineering assessment. Before this, I taught earthquake engineering at University College London (UCL).</p>
     <p>My work has taken me from the fault lines of the Pacific Ring of Fire to the flood plains of Northern Europe and the storm belts of the Caribbean. These tools are a way to share that experience in an interactive, hands-on way.</p>
-    <p class="about-edu">PhD in Structural and Earthquake Engineering, University College London (UCL) · MSc Earthquake Engineering, UCL · MEng Civil Engineering, University of Birmingham</p>
+    <div class="about-edu">
+      <div class="about-edu-label">Education</div>
+      <ul>
+        <li>PhD in Structural and Earthquake Engineering, University College London (UCL)</li>
+        <li>MSc in Earthquake Engineering, University College London (UCL)</li>
+        <li>MEng in Civil Engineering, University of Birmingham</li>
+      </ul>
+    </div>
   </section>
 </main>
 <footer class="site-ft"><style>
