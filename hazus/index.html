@@ -11,31 +11,31 @@
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --wtw:#7F35B2;--wtw-deep:#48086F;--wtw-light:#F3EAF9;--wtw-mid:#C89FDC;
+  --wtw:#2B6CB0;--wtw-deep:#0F2A4A;--wtw-light:#EAF3FB;--wtw-mid:#8FC1E8;
   --onyx:#2F2C31;--onyx2:#5A5660;--onyx3:#949096;
-  --bg:#FFFFFF;--bg2:#F8F5FB;--bg3:#EDE6F4;--border:#DDD5E8;
+  --bg:#FFFFFF;--bg2:#EAF3FB;--bg3:#DCEBF7;--border:#C9DEEF;
   --r:7px;--rl:12px;
   --slight:#1A7340;--moderate:#C47D00;--extensive:#C0321A;--complete:#48086F;
 }
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;
      background:var(--bg2);color:var(--onyx);font-size:14px;min-height:100vh}
-.topbar{background:#48086F;padding:0 32px;display:flex;align-items:center;height:58px;position:sticky;top:0;z-index:100;box-shadow:0 1px 0 rgba(255,255,255,.08),0 4px 16px rgba(0,0,0,.3);overflow-x:auto}
+.topbar{background:#0F2A4A;padding:0 32px;display:flex;align-items:center;height:58px;position:sticky;top:0;z-index:100;box-shadow:0 1px 0 rgba(255,255,255,.08),0 4px 16px rgba(0,0,0,.3);overflow-x:auto}
 .brand{font-size:14px;font-weight:700;color:#fff;letter-spacing:-.3px;margin-right:28px;white-space:nowrap;flex-shrink:0}
-.brand span{color:#C89FDC}
+.brand span{color:#8FC1E8}
 .nav-tabs{display:flex;height:100%;align-items:center;gap:2px;flex:1}
 ── */
-.topbar{background:#48086F;padding:0 32px;display:flex;align-items:center;
+.topbar{background:#0F2A4A;padding:0 32px;display:flex;align-items:center;
         height:56px;position:sticky;top:0;z-index:100;
         box-shadow:0 1px 0 rgba(255,255,255,.08),0 4px 16px rgba(0,0,0,.3);
         gap:0;overflow-x:auto}
         box-shadow:0 1px 0 rgba(255,255,255,.08),0 4px 16px rgba(0,0,0,.3);
         gap:0;overflow-x:auto}
 .brand{font-size:14px;font-weight:700;color:#fff;letter-spacing:-.3px;margin-right:28px;white-space:nowrap;flex-shrink:0}
-.brand span{color:#C89FDC}
+.brand span{color:#8FC1E8}
 .nav-tabs{display:flex;height:100%;align-items:center;gap:2px;flex:1}
 .nav-tab{padding:0 18px;font-size:14px;font-weight:500;border:none;background:none;color:rgba(255,255,255,.55);cursor:pointer;border-bottom:3px solid transparent;transition:color .2s,border-color .2s;height:100%;white-space:nowrap;text-decoration:none;display:inline-flex;align-items:center;border-radius:0}
 .nav-tab:hover{color:rgba(255,255,255,.9);background:rgba(255,255,255,.04)}
-.nav-tab.active{color:#fff;border-bottom-color:#C89FDC;background:none;font-weight:600}
+.nav-tab.active{color:#fff;border-bottom-color:#8FC1E8;background:none;font-weight:600}
 .nav-sep{width:1px;height:18px;background:rgba(255,255,255,.15);margin:0 4px;flex-shrink:0}
 .page{display:none;padding:28px 32px;max-width:1440px;margin:0 auto}
 .page.active{display:block}
@@ -272,7 +272,7 @@ footer{text-align:center;padding:28px 32px 24px;font-size:12px;color:#5A5660;bor
       <div class="card" style="margin-bottom:14px"><div class="meta-grid" id="fl-meta"></div></div>
       <div class="card">
         <div class="tbl-tabs" id="fl-tbl-tabs" style="display:none">
-          <button class="tbl-tab active" onclick="flShowTbl(1,this)"><span class="dot" style="background:#7F35B2"></span>Curve 1</button>
+          <button class="tbl-tab active" onclick="flShowTbl(1,this)"><span class="dot" style="background:#2B6CB0"></span>Curve 1</button>
           <button class="tbl-tab" onclick="flShowTbl(2,this)"><span class="dot" style="background:#c900ac"></span>Curve 2</button>
         </div>
         <div class="tbl-hdr-row">
@@ -367,7 +367,7 @@ footer{text-align:center;padding:28px 32px 24px;font-size:12px;color:#5A5660;bor
       <div class="card" style="margin-bottom:14px"><div class="meta-grid" id="wi-meta"></div></div>
       <div class="card">
         <div class="tbl-tabs" id="wi-tbl-tabs" style="display:none">
-          <button class="tbl-tab active" onclick="wiShowTbl(1,this)"><span class="dot" style="background:#48086F"></span>Curve 1</button>
+          <button class="tbl-tab active" onclick="wiShowTbl(1,this)"><span class="dot" style="background:#0F2A4A"></span>Curve 1</button>
           <button class="tbl-tab" onclick="wiShowTbl(2,this)"><span class="dot" style="background:#c900ac"></span>Curve 2</button>
         </div>
         <div class="tbl-hdr-row">
@@ -474,7 +474,7 @@ footer{text-align:center;padding:28px 32px 24px;font-size:12px;color:#5A5660;bor
       <div class="card" style="margin-bottom:14px"><div class="meta-grid" id="eq-meta"></div></div>
       <div class="card">
         <div class="tbl-tabs" id="eq-tbl-tabs" style="display:none">
-          <button class="tbl-tab active" onclick="eqShowTbl(1,this)"><span class="dot" style="background:#48086F"></span>Curve 1</button>
+          <button class="tbl-tab active" onclick="eqShowTbl(1,this)"><span class="dot" style="background:#0F2A4A"></span>Curve 1</button>
           <button class="tbl-tab" onclick="eqShowTbl(2,this)"><span class="dot" style="background:#c900ac"></span>Curve 2</button>
         </div>
         <div class="tbl-hdr-row">
@@ -518,7 +518,7 @@ function metaEl(el,items){return meta(el,items);}
 <script>
 
 const G=9.80665,GF=1.28;
-const C1F='#7F35B2',C1W='#48086F',C2='#c900ac';
+const C1F='#2B6CB0',C1W='#0F2A4A',C2='#c900ac';
 const WC={slight:'#1A7340',moderate:'#C47D00',extensive:'#C0321A',complete:'#48086F'};
 const OCC={RES1:'Single family home',RES2:'Mobile home',RES3:'Multi-family',RES4:'Hotel/motel',
   RES5:'Dormitory',RES6:'Nursing home',COM1:'Retail trade',COM2:'Wholesale trade',
@@ -603,18 +603,18 @@ function mkChart(id,labels,datasets,xTitle,yTitle,existing){
               return ' '+ctx.dataset.label+': '+(ctx.parsed.y*100).toFixed(2)+'%';
             }
           },
-          backgroundColor:'rgba(72,8,111,.92)',
+          backgroundColor:'rgba(15,42,74,.92)',
           titleColor:'#fff',bodyColor:'#fff',
-          borderColor:'#C89FDC',borderWidth:1,
+          borderColor:'#8FC1E8',borderWidth:1,
           padding:10,cornerRadius:6
         }
       },
       scales:{
-        x:{title:{display:true,text:xTitle,font:{size:12,weight:'600'},color:'#48086F'},
-           ticks:{maxTicksLimit:12,color:'#5A5660'},grid:{color:'#EDE6F4'}},
-        y:{title:{display:true,text:yTitle,font:{size:12,weight:'600'},color:'#48086F'},
+        x:{title:{display:true,text:xTitle,font:{size:12,weight:'600'},color:'#0F2A4A'},
+           ticks:{maxTicksLimit:12,color:'#5A5660'},grid:{color:'#DCEBF7'}},
+        y:{title:{display:true,text:yTitle,font:{size:12,weight:'600'},color:'#0F2A4A'},
            min:0,max:1,ticks:{callback:function(v){return(v*100).toFixed(0)+'%';},color:'#5A5660'},
-           grid:{color:'#EDE6F4'}}
+           grid:{color:'#DCEBF7'}}
       },
       hover:{mode:'index',intersect:false},
       animation:{duration:200}}
@@ -635,7 +635,7 @@ function exportPNG(canvasId, titleId) {
   ctx.fillRect(0,0,exp.width,exp.height);
   if(title){
     ctx.font = '600 13px -apple-system,BlinkMacSystemFont,Segoe UI,sans-serif';
-    ctx.fillStyle = '#48086F';
+    ctx.fillStyle = '#0F2A4A';
     ctx.fillText(title.slice(0,120), 12, 26);
     ctx.drawImage(canvas,0,40);
   } else {
@@ -721,7 +721,7 @@ function flRenderChart(){
   var ft=flUM==='ft';
   var labels=flR1.depth_m.map(function(x){return ft?(x/0.3048).toFixed(1):x.toFixed(2);});
   var ds=[{label:'C1',data:flR1.damage,borderColor:C1F,
-    backgroundColor:flCmp&&flR2?'transparent':'rgba(127,53,178,.08)',
+    backgroundColor:flCmp&&flR2?'transparent':'rgba(43,108,176,.08)',
     borderWidth:2.5,pointRadius:0,pointBackgroundColor:C1F,tension:.3,fill:!(flCmp&&flR2)}];
   if(flCmp&&flR2){
     ds.push({label:'C2',data:flR2.damage,borderColor:C2,
@@ -875,7 +875,7 @@ function wiRenderChart(){
   else if(wiSM==='mph'){labs=wiR1.wind_ms.map(function(x){return u1?((x/GF)*2.237).toFixed(0):(x*2.237).toFixed(0);});xT=(u1?'1-minute sustained':'3-second peak gust')+' wind speed (mph)';}
   else{labs=wiR1.wind_ms.map(function(x){return u1?(x/GF).toFixed(1):x.toFixed(0);});xT=(u1?'1-minute sustained':'3-second peak gust')+' wind speed (m/s)';}
   var ds=[{label:'C1',data:wiR1.damage,borderColor:C1W,
-    backgroundColor:wiCmp&&wiR2?'transparent':'rgba(72,8,111,.08)',
+    backgroundColor:wiCmp&&wiR2?'transparent':'rgba(15,42,74,.08)',
     borderWidth:2.5,pointRadius:0,pointBackgroundColor:C1W,tension:.3,fill:!(wiCmp&&wiR2)}];
   if(wiCmp&&wiR2){
     ds.push({label:'C2',data:wiR2.damage,borderColor:C2,
