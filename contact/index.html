@@ -3,14 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Arash Nassirpour - Interactive Earthquake Tools and Live Earthquake Dashboard</title>
-<meta name="description" content="Free interactive earthquake tools: a 3D fault rupture model explaining strike, dip and rake, a world map of tectonic plates and fault lines, a live dashboard of the largest recent earthquakes, and a reinforced concrete section design tool." />
-<link rel="canonical" href="https://arashnassirpour.com/" />
-<meta property="og:title" content="Arash Nassirpour - Structural and Earthquake Engineering Tools" />
-<meta property="og:description" content="Interactive models, live seismic data, and section design. Free, in your browser." />
-<meta property="og:url" content="https://arashnassirpour.com/" />
+<title>Contact - Arash Nassirpour</title>
+<meta name="description" content="Get in touch with Arash Nassirpour about structural and earthquake engineering, collaboration, or feedback on these tools." />
+<link rel="canonical" href="https://arashnassirpour.com/contact/" />
+<meta property="og:title" content="Contact - Arash Nassirpour" />
+<meta property="og:description" content="Get in touch about structural and earthquake engineering, collaboration, or feedback." />
+<meta property="og:url" content="https://arashnassirpour.com/contact/" />
 <meta property="og:type" content="website" />
-<meta property="og:site_name" content="Arash Nassirpour" />
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <!-- Google Analytics -->
@@ -21,39 +20,25 @@
 body{font-family:Inter,'Segoe UI',system-ui,sans-serif;background:#fafafa;color:#111827;min-height:100vh;display:flex;flex-direction:column;-webkit-font-smoothing:antialiased}
 main{flex:1;width:100%;max-width:880px;margin:0 auto;padding:56px 24px 64px}
 h1{font-size:31px;font-weight:600;letter-spacing:-.02em;margin-bottom:10px}
-.lead{font-size:15px;color:#5f6673;margin-bottom:36px}
-.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-.card{display:flex;gap:16px;align-items:flex-start;border:1px solid #e5e7eb;border-radius:14px;padding:20px 22px;background:#fff;text-decoration:none;color:inherit;transition:border-color .15s ease,transform .15s ease,box-shadow .15s ease}
-.card:hover{border-color:#c9cdd4;transform:translateY(-2px);box-shadow:0 6px 18px rgba(17,24,39,.06)}
-.card-ic{flex-shrink:0;margin-top:2px}
-.card-ic svg{width:22px;height:22px;display:block}
-.card-t{display:block;font-size:15px;font-weight:600;margin-bottom:4px}
-.card-d{display:block;font-size:13px;color:#5f6673;line-height:1.55}
-@media(max-width:680px){main{padding:36px 16px 48px}h1{font-size:24px}.grid{grid-template-columns:1fr}.card[style]{grid-column:auto !important}}
+.lead{font-size:15px;color:#5f6673;margin-bottom:36px;max-width:560px;line-height:1.6}
+.contact-grid{display:grid;grid-template-columns:1fr 1.3fr;gap:36px;align-items:start}
+.side-text h2{font-size:16px;font-weight:600;margin-bottom:10px}
+.side-text p{font-size:13.5px;color:#5f6673;line-height:1.65;margin-bottom:16px}
+.side-links{display:flex;flex-direction:column;gap:10px;margin-top:8px}
+.side-links a{display:flex;align-items:center;gap:9px;text-decoration:none;color:#374151;font-size:13.5px;font-weight:500;transition:color .15s}
+.side-links a:hover{color:#111827}
+.side-links a svg{width:16px;height:16px;flex-shrink:0;color:#5f6673}
+.form-card{border:1px solid #e5e7eb;border-radius:14px;padding:26px 26px 24px;background:#fff}
+.field{margin-bottom:16px}
+.field label{display:block;font-size:12.5px;font-weight:600;color:#374151;margin-bottom:6px}
+.field input,.field textarea{width:100%;border:1px solid #dcdfe4;border-radius:9px;padding:10px 12px;font:400 13.5px Inter,'Segoe UI',system-ui,sans-serif;color:#111827;background:#fafafa;transition:border-color .15s,background .15s}
+.field input:focus,.field textarea:focus{outline:none;border-color:#2458ff;background:#fff}
+.field textarea{resize:vertical;min-height:120px}
+.submit-btn{width:100%;padding:11px 16px;background:#111827;color:#fff;border:none;border-radius:9px;font:600 13.5px Inter,'Segoe UI',system-ui,sans-serif;cursor:pointer;transition:background .15s}
+.submit-btn:hover{background:#000}
+.form-note{font-size:11.5px;color:#8b909c;margin-top:12px;line-height:1.5}
+@media(max-width:680px){main{padding:36px 16px 48px}h1{font-size:24px}.contact-grid{grid-template-columns:1fr}}
 </style>
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "Person",
-  "name": "Arash Nassirpour",
-  "url": "https://arashnassirpour.com/",
-  "jobTitle": "Structural and Earthquake Engineer",
-  "sameAs": [
-    "https://www.linkedin.com/in/arashnassirpour/",
-    "https://www.youtube.com/@Structural.Analysis"
-  ]
-}
-</script>
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "WebSite",
-  "name": "Arash Nassirpour - Structural and Earthquake Engineering Tools",
-  "url": "https://arashnassirpour.com/",
-  "description": "Free interactive earthquake and structural engineering tools: fault rupture models, tectonic maps, live earthquake response, section design, and vulnerability functions.",
-  "author": { "@type": "Person", "name": "Arash Nassirpour" }
-}
-</script>
 </head>
 <body>
 <!-- shared site header -->
@@ -112,39 +97,51 @@ h1{font-size:31px;font-weight:600;letter-spacing:-.02em;margin-bottom:10px}
 </script>
 </header>
 <main>
-  <h1>Structural and earthquake engineering tools</h1>
-  <p class="lead">Interactive models, live seismic data, and section design.</p>
-  <div class="grid">
-      <a class="card" href="/earthquake-rupture/">
-        <span class="card-ic"><svg viewBox="0 0 24 24" fill="none" stroke="#534AB7" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9L12 3z"/><path d="M12 12l8-4.5M12 12v9M12 12L4 7.5"/></svg></span>
-        <span><span class="card-t">Fault Mechanism</span><span class="card-d">A fault moving in 3D &mdash; strike, dip and rake.</span></span>
-      </a>
-      <a class="card" href="/world-faults/">
-        <span class="card-ic"><svg viewBox="0 0 24 24" fill="none" stroke="#0F6E56" stroke-width="1.9" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.7 2.6 4 5.6 4 9s-1.3 6.4-4 9c-2.7-2.6-4-5.6-4-9s1.3-6.4 4-9z"/></svg></span>
-        <span><span class="card-t">Global Faults &amp; Live Earthquakes</span><span class="card-d">Plate boundaries, named faults, recent quakes.</span></span>
-      </a>
-      <a class="card" href="/earthquake-dashboard/">
-        <span class="card-ic"><svg viewBox="0 0 24 24" fill="none" stroke="#A32D2D" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l2.5-7 5 14 2.5-7h4"/></svg></span>
-        <span><span class="card-t">Rapid Earthquake Response</span><span class="card-d">Live briefing of the largest recent events.</span></span>
-      </a>
-      <a class="card" href="/rc-section-designer/">
-        <span class="card-ic"><svg viewBox="0 0 24 24" fill="none" stroke="#854F0B" stroke-width="1.9"><rect x="4.5" y="5" width="15" height="14" rx="1.5"/><circle cx="9" cy="9.5" r="1.1" fill="#854F0B" stroke="none"/><circle cx="15" cy="9.5" r="1.1" fill="#854F0B" stroke="none"/><circle cx="9" cy="14.5" r="1.1" fill="#854F0B" stroke="none"/><circle cx="15" cy="14.5" r="1.1" fill="#854F0B" stroke="none"/></svg></span>
-        <span><span class="card-t">Reinforced Concrete Section Designer</span><span class="card-d">N-M interaction and code checks for RC sections.</span></span>
-      </a>
-      <a class="card" href="/hazus/">
-        <span class="card-ic"><svg viewBox="0 0 24 24" fill="none" stroke="#1E6B8C" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18h18M5 18V9l4-4 4 4v9M13 18v-6l3-3 3 3v6"/></svg></span>
-        <span><span class="card-t">Vulnerability Explorer</span><span class="card-d">Flood, wind and earthquake damage functions.</span></span>
-      </a>
-      <a class="card" href="https://www.youtube.com/@Structural.Analysis" target="_blank" rel="noopener">
-        <span class="card-ic"><svg viewBox="0 0 24 24" fill="none" stroke="#993C1D" stroke-width="1.9"><rect x="2.5" y="5.5" width="19" height="13" rx="3.5"/><path d="M10.3 9.4v5.2l4.6-2.6-4.6-2.6z" fill="#993C1D" stroke="none"/></svg></span>
-        <span><span class="card-t">YouTube Channel</span><span class="card-d">Video lessons on structural analysis and earthquake engineering.</span></span>
-      </a>
-      <a class="card" href="/contact/">
-        <span class="card-ic"><svg viewBox="0 0 24 24" fill="none" stroke="#3D5A80" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M4 7l8 6 8-6"/></svg></span>
-        <span><span class="card-t">Contact</span><span class="card-d">Questions, feedback, or collaboration &mdash; get in touch.</span></span>
-      </a>
+  <h1>Contact</h1>
+  <p class="lead">Questions about the tools, a collaboration idea, or feedback &mdash; happy to hear from you.</p>
+
+  <div class="contact-grid">
+    <div class="side-text">
+      <h2>Get in touch</h2>
+      <p>Whether it's a bug report on one of these tools, a question about structural or earthquake engineering, or a potential collaboration, feel free to reach out directly.</p>
+      <div class="side-links">
+        <a href="mailto:arash.nassirpour@gmail.com">
+          <svg viewBox="0 0 24 24" fill="none"><rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" stroke-width="1.8"/><path d="M4 7l8 6 8-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          arash.nassirpour@gmail.com
+        </a>
+        <a href="https://www.linkedin.com/in/arashnassirpour/" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="18" height="18" rx="3" stroke="currentColor" stroke-width="1.8"/><path d="M8 10.5V17M8 7.2v.1M12 17v-3.7c0-1.3.9-2.3 2.2-2.3 1.3 0 2.3 1 2.3 2.3V17" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+          LinkedIn
+        </a>
+        <a href="https://www.youtube.com/@Structural.Analysis" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24" fill="none"><rect x="2.5" y="5.5" width="19" height="13" rx="3.5" stroke="currentColor" stroke-width="1.8"/><path d="M10.3 9.4v5.2l4.6-2.6-4.6-2.6z" fill="currentColor"/></svg>
+          YouTube
+        </a>
+      </div>
+    </div>
+
+    <div class="form-card">
+      <form id="contact-form">
+        <div class="field">
+          <label for="cf-name">Name</label>
+          <input type="text" id="cf-name" name="name" required autocomplete="name">
+        </div>
+        <div class="field">
+          <label for="cf-email">Email</label>
+          <input type="email" id="cf-email" name="email" required autocomplete="email">
+        </div>
+        <div class="field">
+          <label for="cf-message">Message</label>
+          <textarea id="cf-message" name="message" required></textarea>
+        </div>
+        <button class="submit-btn" type="submit">Send message</button>
+        <div class="form-note">This opens your email app with the message pre-filled, addressed to arash.nassirpour@gmail.com.</div>
+      </form>
+    </div>
   </div>
 </main>
+
+<!-- shared site footer -->
 <footer class="site-ft"><style>
 .site-ft{background:#fff;border-top:1px solid #e5e7eb;flex-shrink:0;font-family:Inter,'Segoe UI',system-ui,sans-serif}
 .site-ft .ft-in{max-width:1080px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;padding:14px 24px}
@@ -157,5 +154,20 @@ h1{font-size:31px;font-weight:600;letter-spacing:-.02em;margin-bottom:10px}
 .site-ft .ft-ic svg{width:15px;height:15px}
 @media(max-width:520px){.site-ft .ft-in{justify-content:center;text-align:center}}
 </style><div class="ft-in"><span class="ft-copy">&copy; 2026 Arash Nassirpour. All rights reserved.</span><nav class="ft-links"><a href="/contact/">Contact</a><a class="ft-ic" href="https://www.youtube.com/@Structural.Analysis" target="_blank" rel="noopener" aria-label="YouTube"><svg viewBox="0 0 24 24" fill="none"><rect x="2.5" y="5.5" width="19" height="13" rx="3.5" stroke="currentColor" stroke-width="1.8"/><path d="M10.3 9.4v5.2l4.6-2.6-4.6-2.6z" fill="currentColor"/></svg></a><a class="ft-ic" href="https://www.linkedin.com/in/arashnassirpour/" target="_blank" rel="noopener" aria-label="LinkedIn"><svg viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="18" height="18" rx="3" stroke="currentColor" stroke-width="1.8"/><path d="M8 10.5V17M8 7.2v.1M12 17v-3.7c0-1.3.9-2.3 2.2-2.3 1.3 0 2.3 1 2.3 2.3V17" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></a></nav></div></footer>
+
+<script>
+document.getElementById('contact-form').addEventListener('submit', function(e){
+  e.preventDefault();
+  var name = document.getElementById('cf-name').value.trim();
+  var email = document.getElementById('cf-email').value.trim();
+  var message = document.getElementById('cf-message').value.trim();
+  var subject = 'Website contact from ' + name;
+  var body = message + '\n\n---\nFrom: ' + name + ' (' + email + ')';
+  var mailto = 'mailto:arash.nassirpour@gmail.com'
+    + '?subject=' + encodeURIComponent(subject)
+    + '&body=' + encodeURIComponent(body);
+  window.location.href = mailto;
+});
+</script>
 </body>
 </html>
