@@ -6,7 +6,7 @@
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>HAZUS Vulnerability Function Explorer</title>
+<title>Vulnerability Function Explorer</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -176,16 +176,16 @@ footer{text-align:center;padding:28px 32px 24px;font-size:12px;color:#5A5660;bor
 .site-hd .hd-ic:hover{color:#111827}
 .site-hd .hd-ic svg{width:17px;height:17px}
 @media(max-width:680px){.site-hd .hd-in{padding:11px 14px}.site-hd .hd-links{gap:13px}.site-hd a{font-size:11.5px}.site-hd .hd-sep{display:none}}
-</style><div class="hd-in"><a class="hd-home" href="/">Home</a><nav class="hd-links"><a href="/earthquake-rupture/">Fault mechanism</a><span class="hd-sep">|</span><a href="/world-faults/">Global faults</a><span class="hd-sep">|</span><a href="/earthquake-dashboard/">Latest earthquakes</a><span class="hd-sep">|</span><a href="/rc-section-designer/">Section designer</a><span class="hd-sep">|</span><a class="hd-ic" href="https://www.youtube.com/@Structural.Analysis" target="_blank" rel="noopener" aria-label="YouTube"><svg viewBox="0 0 24 24" fill="none"><rect x="2.5" y="5.5" width="19" height="13" rx="3.5" stroke="currentColor" stroke-width="1.8"/><path d="M10.3 9.4v5.2l4.6-2.6-4.6-2.6z" fill="currentColor"/></svg></a><a class="hd-ic" href="https://www.linkedin.com/in/arashnassirpour/" target="_blank" rel="noopener" aria-label="LinkedIn"><svg viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="18" height="18" rx="3" stroke="currentColor" stroke-width="1.8"/><path d="M8 10.5V17M8 7.2v.1M12 17v-3.7c0-1.3.9-2.3 2.2-2.3 1.3 0 2.3 1 2.3 2.3V17" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></a></nav></div></header>
+</style><div class="hd-in"><a class="hd-home" href="/">Home</a><nav class="hd-links"><a href="/earthquake-rupture/">Fault Mechanism</a><span class="hd-sep">|</span><a href="/world-faults/">Global Faults</a><span class="hd-sep">|</span><a href="/earthquake-dashboard/">Rapid Earthquake Response</a><span class="hd-sep">|</span><a href="/rc-section-designer/">Reinforced Concrete Section Designer</a><span class="hd-sep">|</span><a href="/hazus/">Vulnerability Explorer</a><span class="hd-sep">|</span><a class="hd-ic" href="https://www.youtube.com/@Structural.Analysis" target="_blank" rel="noopener" aria-label="YouTube"><svg viewBox="0 0 24 24" fill="none"><rect x="2.5" y="5.5" width="19" height="13" rx="3.5" stroke="currentColor" stroke-width="1.8"/><path d="M10.3 9.4v5.2l4.6-2.6-4.6-2.6z" fill="currentColor"/></svg></a><a class="hd-ic" href="https://www.linkedin.com/in/arashnassirpour/" target="_blank" rel="noopener" aria-label="LinkedIn"><svg viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="18" height="18" rx="3" stroke="currentColor" stroke-width="1.8"/><path d="M8 10.5V17M8 7.2v.1M12 17v-3.7c0-1.3.9-2.3 2.2-2.3 1.3 0 2.3 1 2.3 2.3V17" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></a></nav></div></header>
 
 <div class="toast" id="toast"></div>
 <div class="topbar">
   <div class="brand">Vulnerability <span>Explorer</span></div>
     <div class="nav-tabs">
     <div class="nav-sep"></div>
-    <button class="nav-tab active" onclick="show('flood',this)" data-tab="flood">HAZUS Flood</button>
-    <button class="nav-tab" onclick="show('wind',this)" data-tab="wind">HAZUS Wind</button>
-    <button class="nav-tab" onclick="show('eq',this)" data-tab="eq">HAZUS Earthquake</button>
+    <button class="nav-tab active" onclick="show('flood',this)" data-tab="flood">Flood Vulnerability</button>
+    <button class="nav-tab" onclick="show('wind',this)" data-tab="wind">Wind Vulnerability</button>
+    <button class="nav-tab" onclick="show('eq',this)" data-tab="eq">Earthquake Fragility</button>
     <div class="nav-sep"></div>
     
     
@@ -195,7 +195,7 @@ footer{text-align:center;padding:28px 32px 24px;font-size:12px;color:#5A5660;bor
   </div>
 </div>
 <div id="page-flood" class="page active">
-  <div class="page-title">Flood vulnerability functions</div>
+  <div class="page-title">Flood Vulnerability</div>
   <div class="page-sub">Hazus 6.1 &mdash; depth-damage vulnerability functions. Damage ratio (0 to 1) vs flood depth. Source: FEMA Hazus 6.1.</div>
   <div class="filters">
     <div class="fg"><label>Category</label><div class="hint">Broad building use type</div>
@@ -291,7 +291,7 @@ footer{text-align:center;padding:28px 32px 24px;font-size:12px;color:#5A5660;bor
   </div>
 </div>
 <div id="page-wind" class="page">
-  <div class="page-title">Wind / Hurricane vulnerability functions</div>
+  <div class="page-title">Wind Vulnerability</div>
   <div class="page-sub">Hazus 6.1 &mdash; 39 specific building types. Damage ratio vs wind speed. Native: 3-second peak gust at 10 m, open terrain. 1-minute derived using factor 1.28.</div>
   <div class="filters">
     <div class="fg"><label>Material</label><div class="hint">Construction material</div>
@@ -386,7 +386,7 @@ footer{text-align:center;padding:28px 32px 24px;font-size:12px;color:#5A5660;bor
   </div>
 </div>
 <div id="page-eq" class="page">
-  <div class="page-title">Earthquake vulnerability functions</div>
+  <div class="page-title">Earthquake Fragility</div>
   <div class="page-sub">Hazus-MH &mdash; lognormal fragility vulnerability functions. Probability of reaching each damage state vs PGA. Beta = 0.64. Source: Hazus-MH Technical Manual Table 5.16a-d.</div>
   <div class="filters">
     <div class="fg"><label>Material</label><div class="hint">Construction material</div>
