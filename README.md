@@ -15,6 +15,7 @@ The GitHub Pages user site for Arash Nassirpour, providing a single landing page
 | `/modal-analysis/` | `modal-analysis` | Shear-building modal analysis |
 | `/building-response/` | `building-response` | Educational building-response simulation |
 | `/design-spectrum/` | `design-spectrum` | International seismic design-spectrum generator |
+| `/ground-motion/` | `ground-motion` | Ground motion processing, intensity measures and response spectra |
 | `/rc-section-designer/` | `rc-section-designer` | Reinforced-concrete section analysis and checks |
 | `/hazus/` | `hazus` | Hazus vulnerability and fragility explorer |
 
