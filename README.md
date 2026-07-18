@@ -15,9 +15,12 @@ project is automatically served under it:
 | `/` | ArashNass.github.io (this repo) |
 | `/earthquake-rupture/` | earthquake-rupture |
 | `/world-faults/` | world-faults |
-| `/earthquake-dashboard/` | earthquake-dashboard (rebuilds itself every 6 hours) |
+| `/earthquake-dashboard/` | earthquake-dashboard (rebuilds itself hourly) |
 | `/modal-analysis/` | modal-analysis |
 | `/building-response/` | building-response |
+| `/design-spectrum/` | design-spectrum |
+| `/rc-section-designer/` | rc-section-designer |
+| `/hazus/` | hazus |
 
 The `earthquake_rupture`, `world_faults` and `dashboard` folders are redirect
 stubs that forward the old Netlify-era URLs to the new paths. `CNAME` holds
