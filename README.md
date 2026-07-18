@@ -16,6 +16,8 @@ project is automatically served under it:
 | `/earthquake-rupture/` | earthquake-rupture |
 | `/world-faults/` | world-faults |
 | `/earthquake-dashboard/` | earthquake-dashboard (rebuilds itself every 6 hours) |
+| `/modal-analysis/` | modal-analysis |
+| `/building-response/` | building-response |
 
 The `earthquake_rupture`, `world_faults` and `dashboard` folders are redirect
 stubs that forward the old Netlify-era URLs to the new paths. `CNAME` holds
