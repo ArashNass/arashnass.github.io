@@ -19,7 +19,7 @@ The GitHub Pages user site for Arash Nassirpour, providing a single landing page
 | `/rc-section-designer/` | `rc-section-designer` | Reinforced-concrete section analysis and checks |
 | `/hazus/` | `hazus` | Hazus vulnerability and fragility explorer |
 
-Each tool is maintained in its own public repository with GitHub Pages enabled. Because this user site owns the `arashnassirpour.com` custom domain, project sites are served beneath the paths shown above.
+Most tools are maintained in their own public repository with GitHub Pages enabled independently; because those repos' Pages sites inherit this site's verified `arashnassirpour.com` custom domain, they're served beneath the paths shown above without any content duplicated here. `hazus` and `rc-section-designer` are the exception: their own repos' GitHub Pages are currently disabled, and their built output is published from copies committed directly in this repo instead (see below).
 
 ## Repository contents
 
@@ -27,10 +27,13 @@ Each tool is maintained in its own public repository with GitHub Pages enabled. 
 - `CNAME` — custom-domain configuration.
 - `404.html` — fallback page.
 - `robots.txt` and `sitemap.xml` — search-engine discovery.
-- `earthquake_rupture/`, `world_faults/`, and `dashboard/` — redirects from legacy Netlify-era paths.
+- `about/` — about page.
 - `contact/` — contact page.
+- `hazus/` — built copy of the Hazus Vulnerability Explorer (source lives in the `hazus` repo; not auto-synced).
+- `rc-section-designer/` — built copy of SectionForge (source lives in the `rc-section-designer` repo; not auto-synced).
+- `earthquake_rupture/`, `world_faults/`, and `dashboard/` — redirects from legacy Netlify-era paths.
 
-Commits to `main` are published automatically by GitHub Pages.
+Commits to `main` are published automatically by GitHub Pages. Note that `hazus/` and `rc-section-designer/` require a manual rebuild-and-copy from their source repos whenever those tools change; they do not update automatically.
 
 ## Licence
 
