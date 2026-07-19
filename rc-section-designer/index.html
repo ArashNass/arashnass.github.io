@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='4' y='4' width='24' height='24' rx='4' fill='%231a6cf5'/%3E%3Ccircle cx='11' cy='11' r='2.6' fill='%23fbbf24'/%3E%3Ccircle cx='21' cy='11' r='2.6' fill='%23fbbf24'/%3E%3Ccircle cx='11' cy='21' r='2.6' fill='%23fbbf24'/%3E%3Ccircle cx='21' cy='21' r='2.6' fill='%23fbbf24'/%3E%3C/svg%3E">
+<title>SectionForge — RC Designer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/*@CSS@*/
+</style>
+</head>
+<body>
+
+<!-- tooltip -->
+<div id="tt-overlay" class="tt-overlay hidden" onclick="closeTip()"></div>
+<div id="tt-popup" class="tt-popup hidden">
+  <button class="tt-close" onclick="closeTip()">&#10005;</button>
+  <div class="tt-title" id="tt-title"></div>
+  <div class="tt-body" id="tt-body"></div>
+</div>
+
+<!-- header -->
+
+<div class="page">
+
+  <!-- ══════════ INPUT STRIP ══════════ -->
+  <div class="input-strip">
+
+    <!-- inputs box -->
+    <div class="inputs-box">
+
+      <!-- row 1: 4 groups side by side -->
+      <div class="inp-row1">
+
+        <!-- design code: stacked vertically -->
+        <div class="igroup">
+          <div class="igroup-title">Design Code</div>
+          <button class="code-card active" data-code="ACI318">
+            <span class="code-name">ACI 318</span>
+            <span class="code-sub">American Concrete Institute</span>
+          </button>
+          <button class="code-card" data-code="EC2">
+            <span class="code-name">Eurocode 2</span>
+            <span class="code-sub">EN 1992-1-1</span>
+          </button>
+          <div class="flbl" style="margin-top:6px">Units</div>
+          <div class="shape-row" style="margin-bottom:0">
+            <button class="shape-card unit-card active" data-units="SI">SI &#183; kN &#183; mm</button>
+            <button class="shape-card unit-card" data-units="US">US &#183; kip &#183; in</button>
+          </div>
+        </div>
+
+        <!-- geometry -->
+        <div class="igroup">
+          <div class="igroup-title">Geometry</div>
+          <div class="flbl" style="margin-bottom:4px">Section shape</div>
+          <div class="shape-row">
+            <button class="shape-card active" data-shape="rect" title="Rectangular">Rectangular</button>
+            <button class="shape-card" data-shape="circ" title="Circular">Circular</button>
+            <button class="shape-card" data-shape="tee" title="T-section">T-Section</button>
+          </div>
+          <div id="geo-rect">
+          <div class="field-row">
+            <div class="field">
+              <label class="flbl">Width b <span class="ibtn" onclick="showTip('b')">?</span><em>mm</em></label>
+              <input type="number" id="b" value="300" min="50" max="3000">
+            </div>
+            <div class="field">
+              <label class="flbl">Depth h <span class="ibtn" onclick="showTip('h')">?</span><em>mm</em></label>
+              <input type="number" id="h" value="400" min="50" max="3000">
+            </div>
+          </div>
+          </div>
+          <div id="geo-circ" class="hidden">
+            <div class="field">
+              <label class="flbl">Diameter D <span class="ibtn" onclick="showTip('D')">?</span><em>mm</em></label>
+              <input type="number" id="D" value="450" min="100" max="3000">
+            </div>
+          </div>
+          <div id="geo-tee" class="hidden">
+            <div class="field-row">
+              <div class="field">
+                <label class="flbl">Flange bf <span class="ibtn" onclick="showTip('bf')">?</span><em>mm</em></label>
+                <input type="number" id="bf" value="1000" min="100" max="4000">
+              </div>
+              <div class="field">
+                <label class="flbl">Flange hf <span class="ibtn" onclick="showTip('hf')">?</span><em>mm</em></label>
+                <input type="number" id="hf" value="150" min="50" max="1000">
+              </div>
+            </div>
+            <div class="field-row">
+              <div class="field">
+                <label class="flbl">Web bw <span class="ibtn" onclick="showTip('bw')">?</span><em>mm</em></label>
+                <input type="number" id="bw" value="300" min="50" max="3000">
+              </div>
+              <div class="field">
+                <label class="flbl">Depth h <span class="ibtn" onclick="showTip('h')">?</span><em>mm</em></label>
+                <input type="number" id="th" value="600" min="100" max="3000">
+              </div>
+            </div>
+          </div>
+          <div class="field">
+            <label class="flbl">Cover d' <span class="ibtn" onclick="showTip('dp')">?</span><em>mm</em></label>
+            <div class="srow">
+              <input type="range" id="dp" class="sli" min="30" max="100" value="50">
+              <span id="dp-val" class="sval">50 mm</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- materials -->
+        <div class="igroup">
+          <div class="igroup-title">Materials</div>
+          <div class="field-row">
+            <div class="field">
+              <label class="flbl"><span id="lbl-fc">Concrete strength f'c</span> <span class="ibtn" onclick="showTip('fc')">?</span><em>MPa</em></label>
+              <input type="number" id="fc" value="30" min="10" max="100">
+            </div>
+            <div class="field">
+              <label class="flbl"><span id="lbl-fy">Steel yield fy</span> <span class="ibtn" onclick="showTip('fy')">?</span><em>MPa</em></label>
+              <input type="number" id="fy" value="420" min="200" max="700">
+            </div>
+          </div>
+          <div class="field">
+            <label class="flbl">Steel ratio &#961; <span class="ibtn" onclick="showTip('rho')">?</span><em>%</em></label>
+            <div class="srow">
+              <input type="range" id="rho" class="sli" min="1" max="8" step="0.1" value="3">
+              <span id="rho-val" class="sval">3.0 %</span>
+            </div>
+          </div>
+          <div class="field">
+            <label class="flbl">Bar diameter <span class="ibtn" onclick="showTip('dbar')">?</span><em>mm</em></label>
+            <div class="srow">
+              <input type="range" id="dbar" class="sli" min="10" max="40" step="2" value="20">
+              <span id="dbar-val" class="sval">&#216;20 mm</span>
+            </div>
+          </div>
+          <div class="ec2-factors hidden" id="ec2-factors">
+            <div class="igroup-title" style="border-bottom:none; padding-bottom:2px;">Partial Safety Factors</div>
+            <div class="factor-row">
+              <div class="field">
+                <label class="flbl">Concrete &#947;c <span class="ibtn" onclick="showTip('gamma_c')">?</span></label>
+                <input type="number" id="gamma_c" value="1.50" min="1.0" max="2.0" step="0.05">
+              </div>
+              <div class="field">
+                <label class="flbl">Steel &#947;s <span class="ibtn" onclick="showTip('gamma_s')">?</span></label>
+                <input type="number" id="gamma_s" value="1.15" min="1.0" max="1.5" step="0.05">
+              </div>
+              <div class="field">
+                <label class="flbl">Long-term &#945;cc <span class="ibtn" onclick="showTip('acc')">?</span></label>
+                <input type="number" id="acc" value="0.85" min="0.5" max="1.0" step="0.05">
+              </div>
+            </div>
+            <div class="design-strengths" id="design-strengths">fcd = &#8212; &#183; fyd = &#8212;</div>
+          </div>
+        </div>
+
+        <!-- forces -->
+        <div class="igroup">
+          <div class="igroup-title">Applied Forces (ULS)</div>
+          <div class="field-row">
+            <div class="field">
+              <label class="flbl">Axial N* <span class="ibtn" onclick="showTip('Nd')">?</span><em>kN</em></label>
+              <input type="number" id="Nd" value="1200" min="0">
+            </div>
+            <div class="field">
+              <label class="flbl">Moment M* <span class="ibtn" onclick="showTip('Md')">?</span><em>kNm</em></label>
+              <input type="number" id="Md" value="200" min="0">
+            </div>
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <label class="flbl">Shear V* <span class="ibtn" onclick="showTip('Vd')">?</span><em>kN</em></label>
+              <input type="number" id="Vd" value="150" min="0">
+            </div>
+            <div class="field">
+              <label class="flbl">SLS moment <span class="ibtn" onclick="showTip('Msls')">?</span><em>kNm</em></label>
+              <input type="number" id="Msls" value="120" min="0">
+            </div>
+          </div>
+          <div class="field" id="biaxial-my-wrap">
+            <label class="flbl">Y-axis My* <span class="ibtn" onclick="showTip('Mdy')">?</span><em>kNm</em></label>
+            <input type="number" id="Mdy" value="100" min="0">
+          </div>
+        </div>
+
+      </div><!-- /inp-row1 -->
+
+    </div><!-- /inputs-box -->
+
+    <!-- section preview -->
+    <div class="preview-box">
+      <div class="preview-hdr">
+        <span class="preview-title">Section Preview</span>
+        <span class="preview-dims" id="prev-dims">300 × 400 mm</span>
+      </div>
+      <canvas id="prev-canvas"></canvas>
+    </div>
+
+  </div><!-- /input-strip -->
+
+  <!-- ══════════ ADVANCED OPTIONS ══════════ -->
+  <div class="adv-strip">
+    <div class="adv-card">
+        <div class="rebar-cell">
+          <button class="rebar-toggle-btn" id="rebar-toggle-btn" onclick="toggleCustomBars()">
+            Custom Rebar Layout
+            <span class="rebar-arrow" id="rebar-arrow">&#9660;</span>
+          </button>
+          <div id="custom-bars-panel" class="rebar-panel hidden">
+            <div class="bars-info">Enter 0 to skip a face. Mid bars go on left &amp; right sides only.</div>
+            <div class="fixed-bars-grid">
+              <div class="fixed-bar-row">
+                <div class="fixed-bar-label top">Top</div>
+                <div class="fixed-bar-inputs">
+                  <div class="fixed-bar-field"><span class="fbar-unit">n bars</span><input type="number" id="bar-top-n" class="fbar-inp" value="4" min="0" max="20" oninput="updateBarsTotal()"></div>
+                  <div class="fixed-bar-field"><span class="fbar-unit">dia.</span><select id="bar-top-dia" class="fbar-sel" onchange="updateBarsTotal()"><option value="12">&#216;12</option><option value="16">&#216;16</option><option value="20" selected>&#216;20</option><option value="25">&#216;25</option><option value="32">&#216;32</option><option value="40">&#216;40</option></select><span class="fbar-unit-end">mm</span></div>
+                </div>
+              </div>
+              <div class="fixed-bar-row">
+                <div class="fixed-bar-label mid">Mid</div>
+                <div class="fixed-bar-inputs">
+                  <div class="fixed-bar-field"><span class="fbar-unit">n/side</span><input type="number" id="bar-mid-n" class="fbar-inp" value="2" min="0" max="10" oninput="updateBarsTotal()"></div>
+                  <div class="fixed-bar-field"><span class="fbar-unit">dia.</span><select id="bar-mid-dia" class="fbar-sel" onchange="updateBarsTotal()"><option value="12">&#216;12</option><option value="16">&#216;16</option><option value="20" selected>&#216;20</option><option value="25">&#216;25</option><option value="32">&#216;32</option><option value="40">&#216;40</option></select><span class="fbar-unit-end">mm</span></div>
+                </div>
+              </div>
+              <div class="fixed-bar-row">
+                <div class="fixed-bar-label bot">Bot</div>
+                <div class="fixed-bar-inputs">
+                  <div class="fixed-bar-field"><span class="fbar-unit">n bars</span><input type="number" id="bar-bot-n" class="fbar-inp" value="4" min="0" max="20" oninput="updateBarsTotal()"></div>
+                  <div class="fixed-bar-field"><span class="fbar-unit">dia.</span><select id="bar-bot-dia" class="fbar-sel" onchange="updateBarsTotal()"><option value="12">&#216;12</option><option value="16">&#216;16</option><option value="20" selected>&#216;20</option><option value="25">&#216;25</option><option value="32">&#216;32</option><option value="40">&#216;40</option></select><span class="fbar-unit-end">mm</span></div>
+                </div>
+              </div>
+            </div>
+            <div class="bars-total" id="bars-total">Total As: — mm²</div>
+          </div>
+        </div>
+
+        
+    </div>
+    <div class="adv-card">
+<div class="rebar-cell">
+          <button class="rebar-toggle-btn" id="slender-toggle-btn" onclick="toggleSlender()">
+            Column Length &amp; Buckling
+            <span class="rebar-arrow" id="slender-arrow">&#9660;</span>
+          </button>
+          <div id="slender-panel" class="rebar-panel hidden">
+            <div class="bars-info">Second-order effects (slenderness). ACI moment magnification / EC2 nominal curvature.</div>
+            <label class="sl-check"><input type="checkbox" id="sl-enable" onchange="drawSection()"> Include slenderness in ULS check</label>
+            <div class="field-row">
+              <div class="field">
+                <label class="flbl">Unbraced length l<sub>u</sub> <span class="ibtn" onclick="showTip('lu')">?</span><em>mm</em></label>
+                <input type="number" id="sl-lu" value="3500" min="100" max="30000">
+              </div>
+              <div class="field">
+                <label class="flbl">Eff. length k <span class="ibtn" onclick="showTip('kfac')">?</span><em>&#8211;</em></label>
+                <input type="number" id="sl-k" value="1.0" min="0.5" max="2.5" step="0.05">
+              </div>
+            </div>
+            <div class="field-row">
+              <div class="field">
+                <label class="flbl">Frame type <span class="ibtn" onclick="showTip('sway')">?</span></label>
+                <select id="sl-sway" class="field-select">
+                  <option value="0" selected>Braced (non-sway)</option>
+                  <option value="1">Sway frame</option>
+                </select>
+              </div>
+              <div class="field">
+                <label class="flbl">M1/M2 ratio <span class="ibtn" onclick="showTip('m1m2')">?</span><em>&#8211;</em></label>
+                <input type="number" id="sl-m1m2" value="1.0" min="-1" max="1" step="0.1">
+              </div>
+            </div>
+            <div class="bars-total">Slenderness result: <span id="slender-result">run analysis to evaluate</span></div>
+          </div>
+        </div>
+    </div>
+  </div><!-- /adv-strip -->
+
+  <!-- row 2: analyse -->
+  <div class="inp-row2">
+    <div class="analyse-cell">
+      <div class="error-box hidden" id="err-box"><span id="err-msg"></span></div>
+      <button class="analyse-btn" id="analyse-btn">
+        <span id="btn-label">Analyse Section</span>
+        <span id="btn-spin" class="spin hidden"></span>
+      </button>
+      <div id="analysis-done-note" style="display:none" class="done-note"></div>
+      <button class="chart-dl-btn" id="autodesign-btn" onclick="autoDesign()"
+              title="Find the minimum steel ratio that passes every check">
+        Auto-Design &#961;min
+      </button>
+      <div class="bars-info hidden" id="autodesign-msg"></div>
+    </div>
+  </div><!-- /inp-row2 -->
+
+  <div id="stale-banner" class="stale-banner hidden">
+    Inputs have changed &mdash; the results below are outdated. Press <b>Analyse Section</b> to refresh.
+  </div>
+
+  <!-- ══════════ RESULTS NAV (folder tabs) ══════════ -->
+<header class="hdr">
+  <div class="hdr-in">
+    <nav class="topnav">
+      <a href="#" class="tnav" onclick="showTab('mn');return false">M-N Diagram</a>
+      <a href="#" class="tnav" onclick="showTab('biaxial');return false">Biaxial</a>
+      <a href="#" class="tnav" onclick="showTab('mc');return false">M-&#981; Curve</a>
+      <a href="#" class="tnav" onclick="showTab('checks');return false">Checks</a>
+    </nav>
+  </div>
+</header>
+  <div class="results-strip">
+
+    <!-- M-N tab -->
+    <div class="tab-panel active" id="tab-mn">
+      <div class="panel-card">
+        <div class="card-header">
+          <span class="card-title">M – N Interaction Diagram</span>
+          <span class="card-badge" id="mn-code-label">ACI 318 · &#966; factors applied</span>
+        </div>
+        <div class="chart-area" style="height:420px">
+          <canvas id="mn-chart"></canvas>
+          <div class="chart-empty" id="mn-empty"><div>Click <strong>Analyse Section</strong> to generate</div></div>
+        </div>
+        <div class="ecc-box hidden" id="ecc-box">
+          <span class="ecc-item"><span class="ecc-label">e = M/N</span><span class="ecc-val" id="ecc-val">—</span></span>
+          <span class="ecc-item"><span class="ecc-label">Min e</span><span class="ecc-val" id="ecc-min">—</span></span>
+          <span class="ecc-item"><span class="ecc-label">Status</span><span class="ecc-val" id="ecc-status">—</span></span>
+        </div>
+        <div class="legend-row">
+          <span class="leg-item"><span class="leg-dot" style="background:#1a6cf5"></span>Compression-controlled</span>
+          <span class="leg-item"><span class="leg-dot" style="background:#e84040"></span>Tension-controlled</span>
+          <span class="leg-item"><span class="leg-dot" style="background:#f59e0b;border-radius:2px;width:12px;height:5px"></span>Balanced point</span>
+          <span class="leg-item"><span class="leg-dot" style="background:#16a34a"></span>Design point (N*, M*)</span>
+        </div>
+        <div class="chart-export-row">
+          <span class="export-row-label">Save:</span>
+          <button class="chart-dl-btn" onclick="downloadChart('mn-chart','MN_Diagram')">PNG</button>
+          <button class="chart-dl-btn" id="dl-pdf" onclick="downloadPDF()">PDF Report</button>
+          <button class="chart-dl-btn" id="dl-xl" onclick="downloadExcel()">Excel Data</button>
+        </div>
+      </div>
+      <div class="kpi-row">
+        <div class="kpi"><div class="kpi-label">&#966;Pn max</div><div class="kpi-val" id="k-pmax">—</div><div class="kpi-sub">Compression cap</div></div>
+        <div class="kpi"><div class="kpi-label">Balanced N</div><div class="kpi-val" id="k-bal-n">—</div><div class="kpi-sub">At balanced point</div></div>
+        <div class="kpi"><div class="kpi-label">Balanced M</div><div class="kpi-val" id="k-bal-m">—</div><div class="kpi-sub">At balanced point</div></div>
+        <div class="kpi"><div class="kpi-label">Pure bending &#966;Mn</div><div class="kpi-val" id="k-purem">—</div><div class="kpi-sub">Zero axial</div></div>
+      </div>
+    </div>
+
+    <!-- Biaxial tab -->
+    <div class="tab-panel" id="tab-biaxial">
+      <div class="panel-card">
+        <div class="card-header">
+          <span class="card-title">Biaxial Bending Failure Surface</span>
+          <span class="card-badge">Mx–My at constant N levels</span>
+        </div>
+        <div class="chart-area" style="height:440px">
+          <canvas id="biaxial-chart"></canvas>
+          <div class="chart-empty" id="biaxial-empty"><div>Run analysis first</div></div>
+          <div class="chart-empty hidden" id="biaxial-unsup"><div id="biaxial-unsup-txt" style="max-width:420px"></div></div>
+        </div>
+        <div class="legend-row" id="biaxial-legend"></div>
+        <div class="chart-export-row">
+          <span class="export-row-label">Save:</span>
+          <button class="chart-dl-btn" onclick="downloadChart('biaxial-chart','Biaxial_Surface')">PNG</button>
+          <button class="chart-dl-btn" onclick="downloadExcel()">Excel</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- M-phi tab -->
+    <div class="tab-panel" id="tab-mc">
+      <div class="panel-card">
+        <div class="card-header">
+          <span class="card-title">Moment – Curvature Diagram</span>
+          <span class="card-badge">Fiber model · Nominal moments · No &#966; factor</span>
+        </div>
+        <div class="chart-area" style="height:420px">
+          <canvas id="mc-chart"></canvas>
+          <div class="chart-empty" id="mc-empty"><div>Run analysis first</div></div>
+        </div>
+        <div class="chart-export-row">
+          <span class="export-row-label">Save:</span>
+          <button class="chart-dl-btn" onclick="downloadChart('mc-chart','Moment_Curvature')">PNG</button>
+          <button class="chart-dl-btn" onclick="downloadExcel()">Excel</button>
+          <span class="export-row-label" id="mc-consist" style="margin-left:auto"></span>
+        </div>
+      </div>
+      <div class="kpi-row">
+        <div class="kpi"><div class="kpi-label">Yield Moment</div><div class="kpi-val" id="k-my">—</div><div class="kpi-sub">First yield</div></div>
+        <div class="kpi"><div class="kpi-label">Yield Curvature</div><div class="kpi-val" id="k-phiy">—</div><div class="kpi-sub">&#215;10&#8315;&#8310; rad/mm</div></div>
+        <div class="kpi"><div class="kpi-label">Ultimate Moment</div><div class="kpi-val" id="k-mu">—</div><div class="kpi-sub">At failure</div></div>
+        <div class="kpi"><div class="kpi-label">Ductility &#956;</div><div class="kpi-val" id="k-mu-d">—</div><div class="kpi-sub">&#981;u / &#981;y</div></div>
+      </div>
+    </div>
+
+    <!-- Checks tab -->
+    <div class="tab-panel" id="tab-checks">
+      <div id="summary-banner" class="hidden"></div>
+      <div class="checks-grid">
+        <div class="check-card neutral" id="chk-uls"><div class="chk-top"><span class="chk-icon"></span><span class="chk-badge neutral" id="badge-uls">Not run</span></div><div class="chk-name">ULS Flexure + Axial</div><div class="chk-val" id="cv-uls">—</div><div class="chk-sub" id="cs-uls">Run analysis first</div><div class="chk-bar-wrap"><div class="chk-bar" id="cb-uls"></div></div></div>
+        <div class="check-card neutral" id="chk-shear"><div class="chk-top"><span class="chk-icon"></span><span class="chk-badge neutral" id="badge-sh">Not run</span></div><div class="chk-name">Shear Capacity &#966;Vc</div><div class="chk-val" id="cv-sh">—</div><div class="chk-sub" id="cs-sh">Run analysis first</div><div class="chk-bar-wrap"><div class="chk-bar" id="cb-sh"></div></div></div>
+        <div class="check-card neutral" id="chk-crack"><div class="chk-top"><span class="chk-icon"></span><span class="chk-badge neutral" id="badge-cr">Not run</span></div><div class="chk-name">SLS Crack Width wk</div><div class="chk-val" id="cv-cr">—</div><div class="chk-sub" id="cs-cr">Run analysis first</div><div class="chk-bar-wrap"><div class="chk-bar" id="cb-cr"></div></div></div>
+        <div class="check-card neutral" id="chk-steel"><div class="chk-top"><span class="chk-icon"></span><span class="chk-badge neutral" id="badge-as">Not run</span></div><div class="chk-name">Reinforcement Limits</div><div class="chk-val" id="cv-as">—</div><div class="chk-sub" id="cs-as">Run analysis first</div><div class="chk-bar-wrap"><div class="chk-bar" id="cb-as"></div></div></div>
+      </div>
+      <div class="panel-card hidden" id="detail-card">
+        <div class="card-header">
+          <span class="card-title">Complete Results</span>
+          <button class="chart-dl-btn" onclick="downloadPDF()">PDF Report</button>
+        </div>
+        <div class="spec-grid" id="detail-tbody"></div>
+      </div>
+    </div>
+
+  </div><!-- /results-strip -->
+
+</div><!-- /page -->
+
+<footer class="footer">
+  <span>Not a substitute for professional engineering judgement</span>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+/*@JS@*/
+</script>
+</body>
+</html>

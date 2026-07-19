@@ -1,0 +1,4128 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<meta content="Eurocode 8, ASCE 7-22, NZS 1170.5, AS 1170.4, NBC, TBDY 2018, IS 1893, GB 50011, NTC-Sismo and Iran Standard 2800 seismic spectrum generator" name="description"/>
+<title>Seismic Design Spectrum Generator — Seismic Tools</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&amp;family=IBM+Plex+Mono:wght@400;500;600;700&amp;family=IBM+Plex+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<style>
+    :root {
+      --bg: #f3f2ec;
+      --grid-line: rgba(27, 58, 107, 0.07);
+      --panel: #ffffff;
+      --panel-soft: #faf9f4;
+      --text: #1a1f29;
+      --muted: #5c6270;
+      --border: #dcdcd0;
+      --accent: #1b3a6b;
+      --accent-dark: #0f2547;
+      --accent-soft: #e8ecf3;
+      --orange: #b5651d;
+      --green: #0f766e;
+      --danger: #a3271f;
+      --shadow: 0 1px 0 rgba(26, 31, 41, 0.04);
+      --radius: 10px;
+      --display: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+      --mono: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        repeating-linear-gradient(to right, var(--grid-line) 0 1px, transparent 1px 88px),
+        repeating-linear-gradient(to bottom, var(--grid-line) 0 1px, transparent 1px 88px),
+        var(--bg);
+      color: var(--text);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    .page {
+      width: min(1260px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 32px 0 44px;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 20px;
+      margin-bottom: 24px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .eyebrow {
+      margin: 0 0 10px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--accent);
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      font-weight: 500;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .eyebrow::before {
+      content: "";
+      width: 7px;
+      height: 7px;
+      border-radius: 1px;
+      background: var(--accent);
+      transform: rotate(45deg);
+    }
+
+    h1 {
+      margin: 0;
+      max-width: 800px;
+      font-family: var(--display);
+      font-size: clamp(1.9rem, 3.6vw, 3rem);
+      line-height: 1.05;
+      letter-spacing: -0.02em;
+      font-weight: 600;
+    }
+
+    .subtitle {
+      max-width: 800px;
+      margin: 14px 0 0;
+      color: var(--muted);
+      line-height: 1.65;
+      font-size: 1rem;
+    }
+
+    .code-badge {
+      flex: 0 0 auto;
+      padding: 10px 16px;
+      border: 1px solid var(--accent);
+      border-radius: 4px;
+      background: var(--panel);
+      color: var(--accent-dark);
+      font-family: var(--mono);
+      font-size: 0.78rem;
+      font-weight: 500;
+      letter-spacing: 0.02em;
+      white-space: nowrap;
+      position: relative;
+    }
+
+    .code-badge::before {
+      content: "STANDARD";
+      position: absolute;
+      top: -8px;
+      left: 10px;
+      padding: 0 5px;
+      background: var(--bg);
+      color: var(--muted);
+      font-size: 0.56rem;
+      letter-spacing: 0.14em;
+      font-weight: 600;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(315px, 0.8fr) minmax(0, 1.55fr);
+      gap: 22px;
+      align-items: start;
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .controls {
+      padding: 22px;
+      position: sticky;
+      top: 18px;
+    }
+
+    .card-title {
+      margin: 0 0 4px;
+      font-family: var(--display);
+      font-weight: 600;
+      font-size: 1.05rem;
+      letter-spacing: -0.01em;
+    }
+
+    .card-copy {
+      margin: 0 0 20px;
+      color: var(--muted);
+      line-height: 1.5;
+      font-size: 0.88rem;
+    }
+
+
+    .standard-picker {
+      position: relative;
+    }
+
+    .standard-native {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .standard-picker-button {
+      width: 100%;
+      min-height: 64px;
+      display: grid;
+      grid-template-columns: 42px minmax(0, 1fr) 18px;
+      align-items: center;
+      gap: 11px;
+      padding: 9px 12px;
+      border: 1px solid var(--accent);
+      border-radius: 6px;
+      background: #fff;
+      color: var(--text);
+      text-align: left;
+      cursor: pointer;
+      transition: border-color 0.18s, box-shadow 0.18s;
+    }
+
+    .standard-picker-button:hover {
+      border-color: var(--accent-dark);
+    }
+
+    .standard-picker-button:focus-visible {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 4px rgba(36, 87, 214, 0.11);
+    }
+
+    .standard-flag {
+      width: 38px;
+      height: 26px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      border: 1px solid rgba(16, 24, 40, 0.12);
+      border-radius: 6px;
+      background: #fff;
+      box-shadow: 0 3px 8px rgba(16, 24, 40, 0.08);
+    }
+
+    .standard-flag svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .standard-picker-copy {
+      min-width: 0;
+    }
+
+    .standard-picker-country {
+      display: block;
+      color: var(--text);
+      font-size: 0.9rem;
+      font-weight: 850;
+      line-height: 1.2;
+    }
+
+    .standard-picker-code {
+      display: block;
+      margin-top: 3px;
+      color: var(--muted);
+      font-size: 0.74rem;
+      font-weight: 650;
+      line-height: 1.25;
+    }
+
+    .standard-picker-chevron {
+      color: #667085;
+      font-size: 0.95rem;
+      transition: transform 0.18s;
+    }
+
+    .standard-picker-button[aria-expanded="true"] .standard-picker-chevron {
+      transform: rotate(180deg);
+    }
+
+    .standard-menu {
+      position: absolute;
+      z-index: 50;
+      top: calc(100% + 8px);
+      left: 0;
+      right: 0;
+      max-height: 390px;
+      overflow-y: auto;
+      padding: 7px;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.99);
+      box-shadow: 0 22px 55px rgba(24, 39, 75, 0.18);
+    }
+
+    .standard-menu-option {
+      width: 100%;
+      display: grid;
+      grid-template-columns: 40px minmax(0, 1fr) 22px;
+      align-items: center;
+      gap: 11px;
+      padding: 9px 10px;
+      border: 0;
+      border-radius: 10px;
+      background: transparent;
+      color: var(--text);
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .standard-menu-option:hover,
+    .standard-menu-option.active {
+      background: var(--accent-soft);
+    }
+
+    .standard-menu-option .checkmark {
+      color: var(--accent);
+      font-weight: 900;
+      text-align: center;
+    }
+
+    .standard-field {
+      padding: 14px;
+      margin-bottom: 18px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--panel-soft);
+    }
+
+    .field {
+      margin-bottom: 16px;
+    }
+
+    label {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 7px;
+      color: #344054;
+      font-size: 0.82rem;
+      font-weight: 750;
+      cursor: help;
+      text-decoration: underline dotted var(--muted) 1px;
+      text-underline-offset: 3px;
+    }
+
+    .hint {
+      color: #98a2b3;
+      font-weight: 600;
+    }
+
+    select,
+    input {
+      width: 100%;
+      min-height: 46px;
+      border: 1px solid var(--border);
+      border-radius: 11px;
+      background: #fff;
+      color: var(--text);
+      padding: 10px 12px;
+      outline: none;
+      font: inherit;
+      transition: border-color 0.18s, box-shadow 0.18s;
+    }
+
+    select:focus,
+    input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 4px rgba(36, 87, 214, 0.11);
+    }
+
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .hidden { display: none !important; }
+
+    .section-divider {
+      height: 1px;
+      margin: 4px 0 18px;
+      background: var(--border);
+    }
+
+    .field-group {
+      margin: 4px 0 18px;
+      padding-bottom: 2px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .field-group summary {
+      list-style: none;
+      cursor: pointer;
+      margin: 0 0 14px;
+      padding: 2px 0 10px;
+      color: var(--accent-dark);
+      font-size: 0.78rem;
+      font-weight: 650;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .field-group summary::-webkit-details-marker { display: none; }
+
+    .field-group summary::after {
+      content: "+";
+      font-family: var(--mono);
+      font-size: 0.95rem;
+      font-weight: 500;
+      color: var(--muted);
+      transition: transform 0.15s;
+    }
+
+    .field-group[open] summary::after { content: "\2212"; }
+
+    .field-group summary:hover { color: var(--accent); }
+
+    input.invalid {
+      border-color: var(--danger);
+      background: #fff7f6;
+      box-shadow: 0 0 0 3px rgba(163, 39, 31, 0.10);
+    }
+
+    .field-error {
+      display: block;
+      margin-top: 6px;
+      color: var(--danger);
+      font-size: 0.72rem;
+      font-weight: 650;
+      line-height: 1.4;
+    }
+
+    .action-row {
+      display: flex;
+      gap: 10px;
+      margin-top: 4px;
+    }
+
+    button {
+      font: inherit;
+    }
+
+    button.primary,
+    button.secondary {
+      min-height: 42px;
+      border-radius: 6px;
+      padding: 0 14px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      letter-spacing: 0.01em;
+      cursor: pointer;
+    }
+
+    button.primary {
+      flex: 1;
+      border: 1px solid var(--accent);
+      background: var(--accent);
+      color: #fff;
+    }
+
+    button.primary:hover { background: var(--accent-dark); }
+
+    button.secondary {
+      border: 1px solid var(--border);
+      background: #fff;
+      color: var(--muted);
+    }
+
+    button.secondary:hover { border-color: var(--accent); color: var(--accent); }
+
+    button:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
+
+    .lookup-panel {
+      padding: 14px;
+      margin-bottom: 16px;
+      border: 1px solid #d5deef;
+      border-radius: 13px;
+      background: var(--panel-soft);
+    }
+
+    .status {
+      display: none;
+      margin-top: 10px;
+      padding: 10px 11px;
+      border-radius: 9px;
+      font-size: 0.77rem;
+      line-height: 1.45;
+    }
+
+    .status.show { display: block; }
+    .status.info { background: #eef4ff; color: #344054; }
+    .status.success { background: #ecfdf3; color: #067647; }
+    .status.error { background: #fef3f2; color: var(--danger); }
+
+    .main {
+      display: grid;
+      gap: 18px;
+    }
+
+    .results {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+    }
+
+    .metric {
+      min-height: 116px;
+      padding: 16px 17px;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-top: 2px solid var(--accent);
+      border-radius: 6px;
+    }
+
+    .metric .label {
+      display: block;
+      min-height: 34px;
+      color: var(--muted);
+      font-size: 0.73rem;
+      font-weight: 650;
+      line-height: 1.35;
+    }
+
+    .metric .value {
+      display: block;
+      margin-top: 8px;
+      color: var(--text);
+      font-family: var(--mono);
+      font-size: clamp(1.2rem, 2.2vw, 1.7rem);
+      font-weight: 500;
+      letter-spacing: -0.01em;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .metric .unit {
+      margin-left: 3px;
+      color: var(--muted);
+      font-size: 0.72rem;
+      font-weight: 600;
+    }
+
+    .chart-card {
+      padding: 20px 20px 14px;
+    }
+
+    .chart-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: flex-start;
+      margin-bottom: 10px;
+    }
+
+    .chart-title {
+      margin: 0;
+      font-family: var(--display);
+      font-weight: 600;
+      font-size: 1.05rem;
+    }
+
+    .chart-subtitle {
+      margin: 5px 0 0;
+      color: var(--muted);
+      font-size: 0.82rem;
+    }
+
+    .legend {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      flex-wrap: wrap;
+      color: var(--muted);
+      font-size: 0.79rem;
+      font-weight: 700;
+    }
+
+    .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      white-space: nowrap;
+    }
+
+    .legend-line {
+      display: inline-block;
+      width: 27px;
+      height: 3px;
+      border-radius: 999px;
+    }
+
+    .unit-toggle {
+      display: inline-flex;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .unit-toggle-btn {
+      min-height: 28px;
+      padding: 0 12px;
+      border: 0;
+      background: var(--panel-soft);
+      color: var(--muted);
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .unit-toggle-btn:hover { color: var(--accent-dark); }
+
+    .unit-toggle-btn.active {
+      background: var(--green);
+      color: #fff;
+    }
+
+    .line-one { background: var(--accent); }
+    .line-two {
+      height: 0;
+      border-top: 3px dashed var(--orange);
+    }
+
+    .canvas-wrap {
+      position: relative;
+      height: 440px;
+      width: 100%;
+    }
+
+    canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .details {
+      padding: 20px;
+    }
+
+    .parameter-grid {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 10px;
+      margin-top: 15px;
+    }
+
+    .parameter {
+      padding: 12px 10px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--panel-soft);
+      text-align: center;
+    }
+
+    .parameter span {
+      display: block;
+      color: var(--muted);
+      font-size: 0.68rem;
+      font-weight: 650;
+      line-height: 1.3;
+    }
+
+    .parameter strong {
+      display: block;
+      margin-top: 5px;
+      font-family: var(--mono);
+      font-weight: 500;
+      font-size: 0.92rem;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .note {
+      margin-top: 16px;
+      padding: 13px 14px;
+      border-left: 2px solid var(--accent);
+      border-radius: 4px;
+      background: var(--accent-soft);
+      color: var(--text);
+      font-size: 0.79rem;
+      line-height: 1.55;
+    }
+
+    .formula {
+      margin-top: 15px;
+      padding: 14px;
+      border-radius: 6px;
+      background: var(--accent-dark);
+      color: #dbe4f3;
+      overflow-x: auto;
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      line-height: 1.65;
+      white-space: pre;
+    }
+
+    .source-link {
+      color: var(--accent);
+      font-weight: 750;
+      text-decoration: none;
+    }
+
+    .source-link:hover { text-decoration: underline; }
+
+    .footer {
+      margin-top: 20px;
+      color: #98a2b3;
+      font-size: 0.75rem;
+      line-height: 1.5;
+      text-align: center;
+    }
+
+    @media (max-width: 1000px) {
+      .layout { grid-template-columns: 1fr; }
+      .controls { position: static; }
+      .results { grid-template-columns: repeat(2, 1fr); }
+      .parameter-grid { grid-template-columns: repeat(3, 1fr); }
+    }
+
+    @media (max-width: 640px) {
+      .page { width: min(100% - 20px, 1260px); padding-top: 20px; }
+      .header { display: block; }
+      .code-badge { display: inline-block; margin-top: 16px; }
+      .two-col { grid-template-columns: 1fr; gap: 0; }
+      .results { grid-template-columns: 1fr 1fr; }
+      .metric { min-height: 104px; padding: 14px; }
+      .parameter-grid { grid-template-columns: repeat(2, 1fr); }
+      .canvas-wrap { height: 350px; }
+      .chart-top { display: block; }
+      .legend { margin-top: 10px; }
+    }
+  </style>
+<style id="site-theme-overrides">
+    :root{
+      --bg:#eef2f8;
+      --panel:#ffffff;
+      --panel-soft:#f6f8fc;
+      --grid-line:rgba(68,87,232,.06);
+      --text:#1c2333;
+      --muted:#6b7488;
+      --border:#e2e7f0;
+      --accent:#4457e8;
+      --accent-dark:#2f3fc4;
+      --accent-soft:#eef2ff;
+      --orange:#e08a2b;
+      --green:#2f9d72;
+      --danger:#d0451f;
+      --shadow:0 1px 2px rgba(28,35,51,.04), 0 10px 28px rgba(28,35,51,.06);
+      --radius:14px;
+      --display:"Space Grotesk", "IBM Plex Sans", system-ui, sans-serif;
+      --mono:"IBM Plex Mono", ui-monospace, monospace;
+      --sans:"IBM Plex Sans", system-ui, sans-serif;
+    }
+    body{
+      background:radial-gradient(1100px 500px at 12% -8%, rgba(68,87,232,.07), transparent 60%), var(--bg);
+      color:var(--text); font-family:var(--sans); -webkit-font-smoothing:antialiased;
+    }
+    .sitebar{position:sticky; top:0; z-index:25; backdrop-filter:saturate(160%) blur(10px); background:rgba(238,242,248,.86); border-bottom:1px solid var(--border);}
+    .sitebar-inner{width:min(1360px, calc(100% - 32px)); margin:0 auto; min-height:62px; display:flex; align-items:center; justify-content:space-between; gap:16px;}
+    .site-home{color:var(--text); text-decoration:none; font-weight:700; font-family:var(--display); letter-spacing:-.02em;}
+    .site-links{display:flex; flex-wrap:wrap; gap:14px; align-items:center;}
+    .site-links a{color:var(--muted); text-decoration:none; font-size:.84rem; font-weight:600;}
+    .site-links a.active,.site-links a:hover{color:var(--accent-dark);}
+
+    .page{width:min(1360px, calc(100% - 32px)); padding:30px 0 54px;}
+    .header{display:grid; grid-template-columns:1fr auto; gap:22px; align-items:end; margin-bottom:24px; padding-bottom:22px; border-bottom:1px solid var(--border);}
+    .eyebrow{gap:9px; color:var(--accent); font-family:var(--mono); font-size:.72rem; font-weight:600; letter-spacing:.16em;}
+    .eyebrow::before{width:6px; height:6px; border-radius:50%; background:var(--accent); transform:none; box-shadow:0 0 0 4px rgba(68,87,232,.14);}
+    h1{font-weight:700; font-size:clamp(1.9rem,3.4vw,2.85rem); letter-spacing:-.03em; line-height:1.02;}
+    .subtitle{max-width:720px; margin-top:12px; color:var(--muted); line-height:1.55; font-size:.94rem;}
+    .code-badge{border:1px solid var(--border); background:var(--panel-soft); color:var(--muted); border-radius:12px; padding:12px 16px; font-size:.72rem; line-height:1.7;}
+    .code-badge::before{background:transparent; position:static; display:block; padding:0; margin-bottom:2px; color:#8a93a6; font-size:.66rem; letter-spacing:.1em;}
+
+    .layout{grid-template-columns:320px 1fr; gap:18px;}
+    .card{border:1px solid var(--border); border-radius:14px; box-shadow:var(--shadow);}
+    .controls{padding:20px; top:16px;}
+    .card-title{font-size:1.05rem; font-weight:600;}
+    .card-copy{color:var(--muted); font-size:.84rem; line-height:1.5;}
+    .standard-field,.lookup-panel{background:var(--panel-soft); border:1px solid var(--border); border-radius:12px;}
+    .standard-picker-button,.standard-menu,.standard-menu-option,.metric,.parameter,.note,.status,.formula,.field-group,.lookup-panel{box-shadow:none;}
+    .standard-picker-button{border-color:var(--border); border-radius:10px; background:var(--panel); min-height:60px;}
+    .standard-picker-button:hover{border-color:#c9d3ea;}
+    .standard-picker-button:focus-visible, select:focus, input:focus{box-shadow:0 0 0 4px rgba(68,87,232,.11); border-color:var(--accent);}
+    .standard-menu{border:1px solid var(--border); border-radius:14px; background:rgba(255,255,255,.98); box-shadow:0 12px 32px rgba(28,35,51,.12);}
+    .standard-menu-option.active,.standard-menu-option:hover{background:rgba(68,87,232,.06);}
+    .subheading{margin:0 0 14px; font-family:var(--mono); font-size:.64rem; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:#8a93a6;}
+    label{color:var(--muted); font-family:var(--mono); font-size:.74rem; font-weight:600; text-decoration:none;}
+    .hint{color:#8a93a6; font-weight:600;}
+    select,input{min-height:40px; border:1px solid var(--border); border-radius:8px; background:var(--panel-soft); color:var(--text); padding:8px 10px; font-family:var(--mono); font-size:.78rem;}
+    input.invalid{border-color:var(--danger)!important; background:#fff7f5;}
+    .field-error{margin-top:5px; color:var(--danger); font-family:var(--mono); font-size:.66rem;}
+    .field-group{margin-top:18px; padding-top:14px; border:none; border-top:1px solid var(--border); background:transparent; padding-left:0; padding-right:0; padding-bottom:0;}
+    .field-group summary{margin-bottom:12px; padding-bottom:10px; border-bottom:1px solid var(--border); color:var(--muted); font-family:var(--mono); font-size:.66rem; font-weight:700; letter-spacing:.08em;}
+    .action-row{gap:8px;}
+    button.primary, button.secondary{min-height:42px; border-radius:9px; padding:0 14px; font-family:var(--sans); font-size:.78rem; font-weight:600;}
+    button.primary{border-color:var(--accent); background:var(--accent);}
+    button.primary:hover{background:var(--accent-dark);}
+    button.secondary{border:1px solid var(--border); background:var(--panel-soft); color:var(--muted);}
+    button.secondary:hover{border-color:#c9d3ea; color:var(--text);}
+    .status{border-radius:10px; font-family:var(--mono); font-size:.7rem;}
+    .status.info{background:#eef4ff; color:#4457e8;}
+    .status.success{background:#f2fbf7; color:#2f9d72;}
+    .status.error{background:#fff5f2; color:#d0451f;}
+
+    .results{gap:12px;}
+    .metric{padding:15px 17px; min-height:100px; border-top:1px solid var(--border);}
+    .metric .label{min-height:30px; color:#8a93a6; font-family:var(--mono); font-size:.68rem; font-weight:600; line-height:1.35; text-transform:uppercase; letter-spacing:.04em;}
+    .metric .value{margin-top:7px; font-family:var(--display); font-size:clamp(1.2rem,2.1vw,1.65rem); font-weight:700; color:var(--text); letter-spacing:-.02em;}
+    .metric .unit{font-family:var(--mono); font-size:.65rem; color:#8a93a6;}
+    .chart-card,.details{padding:20px;}
+    .chart-title,.details .card-title{font-size:1.02rem; font-weight:600;}
+    .chart-subtitle{color:#8a93a6; font-size:.78rem;}
+    .legend{color:var(--muted); font-family:var(--mono); font-size:.72rem; font-weight:600;}
+    .unit-toggle{border-color:var(--border);}
+    .unit-toggle-btn{background:var(--panel-soft); color:var(--muted); font-family:var(--mono); font-size:.7rem;}
+    .unit-toggle-btn.active{background:var(--accent); color:#fff;}
+    .line-one{background:var(--accent);}
+    .line-two{border-top-color:var(--amber);}
+    .canvas-wrap{height:460px; border:1px solid var(--border); border-radius:12px; overflow:hidden; background:linear-gradient(180deg, rgba(255,255,255,.9), rgba(246,248,252,.9));}
+    canvas{display:block;}
+    .parameter-grid{gap:10px;}
+    .parameter{padding:12px 10px; border-radius:10px; background:var(--panel-soft); text-align:center;}
+    .parameter span{font-family:var(--mono); font-size:.66rem; font-weight:600; color:#8a93a6; text-transform:uppercase; letter-spacing:.04em;}
+    .parameter strong{margin-top:6px; font-family:var(--display); font-size:.92rem; font-weight:700;}
+    .note{margin-top:16px; padding:12px 14px; border-left:3px solid var(--accent); border-radius:8px; background:#f4f6ff; color:#6b7390; font-size:.68rem; line-height:1.55;}
+    .note strong{color:#2a3266;}
+    .formula{margin-top:15px; padding:14px; border-radius:10px; background:#1f2740; color:#dbe4f3; font-family:var(--mono); font-size:.74rem; line-height:1.65;}
+    .footer{display:none;}
+    .site-footer{border-top:1px solid var(--border); margin-top:26px;}
+    .site-footer-inner{width:min(1360px, calc(100% - 32px)); margin:0 auto; min-height:72px; display:flex; justify-content:space-between; align-items:center; gap:14px; color:#8a93a6; font-family:var(--mono); font-size:.72rem;}
+    .site-footer-links{display:flex; flex-wrap:wrap; gap:12px;}
+    .site-footer-links a{color:#6b7488; text-decoration:none;}
+    .site-footer-links a:hover{color:var(--accent-dark);}
+
+    @media (max-width:1000px){
+      .layout{grid-template-columns:1fr;}
+      .controls{position:static;}
+      .results{grid-template-columns:repeat(2,1fr);}
+      .parameter-grid{grid-template-columns:repeat(3,1fr);}
+      .sitebar-inner,.site-footer-inner,.page{width:min(100% - 20px,1360px);}
+    }
+    @media (max-width:760px){
+      .sitebar-inner,.site-footer-inner{display:block; padding:12px 0;}
+      .site-links,.site-footer-links{margin-top:10px; gap:10px 12px;}
+      .header{grid-template-columns:1fr;}
+      .code-badge{text-align:left;}
+      .canvas-wrap{height:360px;}
+    }
+    @media (max-width:640px){
+      .results{grid-template-columns:1fr 1fr;}
+      .parameter-grid{grid-template-columns:repeat(2,1fr);}
+      .chart-top{display:block;}
+      .legend{margin-top:10px;}
+    }
+  </style>
+
+<link href="https://arashnassirpour.com/design-spectrum/" rel="canonical"/>
+<meta content="Seismic Design Spectrum Generator | Arash Nassirpour" property="og:title"/>
+<meta content="Generate and compare seismic response spectra across international structural design standards." property="og:description"/>
+<meta content="https://arashnassirpour.com/design-spectrum/" property="og:url"/>
+<meta content="website" property="og:type"/>
+<meta content="Arash Nassirpour" property="og:site_name"/>
+<meta content="#0f2350" name="theme-color"/>
+<link href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='5' fill='%230f2350'/%3E%3Cpath d='M3 17 C4 14 5 9 6.5 7 L13 7 C14 9 14.5 10.5 15.5 12 C17 14.5 18.5 16 21 18' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" rel="icon" type="image/svg+xml"/>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"SoftwareApplication","name":"Seismic Design Spectrum Generator","applicationCategory":"EngineeringApplication","operatingSystem":"Web","url":"https://arashnassirpour.com/design-spectrum/","description":"Generate and compare seismic response spectra across international structural design standards."}</script>
+</head>
+<body>
+
+<header class="site-hd"><style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+.site-hd{background:#0f2350;border-bottom:1px solid rgba(255,255,255,.08);font-family:Inter,'Segoe UI',system-ui,sans-serif;flex-shrink:0;position:sticky;top:0;z-index:9999;box-shadow:0 4px 20px rgba(6,14,36,.18)}
+.site-hd::after{content:'';position:absolute;left:0;right:0;bottom:-1px;height:1px;background:linear-gradient(90deg,transparent,rgba(124,157,255,.55),transparent)}
+.site-hd .hd-in{max-width:1360px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;padding:14px 24px}
+.site-hd a{text-decoration:none;color:#fff;font-size:12.5px;font-weight:500;transition:opacity .15s;opacity:.9}
+.site-hd a:hover{opacity:1}
+.site-hd .hd-home{color:#fff;font-size:13.5px;font-weight:600;opacity:1}
+.site-hd .hd-links{display:flex;align-items:center;gap:16px}
+.site-hd .hd-dd{position:relative}
+.site-hd .hd-dd-btn{display:flex;align-items:center;gap:6px;background:none;border:none;cursor:pointer;font:500 12.5px Inter,'Segoe UI',system-ui,sans-serif;color:#fff;padding:6px 2px;transition:opacity .15s;opacity:.9}
+.site-hd .hd-dd-btn:hover,.site-hd .hd-dd.open .hd-dd-btn{opacity:1}
+.site-hd .hd-dd-btn.hd-on-btn{color:#9fc0ff;opacity:1}
+.site-hd .hd-dd-btn-ic{width:15px;height:15px;flex-shrink:0}
+.site-hd .hd-dd-btn-ic svg{width:100%;height:100%}
+.site-hd .hd-dd-btn svg.hd-chev{width:10px;height:10px;transition:transform .15s;flex-shrink:0;color:#fff}
+.site-hd .hd-dd.open .hd-dd-btn svg.hd-chev{transform:rotate(180deg)}
+.site-hd .hd-dd-menu{position:fixed;background:#1f3d78;border:1px solid rgba(255,255,255,.12);border-radius:12px;box-shadow:0 16px 40px rgba(0,0,0,.4);width:520px;max-width:calc(100vw - 28px);padding:8px;display:none;flex-wrap:wrap;justify-content:center;gap:2px;z-index:10000}
+.site-hd .hd-dd.open .hd-dd-menu{display:flex}
+.site-hd .hd-dd-menu a{display:flex;flex-direction:column;align-items:center;gap:7px;width:96px;padding:12px 8px;border-radius:8px;font-size:11px;color:#fff;font-weight:500;text-align:center;line-height:1.3;opacity:.92}
+.site-hd .hd-dd-menu a:hover{background:rgba(255,255,255,.1);opacity:1}
+.site-hd .hd-dd-menu a.hd-on{background:rgba(255,255,255,.16);opacity:1}
+.site-hd .hd-dd-menu a .hd-dd-ic{width:22px;height:22px}
+.site-hd .hd-dd-menu a .hd-dd-ic svg{width:100%;height:100%}
+.site-hd .hd-sep{color:rgba(255,255,255,.35);font-size:12px;user-select:none}
+.site-hd .hd-ic{display:inline-flex;color:#fff;opacity:.9}
+.site-hd .hd-ic:hover{opacity:1}
+.site-hd .hd-ic svg{width:17px;height:17px}
+@media(max-width:680px){.site-hd .hd-in{padding:11px 14px}.site-hd .hd-links{gap:12px}.site-hd a,.site-hd .hd-dd-btn{font-size:11.5px}.site-hd .hd-sep{display:none}.site-hd .hd-dd-menu{padding:6px;flex-wrap:wrap;max-width:calc(100vw - 28px)}.site-hd .hd-dd-menu a{width:84px}}
+</style><div class="hd-in"><a class="hd-home" href="/">Home</a><nav class="hd-links"><div class="hd-dd" id="hdDd"><button class="hd-dd-btn hd-on-btn" id="hdDdBtn" type="button">Tools<svg class="hd-chev" fill="none" viewbox="0 0 12 12"><path d="M2.5 4.5L6 8l3.5-3.5" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6"></path></svg></button><div class="hd-dd-menu"><a href="/earthquake-rupture/"><span class="hd-dd-ic"><svg fill="none" stroke="#fff" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.9" viewbox="0 0 24 24"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9L12 3z"></path><path d="M12 12l8-4.5M12 12v9M12 12L4 7.5"></path></svg></span>Fault Mechanism</a><a href="/world-faults/"><span class="hd-dd-ic"><svg fill="none" stroke="#fff" stroke-linecap="round" stroke-width="1.9" viewbox="0 0 24 24"><circle cx="12" cy="12" r="9"></circle><path d="M3 12h18M12 3c2.7 2.6 4 5.6 4 9s-1.3 6.4-4 9c-2.7-2.6-4-5.6-4-9s1.3-6.4 4-9z"></path></svg></span>Global Faults &amp; Live Earthquakes</a><a href="/earthquake-dashboard/"><span class="hd-dd-ic"><svg fill="none" stroke="#fff" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.9" viewbox="0 0 24 24"><path d="M3 12h4l2.5-7 5 14 2.5-7h4"></path></svg></span>Rapid Earthquake Response</a><a href="/rc-section-designer/"><span class="hd-dd-ic"><svg fill="none" stroke="#fff" stroke-width="1.9" viewbox="0 0 24 24"><rect height="14" rx="1.5" width="15" x="4.5" y="5"></rect><circle cx="9" cy="9.5" fill="#fff" r="1.1" stroke="none"></circle><circle cx="15" cy="9.5" fill="#fff" r="1.1" stroke="none"></circle><circle cx="9" cy="14.5" fill="#fff" r="1.1" stroke="none"></circle><circle cx="15" cy="14.5" fill="#fff" r="1.1" stroke="none"></circle></svg></span>Reinforced Concrete Section Designer</a><a href="/hazus/"><span class="hd-dd-ic"><svg fill="none" stroke="#fff" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.9" viewbox="0 0 24 24"><path d="M3 18h18M5 18V9l4-4 4 4v9M13 18v-6l3-3 3 3v6"></path></svg></span>Vulnerability Explorer</a><a href="/modal-analysis/"><span class="hd-dd-ic"><svg fill="none" stroke="#fff" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.9" viewbox="0 0 24 24"><path d="M3 14c2-6 4-6 5 0s3 6 5 0 3-6 5 0 3 6 5 0"></path></svg></span>Modal Analysis Calculator</a><a class="hd-on" href="/design-spectrum/"><span class="hd-dd-ic"><svg fill="none" stroke="#fff" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.9" viewbox="0 0 24 24"><path d="M3 17C4 14 5 9 6.5 7L13 7C14 9 14.5 10.5 15.5 12C17 14.5 18.5 16 21 18"></path></svg></span>Design Spectrum</a><a href="/building-response/"><span class="hd-dd-ic"><svg fill="none" stroke="#fff" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.9" viewbox="0 0 24 24"><rect height="18" rx="1.5" width="14" x="5" y="3"></rect><path d="M9 21v-4h6v4"></path><path d="M8 7h.01M12 7h.01M16 7h.01M8 11h.01M12 11h.01M16 11h.01"></path></svg></span>Building Response Lab</a><a href="/ground-motion/"><span class="hd-dd-ic"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h3l2-7 4 14 3-10 2 6h4"/></svg></span>Ground Motion Analyzer</a></div></div><span class="hd-sep">|</span><a href="/about/">About</a><span class="hd-sep">|</span><a href="/contact/">Contact</a><span class="hd-sep">|</span><a aria-label="YouTube" class="hd-ic" href="https://www.youtube.com/@Structural.Analysis" rel="noopener" target="_blank"><svg fill="none" viewbox="0 0 24 24"><rect height="13" rx="3.5" stroke="currentColor" stroke-width="1.8" width="19" x="2.5" y="5.5"></rect><path d="M10.3 9.4v5.2l4.6-2.6-4.6-2.6z" fill="currentColor"></path></svg></a><a aria-label="LinkedIn" class="hd-ic" href="https://www.linkedin.com/in/arashnassirpour/" rel="noopener" target="_blank"><svg fill="none" viewbox="0 0 24 24"><rect height="18" rx="3" stroke="currentColor" stroke-width="1.8" width="18" x="3" y="3"></rect><path d="M8 10.5V17M8 7.2v.1M12 17v-3.7c0-1.3.9-2.3 2.2-2.3 1.3 0 2.3 1 2.3 2.3V17" stroke="currentColor" stroke-linecap="round" stroke-width="1.8"></path></svg></a></nav></div>
+<script>
+(function(){
+  var dd = document.getElementById('hdDd');
+  var btn = document.getElementById('hdDdBtn');
+  var menu = dd ? dd.querySelector('.hd-dd-menu') : null;
+  if(!dd||!btn||!menu) return;
+  function positionMenu(){
+    var r = btn.getBoundingClientRect();
+    menu.style.top = (r.bottom + 10) + 'px';
+    var left = r.right - menu.offsetWidth;
+    if (left < 10) left = 10;
+    menu.style.left = left + 'px';
+  }
+  btn.addEventListener('click', function(e){
+    e.stopPropagation();
+    dd.classList.toggle('open');
+    if (dd.classList.contains('open')) positionMenu();
+  });
+  document.addEventListener('click', function(){ dd.classList.remove('open'); });
+  window.addEventListener('resize', function(){ if (dd.classList.contains('open')) positionMenu(); });
+  window.addEventListener('scroll', function(){ if (dd.classList.contains('open')) positionMenu(); }, true);
+  menu.addEventListener('click', function(e){ e.stopPropagation(); });
+})();
+</script>
+</header><main class="page">
+<header class="header">
+<div>
+<p class="eyebrow">Seismic engineering tool</p>
+<h1>Seismic Design Spectrum Generator</h1>
+<p class="subtitle" id="headerSubtitle">
+          Generate and compare Eurocode 8 elastic and reduced design response spectra.
+        </p>
+</div>
+<div class="code-badge" id="codeBadge">EN 1998-1:2004</div>
+</header>
+<section class="layout">
+<aside class="card controls">
+<h2 class="card-title">Spectrum inputs</h2>
+<p class="card-copy">Select the design standard. The available inputs and equations update automatically.</p>
+<div class="standard-field">
+<label>Design standard</label>
+<div class="standard-picker">
+<button aria-controls="standardMenu" aria-expanded="false" aria-haspopup="listbox" class="standard-picker-button" id="standardPickerButton" type="button">
+<span aria-hidden="true" class="standard-flag" id="standardPickerFlag"></span>
+<span class="standard-picker-copy">
+<span class="standard-picker-country" id="standardPickerCountry">Europe</span>
+<span class="standard-picker-code" id="standardPickerCode">Eurocode 8 · EN 1998-1:2004</span>
+</span>
+<span aria-hidden="true" class="standard-picker-chevron">⌄</span>
+</button>
+<div aria-labelledby="standardPickerButton" class="standard-menu hidden" id="standardMenu" role="listbox"></div>
+<select aria-hidden="true" class="standard-native" id="standard" tabindex="-1">
+<option value="eurocode">Europe — Eurocode 8</option>
+<option value="usa">United States — ASCE 7-22</option>
+<option value="newzealand">New Zealand — NZS 1170.5 (simplified)</option>
+<option value="australia">Australia — AS 1170.4</option>
+<option value="canada">Canada — NBC</option>
+<option value="turkey">Türkiye — TBDY 2018</option>
+<option value="india">India — IS 1893:2016</option>
+<option value="china">China — GB 50011</option>
+<option value="mexico">Mexico — NTC-Sismo 2023</option>
+<option value="iran">Iran — Standard No. 2800</option>
+</select>
+</div>
+</div>
+<div aria-live="polite" class="status error" id="validationStatus" role="alert"></div>
+<div id="euroInputs">
+<p class="subheading">Eurocode 8 parameters</p>
+<div class="two-col">
+<div class="field">
+<label for="ecSpectrumType" title="Type 1 for higher-magnitude regions, Type 2 for lower-magnitude, nearby events">Spectrum type</label>
+<select id="ecSpectrumType">
+<option value="1">Type 1</option>
+<option value="2">Type 2</option>
+</select>
+</div>
+<div class="field">
+<label for="ecGroundType" title="Soil profile at the site, per EN 1998-1 Table 3.1">Ground type</label>
+<select id="ecGroundType">
+<option value="A">A — Rock</option>
+<option value="B">B — Very dense soil</option>
+<option selected="" value="C">C — Dense / medium soil</option>
+<option value="D">D — Loose soil</option>
+<option value="E">E — Surface alluvium</option>
+</select>
+</div>
+</div>
+<div class="field">
+<label for="ecAgr" title="Reference peak ground acceleration on rock (Ground Type A), from the national hazard map">
+              Reference PGA, a<sub>gR</sub>
+<span class="hint">Ground Type A</span>
+</label>
+<input id="ecAgr" max="2.00" min="0.01" step="0.01" type="number" value="0.25"/>
+</div>
+<div class="two-col">
+<div class="field">
+<label for="ecGammaI" title="Scales the reference PGA up or down based on the building's importance class">Importance factor, γ<sub>I</sub></label>
+<input id="ecGammaI" max="2.00" min="0.50" step="0.05" type="number" value="1.00"/>
+</div>
+<div class="field">
+<label for="ecDamping" title="Viscous damping ratio of the structure, used to correct the spectral shape">Damping, ξ <span class="hint">%</span></label>
+<input id="ecDamping" max="30" min="0.1" step="0.5" type="number" value="5"/>
+</div>
+</div>
+<div class="field">
+<label for="ecQ" title="Force reduction factor for inelastic structural response (ductility)">Behaviour factor, q</label>
+<input id="ecQ" max="8.00" min="1.00" step="0.10" type="number" value="3.00"/>
+</div>
+</div>
+<div class="hidden" id="usaInputs">
+<p class="subheading">ASCE 7-22 parameters</p>
+<div class="field">
+<label for="usSpectrumOption" title="Two-period uses SDS/SD1 you enter; multi-period pulls the full curve from USGS">Response spectrum option</label>
+<select id="usSpectrumOption">
+<option value="twoPeriod">Two-period spectrum — manual inputs</option>
+<option value="multiPeriod">Multi-period spectrum — USGS lookup</option>
+</select>
+</div>
+<div id="usTwoPeriodInputs">
+<div class="two-col">
+<div class="field">
+<label for="usSiteClass" title="Site soil classification, per ASCE 7-22 Table 20.3-1">Site Class</label>
+<select id="usSiteClass">
+<option value="A">A — Hard rock</option>
+<option value="B">B — Rock</option>
+<option value="BC">BC — Reference rock</option>
+<option selected="" value="C">C — Very dense soil / soft rock</option>
+<option value="CD">CD — Transitional</option>
+<option value="D">D — Stiff soil</option>
+<option value="DE">DE — Transitional</option>
+<option value="E">E — Soft clay soil</option>
+</select>
+</div>
+<div class="field">
+<label for="usRiskCategory" title="Building risk/occupancy category, per ASCE 7-22 Table 1.5-1">Risk Category</label>
+<select id="usRiskCategory">
+<option value="I">I</option>
+<option selected="" value="II">II</option>
+<option value="III">III</option>
+<option value="IV">IV</option>
+</select>
+</div>
+</div>
+<div class="two-col">
+<div class="field">
+<label for="usSds" title="Design spectral acceleration at short periods (0.2s)">S<sub>DS</sub> <span class="hint">g</span></label>
+<input id="usSds" max="4" min="0.01" step="0.01" type="number" value="1.46"/>
+</div>
+<div class="field">
+<label for="usSd1" title="Design spectral acceleration at 1-second period">S<sub>D1</sub> <span class="hint">g</span></label>
+<input id="usSd1" max="4" min="0.01" step="0.01" type="number" value="0.70"/>
+</div>
+</div>
+<div class="field">
+<label for="usTl" title="Period beyond which the spectrum transitions to constant displacement">Long-period transition, T<sub>L</sub> <span class="hint">s</span></label>
+<input id="usTl" max="20" min="1" step="0.5" type="number" value="8.0"/>
+</div>
+</div>
+<div class="hidden" id="usMultiPeriodInputs">
+<div class="lookup-panel">
+<div class="two-col">
+<div class="field">
+<label for="usLatitude" title="Site latitude in decimal degrees">Latitude</label>
+<input id="usLatitude" max="90" min="-90" step="0.0001" type="number" value="34.0000"/>
+</div>
+<div class="field">
+<label for="usLongitude" title="Site longitude in decimal degrees">Longitude</label>
+<input id="usLongitude" max="180" min="-180" step="0.0001" type="number" value="-118.0000"/>
+</div>
+</div>
+<div class="two-col">
+<div class="field">
+<label for="usLookupSiteClass" title="Site soil classification used for the USGS multi-period lookup">Site Class</label>
+<select id="usLookupSiteClass">
+<option value="A">A</option>
+<option value="B">B</option>
+<option value="BC">BC</option>
+<option selected="" value="C">C</option>
+<option value="CD">CD</option>
+<option value="D">D</option>
+<option value="DE">DE</option>
+<option value="E">E</option>
+</select>
+</div>
+<div class="field">
+<label for="usLookupRiskCategory" title="Building risk category used for the USGS multi-period lookup">Risk Category</label>
+<select id="usLookupRiskCategory">
+<option value="I">I</option>
+<option value="II">II</option>
+<option selected="" value="III">III</option>
+<option value="IV">IV</option>
+</select>
+</div>
+</div>
+<button class="primary" id="usgsLookupBtn" type="button">Load USGS spectrum</button>
+<div class="status info" id="lookupStatus"></div>
+</div>
+</div>
+</div>
+<div class="hidden" id="nzInputs">
+<p class="subheading">NZS 1170.5 parameters — simplified comparison</p>
+<div class="field">
+<label for="nzSiteClass" title="Site subsoil class, per NZS 1170.5 Table 3.2">Site subsoil class</label>
+<select id="nzSiteClass">
+<option value="A">A — Strong rock</option>
+<option value="B">B — Rock</option>
+<option selected="" value="C">C — Shallow soil</option>
+<option value="D">D — Deep or soft soil</option>
+<option value="E">E — Very soft soil</option>
+</select>
+</div>
+<div class="two-col">
+<div class="field">
+<label for="nzZ" title="Hazard factor for the site location, from the NZS 1170.5 hazard map">Hazard factor, Z</label>
+<input id="nzZ" max="1.00" min="0.01" step="0.01" type="number" value="0.40"/>
+</div>
+<div class="field">
+<label for="nzR" title="Scales hazard for the chosen annual probability of exceedance / return period">Return-period factor, R</label>
+<input id="nzR" max="3.00" min="0.05" step="0.05" type="number" value="1.00"/>
+</div>
+</div>
+<div class="field">
+<label for="nzN">
+              Near-fault multiplier, N
+              <span class="hint">Simplified constant</span>
+</label>
+<input id="nzN" max="2.00" min="1.00" step="0.01" type="number" value="1.00"/>
+</div>
+<div class="two-col">
+<div class="field">
+<label for="nzMu" title="Structural ductility factor">Structural ductility, μ</label>
+<input id="nzMu" max="6.00" min="1.00" step="0.10" type="number" value="3.00"/>
+</div>
+<div class="field">
+<label for="nzSp" title="Structural performance factor">Performance factor, S<sub>p</sub></label>
+<input id="nzSp" max="1.50" min="0.50" step="0.05" type="number" value="0.70"/>
+</div>
+</div>
+</div>
+<div class="hidden" id="auInputs">
+<p class="subheading">AS 1170.4:2024 parameters</p>
+<div class="field">
+<label for="auSiteClass" title="Site subsoil class, per AS 1170.4 Table 4.1">Site subsoil class</label>
+<select id="auSiteClass">
+<option value="Ae">Ae — Strong rock</option>
+<option value="Be">Be — Rock</option>
+<option selected="" value="Ce">Ce — Shallow soil</option>
+<option value="De">De — Deep or soft soil</option>
+<option value="Ee">Ee — Very soft soil</option>
+</select>
+</div>
+<div class="two-col">
+<div class="field">
+<label for="auZ" title="Hazard design factor for the site location">Hazard design factor, Z</label>
+<input id="auZ" max="1.00" min="0.01" step="0.01" type="number" value="0.10"/>
+</div>
+<div class="field">
+<label for="auProbability" title="Annual probability of exceedance used to derive the probability factor kp">Annual probability</label>
+<select id="auProbability">
+<option value="2500">1 / 2500 — kₚ = 1.80</option>
+<option value="2000">1 / 2000 — kₚ = 1.70</option>
+<option value="1500">1 / 1500 — kₚ = 1.50</option>
+<option value="1000">1 / 1000 — kₚ = 1.30</option>
+<option value="800">1 / 800 — kₚ = 1.25</option>
+<option selected="" value="500">1 / 500 — kₚ = 1.00</option>
+<option value="250">1 / 250 — kₚ = 0.75</option>
+<option value="200">1 / 200 — kₚ = 0.70</option>
+<option value="100">1 / 100 — kₚ = 0.50</option>
+</select>
+</div>
+</div>
+<div class="two-col">
+<div class="field">
+<label for="auMu" title="Structural ductility factor">Structural ductility, μ</label>
+<input id="auMu" max="6.00" min="1.00" step="0.10" type="number" value="3.00"/>
+</div>
+<div class="field">
+<label for="auSp" title="Structural performance factor">Performance factor, S<sub>p</sub></label>
+<input id="auSp" max="1.50" min="0.10" step="0.01" type="number" value="0.67"/>
+</div>
+</div>
+</div>
+<div class="hidden" id="caInputs">
+<p class="subheading">NBC 2020 parameters</p>
+<div class="two-col">
+<div class="field">
+<label for="caSiteDesignation" title="Reference label for the selected site (for your records only)">Site designation</label>
+<select id="caSiteDesignation">
+<option selected="" value="X450">X450 — Vs30 = 450 m/s</option>
+<option value="A">Site Class A</option>
+<option value="B">Site Class B</option>
+<option value="C">Site Class C</option>
+<option value="D">Site Class D</option>
+<option value="E">Site Class E</option>
+<option value="custom">Custom designation</option>
+</select>
+</div>
+<div class="field">
+<label for="caProbability" title="Annual probability of exceedance for the hazard values entered below">Hazard probability</label>
+<select id="caProbability">
+<option selected="" value="2">2% in 50 years</option>
+<option value="5">5% in 50 years</option>
+<option value="10">10% in 50 years</option>
+</select>
+</div>
+</div>
+<div class="field">
+<label for="caInterpolation" title="Method used to interpolate spectral values between the anchor periods">Interpolation method</label>
+<select id="caInterpolation">
+<option selected="" value="loglog">Log–log between spectral periods</option>
+<option value="linear">Linear between spectral periods</option>
+</select>
+</div>
+<details class="field-group" open="">
+<summary>Site-adjusted hazard values</summary>
+<div class="two-col">
+<div class="field">
+<label for="caPga" title="Peak ground acceleration at the site, from the NRC seismic hazard tool">PGA <span class="hint">g</span></label>
+<input id="caPga" max="5" min="0" step="0.001" type="number" value="0.460"/>
+</div>
+<div class="field">
+<label for="caSa02" title="Site-adjusted spectral acceleration at 0.2s">S<sub>a</sub>(0.2) <span class="hint">g</span></label>
+<input id="caSa02" max="5" min="0" step="0.001" type="number" value="1.100"/>
+</div>
+</div>
+<div class="two-col">
+<div class="field">
+<label for="caSa05" title="Site-adjusted spectral acceleration at 0.5s">S<sub>a</sub>(0.5) <span class="hint">g</span></label>
+<input id="caSa05" max="5" min="0" step="0.001" type="number" value="0.770"/>
+</div>
+<div class="field">
+<label for="caSa10" title="Site-adjusted spectral acceleration at 1.0s">S<sub>a</sub>(1.0) <span class="hint">g</span></label>
+<input id="caSa10" max="5" min="0" step="0.001" type="number" value="0.440"/>
+</div>
+</div>
+<div class="two-col">
+<div class="field">
+<label for="caSa20" title="Site-adjusted spectral acceleration at 2.0s">S<sub>a</sub>(2.0) <span class="hint">g</span></label>
+<input id="caSa20" max="5" min="0" step="0.001" type="number" value="0.270"/>
+</div>
+<div class="field">
+<label for="caSa50" title="Site-adjusted spectral acceleration at 5.0s">S<sub>a</sub>(5.0) <span class="hint">g</span></label>
+<input id="caSa50" max="5" min="0" step="0.001" type="number" value="0.075"/>
+</div>
+</div>
+<div class="field">
+<label for="caSa100" title="Site-adjusted spectral acceleration at 10.0s">S<sub>a</sub>(10.0) <span class="hint">g</span></label>
+<input id="caSa100" max="5" min="0" step="0.001" type="number" value="0.033"/>
+</div>
+</details>
+<details class="field-group">
+<summary>Structural reduction</summary>
+<div class="two-col">
+<div class="field">
+<label for="caIe" title="Earthquake importance factor for the building">Importance factor, I<sub>E</sub></label>
+<input id="caIe" max="2.00" min="0.50" step="0.05" type="number" value="1.00"/>
+</div>
+<div class="field">
+<label for="caMv" title="Higher-mode (velocity-based) factor for the site">Higher-mode factor, M<sub>v</sub></label>
+<input id="caMv" max="3.00" min="0.50" step="0.05" type="number" value="1.00"/>
+</div>
+</div>
+<div class="two-col">
+<div class="field">
+<label for="caRd" title="Ductility-related force modification factor of the seismic force resisting system">Ductility factor, R<sub>d</sub></label>
+<input id="caRd" max="5.00" min="1.00" step="0.10" type="number" value="3.00"/>
+</div>
+<div class="field">
+<label for="caRo" title="Overstrength-related force modification factor of the seismic force resisting system">Overstrength factor, R<sub>o</sub></label>
+<input id="caRo" max="2.00" min="1.00" step="0.10" type="number" value="1.50"/>
+</div>
+</div>
+</details>
+</div>
+<div class="hidden" id="trInputs">
+<p class="subheading">TBDY 2018 parameters</p>
+<div class="field">
+<label for="trSiteClass" title="Local soil class, per TBDY 2018">Local soil class</label>
+<select id="trSiteClass">
+<option value="ZA">ZA — Strong rock</option>
+<option value="ZB">ZB — Rock</option>
+<option value="ZC">ZC — Very dense soil / soft rock</option>
+<option selected="" value="ZD">ZD — Medium dense / stiff soil</option>
+<option value="ZE">ZE — Loose / soft soil</option>
+<option value="ZF">ZF — Site-specific study required</option>
+</select>
+</div>
+<div class="two-col">
+<div class="field">
+<label for="trSds" title="Short-period design spectral acceleration coefficient">S<sub>DS</sub> <span class="hint">g</span></label>
+<input id="trSds" max="5.00" min="0.01" step="0.001" type="number" value="1.456"/>
+</div>
+<div class="field">
+<label for="trSd1" title="1-second design spectral acceleration coefficient">S<sub>D1</sub> <span class="hint">g</span></label>
+<input id="trSd1" max="5.00" min="0.01" step="0.001" type="number" value="0.684"/>
+</div>
+</div>
+<div class="field">
+<label for="trTl" title="Long-period transition period">Long-period transition, T<sub>L</sub> <span class="hint">s</span></label>
+<input id="trTl" max="20.0" min="1.0" step="0.5" type="number" value="6.0"/>
+</div>
+<div class="two-col">
+<div class="field">
+<label for="trR" title="Structural behaviour (response modification) factor">Behaviour factor, R</label>
+<input id="trR" max="8.0" min="1.0" step="0.1" type="number" value="8.0"/>
+</div>
+<div class="field">
+<label for="trD" title="Overstrength factor at zero period">Overstrength factor, D</label>
+<input id="trD" max="4.0" min="1.0" step="0.1" type="number" value="3.0"/>
+</div>
+</div>
+<div class="field">
+<label for="trI" title="Building importance factor">Building importance factor, I</label>
+<input id="trI" max="1.5" min="1.0" step="0.1" type="number" value="1.0"/>
+</div>
+</div>
+<div class="hidden" id="inInputs">
+<p class="subheading">IS 1893 (Part 1):2016 parameters</p>
+<div class="two-col">
+<div class="field">
+<label for="inZone" title="Seismic zone of the site, per IS 1893 Part 1 Figure 1">Seismic zone</label>
+<select id="inZone">
+<option value="II">Zone II — Z = 0.10</option>
+<option value="III">Zone III — Z = 0.16</option>
+<option selected="" value="IV">Zone IV — Z = 0.24</option>
+<option value="V">Zone V — Z = 0.36</option>
+</select>
+</div>
+<div class="field">
+<label for="inSoil" title="Soil type at the site (I = rock/hard, II = medium, III = soft)">Soil type</label>
+<select id="inSoil">
+<option value="I">Type I — Rock / hard soil</option>
+<option selected="" value="II">Type II — Medium / stiff soil</option>
+<option value="III">Type III — Soft soil</option>
+</select>
+</div>
+</div>
+<div class="two-col">
+<div class="field">
+<label for="inImportance" title="Importance factor based on building occupancy">Importance factor, I</label>
+<input id="inImportance" max="1.50" min="1.00" step="0.05" type="number" value="1.20"/>
+</div>
+<div class="field">
+<label for="inR" title="Response reduction factor of the structural system">Response reduction factor, R</label>
+<input id="inR" max="5.00" min="1.00" step="0.10" type="number" value="5.00"/>
+</div>
+</div>
+</div>
+<div class="hidden" id="cnInputs">
+<p class="subheading">GB 50011-2010 (2016 edition)</p>
+<div class="two-col">
+<div class="field">
+<label for="cnIntensity" title="Seismic precautionary intensity and associated design PGA for the site">Precaution intensity</label>
+<select id="cnIntensity">
+<option value="6_005">6 degree — 0.05g</option>
+<option value="7_010">7 degree — 0.10g</option>
+<option value="7_015">7 degree — 0.15g</option>
+<option selected="" value="8_020">8 degree — 0.20g</option>
+<option value="8_030">8 degree — 0.30g</option>
+<option value="9_040">9 degree — 0.40g</option>
+</select>
+</div>
+<div class="field">
+<label for="cnGroup" title="Design earthquake group, affecting the characteristic period Tg">Design earthquake group</label>
+<select id="cnGroup">
+<option value="1">Group 1</option>
+<option selected="" value="2">Group 2</option>
+<option value="3">Group 3</option>
+</select>
+</div>
+</div>
+<div class="two-col">
+<div class="field">
+<label for="cnSite" title="Site soil category, per GB 50011 Table 4.1.6">Site category</label>
+<select id="cnSite">
+<option value="I0">I₀</option>
+<option value="I1">I₁</option>
+<option selected="" value="II">II</option>
+<option value="III">III</option>
+<option value="IV">IV</option>
+</select>
+</div>
+<div class="field">
+<label for="cnDamping" title="Structural damping ratio, used to adjust the spectral shape factors">Damping ratio, ζ <span class="hint">%</span></label>
+<input id="cnDamping" max="20" min="1" step="0.5" type="number" value="5.0"/>
+</div>
+</div>
+</div>
+<div class="hidden" id="mxInputs">
+<p class="subheading">Mexico City NTC-Sismo 2023</p>
+<div class="two-col">
+<div class="field">
+<label for="mxA0" title="Ground-level spectral ordinate at T = 0">Ground coefficient, a₀</label>
+<input id="mxA0" max="3.0" min="0.001" step="0.001" type="number" value="0.120"/>
+</div>
+<div class="field">
+<label for="mxC" title="Plateau spectral acceleration coefficient">Plateau coefficient, c</label>
+<input id="mxC" max="3.0" min="0.001" step="0.001" type="number" value="0.450"/>
+</div>
+</div>
+<div class="two-col">
+<div class="field">
+<label for="mxTa" title="Period marking the start of the constant-acceleration plateau">T<sub>a</sub> <span class="hint">s</span></label>
+<input id="mxTa" max="5.0" min="0.01" step="0.01" type="number" value="0.20"/>
+</div>
+<div class="field">
+<label for="mxTb" title="Period marking the end of the constant-acceleration plateau">T<sub>b</sub> <span class="hint">s</span></label>
+<input id="mxTb" max="8.0" min="0.02" step="0.01" type="number" value="1.20"/>
+</div>
+</div>
+<div class="two-col">
+<div class="field">
+<label for="mxK" title="Controls the shape of the descending long-period branch">Long-period parameter, k</label>
+<input id="mxK" max="3.00" min="0.10" step="0.05" type="number" value="1.50"/>
+</div>
+<div class="field">
+<label for="mxReduction" title="Combined ductility (Q'), redundancy (R') and overstrength reduction">Total reduction, Q′R′ρ</label>
+<input id="mxReduction" max="20.00" min="1.00" step="0.10" type="number" value="6.00"/>
+</div>
+</div>
+</div>
+<div class="hidden" id="irInputs">
+<p class="subheading">Iranian Standard No. 2800 — 4th edition</p>
+<div class="two-col">
+<div class="field">
+<label for="irZone" title="Design base acceleration ratio (A), representing relative seismic hazard">Relative seismic hazard</label>
+<select id="irZone">
+<option value="0.20">Low — A = 0.20</option>
+<option value="0.25">Moderate — A = 0.25</option>
+<option value="0.30">High — A = 0.30</option>
+<option selected="" value="0.35">Very high — A = 0.35</option>
+</select>
+</div>
+<div class="field">
+<label for="irSoil" title="Soil type at the site, per Standard No. 2800 Table 2-3">Soil type</label>
+<select id="irSoil">
+<option value="I">Type I — Rock / very stiff</option>
+<option value="II">Type II — Stiff soil</option>
+<option selected="" value="III">Type III — Medium soil</option>
+<option value="IV">Type IV — Soft soil</option>
+</select>
+</div>
+</div>
+<div class="two-col">
+<div class="field">
+<label for="irNearFault" title="Near-source / near-fault amplification factor">Near-source factor, N</label>
+<input id="irNearFault" max="2.00" min="1.00" step="0.05" type="number" value="1.00"/>
+</div>
+<div class="field">
+<label for="irImportance" title="Building importance factor">Importance factor, I</label>
+<input id="irImportance" max="1.40" min="0.80" step="0.05" type="number" value="1.00"/>
+</div>
+</div>
+<div class="field">
+<label for="irR" title="Structural behaviour (response modification) factor">Behaviour factor, R</label>
+<input id="irR" max="10.00" min="1.00" step="0.10" type="number" value="7.00"/>
+</div>
+</div>
+<div class="section-divider"></div>
+<div class="action-row">
+<button class="primary" id="downloadBtn" type="button">Export CSV</button>
+<button class="secondary" id="sampleBtn" type="button">Load sample data</button>
+</div>
+</aside>
+<div class="main">
+<section aria-label="Calculated results" class="results">
+<div class="metric card">
+<span class="label" id="metric1Label">Design PGA on Ground Type A, a<sub>g</sub></span>
+<span class="value" id="metric1Value">0.250<span class="unit">g</span></span>
+</div>
+<div class="metric card">
+<span class="label" id="metric2Label">Spectrum acceleration at T = 0</span>
+<span class="value" id="metric2Value">0.288<span class="unit">g</span></span>
+</div>
+<div class="metric card">
+<span class="label" id="metric3Label">Maximum elastic spectral acceleration</span>
+<span class="value" id="metric3Value">0.719<span class="unit">g</span></span>
+</div>
+<div class="metric card">
+<span class="label" id="metric4Label">Maximum reduced design acceleration</span>
+<span class="value" id="metric4Value">0.240<span class="unit">g</span></span>
+</div>
+</section>
+<section class="card chart-card">
+<div class="chart-top">
+<div>
+<h2 class="chart-title" id="chartTitle">Elastic and reduced design spectra</h2>
+<p class="chart-subtitle" id="chartSubtitle">Direct comparison for the selected Eurocode inputs.</p>
+</div>
+<div class="legend">
+<span class="legend-item"><span class="legend-line line-one"></span><span id="legendOne">Elastic</span></span>
+<span class="legend-item"><span class="legend-line line-two"></span><span id="legendTwo">Design</span></span>
+<div aria-label="Y-axis units" class="unit-toggle" id="accelUnitToggle" role="group">
+<button class="unit-toggle-btn active" data-unit="g" type="button">Sa (g)</button>
+<button class="unit-toggle-btn" data-unit="ms2" type="button">Sa (m/s²)</button>
+<button class="unit-toggle-btn" data-unit="fts2" type="button">Sa (ft/s²)</button>
+</div>
+</div>
+</div>
+<div class="canvas-wrap">
+<canvas aria-label="Seismic response spectrum chart" id="spectrumChart"></canvas>
+</div>
+</section>
+<section class="card details">
+<h2 class="card-title" id="detailsTitle">Selected Eurocode parameters</h2>
+<p class="card-copy" id="detailsCopy">Recommended values for the selected spectrum and ground type.</p>
+<div class="parameter-grid" id="parameterGrid"></div>
+<div class="formula" id="formulaBox"></div>
+<div class="note" id="standardNote">
+<strong>Important:</strong> Eurocode recommended parameters may be changed by the applicable National Annex.
+          </div>
+</section>
+</div>
+</section>
+
+</main><footer class="site-ft"><style>
+.site-ft{background:#0f2350;border-top:1px solid rgba(255,255,255,.08);flex-shrink:0;font-family:Inter,'Segoe UI',system-ui,sans-serif}
+.site-ft .ft-in{max-width:1360px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;padding:14px 24px}
+.site-ft .ft-copy{font-size:12.5px;color:#fff}
+.site-ft .ft-links{display:flex;align-items:center;gap:16px}
+.site-ft .ft-links a{text-decoration:none;color:#fff;font-size:12.5px;font-weight:500;transition:color .15s;opacity:.85}
+.site-ft .ft-links a:hover{opacity:1}
+.site-ft .ft-ic{display:inline-flex;color:#fff;opacity:.85}
+.site-ft .ft-ic:hover{opacity:1}
+.site-ft .ft-ic svg{width:17px;height:17px}
+@media(max-width:520px){.site-ft .ft-in{justify-content:center;text-align:center}}
+</style><div class="ft-in"><span class="ft-copy">© 2026 Arash Nassirpour. All rights reserved.</span><nav class="ft-links"><a href="/about/">About</a><a href="/contact/">Contact</a><a aria-label="YouTube" class="ft-ic" href="https://www.youtube.com/@Structural.Analysis" rel="noopener" target="_blank"><svg fill="none" viewbox="0 0 24 24"><rect height="13" rx="3.5" stroke="currentColor" stroke-width="1.8" width="19" x="2.5" y="5.5"></rect><path d="M10.3 9.4v5.2l4.6-2.6-4.6-2.6z" fill="currentColor"></path></svg></a><a aria-label="LinkedIn" class="ft-ic" href="https://www.linkedin.com/in/arashnassirpour/" rel="noopener" target="_blank"><svg fill="none" viewbox="0 0 24 24"><rect height="18" rx="3" stroke="currentColor" stroke-width="1.8" width="18" x="3" y="3"></rect><path d="M8 10.5V17M8 7.2v.1M12 17v-3.7c0-1.3.9-2.3 2.2-2.3 1.3 0 2.3 1 2.3 2.3V17" stroke="currentColor" stroke-linecap="round" stroke-width="1.8"></path></svg></a></nav></div></footer>
+<script>
+    const EC_PARAMETERS = {
+      1: {
+        A: { S: 1.00, TB: 0.15, TC: 0.40, TD: 2.00 },
+        B: { S: 1.20, TB: 0.15, TC: 0.50, TD: 2.00 },
+        C: { S: 1.15, TB: 0.20, TC: 0.60, TD: 2.00 },
+        D: { S: 1.35, TB: 0.20, TC: 0.80, TD: 2.00 },
+        E: { S: 1.40, TB: 0.15, TC: 0.50, TD: 2.00 }
+      },
+      2: {
+        A: { S: 1.00, TB: 0.05, TC: 0.25, TD: 1.20 },
+        B: { S: 1.35, TB: 0.05, TC: 0.25, TD: 1.20 },
+        C: { S: 1.50, TB: 0.10, TC: 0.25, TD: 1.20 },
+        D: { S: 1.80, TB: 0.10, TC: 0.30, TD: 1.20 },
+        E: { S: 1.60, TB: 0.05, TC: 0.25, TD: 1.20 }
+      }
+    };
+
+    const els = {
+      standard: document.getElementById("standard"),
+      accelUnitToggle: document.getElementById("accelUnitToggle"),
+      standardPickerButton: document.getElementById("standardPickerButton"),
+      standardPickerFlag: document.getElementById("standardPickerFlag"),
+      standardPickerCountry: document.getElementById("standardPickerCountry"),
+      standardPickerCode: document.getElementById("standardPickerCode"),
+      standardMenu: document.getElementById("standardMenu"),
+      euroInputs: document.getElementById("euroInputs"),
+      usaInputs: document.getElementById("usaInputs"),
+      nzInputs: document.getElementById("nzInputs"),
+      auInputs: document.getElementById("auInputs"),
+      caInputs: document.getElementById("caInputs"),
+      trInputs: document.getElementById("trInputs"),
+      inInputs: document.getElementById("inInputs"),
+      cnInputs: document.getElementById("cnInputs"),
+      mxInputs: document.getElementById("mxInputs"),
+      irInputs: document.getElementById("irInputs"),
+      codeBadge: document.getElementById("codeBadge"),
+      headerSubtitle: document.getElementById("headerSubtitle"),
+
+      ecSpectrumType: document.getElementById("ecSpectrumType"),
+      ecGroundType: document.getElementById("ecGroundType"),
+      ecAgr: document.getElementById("ecAgr"),
+      ecGammaI: document.getElementById("ecGammaI"),
+      ecDamping: document.getElementById("ecDamping"),
+      ecQ: document.getElementById("ecQ"),
+
+      usSpectrumOption: document.getElementById("usSpectrumOption"),
+      usTwoPeriodInputs: document.getElementById("usTwoPeriodInputs"),
+      usMultiPeriodInputs: document.getElementById("usMultiPeriodInputs"),
+      usSiteClass: document.getElementById("usSiteClass"),
+      usRiskCategory: document.getElementById("usRiskCategory"),
+      usSds: document.getElementById("usSds"),
+      usSd1: document.getElementById("usSd1"),
+      usTl: document.getElementById("usTl"),
+
+      usLatitude: document.getElementById("usLatitude"),
+      usLongitude: document.getElementById("usLongitude"),
+      usLookupSiteClass: document.getElementById("usLookupSiteClass"),
+      usLookupRiskCategory: document.getElementById("usLookupRiskCategory"),
+      usgsLookupBtn: document.getElementById("usgsLookupBtn"),
+      lookupStatus: document.getElementById("lookupStatus"),
+      validationStatus: document.getElementById("validationStatus"),
+
+      nzSiteClass: document.getElementById("nzSiteClass"),
+      nzZ: document.getElementById("nzZ"),
+      nzR: document.getElementById("nzR"),
+      nzN: document.getElementById("nzN"),
+      nzMu: document.getElementById("nzMu"),
+      nzSp: document.getElementById("nzSp"),
+
+      auSiteClass: document.getElementById("auSiteClass"),
+      auZ: document.getElementById("auZ"),
+      auProbability: document.getElementById("auProbability"),
+      auMu: document.getElementById("auMu"),
+      auSp: document.getElementById("auSp"),
+
+      caSiteDesignation: document.getElementById("caSiteDesignation"),
+      caProbability: document.getElementById("caProbability"),
+      caInterpolation: document.getElementById("caInterpolation"),
+      caPga: document.getElementById("caPga"),
+      caSa02: document.getElementById("caSa02"),
+      caSa05: document.getElementById("caSa05"),
+      caSa10: document.getElementById("caSa10"),
+      caSa20: document.getElementById("caSa20"),
+      caSa50: document.getElementById("caSa50"),
+      caSa100: document.getElementById("caSa100"),
+      caIe: document.getElementById("caIe"),
+      caMv: document.getElementById("caMv"),
+      caRd: document.getElementById("caRd"),
+      caRo: document.getElementById("caRo"),
+
+      trSiteClass: document.getElementById("trSiteClass"),
+      trSds: document.getElementById("trSds"),
+      trSd1: document.getElementById("trSd1"),
+      trTl: document.getElementById("trTl"),
+      trR: document.getElementById("trR"),
+      trD: document.getElementById("trD"),
+      trI: document.getElementById("trI"),
+
+      inZone: document.getElementById("inZone"),
+      inSoil: document.getElementById("inSoil"),
+      inImportance: document.getElementById("inImportance"),
+      inR: document.getElementById("inR"),
+
+      cnIntensity: document.getElementById("cnIntensity"),
+      cnGroup: document.getElementById("cnGroup"),
+      cnSite: document.getElementById("cnSite"),
+      cnDamping: document.getElementById("cnDamping"),
+
+      mxA0: document.getElementById("mxA0"),
+      mxC: document.getElementById("mxC"),
+      mxTa: document.getElementById("mxTa"),
+      mxTb: document.getElementById("mxTb"),
+      mxK: document.getElementById("mxK"),
+      mxReduction: document.getElementById("mxReduction"),
+
+      irZone: document.getElementById("irZone"),
+      irSoil: document.getElementById("irSoil"),
+      irNearFault: document.getElementById("irNearFault"),
+      irImportance: document.getElementById("irImportance"),
+      irR: document.getElementById("irR"),
+
+      downloadBtn: document.getElementById("downloadBtn"),
+      sampleBtn: document.getElementById("sampleBtn"),
+      canvas: document.getElementById("spectrumChart"),
+
+      metric1Label: document.getElementById("metric1Label"),
+      metric1Value: document.getElementById("metric1Value"),
+      metric2Label: document.getElementById("metric2Label"),
+      metric2Value: document.getElementById("metric2Value"),
+      metric3Label: document.getElementById("metric3Label"),
+      metric3Value: document.getElementById("metric3Value"),
+      metric4Label: document.getElementById("metric4Label"),
+      metric4Value: document.getElementById("metric4Value"),
+
+      chartTitle: document.getElementById("chartTitle"),
+      chartSubtitle: document.getElementById("chartSubtitle"),
+      legendOne: document.getElementById("legendOne"),
+      legendTwo: document.getElementById("legendTwo"),
+      detailsTitle: document.getElementById("detailsTitle"),
+      detailsCopy: document.getElementById("detailsCopy"),
+      parameterGrid: document.getElementById("parameterGrid"),
+      formulaBox: document.getElementById("formulaBox"),
+      standardNote: document.getElementById("standardNote")
+    };
+
+
+    const STANDARD_INFO = {
+      eurocode: {
+        country: "Europe",
+        code: "Eurocode 8 · EN 1998-1:2004",
+        flag: `<svg viewBox="0 0 36 24" xmlns="http://www.w3.org/2000/svg">
+          <rect width="36" height="24" fill="#003399"/>
+          <g fill="#ffcc00">
+            <circle cx="18" cy="4.2" r="1"/><circle cx="22" cy="5.3" r="1"/>
+            <circle cx="24.8" cy="8.1" r="1"/><circle cx="25.8" cy="12" r="1"/>
+            <circle cx="24.8" cy="15.9" r="1"/><circle cx="22" cy="18.7" r="1"/>
+            <circle cx="18" cy="19.8" r="1"/><circle cx="14" cy="18.7" r="1"/>
+            <circle cx="11.2" cy="15.9" r="1"/><circle cx="10.2" cy="12" r="1"/>
+            <circle cx="11.2" cy="8.1" r="1"/><circle cx="14" cy="5.3" r="1"/>
+          </g>
+        </svg>`
+      },
+      usa: {
+        country: "United States",
+        code: "ASCE/SEI 7-22",
+        flag: `<svg viewBox="0 0 36 24" xmlns="http://www.w3.org/2000/svg">
+          <rect width="36" height="24" fill="#fff"/>
+          <g fill="#b22234">
+            <rect y="0" width="36" height="1.85"/><rect y="3.69" width="36" height="1.85"/>
+            <rect y="7.38" width="36" height="1.85"/><rect y="11.07" width="36" height="1.85"/>
+            <rect y="14.76" width="36" height="1.85"/><rect y="18.45" width="36" height="1.85"/>
+            <rect y="22.15" width="36" height="1.85"/>
+          </g>
+          <rect width="15.5" height="12.9" fill="#3c3b6e"/>
+          <g fill="#fff">
+            <circle cx="2.5" cy="2.2" r=".55"/><circle cx="5.3" cy="2.2" r=".55"/>
+            <circle cx="8.1" cy="2.2" r=".55"/><circle cx="10.9" cy="2.2" r=".55"/>
+            <circle cx="13.7" cy="2.2" r=".55"/><circle cx="3.9" cy="4.6" r=".55"/>
+            <circle cx="6.7" cy="4.6" r=".55"/><circle cx="9.5" cy="4.6" r=".55"/>
+            <circle cx="12.3" cy="4.6" r=".55"/><circle cx="2.5" cy="7" r=".55"/>
+            <circle cx="5.3" cy="7" r=".55"/><circle cx="8.1" cy="7" r=".55"/>
+            <circle cx="10.9" cy="7" r=".55"/><circle cx="13.7" cy="7" r=".55"/>
+            <circle cx="3.9" cy="9.4" r=".55"/><circle cx="6.7" cy="9.4" r=".55"/>
+            <circle cx="9.5" cy="9.4" r=".55"/><circle cx="12.3" cy="9.4" r=".55"/>
+          </g>
+        </svg>`
+      },
+      newzealand: {
+        country: "New Zealand",
+        code: "NZS 1170.5:2004 · simplified",
+        flag: `<svg viewBox="0 0 36 24" xmlns="http://www.w3.org/2000/svg">
+          <rect width="36" height="24" fill="#012169"/>
+          <g fill="#d22630" stroke="#fff" stroke-width=".7">
+            <path d="M25 5.2l.6 1.5 1.6.1-1.2 1 .4 1.6-1.4-.9-1.4.9.4-1.6-1.2-1 1.6-.1z"/>
+            <path d="M30 10l.6 1.5 1.6.1-1.2 1 .4 1.6-1.4-.9-1.4.9.4-1.6-1.2-1 1.6-.1z"/>
+            <path d="M24.8 16l.6 1.5 1.6.1-1.2 1 .4 1.6-1.4-.9-1.4.9.4-1.6-1.2-1 1.6-.1z"/>
+            <path d="M30.6 19l.5 1.2 1.3.1-1 .8.3 1.3-1.1-.7-1.1.7.3-1.3-1-.8 1.3-.1z"/>
+          </g>
+          <rect width="15" height="10" fill="#012169"/>
+          <path d="M0 0l15 10M15 0L0 10" stroke="#fff" stroke-width="2.4"/>
+          <path d="M0 0l15 10M15 0L0 10" stroke="#c8102e" stroke-width="1.1"/>
+          <path d="M7.5 0v10M0 5h15" stroke="#fff" stroke-width="3.3"/>
+          <path d="M7.5 0v10M0 5h15" stroke="#c8102e" stroke-width="1.8"/>
+        </svg>`
+      },
+      australia: {
+        country: "Australia",
+        code: "AS 1170.4:2024",
+        flag: `<svg viewBox="0 0 36 24" xmlns="http://www.w3.org/2000/svg">
+          <rect width="36" height="24" fill="#012169"/>
+          <rect width="15" height="10" fill="#012169"/>
+          <path d="M0 0l15 10M15 0L0 10" stroke="#fff" stroke-width="2.4"/>
+          <path d="M0 0l15 10M15 0L0 10" stroke="#c8102e" stroke-width="1.1"/>
+          <path d="M7.5 0v10M0 5h15" stroke="#fff" stroke-width="3.3"/>
+          <path d="M7.5 0v10M0 5h15" stroke="#c8102e" stroke-width="1.8"/>
+          <g fill="#fff">
+            <path d="M9 14l.7 1.8 1.9.1-1.5 1.2.5 1.9-1.6-1-1.6 1 .5-1.9-1.5-1.2 1.9-.1z"/>
+            <circle cx="27" cy="6" r="1.1"/><circle cx="31" cy="11" r="1.1"/>
+            <circle cx="26" cy="14.5" r="1.1"/><circle cx="31" cy="19" r="1.1"/>
+            <circle cx="22.5" cy="10.5" r=".9"/>
+          </g>
+        </svg>`
+      },
+      canada: {
+        country: "Canada",
+        code: "NBC 2020",
+        flag: `<svg viewBox="0 0 36 24" xmlns="http://www.w3.org/2000/svg">
+          <rect width="36" height="24" fill="#fff"/>
+          <rect width="8" height="24" fill="#d80621"/><rect x="28" width="8" height="24" fill="#d80621"/>
+          <path fill="#d80621" d="M18 3.3l1.2 3 2.6-1.2-.7 3.1 2.9.2-2.4 2.1 1.8 1.6-3.2.6.7 3.7-2.9-1.8-2.9 1.8.7-3.7-3.2-.6 1.8-1.6-2.4-2.1 2.9-.2-.7-3.1 2.6 1.2z"/>
+          <rect x="17.45" y="14.5" width="1.1" height="5" fill="#d80621"/>
+        </svg>`
+      },
+      turkey: {
+        country: "Türkiye",
+        code: "TBDY 2018",
+        flag: `<svg viewBox="0 0 36 24" xmlns="http://www.w3.org/2000/svg">
+          <rect width="36" height="24" fill="#e30a17"/>
+          <circle cx="14.2" cy="12" r="6.3" fill="#fff"/>
+          <circle cx="16.2" cy="12" r="5.1" fill="#e30a17"/>
+          <path fill="#fff" d="M21.7 8.7l.9 2.1 2.3.2-1.8 1.5.6 2.2-2-1.2-2 1.2.6-2.2-1.8-1.5 2.3-.2z"/>
+        </svg>`
+      },
+      india: {
+        country: "India",
+        code: "IS 1893 (Part 1):2016",
+        flag: `<svg viewBox="0 0 36 24" xmlns="http://www.w3.org/2000/svg">
+          <rect width="36" height="8" fill="#ff9933"/>
+          <rect y="8" width="36" height="8" fill="#fff"/>
+          <rect y="16" width="36" height="8" fill="#138808"/>
+          <circle cx="18" cy="12" r="3.1" fill="none" stroke="#000080" stroke-width=".7"/>
+          <g stroke="#000080" stroke-width=".35">
+            <path d="M18 8.9v6.2M14.9 12h6.2M15.8 9.8l4.4 4.4M20.2 9.8l-4.4 4.4"/>
+          </g>
+        </svg>`
+      },
+      china: {
+        country: "China",
+        code: "GB 50011-2010 · 2016 edition",
+        flag: `<svg viewBox="0 0 36 24" xmlns="http://www.w3.org/2000/svg">
+          <rect width="36" height="24" fill="#de2910"/>
+          <path fill="#ffde00" d="M7 3.2l1 2.4 2.6.2-2 1.7.6 2.5L7 8.7 4.8 10l.6-2.5-2-1.7 2.6-.2z"/>
+          <g fill="#ffde00">
+            <path d="M13 2.7l.35.85.92.07-.7.6.22.89-.79-.47-.78.47.22-.89-.7-.6.92-.07z"/>
+            <path d="M15.8 5.2l.35.85.92.07-.7.6.22.89-.79-.47-.78.47.22-.89-.7-.6.92-.07z"/>
+            <path d="M15.4 9l.35.85.92.07-.7.6.22.89-.79-.47-.78.47.22-.89-.7-.6.92-.07z"/>
+            <path d="M12.5 11.3l.35.85.92.07-.7.6.22.89-.79-.47-.78.47.22-.89-.7-.6.92-.07z"/>
+          </g>
+        </svg>`
+      },
+      mexico: {
+        country: "Mexico",
+        code: "NTC-Sismo CDMX 2023",
+        flag: `<svg viewBox="0 0 36 24" xmlns="http://www.w3.org/2000/svg">
+          <rect width="12" height="24" fill="#006847"/>
+          <rect x="12" width="12" height="24" fill="#fff"/>
+          <rect x="24" width="12" height="24" fill="#ce1126"/>
+          <circle cx="18" cy="12" r="2.6" fill="#8b6f47"/>
+          <path d="M16.6 14.2c1.2.8 2.3.8 3.1 0" fill="none" stroke="#2e7d32" stroke-width=".7"/>
+          <path d="M18 8.7l.7 1.7-.7 1.1-.7-1.1z" fill="#6d4c41"/>
+        </svg>`
+      },
+      iran: {
+        country: "Iran",
+        code: "Standard No. 2800 · 4th edition",
+        flag: `<svg viewBox="0 0 36 24" xmlns="http://www.w3.org/2000/svg">
+          <rect width="36" height="8" fill="#239f40"/>
+          <rect y="8" width="36" height="8" fill="#fff"/>
+          <rect y="16" width="36" height="8" fill="#da0000"/>
+          <g fill="#da0000">
+            <path d="M18 9.5c1.3 1.1 1.3 3.9 0 5-1.3-1.1-1.3-3.9 0-5z"/>
+            <path d="M16.2 10.5c-.8 1-.8 2 0 3M19.8 10.5c.8 1 .8 2 0 3" fill="none" stroke="#da0000" stroke-width=".7"/>
+          </g>
+        </svg>`
+      }
+    };
+
+    function updateStandardPicker() {
+      const info = STANDARD_INFO[els.standard.value];
+      els.standardPickerFlag.innerHTML = info.flag;
+      els.standardPickerCountry.textContent = info.country;
+      els.standardPickerCode.textContent = info.code;
+
+      els.standardMenu.querySelectorAll(".standard-menu-option").forEach(option => {
+        const active = option.dataset.value === els.standard.value;
+        option.classList.toggle("active", active);
+        option.setAttribute("aria-selected", String(active));
+        option.tabIndex = active ? 0 : -1;
+        option.querySelector(".checkmark").textContent = active ? "✓" : "";
+      });
+    }
+
+    function buildStandardMenu() {
+      els.standardMenu.innerHTML = "";
+
+      Object.entries(STANDARD_INFO).forEach(([value, info]) => {
+        const option = document.createElement("button");
+        option.type = "button";
+        option.className = "standard-menu-option";
+        option.dataset.value = value;
+        option.setAttribute("role", "option");
+        option.innerHTML = `
+          <span class="standard-flag" aria-hidden="true">${info.flag}</span>
+          <span class="standard-picker-copy">
+            <span class="standard-picker-country">${info.country}</span>
+            <span class="standard-picker-code">${info.code}</span>
+          </span>
+          <span class="checkmark" aria-hidden="true"></span>
+        `;
+
+        option.addEventListener("click", () => {
+          els.standard.value = value;
+          els.standardMenu.classList.add("hidden");
+          els.standardPickerButton.setAttribute("aria-expanded", "false");
+          updateStandardUI();
+          els.standardPickerButton.focus();
+        });
+
+        option.addEventListener("keydown", event => {
+          const options = [...els.standardMenu.querySelectorAll(".standard-menu-option")];
+          const index = options.indexOf(option);
+          let next = null;
+          if (event.key === "ArrowDown") next = options[(index + 1) % options.length];
+          else if (event.key === "ArrowUp") next = options[(index - 1 + options.length) % options.length];
+          else if (event.key === "Home") next = options[0];
+          else if (event.key === "End") next = options[options.length - 1];
+          else if (event.key === "Escape") {
+            els.standardMenu.classList.add("hidden");
+            els.standardPickerButton.setAttribute("aria-expanded", "false");
+            els.standardPickerButton.focus();
+            event.preventDefault();
+            return;
+          }
+          if (next) {
+            options.forEach(item => item.tabIndex = -1);
+            next.tabIndex = 0;
+            next.focus();
+            event.preventDefault();
+          }
+        });
+
+        els.standardMenu.appendChild(option);
+      });
+
+      updateStandardPicker();
+    }
+
+    function toggleStandardMenu() {
+      const willOpen = els.standardMenu.classList.contains("hidden");
+      els.standardMenu.classList.toggle("hidden", !willOpen);
+      els.standardPickerButton.setAttribute("aria-expanded", String(willOpen));
+      if (willOpen) {
+        const active = els.standardMenu.querySelector('[aria-selected="true"]') || els.standardMenu.querySelector(".standard-menu-option");
+        requestAnimationFrame(() => active?.focus());
+      }
+    }
+
+    let currentRows = [];
+    let currentMeta = {};
+    let usgsData = null;
+
+    const ACCEL_UNITS = {
+      g:    { factor: 1,        suffix: "g",     decimals: 3 },
+      ms2:  { factor: 9.80665,  suffix: "m/s²",  decimals: 2 },
+      fts2: { factor: 32.17405, suffix: "ft/s²", decimals: 2 }
+    };
+
+    let currentUnit = "g";
+
+    function accelFactor() {
+      return ACCEL_UNITS[currentUnit].factor;
+    }
+
+    function accelSuffix() {
+      return ACCEL_UNITS[currentUnit].suffix;
+    }
+
+    function valueOf(element) {
+      return Number.parseFloat(element.value);
+    }
+
+    function formatMetric(element, value, unit = "") {
+      if (!Number.isFinite(value)) {
+        element.textContent = "—";
+        return;
+      }
+      element.innerHTML = `${value.toFixed(3)}${unit ? `<span class="unit">${unit}</span>` : ""}`;
+    }
+
+    const INPUT_PANELS = {
+      eurocode: "euroInputs",
+      usa: "usaInputs",
+      newzealand: "nzInputs",
+      australia: "auInputs",
+      canada: "caInputs",
+      turkey: "trInputs",
+      india: "inInputs",
+      china: "cnInputs",
+      mexico: "mxInputs",
+      iran: "irInputs"
+    };
+
+    function inputRangeMessage(input) {
+      const min = input.min === "" ? null : Number(input.min);
+      const max = input.max === "" ? null : Number(input.max);
+      if (Number.isFinite(min) && Number.isFinite(max)) return `Enter a value from ${min} to ${max}.`;
+      if (Number.isFinite(min)) return `Enter a value of at least ${min}.`;
+      if (Number.isFinite(max)) return `Enter a value no greater than ${max}.`;
+      return "Enter a valid number.";
+    }
+
+    function setInputError(input, message) {
+      input.classList.add("invalid");
+      input.setAttribute("aria-invalid", "true");
+      const field = input.closest(".field") || input.parentElement;
+      let error = field.querySelector(`.field-error[data-for="${input.id}"]`);
+      if (!error) {
+        error = document.createElement("span");
+        error.className = "field-error";
+        error.dataset.for = input.id;
+        error.setAttribute("role", "alert");
+        field.appendChild(error);
+      }
+      error.textContent = message;
+    }
+
+    function clearInputError(input) {
+      input.classList.remove("invalid");
+      input.removeAttribute("aria-invalid");
+      const field = input.closest(".field") || input.parentElement;
+      field.querySelector(`.field-error[data-for="${input.id}"]`)?.remove();
+    }
+
+    function validateNumberInput(input, remember = true) {
+      const raw = input.value.trim();
+      const value = Number(raw);
+      const min = input.min === "" ? -Infinity : Number(input.min);
+      const max = input.max === "" ? Infinity : Number(input.max);
+      if (raw === "" || !Number.isFinite(value) || value < min || value > max) {
+        setInputError(input, inputRangeMessage(input));
+        return false;
+      }
+      clearInputError(input);
+      if (remember) input.dataset.lastValidValue = input.value;
+      return true;
+    }
+
+    function activeNumberInputs() {
+      const panel = els[INPUT_PANELS[els.standard.value]];
+      if (!panel) return [];
+      return [...panel.querySelectorAll('input[type="number"]')]
+        .filter(input => !input.closest(".hidden"));
+    }
+
+    function validateCrossFieldRules() {
+      let valid = true;
+      if (els.standard.value === "mexico") {
+        const a0 = Number(els.mxA0.value);
+        const c = Number(els.mxC.value);
+        const ta = Number(els.mxTa.value);
+        const tb = Number(els.mxTb.value);
+        if (Number.isFinite(a0) && Number.isFinite(c) && c < a0) {
+          setInputError(els.mxC, "Plateau coefficient c must be greater than or equal to a₀.");
+          valid = false;
+        }
+        if (Number.isFinite(ta) && Number.isFinite(tb) && tb <= ta) {
+          setInputError(els.mxTb, "Tᵦ must be greater than Tₐ.");
+          valid = false;
+        }
+      }
+      if (els.standard.value === "usa" && els.usSpectrumOption.value === "twoPeriod") {
+        const sds = Number(els.usSds.value);
+        const sd1 = Number(els.usSd1.value);
+        const tl = Number(els.usTl.value);
+        const ts = Number.isFinite(sds) && sds > 0 ? sd1 / sds : NaN;
+        if (Number.isFinite(ts) && Number.isFinite(tl) && tl <= ts) {
+          setInputError(els.usTl, `Tₗ must exceed Tₛ (${ts.toFixed(3)} s) for the entered Sᴅₛ and Sᴅ₁.`);
+          valid = false;
+        }
+      }
+      return valid;
+    }
+
+    function validateActiveInputs() {
+      let valid = true;
+      activeNumberInputs().forEach(input => {
+        if (!validateNumberInput(input)) valid = false;
+      });
+      if (!validateCrossFieldRules()) valid = false;
+      els.downloadBtn.disabled = !valid;
+      els.validationStatus.className = valid ? "status error" : "status show error";
+      els.validationStatus.textContent = valid
+        ? ""
+        : "Correct the highlighted input values before calculating or exporting.";
+      return valid;
+    }
+
+    function setLookupStatus(message, kind = "info") {
+      els.lookupStatus.textContent = message;
+      els.lookupStatus.className = `status show ${kind}`;
+    }
+
+    function hideLookupStatus() {
+      els.lookupStatus.className = "status info";
+      els.lookupStatus.textContent = "";
+    }
+
+    function euroInputs() {
+      const type = els.ecSpectrumType.value;
+      const ground = els.ecGroundType.value;
+      const p = EC_PARAMETERS[type][ground];
+      const agr = Math.max(0, valueOf(els.ecAgr, 0.25));
+      const gammaI = Math.max(0, valueOf(els.ecGammaI, 1.0));
+      const damping = Math.max(0.1, valueOf(els.ecDamping, 5.0));
+      const q = Math.max(1.0, valueOf(els.ecQ, 3.0));
+      const ag = agr * gammaI;
+      const eta = Math.max(Math.sqrt(10 / (5 + damping)), 0.55);
+
+      return { type, ground, ...p, agr, gammaI, damping, q, ag, eta, beta: 0.20 };
+    }
+
+    function euroElastic(T, x) {
+      if (T <= x.TB) {
+        return x.ag * x.S * (1 + (T / x.TB) * (2.5 * x.eta - 1));
+      }
+      if (T <= x.TC) return x.ag * x.S * 2.5 * x.eta;
+      if (T <= x.TD) return x.ag * x.S * 2.5 * x.eta * (x.TC / T);
+      return x.ag * x.S * 2.5 * x.eta * ((x.TC * x.TD) / (T * T));
+    }
+
+    function euroDesign(T, x) {
+      if (T <= x.TB) {
+        return x.ag * x.S * (2 / 3 + (T / x.TB) * (2.5 / x.q - 2 / 3));
+      }
+      if (T <= x.TC) return x.ag * x.S * (2.5 / x.q);
+      if (T <= x.TD) {
+        return Math.max(x.ag * x.S * (2.5 / x.q) * (x.TC / T), x.beta * x.ag);
+      }
+      return Math.max(
+        x.ag * x.S * (2.5 / x.q) * ((x.TC * x.TD) / (T * T)),
+        x.beta * x.ag
+      );
+    }
+
+    function buildEuroRows(x) {
+      const rows = [];
+      for (let i = 0; i <= 400; i++) {
+        const T = 4 * i / 400;
+        rows.push({ T, first: euroElastic(T, x), second: euroDesign(T, x) });
+      }
+      return rows;
+    }
+
+    function usaTwoPeriodInputs() {
+      const sds = Math.max(0.001, valueOf(els.usSds, 1.46));
+      const sd1 = Math.max(0.001, valueOf(els.usSd1, 0.70));
+      const tl = Math.max(0.1, valueOf(els.usTl, 8.0));
+      const sms = 1.5 * sds;
+      const sm1 = 1.5 * sd1;
+      const ts = sd1 / sds;
+      const t0 = 0.2 * ts;
+
+      return {
+        sds,
+        sd1,
+        tl,
+        sms,
+        sm1,
+        ts,
+        t0,
+        siteClass: els.usSiteClass.value,
+        riskCategory: els.usRiskCategory.value
+      };
+    }
+
+    function usaDesign(T, x) {
+      if (T < x.t0) return x.sds * (0.4 + 0.6 * T / x.t0);
+      if (T <= x.ts) return x.sds;
+      if (T <= x.tl) return x.sd1 / T;
+      return x.sd1 * x.tl / (T * T);
+    }
+
+    function usaMcer(T, x) {
+      if (T < x.t0) return x.sms * (0.4 + 0.6 * T / x.t0);
+      if (T <= x.ts) return x.sms;
+      if (T <= x.tl) return x.sm1 / T;
+      return x.sm1 * x.tl / (T * T);
+    }
+
+    function buildUsTwoPeriodRows(x) {
+      const maxT = Math.max(10, Math.ceil(x.tl + 2));
+      const rows = [];
+      for (let i = 0; i <= 500; i++) {
+        const T = maxT * i / 500;
+        rows.push({ T, first: usaMcer(T, x), second: usaDesign(T, x) });
+      }
+      return { rows, maxT };
+    }
+
+    function rowsFromUsMultiPeriod(data) {
+      const design = data.multiPeriodDesignSpectrum;
+      const mcer = data.multiPeriodMCErSpectrum;
+
+      if (!design || !mcer || !Array.isArray(design.periods) || !Array.isArray(mcer.periods)) {
+        throw new Error("The USGS response did not contain multi-period spectrum arrays.");
+      }
+
+      const designMap = new Map();
+      design.periods.forEach((period, index) => {
+        const p = Number(period);
+        const ordinate = Number(design.ordinates[index]);
+        if (Number.isFinite(p) && Number.isFinite(ordinate)) designMap.set(p, ordinate);
+      });
+
+      const mcerMap = new Map();
+      mcer.periods.forEach((period, index) => {
+        const p = Number(period);
+        const ordinate = Number(mcer.ordinates[index]);
+        if (Number.isFinite(p) && Number.isFinite(ordinate)) mcerMap.set(p, ordinate);
+      });
+
+      const periods = [...new Set([...designMap.keys(), ...mcerMap.keys()])].sort((a, b) => a - b);
+      const rows = periods
+        .filter(period => designMap.has(period) && mcerMap.has(period))
+        .map(period => ({
+          T: period,
+          first: mcerMap.get(period),
+          second: designMap.get(period)
+        }));
+
+      if (rows.length < 2) throw new Error("The returned multi-period spectrum was empty.");
+
+      return rows;
+    }
+
+
+    function newZealandInputs() {
+      return {
+        siteClass: els.nzSiteClass.value,
+        Z: Math.max(0, valueOf(els.nzZ, 0.40)),
+        R: Math.max(0, valueOf(els.nzR, 1.00)),
+        N: Math.max(1, valueOf(els.nzN, 1.00)),
+        mu: Math.max(1, valueOf(els.nzMu, 3.00)),
+        Sp: Math.max(0, valueOf(els.nzSp, 0.70))
+      };
+    }
+
+    function nzSpectralShape(T, siteClass) {
+      if (siteClass === "A" || siteClass === "B") {
+        if (T <= 0) return 1.00;
+        if (T < 0.10) return 1.00 + 1.35 * (T / 0.10);
+        if (T < 0.30) return 2.35;
+        if (T <= 1.50) return 1.60 * Math.pow(0.50 / T, 0.75);
+        if (T <= 3.00) return 1.05 / T;
+        return 3.15 / (T * T);
+      }
+
+      if (siteClass === "C") {
+        if (T <= 0) return 1.33;
+        if (T < 0.10) return 1.33 + 1.60 * (T / 0.10);
+        if (T < 0.30) return 2.93;
+        if (T <= 1.50) return 2.00 * Math.pow(0.50 / T, 0.75);
+        if (T <= 3.00) return 1.32 / T;
+        return 3.96 / (T * T);
+      }
+
+      if (siteClass === "D") {
+        if (T <= 0) return 1.12;
+        if (T < 0.10) return 1.12 + 1.88 * (T / 0.10);
+        if (T < 0.56) return 3.00;
+        if (T <= 1.50) return 2.40 * Math.pow(0.75 / T, 0.75);
+        if (T <= 3.00) return 2.14 / T;
+        return 6.42 / (T * T);
+      }
+
+      if (T <= 0) return 1.12;
+      if (T < 0.10) return 1.12 + 1.88 * (T / 0.10);
+      if (T < 1.00) return 3.00;
+      if (T <= 1.50) return 3.00 / Math.pow(T, 0.75);
+      if (T <= 3.00) return 3.32 / T;
+      return 9.96 / (T * T);
+    }
+
+    function nzDuctilityReduction(T, mu) {
+      if (T < 0.70) {
+        return 1 + (mu - 1) * (T / 0.70);
+      }
+      return mu;
+    }
+
+    function nzElastic(T, x) {
+      return nzSpectralShape(T, x.siteClass) * x.Z * x.R * x.N;
+    }
+
+    function nzDesign(T, x) {
+      return nzElastic(T, x) * x.Sp / nzDuctilityReduction(T, x.mu);
+    }
+
+    function buildNzRows(x) {
+      const rows = [];
+      for (let i = 0; i <= 500; i++) {
+        const T = 5 * i / 500;
+        rows.push({
+          T,
+          first: nzElastic(T, x),
+          second: nzDesign(T, x)
+        });
+      }
+      return rows;
+    }
+
+
+    const AU_PROBABILITY_FACTORS = {
+      "2500": { kp: 1.80, minimumKpZ: 0.15 },
+      "2000": { kp: 1.70, minimumKpZ: 0.14 },
+      "1500": { kp: 1.50, minimumKpZ: 0.12 },
+      "1000": { kp: 1.30, minimumKpZ: 0.10 },
+      "800":  { kp: 1.25, minimumKpZ: null },
+      "500":  { kp: 1.00, minimumKpZ: 0.08 },
+      "250":  { kp: 0.75, minimumKpZ: null },
+      "200":  { kp: 0.70, minimumKpZ: null },
+      "100":  { kp: 0.50, minimumKpZ: null }
+    };
+
+    function australiaInputs() {
+      const probability = els.auProbability.value;
+      const probabilityData = AU_PROBABILITY_FACTORS[probability];
+      const Z = Math.max(0, valueOf(els.auZ, 0.10));
+      const rawKpZ = probabilityData.kp * Z;
+      const effectiveKpZ = probabilityData.minimumKpZ === null
+        ? rawKpZ
+        : Math.max(rawKpZ, probabilityData.minimumKpZ);
+
+      return {
+        siteClass: els.auSiteClass.value,
+        probability,
+        kp: probabilityData.kp,
+        minimumKpZ: probabilityData.minimumKpZ,
+        Z,
+        rawKpZ,
+        effectiveKpZ,
+        mu: Math.max(1, valueOf(els.auMu, 3.00)),
+        Sp: Math.max(0, valueOf(els.auSp, 0.67))
+      };
+    }
+
+    function australiaSpectralShape(T, siteClass) {
+      const safeT = Math.max(0, T);
+
+      if (safeT <= 0.10) {
+        if (siteClass === "Ae") return 0.80 + 15.50 * safeT;
+        if (siteClass === "Be") return 1.00 + 19.40 * safeT;
+        if (siteClass === "Ce") return 1.30 + 23.80 * safeT;
+        return 1.10 + 25.80 * safeT;
+      }
+
+      if (safeT <= 1.50) {
+        if (siteClass === "Ae") return Math.min(2.35, 0.704 / safeT);
+        if (siteClass === "Be") return Math.min(2.94, 0.880 / safeT);
+        if (siteClass === "Ce") return Math.min(3.68, 1.250 / safeT);
+        if (siteClass === "De") return Math.min(3.68, 1.980 / safeT);
+        return Math.min(3.68, 3.080 / safeT);
+      }
+
+      if (siteClass === "Ae") return 1.056 / (safeT * safeT);
+      if (siteClass === "Be") return 1.320 / (safeT * safeT);
+      if (siteClass === "Ce") return 1.874 / (safeT * safeT);
+      if (siteClass === "De") return 2.970 / (safeT * safeT);
+      return 4.620 / (safeT * safeT);
+    }
+
+    function australiaElastic(T, x) {
+      return x.effectiveKpZ * australiaSpectralShape(T, x.siteClass);
+    }
+
+    function australiaDesign(T, x) {
+      return australiaElastic(T, x) * x.Sp / x.mu;
+    }
+
+    function buildAustraliaRows(x) {
+      const rows = [];
+
+      for (let i = 0; i <= 500; i++) {
+        const T = 5 * i / 500;
+        rows.push({
+          T,
+          first: australiaElastic(T, x),
+          second: australiaDesign(T, x)
+        });
+      }
+
+      return rows;
+    }
+
+
+    function canadaInputs() {
+      const anchors = [
+        { T: 0.0, Sa: Math.max(0, valueOf(els.caPga, 0.460)) },
+        { T: 0.2, Sa: Math.max(0, valueOf(els.caSa02, 1.100)) },
+        { T: 0.5, Sa: Math.max(0, valueOf(els.caSa05, 0.770)) },
+        { T: 1.0, Sa: Math.max(0, valueOf(els.caSa10, 0.440)) },
+        { T: 2.0, Sa: Math.max(0, valueOf(els.caSa20, 0.270)) },
+        { T: 5.0, Sa: Math.max(0, valueOf(els.caSa50, 0.075)) },
+        { T: 10.0, Sa: Math.max(0, valueOf(els.caSa100, 0.033)) }
+      ];
+
+      return {
+        edition: "2020",
+        siteDesignation: els.caSiteDesignation.value,
+        probability: els.caProbability.value,
+        interpolation: els.caInterpolation.value,
+        anchors,
+        Ie: Math.max(0, valueOf(els.caIe, 1.00)),
+        Mv: Math.max(0, valueOf(els.caMv, 1.00)),
+        Rd: Math.max(1, valueOf(els.caRd, 3.00)),
+        Ro: Math.max(1, valueOf(els.caRo, 1.50))
+      };
+    }
+
+    function interpolateLinear(T, a, b) {
+      if (b.T === a.T) return a.Sa;
+      const ratio = (T - a.T) / (b.T - a.T);
+      return a.Sa + ratio * (b.Sa - a.Sa);
+    }
+
+    function interpolateLogLog(T, a, b) {
+      if (T <= 0 || a.T <= 0 || a.Sa <= 0 || b.Sa <= 0) {
+        return interpolateLinear(T, a, b);
+      }
+
+      const fraction = Math.log(T / a.T) / Math.log(b.T / a.T);
+      return Math.exp(Math.log(a.Sa) + fraction * Math.log(b.Sa / a.Sa));
+    }
+
+    function canadaHazardSpectrum(T, x) {
+      const anchors = x.anchors;
+
+      if (T <= anchors[0].T) return anchors[0].Sa;
+      if (T >= anchors[anchors.length - 1].T) {
+        const last = anchors[anchors.length - 1];
+        return last.Sa * Math.pow(last.T / T, 2);
+      }
+
+      for (let i = 0; i < anchors.length - 1; i++) {
+        const a = anchors[i];
+        const b = anchors[i + 1];
+
+        if (T >= a.T && T <= b.T) {
+          if (a.T === 0) return interpolateLinear(T, a, b);
+          return x.interpolation === "loglog"
+            ? interpolateLogLog(T, a, b)
+            : interpolateLinear(T, a, b);
+        }
+      }
+
+      return 0;
+    }
+
+    function canadaReducedSpectrum(T, x) {
+      return canadaHazardSpectrum(T, x) * x.Ie * x.Mv / (x.Rd * x.Ro);
+    }
+
+    function buildCanadaRows(x) {
+      const rows = [];
+
+      for (let i = 0; i <= 600; i++) {
+        const T = 12 * i / 600;
+        rows.push({
+          T,
+          first: canadaHazardSpectrum(T, x),
+          second: canadaReducedSpectrum(T, x)
+        });
+      }
+
+      return rows;
+    }
+
+
+    function turkeyInputs() {
+      const sds = Math.max(0.001, valueOf(els.trSds, 1.456));
+      const sd1 = Math.max(0.001, valueOf(els.trSd1, 0.684));
+      const tl = Math.max(0.1, valueOf(els.trTl, 6.0));
+      const R = Math.max(1, valueOf(els.trR, 8.0));
+      const D = Math.max(1, valueOf(els.trD, 3.0));
+      const I = Math.max(1, valueOf(els.trI, 1.0));
+      const ta = 0.2 * sd1 / sds;
+      const tb = sd1 / sds;
+
+      return {
+        siteClass: els.trSiteClass.value,
+        sds,
+        sd1,
+        tl,
+        R,
+        D,
+        I,
+        ta,
+        tb
+      };
+    }
+
+    function turkeyElastic(T, x) {
+      if (T <= x.ta) return (0.4 + 0.6 * T / x.ta) * x.sds;
+      if (T <= x.tb) return x.sds;
+      if (T <= x.tl) return x.sd1 / T;
+      return x.sd1 * x.tl / (T * T);
+    }
+
+    function turkeyReduction(T, x) {
+      if (T <= x.tb) {
+        return x.D + (x.R / x.I - x.D) * (T / x.tb);
+      }
+      return x.R / x.I;
+    }
+
+    function turkeyDesign(T, x) {
+      return turkeyElastic(T, x) / turkeyReduction(T, x);
+    }
+
+    function buildTurkeyRows(x) {
+      const maxT = Math.max(8, Math.ceil(x.tl + 2));
+      const rows = [];
+
+      for (let i = 0; i <= 600; i++) {
+        const T = maxT * i / 600;
+        rows.push({
+          T,
+          first: turkeyElastic(T, x),
+          second: turkeyDesign(T, x)
+        });
+      }
+
+      return { rows, maxT };
+    }
+
+    const INDIA_ZONE_FACTORS = {
+      II: 0.10,
+      III: 0.16,
+      IV: 0.24,
+      V: 0.36
+    };
+
+    function indiaInputs() {
+      const zone = els.inZone.value;
+      return {
+        zone,
+        Z: INDIA_ZONE_FACTORS[zone],
+        soil: els.inSoil.value,
+        I: Math.max(1, valueOf(els.inImportance, 1.20)),
+        R: Math.max(1, valueOf(els.inR, 5.00))
+      };
+    }
+
+    function indiaResponseCoefficient(T, soil) {
+      if (T < 0.10) return 1 + 15 * T;
+
+      if (soil === "I") {
+        if (T < 0.40) return 2.5;
+        if (T < 4.00) return 1.00 / T;
+        return 0.25;
+      }
+
+      if (soil === "II") {
+        if (T < 0.55) return 2.5;
+        if (T < 4.00) return 1.36 / T;
+        return 0.34;
+      }
+
+      if (T < 0.67) return 2.5;
+      if (T < 4.00) return 1.67 / T;
+      return 0.42;
+    }
+
+    function indiaDesignCoefficient(T, x) {
+      return (x.Z / 2) * (x.I / x.R) * indiaResponseCoefficient(T, x.soil);
+    }
+
+    function buildIndiaRows(x) {
+      const rows = [];
+
+      for (let i = 0; i <= 600; i++) {
+        const T = 6 * i / 600;
+        rows.push({
+          T,
+          first: indiaResponseCoefficient(T, x.soil),
+          second: indiaDesignCoefficient(T, x)
+        });
+      }
+
+      return rows;
+    }
+
+
+    const CHINA_INTENSITY_VALUES = {
+      "6_005": { label: "6 degree / 0.05g", frequent: 0.04, rare: 0.28 },
+      "7_010": { label: "7 degree / 0.10g", frequent: 0.08, rare: 0.50 },
+      "7_015": { label: "7 degree / 0.15g", frequent: 0.12, rare: 0.72 },
+      "8_020": { label: "8 degree / 0.20g", frequent: 0.16, rare: 0.90 },
+      "8_030": { label: "8 degree / 0.30g", frequent: 0.24, rare: 1.20 },
+      "9_040": { label: "9 degree / 0.40g", frequent: 0.32, rare: 1.40 }
+    };
+
+    const CHINA_TG = {
+      "1": { I0: 0.20, I1: 0.25, II: 0.35, III: 0.45, IV: 0.65 },
+      "2": { I0: 0.25, I1: 0.30, II: 0.40, III: 0.55, IV: 0.75 },
+      "3": { I0: 0.30, I1: 0.35, II: 0.45, III: 0.65, IV: 0.90 }
+    };
+
+    function chinaInputs() {
+      const damping = Math.max(0.01, valueOf(els.cnDamping, 5.0) / 100);
+      const intensity = CHINA_INTENSITY_VALUES[els.cnIntensity.value];
+      const group = els.cnGroup.value;
+      const site = els.cnSite.value;
+      const Tg = CHINA_TG[group][site];
+
+      const gamma = 0.9 + (0.05 - damping) / (0.3 + 6 * damping);
+      const eta1 = Math.max(0, 0.02 + (0.05 - damping) / (4 + 32 * damping));
+      const eta2 = Math.max(0.55, 1 + (0.05 - damping) / (0.08 + 1.6 * damping));
+
+      return {
+        intensity,
+        group,
+        site,
+        Tg,
+        damping,
+        gamma,
+        eta1,
+        eta2
+      };
+    }
+
+    function chinaSpectrum(T, alphaMax, x) {
+      if (T <= 0.10) {
+        return alphaMax * (0.45 + (x.eta2 - 0.45) * T / 0.10);
+      }
+
+      if (T <= x.Tg) {
+        return alphaMax * x.eta2;
+      }
+
+      if (T <= 5 * x.Tg) {
+        return alphaMax * x.eta2 * Math.pow(x.Tg / T, x.gamma);
+      }
+
+      const tail = alphaMax * (
+        x.eta2 * Math.pow(0.2, x.gamma)
+        - x.eta1 * (T - 5 * x.Tg)
+      );
+
+      return Math.max(0, tail);
+    }
+
+    function buildChinaRows(x) {
+      const rows = [];
+
+      for (let i = 0; i <= 600; i++) {
+        const T = 6 * i / 600;
+        rows.push({
+          T,
+          first: chinaSpectrum(T, x.intensity.rare, x),
+          second: chinaSpectrum(T, x.intensity.frequent, x)
+        });
+      }
+
+      return rows;
+    }
+
+    function mexicoInputs() {
+      const a0 = Math.max(0.001, valueOf(els.mxA0, 0.120));
+      const c = Math.max(a0, valueOf(els.mxC, 0.450));
+      const ta = Math.max(0.01, valueOf(els.mxTa, 0.20));
+      const tb = Math.max(ta + 0.01, valueOf(els.mxTb, 1.20));
+
+      return {
+        a0,
+        c,
+        ta,
+        tb,
+        k: Math.max(0.10, valueOf(els.mxK, 1.50)),
+        reduction: Math.max(1, valueOf(els.mxReduction, 6.00))
+      };
+    }
+
+    function mexicoElastic(T, x) {
+      if (T < x.ta) {
+        return x.a0 + (x.c - x.a0) * T / x.ta;
+      }
+
+      if (T < x.tb) {
+        return x.c;
+      }
+
+      const p = x.k + (1 - x.k) * Math.pow(x.tb / T, 2);
+      return x.c * p * Math.pow(x.tb / T, 2);
+    }
+
+    function mexicoReduced(T, x) {
+      return mexicoElastic(T, x) / x.reduction;
+    }
+
+    function buildMexicoRows(x) {
+      const rows = [];
+
+      for (let i = 0; i <= 600; i++) {
+        const T = 6 * i / 600;
+        rows.push({
+          T,
+          first: mexicoElastic(T, x),
+          second: mexicoReduced(T, x)
+        });
+      }
+
+      return rows;
+    }
+
+    const IRAN_SOIL_PARAMETERS = {
+      I:   { S0: 1.00, S: 1.50, T0: 0.10, Ts: 0.40 },
+      II:  { S0: 1.00, S: 1.50, T0: 0.10, Ts: 0.50 },
+      III: { S0: 1.10, S: 1.75, T0: 0.15, Ts: 0.70 },
+      IV:  { S0: 1.30, S: 2.25, T0: 0.15, Ts: 1.00 }
+    };
+
+    function iranInputs() {
+      const soil = els.irSoil.value;
+
+      return {
+        A: Math.max(0, valueOf(els.irZone, 0.35)),
+        soil,
+        ...IRAN_SOIL_PARAMETERS[soil],
+        N: Math.max(1, valueOf(els.irNearFault, 1.00)),
+        I: Math.max(0.8, valueOf(els.irImportance, 1.00)),
+        R: Math.max(1, valueOf(els.irR, 7.00))
+      };
+    }
+
+    function iranB1(T, x) {
+      if (T < x.T0) {
+        return x.S0 + (x.S - x.S0 + 1) * T / x.T0;
+      }
+
+      if (T <= x.Ts) {
+        return x.S + 1;
+      }
+
+      return (x.S + 1) * Math.pow(x.Ts / T, 2 / 3);
+    }
+
+    function iranElastic(T, x) {
+      return x.A * iranB1(T, x) * x.N;
+    }
+
+    function iranDesign(T, x) {
+      return iranElastic(T, x) * x.I / x.R;
+    }
+
+    function buildIranRows(x) {
+      const rows = [];
+
+      for (let i = 0; i <= 600; i++) {
+        const T = 6 * i / 600;
+        rows.push({
+          T,
+          first: iranElastic(T, x),
+          second: iranDesign(T, x)
+        });
+      }
+
+      return rows;
+    }
+
+    function niceCeil(value) {
+      if (value <= 0) return 1;
+      const magnitude = Math.pow(10, Math.floor(Math.log10(value)));
+      const normalized = value / magnitude;
+      let rounded;
+      if (normalized <= 1) rounded = 1;
+      else if (normalized <= 2) rounded = 2;
+      else if (normalized <= 2.5) rounded = 2.5;
+      else if (normalized <= 5) rounded = 5;
+      else rounded = 10;
+      return rounded * magnitude;
+    }
+
+    function drawSeries(ctx, rows, key, xScale, yScale, options) {
+      ctx.save();
+      ctx.beginPath();
+
+      rows.forEach((row, index) => {
+        const px = xScale(row.T);
+        const py = yScale(row[key]);
+        if (index === 0) ctx.moveTo(px, py);
+        else ctx.lineTo(px, py);
+      });
+
+      ctx.strokeStyle = options.stroke;
+      ctx.lineWidth = options.width;
+      ctx.lineJoin = "round";
+      ctx.lineCap = "round";
+      ctx.setLineDash(options.dash || []);
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    function drawChart(rows, maxT, transitionPeriods = []) {
+      const canvas = els.canvas;
+      const wrap = canvas.parentElement;
+      const dpr = window.devicePixelRatio || 1;
+      const width = Math.max(320, wrap.clientWidth);
+      const height = Math.max(280, wrap.clientHeight);
+
+      canvas.width = Math.floor(width * dpr);
+      canvas.height = Math.floor(height * dpr);
+
+      const ctx = canvas.getContext("2d");
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.clearRect(0, 0, width, height);
+
+      const pad = { left: 68, right: 20, top: 18, bottom: 52 };
+      const plotW = width - pad.left - pad.right;
+      const plotH = height - pad.top - pad.bottom;
+      const factor = accelFactor();
+      const rowsConverted = rows.map(row => ({ T: row.T, first: row.first * factor, second: row.second * factor }));
+      const maxSaRaw = Math.max(...rowsConverted.map(row => Math.max(row.first, row.second)), 0.1 * factor);
+      const maxSa = niceCeil(maxSaRaw * 1.15);
+
+      const xScale = T => pad.left + (T / maxT) * plotW;
+      const yScale = Sa => pad.top + plotH - (Sa / maxSa) * plotH;
+
+      ctx.font = "12px Inter, system-ui, sans-serif";
+      ctx.lineWidth = 1;
+      ctx.textBaseline = "middle";
+
+      const xTicks = maxT <= 4.1 ? 8 : 10;
+      const yTicks = 5;
+
+      for (let i = 0; i <= xTicks; i++) {
+        const T = maxT * i / xTicks;
+        const px = xScale(T);
+
+        ctx.strokeStyle = "#e8edf4";
+        ctx.beginPath();
+        ctx.moveTo(px, pad.top);
+        ctx.lineTo(px, pad.top + plotH);
+        ctx.stroke();
+
+        ctx.fillStyle = "#667085";
+        ctx.textAlign = "center";
+        ctx.fillText(T.toFixed(maxT <= 4.1 ? 1 : 0), px, pad.top + plotH + 22);
+      }
+
+      for (let i = 0; i <= yTicks; i++) {
+        const Sa = maxSa * i / yTicks;
+        const py = yScale(Sa);
+
+        ctx.strokeStyle = "#e8edf4";
+        ctx.beginPath();
+        ctx.moveTo(pad.left, py);
+        ctx.lineTo(pad.left + plotW, py);
+        ctx.stroke();
+
+        ctx.fillStyle = "#667085";
+        ctx.textAlign = "right";
+        ctx.fillText(Sa.toFixed(maxSa < 1 ? 2 : maxSa < 10 ? 1 : 0), pad.left - 10, py);
+      }
+
+      ctx.strokeStyle = "#98a2b3";
+      ctx.lineWidth = 1.2;
+      ctx.beginPath();
+      ctx.moveTo(pad.left, pad.top);
+      ctx.lineTo(pad.left, pad.top + plotH);
+      ctx.lineTo(pad.left + plotW, pad.top + plotH);
+      ctx.stroke();
+
+      ctx.fillStyle = "#475467";
+      ctx.textAlign = "center";
+      ctx.fillText(`Structural Period, T (s)`, pad.left + plotW / 2, height - 14);
+
+      ctx.save();
+      ctx.translate(17, pad.top + plotH / 2);
+      ctx.rotate(-Math.PI / 2);
+      ctx.fillText(`Spectral acceleration, Sa (${accelSuffix()})`, 0, 0);
+      ctx.restore();
+
+      transitionPeriods
+        .filter(item => Number.isFinite(item.value) && item.value >= 0 && item.value <= maxT)
+        .forEach(item => {
+          const px = xScale(item.value);
+          ctx.setLineDash([5, 5]);
+          ctx.strokeStyle = "#a8b0bd";
+          ctx.beginPath();
+          ctx.moveTo(px, pad.top);
+          ctx.lineTo(px, pad.top + plotH);
+          ctx.stroke();
+          ctx.setLineDash([]);
+
+          ctx.fillStyle = "#667085";
+          ctx.textAlign = "center";
+          ctx.fillText(item.label, px, pad.top + 12);
+        });
+
+      const gradient = ctx.createLinearGradient(0, pad.top, 0, pad.top + plotH);
+      gradient.addColorStop(0, "rgba(27, 58, 107, 0.14)");
+      gradient.addColorStop(1, "rgba(27, 58, 107, 0.01)");
+
+      ctx.beginPath();
+      rowsConverted.forEach((row, index) => {
+        const px = xScale(row.T);
+        const py = yScale(row.first);
+        if (index === 0) ctx.moveTo(px, py);
+        else ctx.lineTo(px, py);
+      });
+      ctx.lineTo(xScale(rowsConverted[rowsConverted.length - 1].T), yScale(0));
+      ctx.lineTo(xScale(rowsConverted[0].T), yScale(0));
+      ctx.closePath();
+      ctx.fillStyle = gradient;
+      ctx.fill();
+
+      drawSeries(ctx, rowsConverted, "first", xScale, yScale, {
+        stroke: "#1b3a6b",
+        width: 2.5
+      });
+
+      drawSeries(ctx, rowsConverted, "second", xScale, yScale, {
+        stroke: "#b5651d",
+        width: 2.5,
+        dash: [9, 6]
+      });
+    }
+
+    function parameterCard(label, value) {
+      return `<div class="parameter"><span>${label}</span><strong>${value}</strong></div>`;
+    }
+
+    function updateEuro() {
+      const x = euroInputs();
+      currentRows = buildEuroRows(x);
+      currentMeta = {
+        standard: "Eurocode 8",
+        x,
+        firstLabel: "Elastic spectrum Se(T)",
+        secondLabel: "Design spectrum Sd(T)"
+      };
+
+      const elasticPeak = Math.max(...currentRows.map(row => row.first));
+      const designPeak = Math.max(...currentRows.map(row => row.second));
+
+      els.metric1Label.innerHTML = "Design PGA on Ground Type A, a<sub>g</sub>";
+      els.metric2Label.innerHTML = "Spectrum acceleration at T = 0, a<sub>g</sub>S";
+      els.metric3Label.textContent = "Maximum elastic spectral acceleration";
+      els.metric4Label.textContent = "Maximum reduced design acceleration";
+
+      formatMetric(els.metric1Value, x.ag, "g");
+      formatMetric(els.metric2Value, x.ag * x.S, "g");
+      formatMetric(els.metric3Value, elasticPeak, "g");
+      formatMetric(els.metric4Value, designPeak, "g");
+
+      els.chartTitle.textContent = "Elastic and reduced design spectra";
+      els.chartSubtitle.textContent = "Direct comparison for the selected Eurocode 8 inputs.";
+      els.legendOne.textContent = "Elastic";
+      els.legendTwo.textContent = "Design";
+
+      els.detailsTitle.textContent = "Selected Eurocode parameters";
+      els.detailsCopy.textContent = "Recommended values for the selected spectrum and ground type.";
+      els.parameterGrid.innerHTML = [
+        parameterCard("Soil factor, S", x.S.toFixed(2)),
+        parameterCard("Damping factor, η", x.eta.toFixed(3)),
+        parameterCard("T<sub>B</sub>", `${x.TB.toFixed(2)} s`),
+        parameterCard("T<sub>C</sub>", `${x.TC.toFixed(2)} s`),
+        parameterCard("T<sub>D</sub>", `${x.TD.toFixed(2)} s`),
+        parameterCard("Behaviour factor, q", x.q.toFixed(2))
+      ].join("");
+
+      els.formulaBox.textContent =
+`Elastic spectrum:
+0 ≤ T ≤ TB:  Se(T) = ag·S·[1 + (T/TB)·(2.5η − 1)]
+TB ≤ T ≤ TC: Se(T) = ag·S·2.5η
+TC ≤ T ≤ TD: Se(T) = ag·S·2.5η·(TC/T)
+TD ≤ T ≤ 4s: Se(T) = ag·S·2.5η·(TC·TD/T²)
+
+Reduced design spectrum:
+0 ≤ T ≤ TB:  Sd(T) = ag·S·[2/3 + (T/TB)·(2.5/q − 2/3)]
+TB ≤ T ≤ TC: Sd(T) = ag·S·2.5/q
+TC ≤ T ≤ TD: Sd(T) = max[ag·S·(2.5/q)·(TC/T), β·ag]
+TD ≤ T:      Sd(T) = max[ag·S·(2.5/q)·(TC·TD/T²), β·ag]`;
+
+      els.standardNote.innerHTML =
+        "<strong>Important:</strong> These are recommended EN 1998-1 values. The applicable National Annex may define different hazard and spectrum parameters.";
+
+      drawChart(currentRows, 4, [
+        { label: "TB", value: x.TB },
+        { label: "TC", value: x.TC },
+        { label: "TD", value: x.TD }
+      ]);
+    }
+
+    function updateUsTwoPeriod() {
+      const x = usaTwoPeriodInputs();
+      const built = buildUsTwoPeriodRows(x);
+      currentRows = built.rows;
+      currentMeta = {
+        standard: "ASCE 7-22 two-period",
+        x,
+        firstLabel: "MCER spectrum",
+        secondLabel: "Design spectrum"
+      };
+
+      const mcerPeak = Math.max(...currentRows.map(row => row.first));
+      const designPeak = Math.max(...currentRows.map(row => row.second));
+
+      els.metric1Label.innerHTML = "Design short-period parameter, S<sub>DS</sub>";
+      els.metric2Label.innerHTML = "Design 1-second parameter, S<sub>D1</sub>";
+      els.metric3Label.textContent = "Maximum MCER spectral acceleration";
+      els.metric4Label.textContent = "Maximum design spectral acceleration";
+
+      formatMetric(els.metric1Value, x.sds, "g");
+      formatMetric(els.metric2Value, x.sd1, "g");
+      formatMetric(els.metric3Value, mcerPeak, "g");
+      formatMetric(els.metric4Value, designPeak, "g");
+
+      els.chartTitle.textContent = "ASCE 7-22 two-period response spectra";
+      els.chartSubtitle.textContent = "Risk-targeted MCER and design spectra calculated from SDS, SD1 and TL.";
+      els.legendOne.textContent = "MCER";
+      els.legendTwo.textContent = "Design";
+
+      els.detailsTitle.textContent = "Selected ASCE 7-22 parameters";
+      els.detailsCopy.textContent = "Two-period spectrum inputs and calculated transition periods.";
+      els.parameterGrid.innerHTML = [
+        parameterCard("S<sub>MS</sub>", `${x.sms.toFixed(3)} g`),
+        parameterCard("S<sub>M1</sub>", `${x.sm1.toFixed(3)} g`),
+        parameterCard("T<sub>0</sub>", `${x.t0.toFixed(3)} s`),
+        parameterCard("T<sub>S</sub>", `${x.ts.toFixed(3)} s`),
+        parameterCard("T<sub>L</sub>", `${x.tl.toFixed(2)} s`),
+        parameterCard("Site / Risk", `${x.siteClass} / ${x.riskCategory}`)
+      ].join("");
+
+      els.formulaBox.textContent =
+`Design spectrum:
+0 ≤ T < T0:   Sa(T) = SDS·[0.4 + 0.6·T/T0]
+T0 ≤ T ≤ TS:  Sa(T) = SDS
+TS < T ≤ TL:  Sa(T) = SD1/T
+T > TL:       Sa(T) = SD1·TL/T²
+
+T0 = 0.2·SD1/SDS
+TS = SD1/SDS
+SMS = 1.5·SDS
+SM1 = 1.5·SD1
+MCER spectrum uses SMS and SM1 in the same spectral shape.`;
+
+      els.standardNote.innerHTML =
+        '<strong>ASCE 7-22:</strong> The two-period spectrum is available for the Equivalent Lateral Force procedure. Multi-period spectra are provided separately through the USGS lookup option.';
+
+      drawChart(currentRows, built.maxT, [
+        { label: "T0", value: x.t0 },
+        { label: "TS", value: x.ts },
+        { label: "TL", value: x.tl }
+      ]);
+    }
+
+    function updateUsMultiPeriod() {
+      if (!usgsData) {
+        currentRows = [];
+        currentMeta = { standard: "ASCE 7-22 multi-period" };
+
+        els.metric1Label.innerHTML = "Design short-period parameter, S<sub>DS</sub>";
+        els.metric2Label.innerHTML = "Design 1-second parameter, S<sub>D1</sub>";
+        els.metric3Label.innerHTML = "Site-adjusted PGA, PGA<sub>M</sub>";
+        els.metric4Label.textContent = "Seismic Design Category";
+
+        formatMetric(els.metric1Value, 0, "g");
+        formatMetric(els.metric2Value, 0, "g");
+        formatMetric(els.metric3Value, 0, "g");
+        els.metric4Value.textContent = "—";
+
+        els.chartTitle.textContent = "ASCE 7-22 multi-period response spectra";
+        els.chartSubtitle.textContent = "Enter a US location and load the official USGS spectrum.";
+        els.legendOne.textContent = "MCER";
+        els.legendTwo.textContent = "Design";
+
+        els.detailsTitle.textContent = "USGS multi-period spectrum";
+        els.detailsCopy.textContent = "No spectrum loaded yet.";
+        els.parameterGrid.innerHTML = [
+          parameterCard("Latitude", els.usLatitude.value),
+          parameterCard("Longitude", els.usLongitude.value),
+          parameterCard("Site Class", els.usLookupSiteClass.value),
+          parameterCard("Risk Category", els.usLookupRiskCategory.value),
+          parameterCard("Data source", "USGS"),
+          parameterCard("Status", "Not loaded")
+        ].join("");
+
+        els.formulaBox.textContent =
+`ASCE 7-22 multi-period spectra are obtained from the official USGS Design Ground Motions web service.
+
+The returned data include:
+• Multi-period MCER ordinates
+• Multi-period design ordinates
+• SDS, SD1, PGA_M, TL and Seismic Design Category`;
+
+        els.standardNote.innerHTML =
+          '<strong>Internet required:</strong> Click “Load USGS spectrum” to retrieve location-specific ASCE 7-22 data. The manual two-period option remains available offline.';
+
+        drawChart([{ T: 0, first: 0, second: 0 }, { T: 10, first: 0, second: 0 }], 10, []);
+        return;
+      }
+
+      currentRows = rowsFromUsMultiPeriod(usgsData);
+      currentMeta = {
+        standard: "ASCE 7-22 multi-period",
+        data: usgsData,
+        firstLabel: "Multi-period MCER spectrum",
+        secondLabel: "Multi-period design spectrum"
+      };
+
+      const maxT = Math.max(1, ...currentRows.map(row => row.T));
+      const mcerPeak = Math.max(...currentRows.map(row => row.first));
+      const designPeak = Math.max(...currentRows.map(row => row.second));
+
+      els.metric1Label.innerHTML = "Design short-period parameter, S<sub>DS</sub>";
+      els.metric2Label.innerHTML = "Design 1-second parameter, S<sub>D1</sub>";
+      els.metric3Label.innerHTML = "Site-adjusted PGA, PGA<sub>M</sub>";
+      els.metric4Label.textContent = "Seismic Design Category";
+
+      formatMetric(els.metric1Value, Number(usgsData.sds), "g");
+      formatMetric(els.metric2Value, Number(usgsData.sd1), "g");
+      formatMetric(els.metric3Value, Number(usgsData.pgam), "g");
+      els.metric4Value.textContent = usgsData.sdc || "—";
+
+      els.chartTitle.textContent = "ASCE 7-22 multi-period response spectra";
+      els.chartSubtitle.textContent = "Official location-specific USGS MCER and design spectra.";
+      els.legendOne.textContent = "MCER";
+      els.legendTwo.textContent = "Design";
+
+      els.detailsTitle.textContent = "USGS multi-period spectrum results";
+      els.detailsCopy.textContent = "Location-specific ASCE 7-22 parameters returned by the USGS service.";
+      els.parameterGrid.innerHTML = [
+        parameterCard("S<sub>MS</sub>", `${Number(usgsData.sms).toFixed(3)} g`),
+        parameterCard("S<sub>M1</sub>", `${Number(usgsData.sm1).toFixed(3)} g`),
+        parameterCard("T<sub>0</sub>", `${Number(usgsData.t0).toFixed(3)} s`),
+        parameterCard("T<sub>S</sub>", `${Number(usgsData.ts).toFixed(3)} s`),
+        parameterCard("T<sub>L</sub>", `${Number(usgsData.tl).toFixed(2)} s`),
+        parameterCard("SDC", usgsData.sdc || "—")
+      ].join("");
+
+      els.formulaBox.textContent =
+`The multi-period curve is returned directly by the USGS ASCE 7-22 web service as period–ordinate arrays.
+
+This avoids reducing the hazard to only SDS and SD1 and preserves the location-specific spectral shape.`;
+
+      els.standardNote.innerHTML =
+        '<strong>Data source:</strong> Official USGS ASCE 7-22 Design Ground Motions web service. Confirm the selected coordinates, Site Class and Risk Category before design use.';
+
+      drawChart(currentRows, Math.max(10, Math.ceil(maxT)), []);
+    }
+
+
+    function updateNewZealand() {
+      const x = newZealandInputs();
+      currentRows = buildNzRows(x);
+      currentMeta = {
+        standard: "NZS 1170.5:2004 — simplified comparison",
+        x,
+        firstLabel: "Elastic site hazard spectrum C(T)",
+        secondLabel: "Simplified reduced comparison Cd(T)"
+      };
+
+      const pga = currentRows[0].first;
+      const designPga = currentRows[0].second;
+      const elasticPeak = Math.max(...currentRows.map(row => row.first));
+      const designPeak = Math.max(...currentRows.map(row => row.second));
+
+      els.metric1Label.innerHTML = "Elastic PGA coefficient, C(0)";
+      els.metric2Label.innerHTML = "Simplified comparison coefficient at T = 0";
+      els.metric3Label.textContent = "Maximum elastic site hazard coefficient";
+      els.metric4Label.textContent = "Maximum simplified comparison coefficient";
+
+      formatMetric(els.metric1Value, pga, "g");
+      formatMetric(els.metric2Value, designPga, "g");
+      formatMetric(els.metric3Value, elasticPeak, "g");
+      formatMetric(els.metric4Value, designPeak, "g");
+
+      els.chartTitle.textContent = "New Zealand elastic spectrum and simplified comparison";
+      els.chartSubtitle.textContent =
+        "NZS 1170.5:2004 elastic shape with a simplified structural-reduction comparison.";
+      els.legendOne.textContent = "Elastic C(T)";
+      els.legendTwo.textContent = "Simplified comparison";
+
+      els.detailsTitle.textContent = "Selected New Zealand parameters — simplified comparison";
+      els.detailsCopy.textContent =
+        "The elastic shape is scaled by Z and R; the reduced curve is a simplified comparison using a constant near-fault multiplier.";
+
+      els.parameterGrid.innerHTML = [
+        parameterCard("Site class", x.siteClass),
+        parameterCard("Hazard factor, Z", x.Z.toFixed(2)),
+        parameterCard("Return factor, R", x.R.toFixed(2)),
+        parameterCard("Near-fault, N", x.N.toFixed(2)),
+        parameterCard("Ductility, μ", x.mu.toFixed(2)),
+        parameterCard("Performance, S<sub>p</sub>", x.Sp.toFixed(2))
+      ].join("");
+
+      els.formulaBox.textContent =
+`Elastic site hazard spectrum:
+C(T) = Ch(T) · Z · R · N(T,D)
+
+Simplified comparison spectrum:
+Cd(T) = C(T) · Sp / kμ(T)
+
+For T < 0.7 s:
+kμ(T) = 1 + (μ − 1) · T/0.7
+
+For T ≥ 0.7 s:
+kμ(T) = μ
+
+Ch(T) is the NZS 1170.5 spectral shape for Site Classes A–E.`;
+
+      els.standardNote.innerHTML =
+        '<strong>Simplified NZS comparison:</strong> This module uses the NZS 1170.5:2004 modal-response spectral shapes. '
+        + 'The near-fault factor is entered as a simplified constant; the standard defines N(T,D) as period- '
+        + 'and distance-dependent. Method-specific minimum design coefficients are not applied in this preliminary comparison.';
+
+      drawChart(currentRows, 5, [
+        { label: "0.1", value: 0.10 },
+        { label: "0.7", value: 0.70 },
+        { label: "1.5", value: 1.50 },
+        { label: "3.0", value: 3.00 }
+      ]);
+    }
+
+
+    function updateAustralia() {
+      const x = australiaInputs();
+      currentRows = buildAustraliaRows(x);
+      currentMeta = {
+        standard: "AS 1170.4:2024",
+        x,
+        firstLabel: "Elastic site hazard spectrum C(T)",
+        secondLabel: "Design response spectrum Cd(T)"
+      };
+
+      const elasticAtZero = currentRows[0].first;
+      const designAtZero = currentRows[0].second;
+      const elasticPeak = Math.max(...currentRows.map(row => row.first));
+      const designPeak = Math.max(...currentRows.map(row => row.second));
+
+      els.metric1Label.innerHTML = "Effective hazard coefficient, k<sub>p</sub>Z";
+      els.metric2Label.innerHTML = "Elastic site coefficient at T = 0";
+      els.metric3Label.textContent = "Maximum elastic site hazard coefficient";
+      els.metric4Label.textContent = "Maximum reduced design coefficient";
+
+      formatMetric(els.metric1Value, x.effectiveKpZ);
+      formatMetric(els.metric2Value, elasticAtZero, "g");
+      formatMetric(els.metric3Value, elasticPeak, "g");
+      formatMetric(els.metric4Value, designPeak, "g");
+
+      els.chartTitle.textContent = "Australian elastic and design spectra";
+      els.chartSubtitle.textContent =
+        "AS 1170.4:2024 site hazard spectrum and the structural design spectrum reduced by Sp/μ.";
+      els.legendOne.textContent = "Elastic C(T)";
+      els.legendTwo.textContent = "Design Cd(T)";
+
+      els.detailsTitle.textContent = "Selected Australian parameters";
+      els.detailsCopy.textContent =
+        "The effective hazard coefficient includes the AS 1170.4 minimum kpZ requirement where applicable.";
+
+      const minimumText = x.minimumKpZ === null
+        ? "Not specified"
+        : x.minimumKpZ.toFixed(2);
+
+      els.parameterGrid.innerHTML = [
+        parameterCard("Site class", x.siteClass),
+        parameterCard("Probability factor, k<sub>p</sub>", x.kp.toFixed(2)),
+        parameterCard("Hazard factor, Z", x.Z.toFixed(2)),
+        parameterCard("Minimum k<sub>p</sub>Z", minimumText),
+        parameterCard("Ductility, μ", x.mu.toFixed(2)),
+        parameterCard("Performance, S<sub>p</sub>", x.Sp.toFixed(2))
+      ].join("");
+
+      els.formulaBox.textContent =
+`Elastic site hazard spectrum:
+C(T) = kp · Z · Ch(T)
+
+Code minimum:
+effective kpZ = max(kp · Z, minimum kpZ), where a minimum is specified
+
+Design response spectrum:
+Cd(T) = C(T) · Sp / μ
+
+Ch(T) is the AS 1170.4 spectral shape factor for Site Classes Ae–Ee.`;
+
+      const minimumApplied = x.effectiveKpZ > x.rawKpZ + 1e-12;
+
+      els.standardNote.innerHTML =
+        `<strong>AS 1170.4:2024:</strong> The calculated raw k<sub>p</sub>Z is `
+        + `${x.rawKpZ.toFixed(3)}`
+        + (minimumApplied
+          ? `, so the applicable minimum increases it to ${x.effectiveKpZ.toFixed(3)}.`
+          : ` and no increase from the minimum k<sub>p</sub>Z table is required.`)
+        + ` The selected S<sub>p</sub> and μ should match the actual structural system.`;
+
+      drawChart(currentRows, 5, [
+        { label: "0.1", value: 0.10 },
+        { label: "1.5", value: 1.50 }
+      ]);
+    }
+
+
+    function updateCanada() {
+      const x = canadaInputs();
+      els.codeBadge.textContent = `NBC ${x.edition}`;
+      currentRows = buildCanadaRows(x);
+      currentMeta = {
+        standard: `NBC ${x.edition} Canada`,
+        x,
+        firstLabel: "5% damped site hazard spectrum S(T)",
+        secondLabel: "Force-reduced structural spectrum"
+      };
+
+      const hazardPeak = Math.max(...currentRows.map(row => row.first));
+      const reducedPeak = Math.max(...currentRows.map(row => row.second));
+      const reduction = x.Ie * x.Mv / (x.Rd * x.Ro);
+
+      els.metric1Label.innerHTML = "Peak ground acceleration, PGA";
+      els.metric2Label.innerHTML = "S<sub>a</sub>(0.2)";
+      els.metric3Label.textContent = "Maximum 5% damped site spectrum";
+      els.metric4Label.textContent = "Maximum force-reduced spectrum";
+
+      formatMetric(els.metric1Value, x.anchors[0].Sa, "g");
+      formatMetric(els.metric2Value, x.anchors[1].Sa, "g");
+      formatMetric(els.metric3Value, hazardPeak, "g");
+      formatMetric(els.metric4Value, reducedPeak, "g");
+
+      els.chartTitle.textContent = "Canadian multi-period response spectra";
+      els.chartSubtitle.textContent =
+        "NBC 2020 site-adjusted hazard spectrum and an equivalent force-reduced structural spectrum.";
+      els.legendOne.textContent = "Site spectrum";
+      els.legendTwo.textContent = "Reduced";
+
+      els.detailsTitle.textContent = `Selected NBC ${x.edition} Canadian parameters`;
+      els.detailsCopy.textContent =
+        "NBC 2020 spectral values are entered at the prescribed periods and interpolated between anchors.";
+
+      const probabilityLabel = `${x.probability}% / 50 yr`;
+      const interpolationLabel = x.interpolation === "loglog" ? "Log–log" : "Linear";
+
+      els.parameterGrid.innerHTML = [
+        parameterCard("Edition", `NBC ${x.edition}`),
+        parameterCard("Site designation", x.siteDesignation),
+        parameterCard("Probability", probabilityLabel),
+        parameterCard("Interpolation", interpolationLabel),
+        parameterCard("I<sub>E</sub> · M<sub>v</sub> / R<sub>d</sub>R<sub>o</sub>", reduction.toFixed(3)),
+        parameterCard("R<sub>d</sub> / R<sub>o</sub>", `${x.Rd.toFixed(2)} / ${x.Ro.toFixed(2)}`)
+      ].join("");
+
+      els.formulaBox.textContent =
+`NBC 2020 site hazard spectrum:
+S(T) = interpolation through the entered site-adjusted spectral values
+
+Specified anchor periods:
+T = 0.2, 0.5, 1.0, 2.0, 5.0 and 10.0 s
+
+This tool also connects PGA at T = 0 to Sa(0.2) by linear interpolation.
+
+Equivalent force-reduced spectrum:
+Sr(T) = S(T) · IE · Mv / (Rd · Ro)
+
+For T > 10 s:
+S(T) = Sa(10) · (10/T)²`;
+
+      els.standardNote.innerHTML =
+        `<strong>NBC ${x.edition}:</strong> Enter values from the official Canadian seismic hazard tool for the `
+        + 'selected code edition, site designation and probability. Linear or log–log interpolation is available '
+        + 'between the specified periods. The reduced curve is an explanatory force-coefficient comparison; '
+        + 'full design must apply the appropriate SFRS-specific M<sub>v</sub>, R<sub>d</sub>, R<sub>o</sub>, '
+        + 'base-shear limits and other applicable Article 4.1.8 requirements.';
+
+      drawChart(currentRows, 12, [
+        { label: "0.2", value: 0.20 },
+        { label: "0.5", value: 0.50 },
+        { label: "1.0", value: 1.00 },
+        { label: "2.0", value: 2.00 },
+        { label: "5.0", value: 5.00 },
+        { label: "10", value: 10.00 }
+      ]);
+    }
+
+
+    function updateTurkey() {
+      const x = turkeyInputs();
+      const built = buildTurkeyRows(x);
+      currentRows = built.rows;
+      currentMeta = {
+        standard: "TBDY 2018 Türkiye",
+        x,
+        firstLabel: "Horizontal elastic spectrum Sae(T)",
+        secondLabel: "Reduced design spectrum SaR(T)"
+      };
+
+      const elasticPeak = Math.max(...currentRows.map(row => row.first));
+      const designPeak = Math.max(...currentRows.map(row => row.second));
+
+      els.metric1Label.innerHTML = "Short-period design coefficient, S<sub>DS</sub>";
+      els.metric2Label.innerHTML = "One-second design coefficient, S<sub>D1</sub>";
+      els.metric3Label.textContent = "Maximum elastic spectral acceleration";
+      els.metric4Label.textContent = "Maximum reduced design acceleration";
+
+      formatMetric(els.metric1Value, x.sds, "g");
+      formatMetric(els.metric2Value, x.sd1, "g");
+      formatMetric(els.metric3Value, elasticPeak, "g");
+      formatMetric(els.metric4Value, designPeak, "g");
+
+      els.chartTitle.textContent = "Türkiye elastic and reduced design spectra";
+      els.chartSubtitle.textContent =
+        "TBDY 2018 horizontal elastic spectrum and period-dependent earthquake-load reduction.";
+      els.legendOne.textContent = "Elastic Sae(T)";
+      els.legendTwo.textContent = "Reduced SaR(T)";
+
+      els.detailsTitle.textContent = "Selected Türkiye parameters";
+      els.detailsCopy.textContent =
+        "SDS and SD1 are site-adjusted design spectral coefficients obtained from map values and local soil factors.";
+
+      els.parameterGrid.innerHTML = [
+        parameterCard("Soil class", x.siteClass),
+        parameterCard("T<sub>A</sub>", `${x.ta.toFixed(3)} s`),
+        parameterCard("T<sub>B</sub>", `${x.tb.toFixed(3)} s`),
+        parameterCard("T<sub>L</sub>", `${x.tl.toFixed(2)} s`),
+        parameterCard("R / D", `${x.R.toFixed(1)} / ${x.D.toFixed(1)}`),
+        parameterCard("Importance, I", x.I.toFixed(1))
+      ].join("");
+
+      els.formulaBox.textContent =
+`Horizontal elastic design spectrum:
+0 ≤ T ≤ TA:   Sae(T) = (0.4 + 0.6·T/TA)·SDS
+TA < T ≤ TB:  Sae(T) = SDS
+TB < T ≤ TL:  Sae(T) = SD1/T
+T > TL:       Sae(T) = SD1·TL/T²
+
+TA = 0.2·SD1/SDS
+TB = SD1/SDS
+
+Earthquake-load reduction:
+T ≤ TB:  Ra(T) = D + (R/I − D)·T/TB
+T > TB:  Ra(T) = R/I
+
+Reduced design spectrum:
+SaR(T) = Sae(T) / Ra(T)`;
+
+      els.standardNote.innerHTML =
+        '<strong>TBDY 2018:</strong> Enter S<sub>DS</sub> and S<sub>D1</sub> obtained from the '
+        + 'AFAD hazard map and applicable local-soil coefficients. Soil Class ZF requires a site-specific '
+        + 'investigation. R, D and I must correspond to the selected structural system and building use.';
+
+      drawChart(currentRows, built.maxT, [
+        { label: "TA", value: x.ta },
+        { label: "TB", value: x.tb },
+        { label: "TL", value: x.tl }
+      ]);
+    }
+
+    function updateIndia() {
+      const x = indiaInputs();
+      currentRows = buildIndiaRows(x);
+      currentMeta = {
+        standard: "IS 1893 Part 1 2016 India",
+        x,
+        firstLabel: "Response acceleration coefficient Sa/g",
+        secondLabel: "Design horizontal coefficient Ah"
+      };
+
+      const scale = (x.Z / 2) * (x.I / x.R);
+      const elasticPeak = Math.max(...currentRows.map(row => row.first));
+      const designPeak = Math.max(...currentRows.map(row => row.second));
+      const designAtZero = currentRows[0].second;
+
+      els.metric1Label.innerHTML = "Seismic zone factor, Z";
+      els.metric2Label.innerHTML = "Design coefficient at T = 0, A<sub>h</sub>";
+      els.metric3Label.textContent = "Maximum response coefficient, Sa/g";
+      els.metric4Label.textContent = "Maximum design horizontal coefficient";
+
+      formatMetric(els.metric1Value, x.Z);
+      formatMetric(els.metric2Value, designAtZero);
+      formatMetric(els.metric3Value, elasticPeak);
+      formatMetric(els.metric4Value, designPeak);
+
+      els.chartTitle.textContent = "Indian response and design spectra";
+      els.chartSubtitle.textContent =
+        "IS 1893 (Part 1):2016 response-spectrum shape and the design horizontal acceleration coefficient.";
+      els.legendOne.textContent = "Sa/g";
+      els.legendTwo.textContent = "Design Ah";
+
+      els.detailsTitle.textContent = "Selected Indian parameters";
+      els.detailsCopy.textContent =
+        "The module implements the 5% damped response-spectrum method in IS 1893 (Part 1):2016.";
+
+      const plateauEnd = x.soil === "I" ? 0.40 : x.soil === "II" ? 0.55 : 0.67;
+
+      els.parameterGrid.innerHTML = [
+        parameterCard("Zone", x.zone),
+        parameterCard("Soil type", x.soil),
+        parameterCard("Importance, I", x.I.toFixed(2)),
+        parameterCard("Reduction, R", x.R.toFixed(2)),
+        parameterCard("(Z/2)·(I/R)", scale.toFixed(4)),
+        parameterCard("Damping", "5%")
+      ].join("");
+
+      els.formulaBox.textContent =
+`Design horizontal acceleration coefficient:
+Ah(T) = (Z/2) · (I/R) · (Sa/g)
+
+Response-spectrum method, 5% damping:
+
+All soil types:
+0 ≤ T < 0.10 s: Sa/g = 1 + 15T
+
+Type I — rock or hard soil:
+0.10 ≤ T < 0.40 s: Sa/g = 2.5
+0.40 ≤ T < 4.00 s: Sa/g = 1/T
+T ≥ 4.00 s: Sa/g = 0.25
+
+Type II — medium or stiff soil:
+0.10 ≤ T < 0.55 s: Sa/g = 2.5
+0.55 ≤ T < 4.00 s: Sa/g = 1.36/T
+T ≥ 4.00 s: Sa/g = 0.34
+
+Type III — soft soil:
+0.10 ≤ T < 0.67 s: Sa/g = 2.5
+0.67 ≤ T < 4.00 s: Sa/g = 1.67/T
+T ≥ 4.00 s: Sa/g = 0.42`;
+
+      els.standardNote.innerHTML =
+        '<strong>Edition note:</strong> This module specifically implements IS 1893 (Part 1):2016. '
+        + 'BIS published a substantially revised 2025 edition with a new hazard framework and site classes; '
+        + 'do not use this 2016 module where the 2025 edition governs the project.';
+
+      drawChart(currentRows, 6, [
+        { label: "0.1", value: 0.10 },
+        { label: plateauEnd.toFixed(2), value: plateauEnd },
+        { label: "4.0", value: 4.00 }
+      ]);
+    }
+
+
+    function updateChina() {
+      const x = chinaInputs();
+      currentRows = buildChinaRows(x);
+      currentMeta = {
+        standard: "China GB 50011-2010 2016",
+        x,
+        firstLabel: "Rare-earthquake elastic influence coefficient",
+        secondLabel: "Frequent-earthquake design influence coefficient"
+      };
+
+      const rarePeak = Math.max(...currentRows.map(row => row.first));
+      const frequentPeak = Math.max(...currentRows.map(row => row.second));
+
+      els.metric1Label.innerHTML = "Frequent-earthquake α<sub>max</sub>";
+      els.metric2Label.innerHTML = "Rare-earthquake α<sub>max</sub>";
+      els.metric3Label.textContent = "Maximum rare-earthquake coefficient";
+      els.metric4Label.textContent = "Maximum frequent-earthquake coefficient";
+
+      formatMetric(els.metric1Value, x.intensity.frequent);
+      formatMetric(els.metric2Value, x.intensity.rare);
+      formatMetric(els.metric3Value, rarePeak);
+      formatMetric(els.metric4Value, frequentPeak);
+
+      els.chartTitle.textContent = "Chinese frequent and rare earthquake spectra";
+      els.chartSubtitle.textContent =
+        "GB 50011-2010 (2016 edition) seismic influence-coefficient curves.";
+      els.legendOne.textContent = "Rare earthquake";
+      els.legendTwo.textContent = "Frequent earthquake";
+
+      els.detailsTitle.textContent = "Selected Chinese parameters";
+      els.detailsCopy.textContent =
+        "The characteristic period is selected from the design earthquake group and site category.";
+
+      els.parameterGrid.innerHTML = [
+        parameterCard("Intensity", x.intensity.label),
+        parameterCard("Earthquake group", x.group),
+        parameterCard("Site category", x.site),
+        parameterCard("T<sub>g</sub>", `${x.Tg.toFixed(2)} s`),
+        parameterCard("Attenuation γ", x.gamma.toFixed(3)),
+        parameterCard("Damping η₂", x.eta2.toFixed(3))
+      ].join("");
+
+      els.formulaBox.textContent =
+`GB 50011 seismic influence coefficient:
+
+0 ≤ T ≤ 0.1 s:
+α(T) = αmax · [0.45 + (η2 − 0.45)·T/0.1]
+
+0.1 s < T ≤ Tg:
+α(T) = η2 · αmax
+
+Tg < T ≤ 5Tg:
+α(T) = η2 · αmax · (Tg/T)^γ
+
+5Tg < T ≤ 6 s:
+α(T) = αmax · [η2·0.2^γ − η1·(T − 5Tg)]
+
+γ, η1 and η2 vary with damping ratio.`;
+
+      els.standardNote.innerHTML =
+        '<strong>GB 50011:</strong> The frequent- and rare-earthquake α<sub>max</sub> values are '
+        + 'selected from the chosen precaution intensity. Confirm the city-specific intensity, '
+        + 'design earthquake group and site category in the applicable Chinese code tables.';
+
+      drawChart(currentRows, 6, [
+        { label: "0.1", value: 0.10 },
+        { label: "Tg", value: x.Tg },
+        { label: "5Tg", value: Math.min(6, 5 * x.Tg) }
+      ]);
+    }
+
+    function updateMexico() {
+      const x = mexicoInputs();
+      currentRows = buildMexicoRows(x);
+      currentMeta = {
+        standard: "Mexico City NTC-Sismo 2023",
+        x,
+        firstLabel: "Elastic transparent spectrum Sa(T,Q=1)",
+        secondLabel: "Simplified reduced spectrum"
+      };
+
+      const elasticPeak = Math.max(...currentRows.map(row => row.first));
+      const reducedPeak = Math.max(...currentRows.map(row => row.second));
+
+      els.metric1Label.innerHTML = "Ground coefficient, a₀";
+      els.metric2Label.innerHTML = "Plateau coefficient, c";
+      els.metric3Label.textContent = "Maximum elastic spectral coefficient";
+      els.metric4Label.textContent = "Maximum simplified reduced coefficient";
+
+      formatMetric(els.metric1Value, x.a0);
+      formatMetric(els.metric2Value, x.c);
+      formatMetric(els.metric3Value, elasticPeak);
+      formatMetric(els.metric4Value, reducedPeak);
+
+      els.chartTitle.textContent = "Mexico City elastic and reduced spectra";
+      els.chartSubtitle.textContent =
+        "NTC-Sismo 2023 transparent spectrum using user-entered SASID parameters.";
+      els.legendOne.textContent = "Elastic Q = 1";
+      els.legendTwo.textContent = "Simplified reduced";
+
+      els.detailsTitle.textContent = "Selected Mexico City parameters";
+      els.detailsCopy.textContent =
+        "The elastic spectral shape uses a₀, c, Ta, Tb and k; the reduction is entered as one combined factor.";
+
+      els.parameterGrid.innerHTML = [
+        parameterCard("a₀", x.a0.toFixed(3)),
+        parameterCard("c", x.c.toFixed(3)),
+        parameterCard("T<sub>a</sub>", `${x.ta.toFixed(2)} s`),
+        parameterCard("T<sub>b</sub>", `${x.tb.toFixed(2)} s`),
+        parameterCard("k", x.k.toFixed(2)),
+        parameterCard("Q′R′ρ", x.reduction.toFixed(2))
+      ].join("");
+
+      els.formulaBox.textContent =
+`Transparent elastic spectrum:
+
+T < Ta:
+Sa(T,Q=1) = a0 + (c − a0)·T/Ta
+
+Ta ≤ T < Tb:
+Sa(T,Q=1) = c
+
+T ≥ Tb:
+p = k + (1 − k)·(Tb/T)²
+Sa(T,Q=1) = c·p·(Tb/T)²
+
+Simplified reduced spectrum:
+Sa,reduced(T) = Sa(T,Q=1) / (Q′R′ρ)`;
+
+      els.standardNote.innerHTML =
+        '<strong>Mexico City NTC-Sismo 2023:</strong> The location-specific parameters and the '
+        + 'official reduced spectrum should be obtained from SASID. The combined reduction field in '
+        + 'this preliminary tool is a simplified comparison and does not replace the period-dependent '
+        + 'Q′, R′ and redundancy provisions of the standard.';
+
+      drawChart(currentRows, 6, [
+        { label: "Ta", value: x.ta },
+        { label: "Tb", value: x.tb }
+      ]);
+    }
+
+    function updateIran() {
+      const x = iranInputs();
+      currentRows = buildIranRows(x);
+      currentMeta = {
+        standard: "Iran Standard 2800 Fourth Edition",
+        x,
+        firstLabel: "Elastic design spectrum A·B(T)",
+        secondLabel: "Reduced structural design spectrum"
+      };
+
+      const elasticPeak = Math.max(...currentRows.map(row => row.first));
+      const designPeak = Math.max(...currentRows.map(row => row.second));
+
+      els.metric1Label.innerHTML = "Design base acceleration, A";
+      els.metric2Label.innerHTML = "Elastic coefficient at T = 0";
+      els.metric3Label.textContent = "Maximum elastic spectral coefficient";
+      els.metric4Label.textContent = "Maximum reduced design coefficient";
+
+      formatMetric(els.metric1Value, x.A, "g");
+      formatMetric(els.metric2Value, currentRows[0].first, "g");
+      formatMetric(els.metric3Value, elasticPeak, "g");
+      formatMetric(els.metric4Value, designPeak, "g");
+
+      els.chartTitle.textContent = "Iranian elastic and reduced design spectra";
+      els.chartSubtitle.textContent =
+        "Standard No. 2800 fourth-edition spectral shape for the selected hazard and soil type.";
+      els.legendOne.textContent = "Elastic A·B(T)";
+      els.legendTwo.textContent = "Reduced design";
+
+      els.detailsTitle.textContent = "Selected Iranian parameters";
+      els.detailsCopy.textContent =
+        "The soil-dependent B₁(T) shape is scaled by base acceleration A and the entered near-source factor.";
+
+      els.parameterGrid.innerHTML = [
+        parameterCard("Soil type", x.soil),
+        parameterCard("S₀", x.S0.toFixed(2)),
+        parameterCard("S", x.S.toFixed(2)),
+        parameterCard("T₀", `${x.T0.toFixed(2)} s`),
+        parameterCard("T<sub>s</sub>", `${x.Ts.toFixed(2)} s`),
+        parameterCard("I / R", `${x.I.toFixed(2)} / ${x.R.toFixed(2)}`)
+      ].join("");
+
+      els.formulaBox.textContent =
+`Standard No. 2800 spectral shape:
+
+0 ≤ T < T0:
+B1(T) = S0 + (S − S0 + 1)·T/T0
+
+T0 ≤ T ≤ Ts:
+B1(T) = S + 1
+
+T > Ts:
+B1(T) = (S + 1)·(Ts/T)^(2/3)
+
+Elastic spectrum:
+B(T) = B1(T)·N
+Sa,e(T) = A·B(T)
+
+Reduced structural spectrum:
+Sa,d(T) = A·B(T)·I/R`;
+
+      els.standardNote.innerHTML =
+        '<strong>Iran Standard No. 2800:</strong> The near-source amplification is represented by '
+        + 'a user-entered factor N for this preliminary implementation. Confirm the site-specific '
+        + 'near-fault provisions, structural behaviour factor R and importance factor I before design use.';
+
+      drawChart(currentRows, 6, [
+        { label: "T0", value: x.T0 },
+        { label: "Ts", value: x.Ts }
+      ]);
+    }
+
+    function updateStandardUI() {
+      const standard = els.standard.value;
+      const sampleLabels = {
+        eurocode: "Load Eurocode sample",
+        usa: "Load ASCE 7-22 sample",
+        newzealand: "Load simplified NZS sample",
+        australia: "Load AS 1170.4 sample",
+        canada: "Load NBC sample",
+        turkey: "Load TBDY 2018 sample",
+        india: "Load IS 1893 sample",
+        china: "Load GB 50011 sample",
+        mexico: "Load NTC-Sismo sample",
+        iran: "Load Standard 2800 sample"
+      };
+      els.sampleBtn.textContent = sampleLabels[standard] || "Load sample data";
+
+      els.euroInputs.classList.toggle("hidden", standard !== "eurocode");
+      els.usaInputs.classList.toggle("hidden", standard !== "usa");
+      els.nzInputs.classList.toggle("hidden", standard !== "newzealand");
+      els.auInputs.classList.toggle("hidden", standard !== "australia");
+      els.caInputs.classList.toggle("hidden", standard !== "canada");
+      els.trInputs.classList.toggle("hidden", standard !== "turkey");
+      els.inInputs.classList.toggle("hidden", standard !== "india");
+      els.cnInputs.classList.toggle("hidden", standard !== "china");
+      els.mxInputs.classList.toggle("hidden", standard !== "mexico");
+      els.irInputs.classList.toggle("hidden", standard !== "iran");
+
+      updateStandardPicker();
+
+      if (!validateActiveInputs()) return;
+
+      if (standard === "eurocode") {
+        els.codeBadge.textContent = "EN 1998-1:2004";
+        els.headerSubtitle.textContent =
+          "Generate and compare Eurocode 8 elastic and reduced design response spectra.";
+        updateEuro();
+      } else if (standard === "usa") {
+        els.codeBadge.textContent = "ASCE/SEI 7-22";
+        els.headerSubtitle.textContent =
+          "Generate United States two-period spectra or load official USGS multi-period spectra.";
+        updateUsOptionUI();
+      } else if (standard === "newzealand") {
+        els.codeBadge.textContent = "NZS 1170.5:2004 · simplified";
+        els.headerSubtitle.textContent =
+          "Generate the NZS 1170.5 elastic site spectrum with a clearly labelled simplified structural-reduction comparison.";
+        updateNewZealand();
+      } else if (standard === "australia") {
+        els.codeBadge.textContent = "AS 1170.4:2024";
+        els.headerSubtitle.textContent =
+          "Generate Australian elastic site hazard and reduced structural design spectra.";
+        updateAustralia();
+      } else if (standard === "canada") {
+        els.codeBadge.textContent = "NBC 2020";
+        els.headerSubtitle.textContent =
+          "Generate Canadian multi-period site hazard and force-reduced structural spectra.";
+        updateCanada();
+      } else if (standard === "turkey") {
+        els.codeBadge.textContent = "TBDY 2018";
+        els.headerSubtitle.textContent =
+          "Generate Türkiye horizontal elastic and reduced design response spectra.";
+        updateTurkey();
+      } else if (standard === "india") {
+        els.codeBadge.textContent = "IS 1893:2016";
+        els.headerSubtitle.textContent =
+          "Generate the Indian 5% damped response coefficient and design horizontal spectrum.";
+        updateIndia();
+      } else if (standard === "china") {
+        els.codeBadge.textContent = "GB 50011-2010";
+        els.headerSubtitle.textContent =
+          "Generate Chinese frequent- and rare-earthquake seismic influence spectra.";
+        updateChina();
+      } else if (standard === "mexico") {
+        els.codeBadge.textContent = "NTC-Sismo 2023";
+        els.headerSubtitle.textContent =
+          "Generate a Mexico City transparent elastic spectrum and simplified reduced comparison.";
+        updateMexico();
+      } else {
+        els.codeBadge.textContent = "Standard No. 2800";
+        els.headerSubtitle.textContent =
+          "Generate Iranian elastic and reduced structural design spectra.";
+        updateIran();
+      }
+    }
+
+    function updateUsOptionUI() {
+      const isTwoPeriod = els.usSpectrumOption.value === "twoPeriod";
+      els.usTwoPeriodInputs.classList.toggle("hidden", !isTwoPeriod);
+      els.usMultiPeriodInputs.classList.toggle("hidden", isTwoPeriod);
+
+      if (!validateActiveInputs()) return;
+      if (isTwoPeriod) updateUsTwoPeriod();
+      else updateUsMultiPeriod();
+    }
+
+    function update() {
+      if (!validateActiveInputs()) return;
+      if (els.standard.value === "eurocode") updateEuro();
+      else if (els.standard.value === "usa") updateUsOptionUI();
+      else if (els.standard.value === "newzealand") updateNewZealand();
+      else if (els.standard.value === "australia") updateAustralia();
+      else if (els.standard.value === "canada") updateCanada();
+      else if (els.standard.value === "turkey") updateTurkey();
+      else if (els.standard.value === "india") updateIndia();
+      else if (els.standard.value === "china") updateChina();
+      else if (els.standard.value === "mexico") updateMexico();
+      else updateIran();
+    }
+
+    async function loadUsGSSpectrum() {
+      if (!validateActiveInputs()) {
+        setLookupStatus("Correct the highlighted coordinates before loading the USGS spectrum.", "error");
+        return;
+      }
+      const latitude = valueOf(els.usLatitude);
+      const longitude = valueOf(els.usLongitude);
+      const siteClass = els.usLookupSiteClass.value;
+      const riskCategory = els.usLookupRiskCategory.value;
+
+      const params = new URLSearchParams({
+        latitude: String(latitude),
+        longitude: String(longitude),
+        siteClass,
+        riskCategory,
+        title: "Seismic Spectrum Generator"
+      });
+
+      const url = `https://earthquake.usgs.gov/ws/building-codes/asce7-22/calculate?${params.toString()}`;
+
+      els.usgsLookupBtn.disabled = true;
+      setLookupStatus("Loading the ASCE 7-22 spectrum from USGS…", "info");
+
+      try {
+        const response = await fetch(url);
+        if (!response.ok) throw new Error(`USGS request failed with status ${response.status}.`);
+
+        const payload = await response.json();
+        if (!payload.response || !payload.response.data) {
+          throw new Error("The USGS response did not contain spectrum data.");
+        }
+
+        usgsData = payload.response.data;
+        setLookupStatus("USGS spectrum loaded successfully.", "success");
+        updateUsMultiPeriod();
+      } catch (error) {
+        usgsData = null;
+        setLookupStatus(
+          `${error.message} Check the coordinates and internet connection, or use the offline two-period option.`,
+          "error"
+        );
+        updateUsMultiPeriod();
+      } finally {
+        els.usgsLookupBtn.disabled = false;
+      }
+    }
+
+    function restoreUsSample() {
+      els.usSiteClass.value = "C";
+      els.usRiskCategory.value = "III";
+      els.usSds.value = "1.46";
+      els.usSd1.value = "0.70";
+      els.usTl.value = "8.0";
+      updateUsTwoPeriod();
+    }
+
+    function restoreNzSample() {
+      els.nzSiteClass.value = "C";
+      els.nzZ.value = "0.40";
+      els.nzR.value = "1.00";
+      els.nzN.value = "1.00";
+      els.nzMu.value = "3.00";
+      els.nzSp.value = "0.70";
+      updateNewZealand();
+    }
+
+    function restoreAuSample() {
+      els.auSiteClass.value = "Ce";
+      els.auZ.value = "0.10";
+      els.auProbability.value = "500";
+      els.auMu.value = "3.00";
+      els.auSp.value = "0.67";
+      updateAustralia();
+    }
+
+    function restoreCaSample() {
+      els.caSiteDesignation.value = "X450";
+      els.caProbability.value = "2";
+      els.caInterpolation.value = "loglog";
+      els.caPga.value = "0.460";
+      els.caSa02.value = "1.100";
+      els.caSa05.value = "0.770";
+      els.caSa10.value = "0.440";
+      els.caSa20.value = "0.270";
+      els.caSa50.value = "0.075";
+      els.caSa100.value = "0.033";
+      els.caIe.value = "1.00";
+      els.caMv.value = "1.00";
+      els.caRd.value = "3.00";
+      els.caRo.value = "1.50";
+      updateCanada();
+    }
+
+    function restoreTrSample() {
+      els.trSiteClass.value = "ZD";
+      els.trSds.value = "1.456";
+      els.trSd1.value = "0.684";
+      els.trTl.value = "6.0";
+      els.trR.value = "8.0";
+      els.trD.value = "3.0";
+      els.trI.value = "1.0";
+      updateTurkey();
+    }
+
+    function restoreInSample() {
+      els.inZone.value = "IV";
+      els.inSoil.value = "II";
+      els.inImportance.value = "1.20";
+      els.inR.value = "5.00";
+      updateIndia();
+    }
+
+    function restoreCnSample() {
+      els.cnIntensity.value = "8_020";
+      els.cnGroup.value = "2";
+      els.cnSite.value = "II";
+      els.cnDamping.value = "5.0";
+      updateChina();
+    }
+
+    function restoreMxSample() {
+      els.mxA0.value = "0.120";
+      els.mxC.value = "0.450";
+      els.mxTa.value = "0.20";
+      els.mxTb.value = "1.20";
+      els.mxK.value = "1.50";
+      els.mxReduction.value = "6.00";
+      updateMexico();
+    }
+
+    function restoreIrSample() {
+      els.irZone.value = "0.35";
+      els.irSoil.value = "III";
+      els.irNearFault.value = "1.00";
+      els.irImportance.value = "1.00";
+      els.irR.value = "7.00";
+      updateIran();
+    }
+
+    function restoreEuroSample() {
+      els.ecSpectrumType.value = "1";
+      els.ecGroundType.value = "C";
+      els.ecAgr.value = "0.25";
+      els.ecGammaI.value = "1.00";
+      els.ecDamping.value = "5";
+      els.ecQ.value = "3.00";
+      updateEuro();
+    }
+
+    function loadSampleForCurrentStandard() {
+      usgsData = null;
+      hideLookupStatus();
+
+      const standard = els.standard.value;
+      if (standard === "eurocode") restoreEuroSample();
+      else if (standard === "usa") { els.usSpectrumOption.value = "twoPeriod"; updateUsOptionUI(); restoreUsSample(); }
+      else if (standard === "newzealand") restoreNzSample();
+      else if (standard === "australia") restoreAuSample();
+      else if (standard === "canada") restoreCaSample();
+      else if (standard === "turkey") restoreTrSample();
+      else if (standard === "india") restoreInSample();
+      else if (standard === "china") restoreCnSample();
+      else if (standard === "mexico") restoreMxSample();
+      else if (standard === "iran") restoreIrSample();
+    }
+
+    function exportCSV() {
+      if (!validateActiveInputs() || !currentRows.length) return;
+
+      const header = [
+        "Seismic Design Spectrum Generator",
+        `Standard,${currentMeta.standard || ""}`,
+        "",
+        `Structural Period T (s),${currentMeta.firstLabel || "Spectrum 1"} (g),${currentMeta.secondLabel || "Spectrum 2"} (g)`
+      ];
+
+      const data = currentRows.map(
+        row => `${Number(row.T).toFixed(4)},${Number(row.first).toFixed(6)},${Number(row.second).toFixed(6)}`
+      );
+
+      const csv = [...header, ...data].join("\n");
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+
+      anchor.href = url;
+      anchor.download = `${(currentMeta.standard || "spectrum").toLowerCase().replace(/[^a-z0-9]+/g, "_")}.csv`;
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    [
+      els.ecSpectrumType,
+      els.ecGroundType,
+      els.ecAgr,
+      els.ecGammaI,
+      els.ecDamping,
+      els.ecQ,
+      els.usSiteClass,
+      els.usRiskCategory,
+      els.usSds,
+      els.usSd1,
+      els.usTl,
+      els.nzSiteClass,
+      els.nzZ,
+      els.nzR,
+      els.nzN,
+      els.nzMu,
+      els.nzSp,
+      els.auSiteClass,
+      els.auZ,
+      els.auProbability,
+      els.auMu,
+      els.auSp,
+      els.caSiteDesignation,
+      els.caProbability,
+      els.caInterpolation,
+      els.caPga,
+      els.caSa02,
+      els.caSa05,
+      els.caSa10,
+      els.caSa20,
+      els.caSa50,
+      els.caSa100,
+      els.caIe,
+      els.caMv,
+      els.caRd,
+      els.caRo,
+      els.trSiteClass,
+      els.trSds,
+      els.trSd1,
+      els.trTl,
+      els.trR,
+      els.trD,
+      els.trI,
+      els.inZone,
+      els.inSoil,
+      els.inImportance,
+      els.inR,
+      els.cnIntensity,
+      els.cnGroup,
+      els.cnSite,
+      els.cnDamping,
+      els.mxA0,
+      els.mxC,
+      els.mxTa,
+      els.mxTb,
+      els.mxK,
+      els.mxReduction,
+      els.irZone,
+      els.irSoil,
+      els.irNearFault,
+      els.irImportance,
+      els.irR
+    ].filter(Boolean).forEach(element => {
+      if (element.matches('input[type="number"]')) {
+        if (!element.dataset.lastValidValue) element.dataset.lastValidValue = element.value;
+        element.addEventListener("input", () => {
+          validateNumberInput(element);
+          update();
+        });
+        element.addEventListener("blur", () => {
+          if (!validateNumberInput(element, false)) {
+            element.value = element.dataset.lastValidValue || element.defaultValue;
+            clearInputError(element);
+            update();
+          }
+        });
+      } else {
+        element.addEventListener("input", update);
+      }
+    });
+
+    [els.usLatitude, els.usLongitude].forEach(element => {
+      element.dataset.lastValidValue = element.value;
+      element.addEventListener("input", () => {
+        validateNumberInput(element);
+        if (els.standard.value === "usa" && els.usSpectrumOption.value === "multiPeriod") update();
+      });
+      element.addEventListener("blur", () => {
+        if (!validateNumberInput(element, false)) {
+          element.value = element.dataset.lastValidValue || element.defaultValue;
+          clearInputError(element);
+          update();
+        }
+      });
+    });
+
+    els.standard.addEventListener("change", updateStandardUI);
+    els.accelUnitToggle.querySelectorAll(".unit-toggle-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        if (btn.classList.contains("active")) return;
+        els.accelUnitToggle.querySelectorAll(".unit-toggle-btn").forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        currentUnit = btn.dataset.unit;
+        update();
+      });
+    });
+    els.standardPickerButton.addEventListener("click", toggleStandardMenu);
+    els.standardPickerButton.addEventListener("keydown", event => {
+      if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+        if (els.standardMenu.classList.contains("hidden")) toggleStandardMenu();
+        const options = [...els.standardMenu.querySelectorAll(".standard-menu-option")];
+        const activeIndex = Math.max(0, options.findIndex(option => option.getAttribute("aria-selected") === "true"));
+        const target = event.key === "ArrowUp" ? options[Math.max(0, activeIndex - 1)] : options[activeIndex];
+        requestAnimationFrame(() => target?.focus());
+        event.preventDefault();
+      }
+    });
+
+
+    document.addEventListener("click", event => {
+      if (!event.target.closest(".standard-picker")) {
+        els.standardMenu.classList.add("hidden");
+        els.standardPickerButton.setAttribute("aria-expanded", "false");
+      }
+    });
+
+    document.addEventListener("keydown", event => {
+      if (event.key === "Escape") {
+        els.standardMenu.classList.add("hidden");
+        els.standardPickerButton.setAttribute("aria-expanded", "false");
+        els.standardPickerButton.focus();
+      }
+    });
+    els.usSpectrumOption.addEventListener("change", updateUsOptionUI);
+    els.usgsLookupBtn.addEventListener("click", loadUsGSSpectrum);
+    els.downloadBtn.addEventListener("click", exportCSV);
+    els.sampleBtn.addEventListener("click", loadSampleForCurrentStandard);
+    window.addEventListener("resize", update);
+
+    document.querySelectorAll('input[type="number"]').forEach(input => {
+      input.dataset.lastValidValue = input.value;
+    });
+
+    buildStandardMenu();
+    updateStandardUI();
+  </script>
+</body>
+</html>
