@@ -15,11 +15,14 @@ The GitHub Pages user site for Arash Nassirpour, providing a single landing page
 | `/modal-analysis/` | `modal-analysis` | Shear-building modal analysis |
 | `/building-response/` | `building-response` | Educational building-response simulation |
 | `/design-spectrum/` | `design-spectrum` | International seismic design-spectrum generator |
+| `/performance-point-evaluator/` | `performance-point-evaluator` | N2 capacity-spectrum performance-point evaluation |
 | `/ground-motion/` | `ground-motion` | Ground motion processing, intensity measures and response spectra |
 | `/rc-section-designer/` | `rc-section-designer` | Reinforced-concrete section analysis and checks |
 | `/hazus/` | `hazus` | Hazus vulnerability and fragility explorer |
+| `/hazard-sequence-simulator/` | `hazard-sequence-simulator` | Compound-hazard and interrupted-recovery simulation |
+| `/material-behaviour-explorer/` | `material-behaviour-explorer` | Interactive material stress-strain relationships |
 
-Most tools are maintained in their own public repository with GitHub Pages enabled independently; because those repos' Pages sites inherit this site's verified `arashnassirpour.com` custom domain, they're served beneath the paths shown above without any content duplicated here. `hazus` and `rc-section-designer` are the exception: their own repos' GitHub Pages are currently disabled, and their built output is published from copies committed directly in this repo instead (see below).
+Most tools are maintained in their own repository with GitHub Pages enabled independently; because those repositories' Pages sites inherit this site's verified `arashnassirpour.com` custom domain, they are served beneath the paths shown above without duplicated content here. `hazus` and `rc-section-designer` are the exception: their source repositories are private, their own Pages sites are disabled, and their built output is published from copies committed directly in this repository.
 
 ## Repository contents
 
