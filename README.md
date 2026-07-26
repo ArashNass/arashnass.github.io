@@ -21,6 +21,7 @@ The GitHub Pages user site for Arash Nassirpour, providing a single landing page
 | `/hazus/` | `hazus` | Hazus vulnerability and fragility explorer |
 | `/hazard-sequence-simulator/` | `hazard-sequence-simulator` | Compound-hazard and interrupted-recovery simulation |
 | `/material-behaviour-explorer/` | `material-behaviour-explorer` | Interactive material stress-strain relationships |
+| `/slope-seismic-vulnerability/` | `slope-seismic-vulnerability` | Newmark sliding-block displacement fragility and vulnerability for tailings dams and pit slopes |
 
 Most tools are maintained in their own repository with GitHub Pages enabled independently; because those repositories' Pages sites inherit this site's verified `arashnassirpour.com` custom domain, they are served beneath the paths shown above without duplicated content here. `hazus` and `rc-section-designer` are the exception: their source repositories are private, their own Pages sites are disabled, and their built output is published from copies committed directly in this repository.
 
