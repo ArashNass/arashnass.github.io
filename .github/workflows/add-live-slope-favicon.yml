@@ -1,0 +1,33 @@
+name: Add live slope favicon
+on:
+  push:
+    paths:
+      - .github/workflows/add-live-slope-favicon.yml
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Add deployed slope favicon
+        run: |
+          cat > slope-seismic-vulnerability/favicon.svg <<'SVG'
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><rect width="24" height="24" rx="5" fill="#0f2350"/><path d="M3 19h18M5 19L14 6l5 13M9.5 12.5l8.5 1" fill="none" stroke="white" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          SVG
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('slope-seismic-vulnerability/index.html')
+          s=p.read_text(encoding='utf-8')
+          link='<link rel="icon" type="image/svg+xml" href="/slope-seismic-vulnerability/favicon.svg?v=2">\n<link rel="shortcut icon" href="/slope-seismic-vulnerability/favicon.svg?v=2">'
+          if '/slope-seismic-vulnerability/favicon.svg?v=2' not in s:
+              s=s.replace('<title>Slope Seismic Vulnerability | Arash Nassirpour</title>', '<title>Slope Seismic Vulnerability | Arash Nassirpour</title>\n'+link, 1)
+          p.write_text(s,encoding='utf-8')
+          PY
+      - name: Commit
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add slope-seismic-vulnerability/index.html slope-seismic-vulnerability/favicon.svg
+          git diff --cached --quiet || git commit -m "Add favicon to deployed slope page"
+          git push
