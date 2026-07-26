@@ -1,3 +1,4 @@
+# Triggered after workflow registration
 name: Fix two slope menus
 on:
   push:
