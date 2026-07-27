@@ -64,7 +64,9 @@ h1{font-size:31px;font-weight:600;letter-spacing:-.02em;margin-bottom:10px}
 .lead{font-size:15px;color:var(--text-muted);margin-bottom:12px}
 .intro{font-size:14px;color:var(--text-muted);line-height:1.7;margin-bottom:22px;max-width:900px}
 .category{margin-bottom:28px}
-.category-h{font-size:12px;font-weight:700;color:var(--text-faint);text-transform:uppercase;letter-spacing:.06em;margin:0 0 12px;padding-bottom:9px;border-bottom:1px solid var(--border)}
+.category-h{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700;color:var(--text-faint);text-transform:uppercase;letter-spacing:.06em;margin:0 0 12px;padding-bottom:9px;border-bottom:1px solid var(--border)}
+.category-h::before{content:"";width:8px;height:8px;border-radius:3px;background:var(--c,#0f2350);flex-shrink:0}
+[data-theme="dark"] .category-h::before{background:color-mix(in srgb,var(--c,#0f2350) 45%,#fff)}
 .category:last-of-type{margin-bottom:0}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
 .card{position:relative;display:flex;gap:15px;align-items:flex-start;border:1px solid var(--border);border-radius:14px;padding:19px 21px;background:var(--surface);text-decoration:none;color:inherit;overflow:hidden;transition:border-color .18s ease,transform .18s ease,box-shadow .18s ease}
@@ -72,7 +74,7 @@ h1{font-size:31px;font-weight:600;letter-spacing:-.02em;margin-bottom:10px}
 .card::before{content:"";position:absolute;left:0;right:0;top:0;height:3px;background:var(--c,#0f2350);transform:scaleX(0);transform-origin:left;transition:transform .28s cubic-bezier(.2,.7,.3,1)}
 .card:hover{border-color:color-mix(in srgb,var(--c,#0f2350) 40%,var(--border));transform:translateY(-3px);box-shadow:0 10px 24px color-mix(in srgb,var(--c,#111827) 14%,transparent)}
 .card:hover::before{transform:scaleX(1)}
-.card-ic{flex-shrink:0;width:40px;height:40px;border-radius:11px;display:grid;place-items:center;background:color-mix(in srgb,var(--c,#0f2350) 10%,var(--surface));transition:background .18s ease,transform .18s ease}
+.card-ic{flex-shrink:0;width:40px;height:40px;border-radius:11px;display:grid;place-items:center;color:var(--c,#0f2350);background:color-mix(in srgb,var(--c,#0f2350) 10%,var(--surface));transition:background .18s ease,transform .18s ease}
 .card:hover .card-ic{background:color-mix(in srgb,var(--c,#0f2350) 17%,var(--surface));transform:scale(1.06)}
 .card-ic svg{width:21px;height:21px;display:block}
 .card-go{position:absolute;right:16px;bottom:15px;color:var(--c,#0f2350);opacity:0;transform:translateX(-5px);transition:opacity .18s ease,transform .18s ease}
@@ -83,13 +85,12 @@ h1{font-size:31px;font-weight:600;letter-spacing:-.02em;margin-bottom:10px}
 /* --- search (added) --- */
 .search-wrap{position:relative;max-width:440px;margin-bottom:9px}
 .search-wrap .search-ic{position:absolute;left:15px;top:50%;transform:translateY(-50%);color:rgba(255,255,255,.55);pointer-events:none;transition:color .15s}
-#toolSearch{width:100%;height:46px;border:1px solid rgba(255,255,255,.20);border-radius:12px;background:rgba(255,255,255,.10);color:#fff;font:400 14px Inter,'Segoe UI',system-ui,sans-serif;padding:0 52px 0 42px;transition:border-color .15s ease,box-shadow .15s ease,background .15s ease}
+#toolSearch{width:100%;height:46px;border:1px solid rgba(255,255,255,.20);border-radius:12px;background:rgba(255,255,255,.10);color:#fff;font:400 14px Inter,'Segoe UI',system-ui,sans-serif;padding:0 16px 0 42px;transition:border-color .15s ease,box-shadow .15s ease,background .15s ease}
 #toolSearch::placeholder{color:rgba(255,255,255,.55)}
 #toolSearch:hover{background:rgba(255,255,255,.14)}
 #toolSearch:focus{outline:none;border-color:rgba(159,192,255,.85);background:rgba(255,255,255,.16);box-shadow:0 0 0 3px rgba(124,157,255,.22)}
 .search-wrap:focus-within .search-ic{color:#9fc0ff}
 #toolSearch::-webkit-search-cancel-button{cursor:pointer;filter:invert(1);opacity:.6}
-.search-kbd{position:absolute;right:13px;top:50%;transform:translateY(-50%);border:1px solid rgba(255,255,255,.20);border-radius:6px;padding:2px 7px;font-size:11.5px;color:rgba(255,255,255,.62);background:rgba(255,255,255,.08);pointer-events:none}
 .search-count{font-size:12.5px;color:rgba(255,255,255,.62);min-height:17px;margin-bottom:0}
 .no-results{display:none;padding:26px 0 10px}
 .no-results strong{display:block;font-size:15px;font-weight:600;color:var(--text);margin-bottom:6px}
@@ -113,9 +114,8 @@ h1{font-size:31px;font-weight:600;letter-spacing:-.02em;margin-bottom:10px}
 .about .about-edu li{font-size:12.5px;color:var(--text-muted);line-height:1.5;padding-left:14px;position:relative}
 .about .about-edu li::before{content:"";position:absolute;left:0;top:7px;width:5px;height:5px;border-radius:50%;background:var(--dot)}
 /* --- dark mode adjustments: lift the icon colours off the dark surface --- */
-[data-theme="dark"] .card-ic{background:color-mix(in srgb,var(--c,#0f2350) 24%,var(--surface))}
-[data-theme="dark"] .card:hover .card-ic{background:color-mix(in srgb,var(--c,#0f2350) 34%,var(--surface))}
-[data-theme="dark"] .card-ic svg{filter:brightness(1.55) saturate(1.1)}
+[data-theme="dark"] .card-ic{color:color-mix(in srgb,var(--c,#0f2350) 42%,#fff);background:color-mix(in srgb,var(--c,#0f2350) 26%,var(--surface))}
+[data-theme="dark"] .card:hover .card-ic{background:color-mix(in srgb,var(--c,#0f2350) 36%,var(--surface))}
 [data-theme="dark"] .card::before{background:color-mix(in srgb,var(--c,#0f2350) 55%,#fff)}
 [data-theme="dark"] .card-go{color:color-mix(in srgb,var(--c,#0f2350) 50%,#fff)}
 [data-theme="dark"] .card:hover{border-color:color-mix(in srgb,var(--c,#0f2350) 50%,var(--border))}
@@ -150,7 +150,7 @@ h1{font-size:31px;font-weight:600;letter-spacing:-.02em;margin-bottom:10px}
 .reveal .card:nth-child(6){animation-delay:.25s}
 .reveal .card:nth-child(7){animation-delay:.3s}
 
-@media(max-width:680px){main{padding:36px 16px 48px}h1{font-size:24px}.hero{padding:16px 20px 26px;border-radius:15px}.hero h1{font-size:25px}.grid{grid-template-columns:1fr}.card[style*="grid-column"]{grid-column:auto !important}.search-wrap{max-width:none}.search-kbd{display:none}#toolSearch{padding-right:16px}}
+@media(max-width:680px){main{padding:36px 16px 48px}h1{font-size:24px}.hero{padding:16px 20px 26px;border-radius:15px}.hero h1{font-size:25px}.grid{grid-template-columns:1fr}.card[style*="grid-column"]{grid-column:auto !important}.search-wrap{max-width:none}#toolSearch{padding-right:16px}}
 @media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}.card:hover{transform:none}.card:hover .card-ic{transform:none}}
 </style>
 <script type="application/ld+json">
@@ -282,76 +282,75 @@ h1{font-size:31px;font-weight:600;letter-spacing:-.02em;margin-bottom:10px}
     <div class="search-wrap">
       <span class="search-ic"><svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="9" cy="9" r="6"/><line x1="13.5" y1="13.5" x2="18" y2="18" stroke-linecap="round"/></svg></span>
       <input id="toolSearch" type="search" placeholder="Search tools, e.g. spectrum, fault, modal" aria-label="Search tools" autocomplete="off" spellcheck="false">
-      <span class="search-kbd" aria-hidden="true">/</span>
     </div>
     <p class="search-count" id="searchCount" role="status" aria-live="polite"></p>
   </div>
 
-  <section class="category">
+  <section class="category" style="--c:#106C8E">
     <h2 class="category-h">Earthquake Science</h2>
     <div class="grid">
-      <a class="card" style="--c:#534AB7" href="/earthquake-rupture/" data-keywords="rupture strike dip rake focal mechanism 3d hanging wall footwall normal reverse strike-slip">
-        <span class="card-ic"><svg viewBox="0 0 24 24" fill="none" stroke="#534AB7" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9L12 3z"/><path d="M12 12l8-4.5M12 12v9M12 12L4 7.5"/></svg></span>
+      <a class="card" style="--c:#106C8E" href="/earthquake-rupture/" data-keywords="rupture strike dip rake focal mechanism 3d hanging wall footwall normal reverse strike-slip">
+        <span class="card-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9L12 3z"/><path d="M12 12l8-4.5M12 12v9M12 12L4 7.5"/></svg></span>
         <span><span class="card-t">Fault Mechanism</span><span class="card-d">A fault moving in 3D &mdash; strike, dip and rake.</span></span>
       <span class="card-go" aria-hidden="true"><svg width="15" height="15" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10h11M10.5 5.5L15 10l-4.5 4.5"/></svg></span></a>
-      <a class="card" style="--c:#0F6E56" href="/world-faults/" data-keywords="map tectonic plate boundaries usgs seismicity global world live real time">
-        <span class="card-ic"><svg viewBox="0 0 24 24" fill="none" stroke="#0F6E56" stroke-width="1.9" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.7 2.6 4 5.6 4 9s-1.3 6.4-4 9c-2.7-2.6-4-5.6-4-9s1.3-6.4 4-9z"/></svg></span>
+      <a class="card" style="--c:#106C8E" href="/world-faults/" data-keywords="map tectonic plate boundaries usgs seismicity global world live real time">
+        <span class="card-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.7 2.6 4 5.6 4 9s-1.3 6.4-4 9c-2.7-2.6-4-5.6-4-9s1.3-6.4 4-9z"/></svg></span>
         <span><span class="card-t">Global Faults &amp; Live Earthquakes</span><span class="card-d">Plate boundaries, named faults, recent quakes.</span><span class="card-live"><i></i>Live</span></span>
       <span class="card-go" aria-hidden="true"><svg width="15" height="15" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10h11M10.5 5.5L15 10l-4.5 4.5"/></svg></span></a>
-      <a class="card" style="--c:#A32D2D" href="/earthquake-dashboard/" data-keywords="dashboard rapid response magnitude recent events shakemap briefing live real time">
-        <span class="card-ic"><svg viewBox="0 0 24 24" fill="none" stroke="#A32D2D" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l2.5-7 5 14 2.5-7h4"/></svg></span>
+      <a class="card" style="--c:#106C8E" href="/earthquake-dashboard/" data-keywords="dashboard rapid response magnitude recent events shakemap briefing live real time">
+        <span class="card-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l2.5-7 5 14 2.5-7h4"/></svg></span>
         <span><span class="card-t">Rapid Earthquake Response</span><span class="card-d">Live briefing of the largest recent events.</span><span class="card-live"><i></i>Live</span></span>
       <span class="card-go" aria-hidden="true"><svg width="15" height="15" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10h11M10.5 5.5L15 10l-4.5 4.5"/></svg></span></a>
     </div>
   </section>
 
-  <section class="category">
+  <section class="category" style="--c:#1B4F9C">
     <h2 class="category-h">Catastrophe Risk</h2>
     <div class="grid">
-      <a class="card" style="--c:#1E6B8C" href="/hazus/" data-keywords="hazus fragility damage function loss flood wind windstorm exposure curve">
-        <span class="card-ic"><svg viewBox="0 0 24 24" fill="none" stroke="#1E6B8C" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18h18M5 18V9l4-4 4 4v9M13 18v-6l3-3 3 3v6"/></svg></span>
+      <a class="card" style="--c:#1B4F9C" href="/hazus/" data-keywords="hazus fragility damage function loss flood wind windstorm exposure curve">
+        <span class="card-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18h18M5 18V9l4-4 4 4v9M13 18v-6l3-3 3 3v6"/></svg></span>
         <span><span class="card-t">Vulnerability Explorer</span><span class="card-d">Flood, wind and earthquake damage functions.</span></span>
       <span class="card-go" aria-hidden="true"><svg width="15" height="15" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10h11M10.5 5.5L15 10l-4.5 4.5"/></svg></span></a>
-      <a class="card" style="--c:#B06000" href="/hazard-sequence-simulator/" data-keywords="aftershock rainfall landslide cascade multi-hazard recovery downtime sequence">
-        <span class="card-ic"><svg viewBox="0 0 24 24" fill="none" stroke="#B06000" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M2 10h3l2-6 4 12 2-6 2 3h3"/><path d="M7 19l1-2.5M11 19.5l1-2.5M15 19l1-2.5"/></svg></span>
+      <a class="card" style="--c:#1B4F9C" href="/hazard-sequence-simulator/" data-keywords="aftershock rainfall landslide cascade multi-hazard recovery downtime sequence">
+        <span class="card-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M2 10h3l2-6 4 12 2-6 2 3h3"/><path d="M7 19l1-2.5M11 19.5l1-2.5M15 19l1-2.5"/></svg></span>
         <span><span class="card-t">Hazard Sequence Simulator</span><span class="card-d">Earthquake, aftershock, rainfall and landslide cascades during recovery.</span></span>
       <span class="card-go" aria-hidden="true"><svg width="15" height="15" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10h11M10.5 5.5L15 10l-4.5 4.5"/></svg></span></a>
-      <a class="card" style="--c:#0F766E" href="/slope-seismic-vulnerability/" data-keywords="newmark displacement slope stability tailings dam pit mine geotechnical fragility">
-        <span class="card-ic"><svg viewBox="0 0 24 24" fill="none" stroke="#0F766E" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 19h18"/><path d="M5 19L14 6l5 13"/><path d="M9.5 12.5l8.5 1"/></svg></span>
+      <a class="card" style="--c:#1B4F9C" href="/slope-seismic-vulnerability/" data-keywords="newmark displacement slope stability tailings dam pit mine geotechnical fragility">
+        <span class="card-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 19h18"/><path d="M5 19L14 6l5 13"/><path d="M9.5 12.5l8.5 1"/></svg></span>
         <span><span class="card-t">Slope Seismic Vulnerability</span><span class="card-d">Newmark displacement, fragility and vulnerability for tailings dams and pit slopes.</span></span>
       <span class="card-go" aria-hidden="true"><svg width="15" height="15" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10h11M10.5 5.5L15 10l-4.5 4.5"/></svg></span></a>
     </div>
   </section>
 
-  <section class="category">
+  <section class="category" style="--c:#4A43B5">
     <h2 class="category-h">Structural Analysis</h2>
     <div class="grid">
-      <a class="card" style="--c:#854F0B" href="/rc-section-designer/" data-keywords="rc concrete rebar column beam n-m interaction diagram axial moment capacity eurocode aci">
-        <span class="card-ic"><svg viewBox="0 0 24 24" fill="none" stroke="#854F0B" stroke-width="1.9"><rect x="4.5" y="5" width="15" height="14" rx="1.5"/><circle cx="9" cy="9.5" r="1.1" fill="#854F0B" stroke="none"/><circle cx="15" cy="9.5" r="1.1" fill="#854F0B" stroke="none"/><circle cx="9" cy="14.5" r="1.1" fill="#854F0B" stroke="none"/><circle cx="15" cy="14.5" r="1.1" fill="#854F0B" stroke="none"/></svg></span>
+      <a class="card" style="--c:#4A43B5" href="/rc-section-designer/" data-keywords="rc concrete rebar column beam n-m interaction diagram axial moment capacity eurocode aci">
+        <span class="card-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><rect x="4.5" y="5" width="15" height="14" rx="1.5"/><circle cx="9" cy="9.5" r="1.1" fill="currentColor" stroke="none"/><circle cx="15" cy="9.5" r="1.1" fill="currentColor" stroke="none"/><circle cx="9" cy="14.5" r="1.1" fill="currentColor" stroke="none"/><circle cx="15" cy="14.5" r="1.1" fill="currentColor" stroke="none"/></svg></span>
         <span><span class="card-t">Reinforced Concrete Section Designer</span><span class="card-d">N-M interaction and code checks for RC sections.</span></span>
       <span class="card-go" aria-hidden="true"><svg width="15" height="15" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10h11M10.5 5.5L15 10l-4.5 4.5"/></svg></span></a>
-      <a class="card" style="--c:#2E5C8A" href="/modal-analysis/" data-keywords="eigenvalue mode shape natural period frequency dynamics mdof sdof participation mass">
-        <span class="card-ic"><svg viewBox="0 0 24 24" fill="none" stroke="#2E5C8A" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 14c2-6 4-6 5 0s3 6 5 0 3-6 5 0 3 6 5 0"/></svg></span>
+      <a class="card" style="--c:#4A43B5" href="/modal-analysis/" data-keywords="eigenvalue mode shape natural period frequency dynamics mdof sdof participation mass">
+        <span class="card-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 14c2-6 4-6 5 0s3 6 5 0 3-6 5 0 3 6 5 0"/></svg></span>
         <span><span class="card-t">Modal Analysis Calculator</span><span class="card-d">Mode shapes, periods and frequencies for structural systems.</span></span>
       <span class="card-go" aria-hidden="true"><svg width="15" height="15" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10h11M10.5 5.5L15 10l-4.5 4.5"/></svg></span></a>
-      <a class="card" style="--c:#B54708" href="/design-spectrum/" data-keywords="response spectrum eurocode 8 asce 7 nbc code seismic design acceleration soil class">
-        <span class="card-ic"><svg viewBox="0 0 24 24" fill="none" stroke="#B54708" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17C4 14 5 9 6.5 7L13 7C14 9 14.5 10.5 15.5 12C17 14.5 18.5 16 21 18"/></svg></span>
+      <a class="card" style="--c:#4A43B5" href="/design-spectrum/" data-keywords="response spectrum eurocode 8 asce 7 nbc code seismic design acceleration soil class">
+        <span class="card-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17C4 14 5 9 6.5 7L13 7C14 9 14.5 10.5 15.5 12C17 14.5 18.5 16 21 18"/></svg></span>
         <span><span class="card-t">Seismic Design Spectrum Generator</span><span class="card-d">Generate and compare spectra across international seismic codes.</span></span>
       <span class="card-go" aria-hidden="true"><svg width="15" height="15" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10h11M10.5 5.5L15 10l-4.5 4.5"/></svg></span></a>
-      <a class="card" style="--c:#7F35B2" href="/performance-point-evaluator/" data-keywords="pushover n2 method adrs capacity demand target displacement nonlinear static">
-        <span class="card-ic"><svg viewBox="0 0 24 24" fill="none" stroke="#7F35B2" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5 5l14 14M19 5L5 19"/><circle cx="12" cy="12" r="1.7" fill="#7F35B2" stroke="none"/></svg></span>
+      <a class="card" style="--c:#4A43B5" href="/performance-point-evaluator/" data-keywords="pushover n2 method adrs capacity demand target displacement nonlinear static">
+        <span class="card-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5 5l14 14M19 5L5 19"/><circle cx="12" cy="12" r="1.7" fill="currentColor" stroke="none"/></svg></span>
         <span><span class="card-t">Performance Point Evaluator</span><span class="card-d">Evaluate seismic capacity and demand using the N2 method in ADRS format.</span></span>
       <span class="card-go" aria-hidden="true"><svg width="15" height="15" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10h11M10.5 5.5L15 10l-4.5 4.5"/></svg></span></a>
-      <a class="card" style="--c:#2F9D72" href="/ground-motion/" data-keywords="accelerogram time history record pga pgv baseline correction filter arias intensity">
-        <span class="card-ic"><svg viewBox="0 0 24 24" fill="none" stroke="#2F9D72" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h3l2-7 4 14 3-10 2 6h4"/></svg></span>
+      <a class="card" style="--c:#4A43B5" href="/ground-motion/" data-keywords="accelerogram time history record pga pgv baseline correction filter arias intensity">
+        <span class="card-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h3l2-7 4 14 3-10 2 6h4"/></svg></span>
         <span><span class="card-t">Ground Motion Analyzer</span><span class="card-d">Process acceleration records and compare response spectra with seismic-code targets.</span></span>
       <span class="card-go" aria-hidden="true"><svg width="15" height="15" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10h11M10.5 5.5L15 10l-4.5 4.5"/></svg></span></a>
-      <a class="card" style="--c:#6B3FA0" href="/building-response/" data-keywords="time history dynamic simulation sway damping storey drift shake table animation">
-        <span class="card-ic"><svg viewBox="0 0 24 24" fill="none" stroke="#6B3FA0" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="1.5"/><path d="M9 21v-4h6v4"/><path d="M8 7h.01M12 7h.01M16 7h.01M8 11h.01M12 11h.01M16 11h.01"/></svg></span>
+      <a class="card" style="--c:#4A43B5" href="/building-response/" data-keywords="time history dynamic simulation sway damping storey drift shake table animation">
+        <span class="card-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="1.5"/><path d="M9 21v-4h6v4"/><path d="M8 7h.01M12 7h.01M16 7h.01M8 11h.01M12 11h.01M16 11h.01"/></svg></span>
         <span><span class="card-t">Building Response Lab</span><span class="card-d">Simulate structural response to ground motion in real time.</span></span>
       <span class="card-go" aria-hidden="true"><svg width="15" height="15" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10h11M10.5 5.5L15 10l-4.5 4.5"/></svg></span></a>
-      <a class="card" style="--c:#7C3AED" href="/material-behaviour-explorer/" data-keywords="stress strain curve mander hognestad concrete steel timber masonry frp confinement">
-        <span class="card-ic"><svg viewBox="0 0 24 24" fill="none" stroke="#7C3AED" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19c3-.5 4.2-3.4 5.2-6.2C10.2 10 12 6 14.7 6c2 0 3 1.7 3 4 0 2.6-1 5-2.7 7"/><circle cx="9.3" cy="12.9" r="1.1" fill="#7C3AED" stroke="none"/></svg></span>
+      <a class="card" style="--c:#4A43B5" href="/material-behaviour-explorer/" data-keywords="stress strain curve mander hognestad concrete steel timber masonry frp confinement">
+        <span class="card-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19c3-.5 4.2-3.4 5.2-6.2C10.2 10 12 6 14.7 6c2 0 3 1.7 3 4 0 2.6-1 5-2.7 7"/><circle cx="9.3" cy="12.9" r="1.1" fill="currentColor" stroke="none"/></svg></span>
         <span><span class="card-t">Material Behaviour Explorer</span><span class="card-d">Stress-strain curves for concrete, steel, timber, masonry and FRP.</span></span>
       <span class="card-go" aria-hidden="true"><svg width="15" height="15" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10h11M10.5 5.5L15 10l-4.5 4.5"/></svg></span></a>
     </div>
@@ -363,19 +362,23 @@ h1{font-size:31px;font-weight:600;letter-spacing:-.02em;margin-bottom:10px}
     <button type="button" id="clearSearch">Clear search</button>
   </div>
 
-  <section class="category">
+  <section class="category" style="--c:#1A3A6B">
     <h2 class="category-h">More</h2>
     <div class="grid">
-      <a class="card" style="--c:#2A6F5C" href="/about/" data-keywords="cv resume biography experience education arash nassirpour">
-        <span class="card-ic"><svg viewBox="0 0 24 24" fill="none" stroke="#2A6F5C" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-3.9 3.1-7 7-7s7 3.1 7 7"/></svg></span>
+      <a class="card" style="--c:#1A3A6B" href="/about/" data-keywords="cv resume biography experience education arash nassirpour">
+        <span class="card-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-3.9 3.1-7 7-7s7 3.1 7 7"/></svg></span>
         <span><span class="card-t">About</span><span class="card-d">Background, experience and education.</span></span>
       <span class="card-go" aria-hidden="true"><svg width="15" height="15" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10h11M10.5 5.5L15 10l-4.5 4.5"/></svg></span></a>
-      <a class="card" style="--c:#993C1D" href="https://www.youtube.com/@Structural.Analysis" target="_blank" rel="noopener" data-keywords="youtube video tutorial lessons channel">
-        <span class="card-ic"><svg viewBox="0 0 24 24" fill="none" stroke="#993C1D" stroke-width="1.9"><rect x="2.5" y="5.5" width="19" height="13" rx="3.5"/><path d="M10.3 9.4v5.2l4.6-2.6-4.6-2.6z" fill="#993C1D" stroke="none"/></svg></span>
+      <a class="card" style="--c:#1A3A6B" href="https://www.youtube.com/@Structural.Analysis" target="_blank" rel="noopener" data-keywords="youtube video tutorial lessons channel">
+        <span class="card-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><rect x="2.5" y="5.5" width="19" height="13" rx="3.5"/><path d="M10.3 9.4v5.2l4.6-2.6-4.6-2.6z" fill="currentColor" stroke="none"/></svg></span>
         <span><span class="card-t">YouTube Channel</span><span class="card-d">Video lessons on structural analysis and earthquake engineering.</span></span>
       <span class="card-go" aria-hidden="true"><svg width="15" height="15" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10h11M10.5 5.5L15 10l-4.5 4.5"/></svg></span></a>
-      <a class="card" style="--c:#3D5A80" href="/contact/" data-keywords="email message get in touch feedback collaboration">
-        <span class="card-ic"><svg viewBox="0 0 24 24" fill="none" stroke="#3D5A80" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M4 7l8 6 8-6"/></svg></span>
+      <a class="card" style="--c:#1A3A6B" href="https://profiles.ucl.ac.uk/41266-arash-nassirpour" target="_blank" rel="noopener" data-keywords="ucl university college london academic profile research publications staff">
+        <span class="card-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4L2.5 8.5 12 13l9.5-4.5L12 4z"/><path d="M6 10.6V15c0 1.7 2.7 3 6 3s6-1.3 6-3v-4.4"/><path d="M21.5 8.5v5"/></svg></span>
+        <span><span class="card-t">UCL Profile</span><span class="card-d">Academic profile, research and publications at UCL.</span></span>
+      <span class="card-go" aria-hidden="true"><svg width="15" height="15" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10h11M10.5 5.5L15 10l-4.5 4.5"/></svg></span></a>
+      <a class="card" style="--c:#1A3A6B" href="/contact/" data-keywords="email message get in touch feedback collaboration">
+        <span class="card-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M4 7l8 6 8-6"/></svg></span>
         <span><span class="card-t">Contact</span><span class="card-d">Questions, feedback, or collaboration &mdash; get in touch.</span></span>
       <span class="card-go" aria-hidden="true"><svg width="15" height="15" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10h11M10.5 5.5L15 10l-4.5 4.5"/></svg></span></a>
     </div>
