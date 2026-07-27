@@ -1,3 +1,7 @@
 User-agent: *
 Allow: /
+
+# 404 page should never be indexed
+Disallow: /404.html
+
 Sitemap: https://arashnassirpour.com/sitemap.xml
