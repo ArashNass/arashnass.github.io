@@ -419,7 +419,7 @@ body {
   <div class="section-title">True monthly total — best option including all running costs</div>
   <div class="total-wrap" id="total"></div>
 
-  <div class="disc">Estimates based on UK market data. APRs are representative — your actual rate depends on credit score and lender. Personal loan: Bank of England Q1 2026 average. PCH baseline: Carwow, scaled to car price. VED: DVLA standard rate 2026. Running costs assumed: insurance £75/m, fuel 145p/L at 45 mpg and 5,000 mi/yr, parking £100/m, servicing £20/m, tyres £10/m, MOT £5/m, VED £17/m. Residual estimated at 45% of car price after 4 years. Always get a personalised quote before signing any agreement.</div>
+  <div class="disc">Estimates based on UK market data. APRs are representative — your actual rate depends on credit score and lender. Personal loan: Bank of England Q1 2026 average. PCH baseline: Carwow, scaled to car price. VED: DVLA standard rate 2026. Running costs assumed: insurance £75/m, fuel 145p/L at 45 mpg and 5,000 mi/yr, parking £100/m, servicing £20/m, tyres £10/m, MOT £5/m, VED £17/m. Residual value estimated at 45% of car price after 4 years (used for HP/Loan/Cash). PCP balloon (GFMV) defaults to 60% — lenders set this higher for low mileage contracts as the car retains more value. Always get a personalised quote before signing any agreement.</div>
 
 </div>
 
@@ -431,7 +431,7 @@ let PRICE = 19995, BUDGET = 300, SORT = 'm';
 let openCard = null, openTab = {};
 
 let P = {
-  pcp:       { deposit: 2499, apr: 14.4, term: 48, balloon: 8998 },
+  pcp:       { deposit: 2499, apr: 14.4, term: 48, balloon: 11997 },
   hp:        { deposit: 2499, apr: 11.4, term: 48 },
   loan_good: { apr: 6.9,  term: 48 },
   loan_avg:  { apr: 9.9,  term: 48 },
@@ -447,7 +447,7 @@ const SHORTNAME= { pcp:'PCP Finance', pch:'PCH Lease', hp:'Hire Purchase', loan_
 
 function resetD(p) {
   P.pcp.deposit = Math.round(p * .125);
-  P.pcp.balloon = Math.round(p * .45);
+  P.pcp.balloon = Math.round(p * .60);
   P.hp.deposit  = Math.round(p * .125);
   P.pch.monthly = Math.round(241 * (p / 19995) * .95);
 }
@@ -490,10 +490,14 @@ function compute() {
 
   const dp = P.pcp.deposit, ball = P.pcp.balloon || res;
   const rp = (P.pcp.apr / 100) / 12;
-  const pvB = ball / Math.pow(1 + rp, P.pcp.term);
-  const pcpM = pmt(P.pcp.apr, P.pcp.term, (p - dp) - pvB);
-  const pcp4 = dp + pcpM * (P.pcp.term - 1) + r4;
-  const pcpI = pcpM * (P.pcp.term - 1) + dp + ball - p;
+  // Method D: 47 equal payments, balloon is exact remaining balance at month 48
+  const n47 = P.pcp.term - 1;
+  const PV_pcp = p - dp;
+  const pcpM = rp > 0
+    ? (PV_pcp * Math.pow(1+rp, n47) - ball) * rp / (Math.pow(1+rp, n47) - 1)
+    : (PV_pcp - ball) / n47;
+  const pcp4 = dp + pcpM * n47 + r4;   // returned: dep + 47 pmts + running
+  const pcpI = pcpM * n47 + dp + ball - p; // interest if kept
 
   const dh = P.hp.deposit;
   const hpM = pmt(P.hp.apr, P.hp.term, p - dh);
@@ -517,7 +521,7 @@ function compute() {
   return [
     { id:'pcp', m:pcpM, t4:pcp4, int:pcpI,
       desc:'Personal Contract Purchase',
-      stats:[{l:'APR',v:P.pcp.apr+'%'},{l:'Deposit',v:fmt(dp)},{l:'Term',v:P.pcp.term+'m'},{l:'Balloon',v:fmt(ball)},{l:'Own at end?',v:'Optional'}],
+      stats:[{l:'APR',v:P.pcp.apr+'%'},{l:'Deposit',v:fmt(dp)},{l:'Term',v:(P.pcp.term-1)+' payments + balloon'},{l:'Balloon',v:fmt(ball)},{l:'Own at end?',v:'Optional'}],
       pros:['Lowest monthly on a used car','Return, keep or upgrade at 4 years','Warranty usually included'],
       cons:['High APR adds significant cost','Annual mileage limit applies','Balloon payment required to keep it'],
       ef:[{k:'deposit',lbl:'Deposit',sym:'£',pk:'pcp'},{k:'apr',lbl:'APR',sfx:'%',pk:'pcp'},{k:'term',lbl:'Term (months)',pk:'pcp'},{k:'balloon',lbl:'Balloon / GFMV',sym:'£',pk:'pcp'}] },
