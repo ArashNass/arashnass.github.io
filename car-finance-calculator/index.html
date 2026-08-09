@@ -99,14 +99,17 @@ body {
   font-family: 'JetBrains Mono', monospace;
 }
 .price-input {
-  height: 44px; width: 128px;
+  height: 44px; width: 160px;
   border: none; outline: none;
   font-size: 20px; font-weight: 600;
   font-family: 'JetBrains Mono', monospace;
   color: var(--ink); padding: 0 12px;
   background: transparent;
-  appearance: none;
+  appearance: none; -webkit-appearance: none;
+  -moz-appearance: textfield;
 }
+.price-input::-webkit-outer-spin-button,
+.price-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
 .price-input::placeholder { color: var(--border2); }
 
 /* pills */
@@ -332,7 +335,7 @@ body {
   .winner-strip { padding: 16px 16px; }
   .main { padding: 14px 14px 64px; }
   .egrid, .sgrid { grid-template-columns: 1fr 1fr; }
-  .price-input { width: 100px; font-size: 18px; }
+  .price-input { width: 140px; font-size: 18px; }
   .budget-row input[type=range] { width: 100px; }
   .total-wrap { flex-direction: column; }
   .tw-right { text-align: left; }
@@ -356,7 +359,8 @@ body {
         <div class="price-sym">£</div>
         <input class="price-input" type="number" id="carPrice"
           value="19995" min="1000" max="500000"
-          inputmode="numeric" placeholder="0" oninput="onPrice()">
+          inputmode="numeric" placeholder="e.g. 19995"
+          oninput="onPriceType()" onchange="onPrice()" onblur="onPrice()">
       </div>
     </div>
 
@@ -461,10 +465,25 @@ document.querySelectorAll('.pill').forEach(el => {
     resetD(PRICE); render();
   };
 });
-function onPrice() {
+function onPriceType() {
+  // Live feedback while typing — update pill highlights only
   document.querySelectorAll('.pill').forEach(x => x.classList.remove('on'));
-  PRICE = Math.max(1000, +document.getElementById('carPrice').value || 19995);
-  resetD(PRICE); render();
+  const raw = +document.getElementById('carPrice').value;
+  // Only recalculate if value looks complete (>= 1000)
+  if (raw >= 1000) {
+    PRICE = raw;
+    resetD(PRICE);
+    render();
+  }
+}
+function onPrice() {
+  // On blur/change — commit final value with fallback
+  document.querySelectorAll('.pill').forEach(x => x.classList.remove('on'));
+  const raw = +document.getElementById('carPrice').value;
+  PRICE = raw >= 1000 ? raw : 19995;
+  if (raw < 1000) document.getElementById('carPrice').value = PRICE;
+  resetD(PRICE);
+  render();
 }
 function onBudget() {
   BUDGET = +document.getElementById('bsl').value;
