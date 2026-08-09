@@ -1,13 +1,272 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Car Finance Calculator</title>
-    <meta http-equiv="refresh" content="0; url=../" />
-    <link rel="canonical" href="../" />
-  </head>
-  <body>
-    <p>If you are not redirected automatically, <a href="../">go back to the main site</a>.</p>
-  </body>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Car Finance Calculator</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --ink:#0D1117;--ink2:#6B7280;--ink3:#9CA3AF;
+  --bg:#F3F4F6;--surface:#fff;--border:#E5E7EB;--border2:#D1D5DB;
+  --green:#059669;--green-lt:#ECFDF5;--green-dk:#047857;
+  --blue:#2563EB;--blue-lt:#EFF6FF;
+  --amber:#D97706;--amber-lt:#FFFBEB;
+  --red:#DC2626;--red-lt:#FEF2F2;
+  --purple:#7C3AED;--purple-lt:#F5F3FF;
+  --sky:#0EA5E9;
+  --slate:#374151;
+  --r:10px;--r-lg:14px;
+}
+html{font-size:16px;scroll-behavior:smooth}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--ink);min-height:100vh}
+
+.screen{display:none;min-height:100vh;flex-direction:column}
+.screen.on{display:flex}
+
+/* ── INPUT SCREEN ── */
+.input-screen{align-items:center;justify-content:center;padding:40px 20px;background:var(--ink)}
+.input-card{background:var(--surface);border-radius:20px;padding:36px 32px;width:100%;max-width:420px;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+.input-logo{font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--ink3);margin-bottom:24px}
+.input-headline{font-size:26px;font-weight:700;letter-spacing:-.03em;line-height:1.2;margin-bottom:6px}
+.input-sub{font-size:14px;color:var(--ink2);margin-bottom:28px;line-height:1.5}
+.field-label{font-size:13px;font-weight:600;color:var(--ink);margin-bottom:8px;display:block}
+.field-hint{font-size:12px;color:var(--ink3);font-weight:400;margin-left:6px}
+.price-wrap{display:flex;align-items:center;border:2px solid var(--border);border-radius:var(--r);overflow:hidden;transition:border-color .15s;margin-bottom:10px}
+.price-wrap:focus-within{border-color:var(--blue)}
+.price-sym{padding:0 14px;font-size:22px;font-weight:600;color:var(--ink3);font-family:'JetBrains Mono',monospace;background:var(--bg);border-right:2px solid var(--border);height:56px;display:flex;align-items:center}
+.price-input{flex:1;height:56px;border:none;outline:none;font-size:28px;font-weight:700;font-family:'JetBrains Mono',monospace;color:var(--ink);padding:0 16px;background:transparent;width:0}
+.price-input::placeholder{color:var(--ink3)}
+.quick-pills{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:24px}
+.qpill{font-size:12px;font-family:'JetBrains Mono',monospace;font-weight:500;padding:5px 12px;border-radius:999px;border:1.5px solid var(--border);background:var(--bg);color:var(--ink2);cursor:pointer;transition:all .15s}
+.qpill:hover{border-color:var(--blue);color:var(--blue)}
+.qpill.sel{background:var(--blue);border-color:var(--blue);color:#fff}
+.budget-field{margin-bottom:28px}
+.budget-row{display:flex;align-items:center;gap:12px;margin-top:8px}
+.budget-row input[type=range]{flex:1;accent-color:var(--blue);cursor:pointer}
+.budget-val{font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:600;min-width:52px;text-align:right}
+.go-btn{width:100%;height:52px;border:none;border-radius:var(--r);background:var(--blue);color:#fff;font-size:16px;font-weight:700;font-family:inherit;cursor:pointer;transition:background .15s,transform .1s}
+.go-btn:hover{background:#1D4ED8}
+.go-btn:active{transform:scale(.98)}
+
+/* ── RESULTS SCREEN ── */
+.results-screen{background:var(--bg)}
+.topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:0 20px;height:52px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50}
+.topbar-title{font-size:14px;font-weight:700}
+.topbar-price{font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--ink2)}
+.edit-btn{font-size:12px;font-weight:600;color:var(--blue);background:var(--blue-lt);border:none;border-radius:6px;padding:5px 12px;cursor:pointer;font-family:inherit;transition:background .15s}
+.edit-btn:hover{background:#DBEAFE}
+
+/* winner banner */
+.winner-hero{background:linear-gradient(135deg,var(--green-dk),var(--green));color:#fff;padding:22px 20px}
+.wh-inner{max-width:640px;margin:0 auto}
+.wh-eyebrow{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;opacity:.7;margin-bottom:6px}
+.wh-option{font-size:20px;font-weight:700;letter-spacing:-.02em;margin-bottom:3px}
+.wh-saving{font-size:13px;opacity:.85;margin-bottom:14px}
+.wh-stats{display:flex;gap:10px;flex-wrap:wrap}
+.wh-stat{background:rgba(255,255,255,.15);border-radius:8px;padding:9px 13px;min-width:90px}
+.wh-stat-val{font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:600;line-height:1}
+.wh-stat-label{font-size:10px;opacity:.7;margin-top:2px}
+
+/* sort toggle */
+.toggle-wrap{display:flex;background:var(--surface);border:1px solid var(--border);border-radius:8px;overflow:hidden;margin:16px auto;width:fit-content}
+.toggle-btn{padding:8px 18px;font-size:13px;font-weight:600;border:none;background:transparent;cursor:pointer;color:var(--ink2);font-family:inherit;transition:all .15s}
+.toggle-btn.on{background:var(--ink);color:#fff}
+
+.content{max-width:640px;margin:0 auto;padding:0 16px 60px}
+.sect-label{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--ink3);margin:22px 0 10px;display:flex;align-items:center;gap:8px}
+.sect-label::after{content:'';flex:1;height:1px;background:var(--border)}
+
+/* ── OPTION CARD ── */
+.opt{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r-lg);margin-bottom:10px;overflow:hidden;transition:box-shadow .2s}
+.opt:hover{box-shadow:0 2px 12px rgba(0,0,0,.08)}
+
+/* card header — always visible */
+.opt-header{display:flex;align-items:flex-start;justify-content:space-between;padding:14px 16px 10px;gap:10px;cursor:pointer;user-select:none}
+.opt-rank{font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:2px 8px;border-radius:4px;display:inline-block;margin-bottom:5px}
+.opt-name{font-size:15px;font-weight:700;letter-spacing:-.01em}
+.opt-tagline{font-size:11px;color:var(--ink3);margin-top:1px}
+.opt-right{text-align:right;flex-shrink:0}
+.opt-monthly{font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:600;line-height:1;letter-spacing:-.02em}
+.opt-monthly-unit{font-size:10px;color:var(--ink3);margin-top:1px}
+.opt-4yr{font-size:11px;color:var(--ink2);margin-top:3px;font-family:'JetBrains Mono',monospace}
+.opt-chevron{font-size:12px;color:var(--ink3);margin-top:2px;transition:transform .2s}
+.opt-chevron.open{transform:rotate(180deg)}
+
+/* budget bar */
+.opt-bar{height:3px;background:var(--border);margin:0 16px}
+.opt-bar-fill{height:3px;transition:width .4s ease}
+
+/* expandable body */
+.opt-body{display:none;border-top:1px solid var(--border)}
+.opt-body.open{display:block}
+
+/* tabs inside card */
+.opt-tabs{display:flex;border-bottom:1px solid var(--border)}
+.opt-tab{flex:1;padding:9px 4px;font-size:12px;font-weight:600;text-align:center;cursor:pointer;color:var(--ink3);border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .15s}
+.opt-tab.on{color:var(--ink);border-bottom-color:var(--ink)}
+
+.opt-panel{display:none;padding:14px 16px}
+.opt-panel.on{display:block}
+
+/* detail grid (Overview tab) */
+.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.dg-item{background:var(--bg);border-radius:8px;padding:10px 12px}
+.dg-label{font-size:10px;color:var(--ink3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px}
+.dg-val{font-size:14px;font-weight:600;font-family:'JetBrains Mono',monospace}
+.bullets{display:flex;flex-direction:column;gap:5px}
+.bullet{font-size:12px;display:flex;gap:7px;align-items:flex-start;line-height:1.4}
+.bullet.pro{color:var(--green-dk)}.bullet.pro::before{content:'✓';font-weight:700;flex-shrink:0}
+.bullet.con{color:var(--red)}.bullet.con::before{content:'✗';font-weight:700;flex-shrink:0}
+
+/* ── EDIT TAB inputs ── */
+.edit-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.ef{display:flex;flex-direction:column;gap:4px}
+.ef label{font-size:11px;font-weight:600;color:var(--ink2)}
+.ef-wrap{position:relative;display:flex;align-items:center}
+.ef-sym{position:absolute;left:10px;font-size:13px;font-weight:500;color:var(--ink3);font-family:'JetBrains Mono',monospace;pointer-events:none}
+.ef-sfx{position:absolute;right:10px;font-size:12px;color:var(--ink3);pointer-events:none}
+.ef input{width:100%;height:36px;border:1.5px solid var(--border2);border-radius:7px;padding:0 10px;font-size:13px;font-family:'JetBrains Mono',monospace;color:var(--ink);background:var(--surface)}
+.ef input:focus{border-color:var(--blue);box-shadow:0 0 0 2px rgba(37,99,235,.1)}
+.ef-has-sym input{padding-left:22px}
+.ef-has-sfx input{padding-right:26px}
+.ef-note{font-size:10px;color:var(--ink3);line-height:1.4}
+.apply-btn{width:100%;margin-top:12px;height:36px;border:none;border-radius:7px;background:var(--blue);color:#fff;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;transition:background .15s}
+.apply-btn:hover{background:#1D4ED8}
+
+/* ── CHART ── */
+.chart{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:18px;margin-bottom:10px}
+.chart-row{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.chart-row:last-child{margin-bottom:0}
+.chart-name{font-size:12px;color:var(--ink2);width:100px;flex-shrink:0;line-height:1.3}
+.chart-bg{flex:1;height:24px;background:var(--bg);border-radius:5px;overflow:hidden}
+.chart-fill{height:100%;border-radius:5px;display:flex;align-items:center;padding:0 8px;font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:500;color:#fff;white-space:nowrap;transition:width .3s}
+.chart-amt{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;width:58px;text-align:right;flex-shrink:0}
+
+/* total pill */
+.total-pill{background:var(--ink);color:#fff;border-radius:var(--r-lg);padding:18px 20px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:10px}
+.tp-label{font-size:12px;color:rgba(255,255,255,.5);margin-bottom:3px}
+.tp-val{font-family:'JetBrains Mono',monospace;font-size:28px;font-weight:600;letter-spacing:-.03em}
+.tp-note{font-size:11px;color:rgba(255,255,255,.4);margin-top:3px}
+.tp-breakdown{display:flex;flex-direction:column;gap:3px;text-align:right}
+.tp-line{font-size:11px;color:rgba(255,255,255,.6)}
+.tp-line strong{font-family:'JetBrains Mono',monospace;color:#fff;margin-left:6px}
+.disc{font-size:11px;color:var(--ink3);line-height:1.8;padding:14px 0;border-top:1px solid var(--border);margin-top:14px}
+
+@media(max-width:480px){
+  .input-card{padding:28px 18px}
+  .detail-grid,.edit-grid{grid-template-columns:1fr}
+  .wh-stats{gap:8px}
+  .total-pill{flex-direction:column}
+  .tp-breakdown{text-align:left}
+}
+</style>
+</head>
+<body>
+
+<!-- ══ SCREEN 1 ══ -->
+<div class="screen on" id="s-input">
+  <div class="input-screen">
+    <div class="input-card">
+      <div class="input-logo">Car Finance Calculator · UK 2026</div>
+      <div class="input-headline">How much is the car?</div>
+      <div class="input-sub">Enter the price and your monthly budget — we compare every way to pay and highlight the best.</div>
+
+      <label class="field-label">Car price <span class="field-hint">cash / asking price</span></label>
+      <div class="price-wrap">
+        <div class="price-sym">£</div>
+        <input class="price-input" type="number" id="carPrice" placeholder="19995" value="19995" min="1000" max="500000" inputmode="numeric">
+      </div>
+      <div class="quick-pills">
+        <div class="qpill" data-v="10000">£10k</div>
+        <div class="qpill sel" data-v="19995">£20k</div>
+        <div class="qpill" data-v="30000">£30k</div>
+        <div class="qpill" data-v="45000">£45k</div>
+        <div class="qpill" data-v="60000">£60k</div>
+      </div>
+
+      <div class="budget-field">
+        <label class="field-label">Monthly car budget <span class="field-hint">finance payment only</span></label>
+        <div class="budget-row">
+          <input type="range" min="100" max="800" step="10" value="300" id="budgetSlider"
+            oninput="document.getElementById('bval').textContent='£'+this.value">
+          <span class="budget-val" id="bval">£300</span>
+        </div>
+      </div>
+
+      <button class="go-btn" onclick="calculate()">Compare all options →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ SCREEN 2 ══ -->
+<div class="screen" id="s-results">
+  <div class="topbar">
+    <div>
+      <div class="topbar-title">Finance comparison</div>
+      <div class="topbar-price" id="tb-sub">£19,995 · budget £300/month</div>
+    </div>
+    <button class="edit-btn" onclick="goEdit()">← Change</button>
+  </div>
+
+  <div class="winner-hero">
+    <div class="wh-inner">
+      <div class="wh-eyebrow">Best option for you</div>
+      <div class="wh-option" id="w-name">—</div>
+      <div class="wh-saving" id="w-saving">—</div>
+      <div class="wh-stats">
+        <div class="wh-stat"><div class="wh-stat-val" id="w-monthly">—</div><div class="wh-stat-label">per month</div></div>
+        <div class="wh-stat"><div class="wh-stat-val" id="w-4yr">—</div><div class="wh-stat-label">4-year total</div></div>
+        <div class="wh-stat"><div class="wh-stat-val" id="w-int">—</div><div class="wh-stat-label">interest paid</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div style="text-align:center;padding:0 16px">
+    <div class="toggle-wrap">
+      <button class="toggle-btn on" id="tog-m" onclick="setSort('monthly')">Lowest monthly</button>
+      <button class="toggle-btn" id="tog-t" onclick="setSort('total')">Lowest 4yr cost</button>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="sect-label">All options — tap to expand · edit figures inside each card</div>
+    <div id="cards"></div>
+
+    <div class="sect-label">4-year total cost</div>
+    <div class="chart" id="chart"></div>
+
+    <div class="sect-label">True monthly total — winner + all running costs</div>
+    <div class="total-pill" id="total-pill"></div>
+
+    <div class="disc" id="disc"></div>
+  </div>
+</div>
+
+<script>
+const RUNNING={insurance:75,parking:100,ved:17,fuel:55,service:20,tyres:10,mot:5};
+const RUN_TOTAL=Object.values(RUNNING).reduce((a,b)=>a+b,0);
+let PRICE=19995, BUDGET=300, sortMode='monthly';
+let P={pcp:{deposit:0, apr:14.4, term:48, balloon:0, mileage:5000}, hp:{deposit:0, apr:11.4, term:48}, loan_good:{apr:6.9, term:48}, loan_avg:{apr:9.9, term:48}, pch:{monthly:0, initial_months:3}, cash:{opp_rate:4.5}};
+document.querySelectorAll('.qpill').forEach(p=>{p.onclick=()=>{document.querySelectorAll('.qpill').forEach(x=>x.classList.remove('sel'));p.classList.add('sel');document.getElementById('carPrice').value=p.dataset.v;};});
+document.getElementById('carPrice').oninput=()=>{document.querySelectorAll('.qpill').forEach(x=>x.classList.remove('sel'));};
+function pmt(aprPct,n,pv){const apr=aprPct/100;if(apr===0)return pv/n;const r=apr/12;return pv*r/(1-Math.pow(1+r,-n));}
+function fmt(n){return'£'+Math.round(n).toLocaleString('en-GB')}
+function computeOptions(){const price=PRICE;const residual=Math.round(price*0.45);const pcp=P.pcp;const dep_pcp=pcp.deposit||Math.round(price*0.125);const ball=pcp.balloon||residual;const r_pcp=(pcp.apr/100)/12;const pvBall=ball/Math.pow(1+r_pcp,pcp.term);const pcpPmt=pmt(pcp.apr,pcp.term,(price-dep_pcp)-pvBall);const pcpInt=pcpPmt*(pcp.term-1)+dep_pcp+ball-price;const pcp4=dep_pcp+pcpPmt*(pcp.term-1)+RUN_TOTAL*48;const hp=P.hp;const dep_hp=hp.deposit||Math.round(price*0.125);const hpPmt=pmt(hp.apr,hp.term,price-dep_hp);const hpInt=hpPmt*hp.term+dep_hp-price;const hp4=dep_hp+hpPmt*hp.term+RUN_TOTAL*48-residual;const lg=P.loan_good;const lgPmt=pmt(lg.apr,lg.term,price);const lgInt=lgPmt*lg.term-price;const lg4=lgPmt*lg.term+RUN_TOTAL*48-residual;const la=P.loan_avg;const laPmt=pmt(la.apr,la.term,price);const laInt=laPmt*la.term-price;const la4=laPmt*la.term+RUN_TOTAL*48-residual;const pch=P.pch;const pchPmt=pch.monthly||Math.round(241*(price/19995)*0.95);const pchInit=pchPmt*pch.initial_months;const pch4=pchInit+pchPmt*48+RUN_TOTAL*48;const cash=P.cash;const oppCost=price*cash.opp_rate/100*4;const cash4=price+RUN_TOTAL*48-residual;return[{id:'pcp',name:'PCP Finance',sub:'Personal Contract Purchase',color:'#059669',monthly:pcpPmt,total4yr:pcp4,interest:pcpInt,tag:'Most popular',tagBg:'#ECFDF5',tagFg:'#047857',stats:[{l:'APR',v:pcp.apr+'%'},{l:'Deposit',v:fmt(dep_pcp)},{l:'Term',v:pcp.term+'m'},{l:'Balloon / GFMV',v:fmt(ball)},{l:'Mileage/yr',v:pcp.mileage.toLocaleString()},{l:'Own at end?',v:'Option'}],pros:['Lowest monthly on the car','Return, keep or upgrade at end','Warranty usually included'],cons:['14.4% APR — high credit cost','Mileage limit applies','Big balloon if you want to own'],editFields:[{key:'deposit',label:'Deposit',sym:'£',pkey:'pcp'},{key:'apr',label:'APR',sfx:'%',pkey:'pcp'},{key:'term',label:'Term (months)',pkey:'pcp'},{key:'balloon',label:'Balloon / GFMV',sym:'£',pkey:'pcp'},{key:'mileage',label:'Annual mileage',pkey:'pcp'}]},{id:'pch',name:'PCH Lease',sub:'Personal Contract Hire — new car',color:'#0EA5E9',monthly:pchPmt,total4yr:pch4,interest:0,tag:'Lowest monthly',tagBg:'#F0F9FF',tagFg:'#0369A1',stats:[{l:'Initial rental',v:fmt(pchInit)},{l:'Monthly',v:fmt(pchPmt)},{l:'Initial months',v:pch.initial_months+'×'},{l:'Road tax',v:'Included'},{l:'Own at end?',v:'No'}],pros:['Lowest monthly of all options','Road tax included in rental','Always driving a new car'],cons:['You never own the car','Mileage and condition charges','No equity or asset built up'],editFields:[{key:'monthly',label:'Monthly rental',sym:'£',pkey:'pch'},{key:'initial_months',label:'Initial months',pkey:'pch'}]},{id:'hp',name:'Hire Purchase',sub:'Own it outright at the end',color:'#2563EB',monthly:hpPmt,total4yr:hp4,interest:hpInt,tag:'You own it',tagBg:'#EFF6FF',tagFg:'#1D4ED8',stats:[{l:'APR',v:hp.apr+'%'},{l:'Deposit',v:fmt(dep_hp)},{l:'Term',v:hp.term+'m'},{l:'Balloon',v:'None'},{l:'Own at end?',v:'Yes'}],pros:['Own the car at the end','No balloon payment','No mileage restrictions'],cons:['Higher monthly than PCP','Less flexibility to change car','Tied in for full term'],editFields:[{key:'deposit',label:'Deposit',sym:'£',pkey:'hp'},{key:'apr',label:'APR',sfx:'%',pkey:'hp'},{key:'term',label:'Term (months)',pkey:'hp'}]},{id:'loan_good',name:'Bank Loan',sub:'Good credit · '+lg.apr+'% APR · BoE avg 2026',color:'#7C3AED',monthly:lgPmt,total4yr:lg4,interest:lgInt,tag:'Best total value',tagBg:'#F5F3FF',tagFg:'#6D28D9',stats:[{l:'APR',v:lg.apr+'%'},{l:'Deposit',v:'None needed'},{l:'Term',v:lg.term+'m'},{l:'Total interest',v:fmt(lgInt)},{l:'Own at end?',v:'Yes — day one'}],pros:['Lowest total interest of all options','Own it from day one','No mileage restrictions'],cons:['Higher monthly payment','Needs excellent credit score','Rate not confirmed until applied'],editFields:[{key:'apr',label:'APR',sfx:'%',pkey:'loan_good'},{key:'term',label:'Term (months)',pkey:'loan_good'}]},{id:'loan_avg',name:'Bank Loan',sub:'Average credit · '+la.apr+'% APR',color:'#D97706',monthly:laPmt,total4yr:la4,interest:laInt,tag:'Average credit',tagBg:'#FFFBEB',tagFg:'#B45309',stats:[{l:'APR',v:la.apr+'%'},{l:'Deposit',v:'None needed'},{l:'Term',v:la.term+'m'},{l:'Total interest',v:fmt(laInt)},{l:'Own at end?',v:'Yes — day one'}],pros:['Own it from day one','No mileage limit','Simple fixed monthly repayment'],cons:['Higher monthly than PCP / PCH','Similar total cost to PCP with less flex','Rate based on credit check'],editFields:[{key:'apr',label:'APR',sfx:'%',pkey:'loan_avg'},{key:'term',label:'Term (months)',pkey:'loan_avg'}]},{id:'cash',name:'Cash Purchase',sub:'Buy outright — zero interest',color:'#374151',monthly:0,total4yr:cash4,interest:0,tag:'Zero interest',tagBg:'#F9FAFB',tagFg:'#374151',stats:[{l:'Upfront',v:fmt(price)},{l:'Monthly finance',v:'£0'},{l:'Interest',v:'£0'},{l:'Opp. cost ('+cash.opp_rate+'%/yr)',v:fmt(oppCost)},{l:'Own at end?',v:'Yes — day one'}],pros:['Zero interest — no cost of credit','Own it immediately','No mileage or condition worries'],cons:['Need '+fmt(price)+' available now','Savings return lost (~'+fmt(oppCost)+' over 4yr)','Ties up a large lump sum'],editFields:[{key:'opp_rate',label:'Savings rate',sfx:'%',pkey:'cash'}]}]}
+function calculate(){PRICE=Math.max(1000,+document.getElementById('carPrice').value||19995);BUDGET=+document.getElementById('budgetSlider').value||300;P.pch.monthly=0;P.pcp.deposit=Math.round(PRICE*0.125);P.hp.deposit=Math.round(PRICE*0.125);P.pcp.balloon=Math.round(PRICE*0.45);document.getElementById('tb-sub').textContent=fmt(PRICE)+' · budget '+fmt(BUDGET)+'/month';renderAll();document.getElementById('s-input').classList.remove('on');document.getElementById('s-results').classList.add('on');window.scrollTo(0,0)}
+function setSort(m){sortMode=m;document.getElementById('tog-m').classList.toggle('on',m==='monthly');document.getElementById('tog-t').classList.toggle('on',m==='total');renderAll()}
+function renderAll(){const opts=computeOptions();const sorted=[...opts].sort((a,b)=>sortMode==='monthly'?(a.monthly||999999)-(b.monthly||999999):a.total4yr-b.total4yr);renderWinner(sorted);renderCards(sorted);renderChart(opts);renderTotal(sorted[0])}
+function renderWinner(sorted){const w=sorted[0], s=sorted[1];const saving=s.total4yr-w.total4yr;document.getElementById('w-name').textContent=w.name+(w.id==='loan_good'?' (good cr.)':w.id==='loan_avg'?' (avg cr.)':'');document.getElementById('w-saving').textContent='Saves '+fmt(saving)+' over 4 years vs next best option';document.getElementById('w-monthly').textContent=w.monthly>0?fmt(w.monthly):'£0';document.getElementById('w-4yr').textContent=fmt(w.total4yr);document.getElementById('w-int').textContent=fmt(Math.max(0,w.interest))}
+const rankLabel=['1st — Best','2nd','3rd','4th','5th','6th'];const rankBg=['#059669','#2563EB','#6B7280','#9CA3AF','#D1D5DB','#E5E7EB'];const rankFg=['#fff','#fff','#fff','#fff','#374151','#374151'];
+let openCard=null;let openTab={};
+function renderCards(sorted){const cards=document.getElementById('cards');const prevOpen=openCard;const prevTabs={...openTab};cards.innerHTML='';sorted.forEach((opt,i)=>{const over=opt.monthly>BUDGET&&opt.monthly>0;const pct=opt.monthly>0?Math.min(100,(opt.monthly/BUDGET)*100):100;const fill=over?'#DC2626':opt.color;const isOpen=prevOpen===opt.id;const tab=prevTabs[opt.id]||'overview';const card=document.createElement('div');card.className='opt';card.innerHTML=`<div class="opt-header" onclick="toggleCard('${opt.id}')"><div><div class="opt-rank" style="background:${rankBg[i]};color:${rankFg[i]}">${rankLabel[i]}</div><div class="opt-name">${opt.name}${opt.id==='loan_good'?' <span style="font-size:11px;font-weight:400;color:var(--ink3)">(good credit)</span>':opt.id==='loan_avg'?' <span style="font-size:11px;font-weight:400;color:var(--ink3)">(average credit)</span>':''}</div><div class="opt-tagline">${opt.sub}</div></div><div style="display:flex;align-items:flex-start;gap:10px"><div class="opt-right"><div class="opt-monthly" style="color:${over?'var(--red)':opt.monthly===0?'var(--green)':opt.color}">${opt.monthly>0?fmt(opt.monthly):'£0'}</div><div class="opt-monthly-unit">${opt.monthly>0?'/month':'no payment'}</div><div class="opt-4yr">${fmt(opt.total4yr)} / 4yr</div></div><div class="opt-chevron${isOpen?' open':''}" id="chev-${opt.id}">▾</div></div></div><div class="opt-bar"><div class="opt-bar-fill" style="width:${pct}%;background:${fill}"></div></div><div class="opt-body${isOpen?' open':''}" id="body-${opt.id}"><div class="opt-tabs"><div class="opt-tab${tab==='overview'?' on':''}" onclick="switchTab('${opt.id}','overview')">Overview</div><div class="opt-tab${tab==='edit'?' on':''}" onclick="switchTab('${opt.id}','edit')">✎ Edit figures</div></div><div class="opt-panel${tab==='overview'?' on':''}" id="pan-${opt.id}-overview"><div class="detail-grid">${opt.stats.map(s=>`<div class="dg-item"><div class="dg-label">${s.l}</div><div class="dg-val">${s.v}</div></div>`).join('')}</div><div class="bullets">${opt.pros.map(p=>`<div class="bullet pro">${p}</div>`).join('')}${opt.cons.map(c=>`<div class="bullet con">${c}</div>`).join('')}</div></div><div class="opt-panel${tab==='edit'?' on':''}" id="pan-${opt.id}-edit"><div class="edit-grid">${opt.editFields.map(f=>`<div class="ef"><label>${f.label}</label><div class="ef-wrap${f.sym?' ef-has-sym':''}${f.sfx?' ef-has-sfx':''}">${f.sym?`<span class="ef-sym">${f.sym}</span>`:''}<input type="number" id="ef-${opt.id}-${f.key}" value="${P[f.pkey][f.key]}" step="${f.sfx==='%'?'0.1':'1'}" onchange="updateParam('${f.pkey}','${f.key}',this.value)">${f.sfx?`<span class="ef-sfx">${f.sfx}</span>`:''}</div></div>`).join('')}</div><div style="font-size:11px;color:var(--ink3);margin-top:10px;line-height:1.6">Changes recalculate instantly. All other options stay the same.</div></div></div>`;cards.appendChild(card)})}
+function toggleCard(id){openCard= openCard===id ? null : id;renderAll()}
+function switchTab(id,tab){openTab[id]=tab;['overview','edit'].forEach(t=>{const p=document.getElementById(`pan-${id}-${t}`);const tb=document.querySelector(`.opt-tab[onclick="switchTab('${id}','${t}')"]`);if(p) p.classList.toggle('on',t===tab);if(tb) tb.classList.toggle('on',t===tab);});}
+function updateParam(pkey,key,val){P[pkey][key]=+val;openTab[pkey]=openTab[pkey]||'edit';renderAll();setTimeout(()=>switchTab(['pcp','hp','loan_good','loan_avg','pch','cash'].find(id=>P[id]&&id===pkey)||pkey,'edit'),0)}
+function renderChart(opts){const sorted=[...opts].sort((a,b)=>a.total4yr-b.total4yr);const max=sorted[sorted.length-1].total4yr;const names={pcp:'PCP Finance',pch:'PCH Lease',hp:'Hire Purchase',loan_good:'Loan (good)',loan_avg:'Loan (avg)',cash:'Cash'};document.getElementById('chart').innerHTML=sorted.map(o=>`<div class="chart-row"><div class="chart-name">${names[o.id]}</div><div class="chart-bg"><div class="chart-fill" style="width:${Math.max(8,(o.total4yr/max)*88+8)}%;background:${o.color}">${fmt(o.total4yr)}</div></div><div class="chart-amt">${fmt(o.total4yr)}</div></div>`).join('')+`<div style="font-size:11px;color:var(--ink3);margin-top:10px">Includes £${RUN_TOTAL}/month running costs × 48 months. Ownership options deduct estimated resale value (45% of car price). Lease/PCP-return: no resale benefit.</div>`}
+function renderTotal(winner){const name={pcp:'PCP',pch:'PCH Lease',hp:'Hire Purchase',loan_good:'Bank Loan (good)',loan_avg:'Bank Loan (avg)',cash:'Cash'}[winner.id];const trueTotal=Math.round(winner.monthly+RUN_TOTAL);document.getElementById('total-pill').innerHTML=`<div><div class="tp-label">True monthly total · ${name}</div><div class="tp-val">${fmt(trueTotal)}</div><div class="tp-note">Finance + insurance + fuel + tax + service + parking</div></div><div class="tp-breakdown"><div class="tp-line">Finance<strong>${winner.monthly>0?fmt(winner.monthly):'£0'}</strong></div><div class="tp-line">Insurance<strong>£${RUNNING.insurance}</strong></div><div class="tp-line">Parking<strong>£${RUNNING.parking}</strong></div><div class="tp-line">Tax, fuel, service, tyres, MOT<strong>£${RUNNING.ved+RUNNING.fuel+RUNNING.service+RUNNING.tyres+RUNNING.mot}</strong></div></div>`;document.getElementById('disc').innerHTML=`Estimates based on UK market data, August 2026. PCP APR representative — your rate depends on credit score. Personal loan rates: Bank of England Q1 2026 average. PCH baseline: Carwow Aug 2026, scaled to car price. VED: DVLA standard rate 2026 (£200/yr post-yr1 petrol). Running costs: insurance £75/m est., fuel at 145p/L 45mpg 5,000mi/yr. Residual value estimated at 45% of car price after 4 years. Always get a personalised quote before signing.`}
+function goEdit(){document.getElementById('s-results').classList.remove('on');document.getElementById('s-input').classList.add('on');window.scrollTo(0,0)}
+</script>
+</body>
 </html>
