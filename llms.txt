@@ -1,0 +1,29 @@
+# Arash Nassirpour
+
+> Structural and earthquake engineer working in natural catastrophe risk science, with a research background in seismic vulnerability. Currently Science Lead Specialist at AXA XL, leading earthquake and natural catastrophe risk science. Previously Director at Willis (WTW) and Lecturer in Earthquake Engineering at UCL. Builds free, interactive browser-based tools for earthquake science, structural analysis and catastrophe risk.
+
+## Tools
+
+- [Live Earthquake Dashboard](https://arashnassirpour.com/earthquake-dashboard/): Live USGS earthquake briefing with ShakeMaps, aftershock forecasts, and a global disaster alerts ticker.
+- [Global Faults & Live Earthquakes](https://arashnassirpour.com/world-faults/): Interactive map of tectonic plate boundaries, named fault systems and recent earthquakes.
+- [Fault Mechanism](https://arashnassirpour.com/earthquake-rupture/): Interactive 3D model of earthquake rupture styles: strike, dip and rake.
+- [Vulnerability Function Explorer](https://arashnassirpour.com/hazus/): Browse, compare and export building vulnerability functions from FEMA Hazus (flood, wind, earthquake).
+- [Hazard Sequence Simulator](https://arashnassirpour.com/hazard-sequence-simulator/): Simulates cascading and sequential natural hazard events.
+- [Slope Seismic Vulnerability](https://arashnassirpour.com/slope-seismic-vulnerability/): Newmark sliding-block displacement fragility and vulnerability for tailings dams and pit slopes.
+- [RC Section Designer](https://arashnassirpour.com/rc-section-designer/): N-M interaction diagrams, biaxial capacity surfaces, moment-curvature analysis and ACI 318 / Eurocode 2 checks for reinforced concrete sections.
+- [Modal Analysis Calculator](https://arashnassirpour.com/modal-analysis/): Solves the real eigenvalue problem for a lumped-mass shear building — periods, mode shapes and modal participation factors.
+- [Design Spectrum](https://arashnassirpour.com/design-spectrum/): Seismic design response spectrum generator.
+- [Performance Point Evaluator](https://arashnassirpour.com/performance-point-evaluator/): N2 capacity-spectrum performance-point evaluator for seismic assessment.
+- [Ground Motion Analyzer](https://arashnassirpour.com/ground-motion/): Analyzes earthquake acceleration records, engineering intensity measures and damped response spectra.
+- [Building Response Lab](https://arashnassirpour.com/building-response/): Simplified first-mode dynamic model showing how a building sways and drifts under ground motion.
+- [Material Behaviour Explorer](https://arashnassirpour.com/material-behaviour-explorer/): Interactive stress-strain behaviour explorer for concrete, reinforcing steel, structural steel, timber, masonry and FRP.
+
+## About
+
+- [About](https://arashnassirpour.com/about/): Background, professional experience and education.
+- [Contact](https://arashnassirpour.com/contact/): Get in touch.
+
+## Links
+
+- LinkedIn: https://www.linkedin.com/in/arashnassirpour/
+- YouTube: https://www.youtube.com/@Structural.Analysis
