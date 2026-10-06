@@ -272,6 +272,16 @@ tr.total td:last-child{padding-right:10px}
 .reset:hover{color:var(--accent);text-decoration-color:currentColor}
 .reset:disabled{cursor:default;color:var(--good);text-decoration:none}
 .reset:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:3px}
+td.calc{font-weight:600;padding-right:10px;font-variant-numeric:tabular-nums}
+#upfront tr.total td:last-child{padding-right:10px}
+.rows div.sec{border-bottom:none;padding:14px 0 2px;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--faint)}
+.rows div.sec:first-child{padding-top:0}
+.verdict{font-size:15px;font-weight:600;margin:14px 0 6px;color:var(--accent)}
+.cmp.stress tbody tr{cursor:default}
+.cmp.stress tbody tr:hover td{background:none}
+.cmp.stress td:last-child{color:var(--text);font-weight:600}
+.cmp.stress td.neg{color:var(--bad)}
+.rvb-in label{white-space:normal}
 </style>
 </head>
 <body>
@@ -420,6 +430,51 @@ tr.total td:last-child{padding-right:10px}
     <p class="hint" id="ftbHint" style="margin-top:12px"></p>
   </details>
 
+  <!-- UPFRONT -->
+  <details class="card fold">
+    <summary><h2>Upfront cash needed</h2><span class="fold-total" id="upHead"></span><span class="chev" aria-hidden="true"></span></summary>
+    <table id="upfront">
+      <tr><td>Deposit</td><td class="calc" id="upDep">£0</td></tr>
+      <tr><td>Stamp duty<span class="note">From the stamp duty section</span></td><td class="calc" id="upSdlt">£0</td></tr>
+      <tr><td>Solicitor<span class="note">Conveyancing, searches, Land Registry</span></td><td><div class="field has-pre"><span class="pre">£</span><input class="fee money" data-step="fee" inputmode="numeric" value="2,000"></div></td></tr>
+      <tr><td>Survey<span class="note">Level 2 or 3 survey</span></td><td><div class="field has-pre"><span class="pre">£</span><input class="fee money" data-step="fee" inputmode="numeric" value="700"></div></td></tr>
+      <tr><td>Mortgage fee<span class="note">Arrangement fee, often £0 to £1,500</span></td><td><div class="field has-pre"><span class="pre">£</span><input class="fee money" data-step="fee" inputmode="numeric" value="1,000"></div></td></tr>
+      <tr><td>Moving<span class="note">Removals, first furniture</span></td><td><div class="field has-pre"><span class="pre">£</span><input class="fee money" data-step="fee" inputmode="numeric" value="1,000"></div></td></tr>
+      <tr class="total"><td>Total cash needed</td><td id="upTotal">£0</td></tr>
+    </table>
+    <p class="hint" style="margin-top:10px">Keep a few months of costs aside as a buffer too.</p>
+  </details>
+
+  <!-- AFFORD -->
+  <details class="card fold">
+    <summary><h2>Affordability</h2><span class="fold-total" id="affHead"></span><span class="chev" aria-hidden="true"></span></summary>
+    <div id="afford"></div>
+  </details>
+
+  <!-- RENT VS BUY -->
+  <details class="card fold">
+    <summary><h2>Rent vs buy</h2><span class="fold-total" id="rvbHead"></span><span class="chev" aria-hidden="true"></span></summary>
+    <div class="grid2 rvb-in">
+      <div>
+        <label for="rent">Rent for a similar home</label>
+        <div class="field has-pre"><span class="pre">£</span><input id="rent" class="money" inputmode="numeric" value="2,800"></div>
+      </div>
+      <div>
+        <label for="rentRise">Rent rise a year</label>
+        <div class="field has-suf"><input id="rentRise" inputmode="decimal" value="3"><span class="suf">%</span></div>
+      </div>
+      <div>
+        <label for="growth">House price growth a year</label>
+        <div class="field has-suf"><input id="growth" inputmode="decimal" value="2"><span class="suf">%</span></div>
+      </div>
+      <div>
+        <label for="saveRate">Savings interest</label>
+        <div class="field has-suf"><input id="saveRate" inputmode="decimal" value="4"><span class="suf">%</span></div>
+      </div>
+    </div>
+    <div id="rvb"></div>
+  </details>
+
   <!-- DEALS -->
   <details class="card fold deals">
     <summary><h2>Find today's best deals</h2><span class="fold-total">6 sites</span><span class="chev" aria-hidden="true"></span></summary>
@@ -441,13 +496,13 @@ tr.total td:last-child{padding-right:10px}
   <p class="foot">
     Rates are the latest UK market averages from Moneyfacts, published 5 October 2026 and checked 6 October (2-year fixed 5.98%, 5-year fixed 6.00%, 2-year tracker 4.55%, SVR 7.13%; Bank Rate 3.75%), adjusted for loan to value. Your actual rate depends on lender and credit profile.
     Term is capped so the mortgage ends by age 70, max 35 years. Take-home uses 2026/27 England income tax and employee National Insurance, with pension deducted before tax (net pay); student loans are not included.
-    Stamp duty uses current England and Northern Ireland rates, including the 5% second home and 2% non-UK resident surcharges; Scotland and Wales have their own taxes. A guide only, not financial advice.
+    Stamp duty uses current England and Northern Ireland rates, including the 5% second home and 2% non-UK resident surcharges; Scotland and Wales have their own taxes. Upfront fees are typical London estimates. Affordability uses common lender income multiples; each lender also checks your outgoings and credit. Rent vs buy keeps today's rate for 5 years and ignores selling costs. A guide only, not financial advice.
   </p>
 </div>
 
 <script>
 const $ = id => document.getElementById(id);
-const num = v => { const n = parseFloat(String(v).replace(/[^0-9.]/g,'')); return isNaN(n) ? 0 : n; };
+const num = v => { const t = String(v).trim(); const n = parseFloat(t.replace(/[^0-9.]/g,'')); return isNaN(n) ? 0 : /^[-−]/.test(t) ? -n : n; };
 const gbp = n => (Math.round(n) < 0 ? '−£' : '£') + Math.abs(Math.round(n)).toLocaleString('en-GB');
 
 /* Moneyfacts averages, 5 Oct 2026 (latest published, checked 6 Oct) */
@@ -583,6 +638,45 @@ function calc(){
   $('sSdlt').textContent = gbp(sdlt);
   $('sInterest').textContent = gbp(pmt * term * 12 - loan);
 
+  /* upfront cash */
+  const fees = [...document.querySelectorAll('.fee')].map(i => num(i.value));
+  const upTotal = deposit + sdlt + fees.reduce((a, b) => a + b, 0);
+  $('upDep').textContent = gbp(deposit);
+  $('upSdlt').textContent = gbp(sdlt);
+  $('upTotal').textContent = gbp(upTotal);
+  $('upHead').textContent = gbp(upTotal);
+
+  /* rent vs buy over 5 years: unrecoverable costs of each, house price growth counted for the buyer */
+  const YEARS = 5;
+  const rent = num($('rent').value), rentRise = num($('rentRise').value) / 100;
+  const growth = num($('growth').value) / 100, saveRate = num($('saveRate').value) / 100;
+  let interest5 = 0, bal = loan;
+  for (let m = 0; m < Math.min(YEARS * 12, term * 12); m++){ const it = bal * rate / 1200; interest5 += it; bal -= pmt - it; }
+  const capital5 = loan - Math.max(0, bal);
+  const ownerBills = [5, 6].reduce((a, i) => a + num(document.querySelectorAll('.bill')[i].value), 0); // service charge + ground rent
+  const buyFees = fees[0] + fees[1] + fees[2]; // solicitor, survey, mortgage fee (moving applies to renters too)
+  const cashIn = deposit + sdlt + buyFees;
+  const lostInterest = cashIn * (Math.pow(1 + saveRate, YEARS) - 1);
+  const gain = price * (Math.pow(1 + growth, YEARS) - 1);
+  const buyCost = interest5 + ownerBills * 12 * YEARS + sdlt + buyFees + lostInterest - gain;
+  let rentCost = 0; for (let y = 0; y < YEARS; y++) rentCost += rent * 12 * Math.pow(1 + rentRise, y);
+  const diff = rentCost - buyCost;
+  $('rvbHead').textContent = rent ? (diff >= 0 ? `Buying ${gbp(diff)} cheaper` : `Renting ${gbp(-diff)} cheaper`) : '';
+  $('rvb').innerHTML = !rent ? `<p class="empty" style="margin-top:14px">Enter a rent to compare.</p>` : `
+    <div class="rows" style="margin-top:14px">
+      <div class="sec"><span>Renting, 5 years</span><span></span></div>
+      <div><span>Rent <em>(rising ${(rentRise * 100).toFixed(1)}% a year)</em></span><span>${gbp(rentCost)}</span></div>
+      <div class="sec"><span>Buying, 5 years</span><span></span></div>
+      <div><span>Mortgage interest</span><span>${gbp(interest5)}</span></div>
+      <div><span>Service charge and ground rent</span><span>${gbp(ownerBills * 12 * YEARS)}</span></div>
+      <div><span>Stamp duty and buying fees</span><span>${gbp(sdlt + buyFees)}</span></div>
+      <div><span>Lost savings interest <em>(on ${gbp(cashIn)})</em></span><span>${gbp(lostInterest)}</span></div>
+      <div class="minus"><span>House price ${gain >= 0 ? 'growth' : 'fall'} <em>(${(growth * 100).toFixed(1)}% a year)</em></span><span>${gain >= 0 ? '− ' + gbp(gain) : '+ ' + gbp(-gain)}</span></div>
+      <div class="final"><span>Real cost of buying</span><span>${gbp(buyCost)}</span></div>
+    </div>
+    <p class="verdict">${diff >= 0 ? `Buying works out ${gbp(diff)} cheaper than renting over 5 years.` : `Renting works out ${gbp(-diff)} cheaper than buying over 5 years.`}</p>
+    <p class="hint">Mortgage payments also repay ${gbp(capital5)} of the loan in 5 years; that is yours, so it is not counted as a cost. Assumes today's rate for 5 years and ignores selling costs and bills you pay either way.</p>`;
+
   const pct = num($('pension').value);
   const p1 = takeHome(num($('sal1').value), pct), p2 = takeHome(num($('sal2').value), pct);
   const people = [p1, p2].filter(Boolean);
@@ -597,6 +691,8 @@ function calc(){
     $('hNote').textContent = '';
     $('payHead').textContent = '';
     $('pay').innerHTML = `<p class="empty">Add a salary to see take-home pay and tax.</p>`;
+    $('affHead').textContent = '';
+    $('afford').innerHTML = `<p class="empty">Add a salary to see how much you could borrow.</p>`;
     return;
   }
 
@@ -627,6 +723,27 @@ function calc(){
     </div>
     <p class="hint" style="margin:14px 0 4px">Monthly figures above, % of gross pay. Yearly breakdown below: each band is taxed only on the income inside it, so the average rate is lower than the top rate.</p>
     ${p1 ? breakdown(p1, 'You') : ''}${p2 ? breakdown(p2, 'Partner') : ''}`;
+
+  /* affordability: income multiples and a rate stress test */
+  const income = people.reduce((a, p) => a + p.gross, 0);
+  const mult = [4.5, 5];
+  $('affHead').textContent = `Up to ${gbp(income * 4.5 + deposit)}`;
+  const stress = [0, 1, 2, 3].map(up => {
+    const sp = payment(loan, rate + up, term), sl = net - sp - bills;
+    return `<tr${up ? '' : ' class="on"'}><td>${up ? `+${up}%` : 'Today'}</td><td>${(rate + up).toFixed(2)}%</td><td>${gbp(sp)}</td><td class="${sl < 0 ? 'neg' : ''}">${gbp(sl)}</td></tr>`;
+  }).join('');
+  $('afford').innerHTML = `
+    <div class="rows">
+      <div><span>Your loan <em>(${lti.toFixed(1)}× income)</em></span><span class="${lti > 4.5 ? 'neg' : 'pos'}">${gbp(loan)}</span></div>
+      ${mult.map(m => `<div><span>Max loan at ${m}× income <em>(${m === 4.5 ? 'most lenders' : 'some lenders'})</em></span><span>${gbp(income * m)}</span></div>`).join('')}
+      <div class="final"><span>Max price with your deposit <em>(at 4.5×)</em></span><span>${gbp(income * 4.5 + deposit)}</span></div>
+    </div>
+    <h3 class="sub-h">Stress test: if rates rise</h3>
+    <table class="cmp stress">
+      <thead><tr><th>Rates</th><th>Rate</th><th>Monthly</th><th>Left</th></tr></thead>
+      <tbody>${stress}</tbody>
+    </table>
+    <p class="hint" style="margin-top:10px">Lenders check you could still pay if rates rose. "Left" is what remains each month after the mortgage and bills.</p>`;
 }
 
 $('rate').addEventListener('input', () => rateEdited = $('rate').value !== '');
@@ -657,17 +774,22 @@ const STEP_RULES = {
   term:    { step: () => 1, min: 5, max: 40 },
   pension: { step: () => 1, min: 0, max: 60 },
   bill:    { step: v => v < 50 ? 5 : 10, min: 0 },
+  fee:     { step: v => v < 1000 ? 50 : 100, min: 0 },
+  rent:    { step: v => v < 1000 ? 25 : 50, min: 0 },
+  rentRise:{ step: () => 0.5, min: 0, max: 15, dp: 1 },
+  growth:  { step: () => 0.5, min: -10, max: 15, dp: 1 },
+  saveRate:{ step: () => 0.25, min: 0, max: 10, dp: 2 },
 };
 const ARROW = d => `<svg viewBox="0 0 10 6" aria-hidden="true"><path d="${d}" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
 
 function nudge(input, dir){
-  const rule = STEP_RULES[input.id] || STEP_RULES.bill;
+  const rule = STEP_RULES[input.id] || STEP_RULES[input.dataset.step] || STEP_RULES.bill;
   const v = num(input.value);
   /* step from the value just below when going down, so 300k down lands on 295k not 290k */
-  const st = rule.step(dir > 0 ? v : Math.max(0, v - 1e-9));
+  const st = rule.step(dir > 0 ? v : v - 1e-9);
   let next = dir > 0 ? Math.floor(v / st + 1e-9) * st + st : Math.ceil(v / st - 1e-9) * st - st;
   next = Math.min(rule.max ?? Infinity, Math.max(rule.min ?? 0, next));
-  next = +next.toFixed(rule.dp || 0);
+  next = +next.toFixed(rule.dp || 0) || 0;
   input.value = input.classList.contains('money') ? next.toLocaleString('en-GB') : rule.dp ? next.toFixed(rule.dp) : String(next);
   input.dispatchEvent(new Event('input', { bubbles: true }));
 }
