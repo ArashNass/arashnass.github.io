@@ -144,6 +144,16 @@ select{appearance:none;-webkit-appearance:none;cursor:pointer;background-image:l
 .fold[open] .chev{transform:rotate(-135deg);margin-bottom:-2px}
 .fold[open] summary{margin-bottom:14px}
 .fold[open] .fold-total{visibility:hidden}
+.brk-fold{margin-top:18px;border-top:1px solid var(--border);padding-top:14px}
+.brk-fold h3{font-size:14px;font-weight:600;margin:16px 0 2px}
+.cmp.brk{margin-top:10px;table-layout:auto}
+.cmp.brk td,.cmp.brk th{font-size:13px;padding-left:8px}
+.cmp.brk td:first-child,.cmp.brk th:first-child{padding-left:0;white-space:normal}
+.cmp.brk td:nth-child(3){font-weight:400;color:var(--muted)}
+.cmp.brk td:last-child{color:var(--text);font-weight:600;white-space:nowrap}
+.cmp.brk tr.total td{font-weight:700;padding-top:8px;color:var(--text)}
+.cmp.brk tbody tr{cursor:default}
+.cmp.brk tbody tr:hover td{background:none}
 .hero{background:var(--hero-bg);color:var(--hero-ink);border:none}
 .hero .label{font-size:13px;opacity:.75}
 .hero .big{font-size:40px;font-weight:700;letter-spacing:-.03em;line-height:1.1;margin:4px 0 14px}
@@ -362,24 +372,43 @@ function takeHome(gross, pensionPct){
   if (gross <= 0) return null;
   const pension = gross * pensionPct / 100;
   const taxable = gross - pension;
-  let pa = 12570;
-  if (taxable > 100000) pa = Math.max(0, pa - (taxable - 100000) / 2);
-  const basicTop = 50270, addStart = 125140;
-  let tax = 0;
-  const afterPA = Math.max(0, taxable - pa);
-  const basicBand = basicTop - 12570;
-  tax += Math.min(afterPA, basicBand) * 0.20;
-  if (taxable > addStart){
-    tax += Math.max(0, (addStart - pa) - basicBand) * 0.40;
-    tax += (taxable - addStart) * 0.45;
-  } else {
-    tax += Math.max(0, afterPA - basicBand) * 0.40;
-  }
-  const ni = Math.max(0, Math.min(gross, 50270) - 12570) * 0.08 + Math.max(0, gross - 50270) * 0.02;
-  return { gross, pension, tax, ni, net: gross - pension - tax - ni };
+  /* personal allowance drops £1 for every £2 over £100k */
+  const pa = taxable > 100000 ? Math.max(0, 12570 - (taxable - 100000) / 2) : 12570;
+  const basicBand = 50270 - 12570, addStart = 125140;
+  const taxBands = [
+    { name:'Personal Allowance', amt:Math.min(taxable, pa), rate:0 },
+    { name:'Basic rate', amt:Math.min(Math.max(0, taxable - pa), basicBand), rate:.20 },
+    { name:'Higher rate', amt:Math.min(Math.max(0, taxable - pa - basicBand), Math.max(0, addStart - pa - basicBand)), rate:.40 },
+    { name:'Additional rate', amt:Math.max(0, taxable - addStart), rate:.45 },
+  ];
+  const niBands = [
+    { name:'Up to £12,570', amt:Math.min(gross, 12570), rate:0 },
+    { name:'£12,570 to £50,270', amt:Math.max(0, Math.min(gross, 50270) - 12570), rate:.08 },
+    { name:'Over £50,270', amt:Math.max(0, gross - 50270), rate:.02 },
+  ];
+  const total = bands => bands.reduce((a, b) => a + b.amt * b.rate, 0);
+  const top = bands => bands.filter(b => b.amt > 0).reduce((a, b) => Math.max(a, b.rate), 0);
+  const tax = total(taxBands), ni = total(niBands);
+  return { gross, pension, taxable, pa, tax, ni, taxBands, niBands, topRate:top(taxBands), net: gross - pension - tax - ni };
 }
 
-let rateEdited = false, termEdited = false;
+function breakdown(p, who){
+  const rows = bands => bands.filter(b => b.amt > 0).map(b =>
+    `<tr><td>${b.name}</td><td>${gbp(b.amt)}</td><td>${(b.rate * 100).toFixed(0)}%</td><td>${gbp(b.amt * b.rate)}</td></tr>`).join('');
+  return `
+    <h3>${who}: ${gbp(p.gross)} a year</h3>
+    <p class="hint">Pension ${gbp(p.pension)} comes off first, so ${gbp(p.taxable)} is taxed.${p.pa < 12570 ? ` Personal Allowance cut to ${gbp(p.pa)} (over £100k).` : ''}</p>
+    <table class="cmp brk">
+      <thead><tr><th>Income tax</th><th>In band</th><th>Rate</th><th>Tax</th></tr></thead>
+      <tbody>${rows(p.taxBands)}<tr class="total"><td>Total</td><td>${gbp(p.taxable)}</td><td>${(p.tax / p.gross * 100).toFixed(0)}%</td><td>${gbp(p.tax)}</td></tr></tbody>
+    </table>
+    <table class="cmp brk">
+      <thead><tr><th>National Insurance</th><th>In band</th><th>Rate</th><th>NI</th></tr></thead>
+      <tbody>${rows(p.niBands)}<tr class="total"><td>Total</td><td>${gbp(p.gross)}</td><td>${(p.ni / p.gross * 100).toFixed(0)}%</td><td>${gbp(p.ni)}</td></tr></tbody>
+    </table>`;
+}
+
+let rateEdited = false, termEdited = false, brkOpen = false;
 
 function calc(){
   const price = num($('price').value);
@@ -445,7 +474,8 @@ function calc(){
   $('billsHead').textContent = gbp(bills) + ' / month';
 
   const pct = num($('pension').value);
-  const people = [takeHome(num($('sal1').value), pct), takeHome(num($('sal2').value), pct)].filter(Boolean);
+  const p1 = takeHome(num($('sal1').value), pct), p2 = takeHome(num($('sal2').value), pct);
+  const people = [p1, p2].filter(Boolean);
   const box = $('budget');
   if (!people.length){
     box.innerHTML = `<p class="empty">Add a salary to see your take-home pay and what is left each month.</p>`;
@@ -464,7 +494,7 @@ function calc(){
     <div class="rows">
       <div><span>Gross pay</span><span>${gbp(gross)}</span></div>
       <div class="minus"><span>Pension <em>(${pg(sum('pension'))} of gross)</em></span><span>− ${gbp(sum('pension'))}</span></div>
-      <div class="minus"><span>Income tax <em>(${pg(sum('tax'))} of gross)</em></span><span>− ${gbp(sum('tax'))}</span></div>
+      <div class="minus"><span>Income tax <em>(${pg(sum('tax'))} average, top rate ${Math.max(...people.map(p => p.topRate)) * 100}%)</em></span><span>− ${gbp(sum('tax'))}</span></div>
       <div class="minus"><span>National Insurance <em>(${pg(sum('ni'))} of gross)</em></span><span>− ${gbp(sum('ni'))}</span></div>
       <div><span>Take-home pay <em>(${pg(net)} of gross)</em></span><span>${gbp(net)}</span></div>
       <div class="minus"><span>Mortgage <em>(${pn(pmt)} of take-home)</em></span><span>− ${gbp(pmt)}</span></div>
@@ -484,7 +514,13 @@ function calc(){
     <p class="hint" style="margin-top:12px">
       Housing takes ${share.toFixed(0)}% of take-home pay. Loan is ${lti.toFixed(1)}× gross income
       ${lti > 4.5 ? '<span class="neg">(above the usual 4.5× lender limit)</span>' : '(most lenders allow up to 4.5×)'}.
-    </p>`;
+    </p>
+    <details class="fold brk-fold"${brkOpen ? ' open' : ''}>
+      <summary><h2>How tax is worked out</h2><span class="chev" aria-hidden="true"></span></summary>
+      <p class="hint" style="margin-bottom:6px">Yearly figures. Each band is taxed only on the income inside it, so the average rate is lower than the top rate.</p>
+      ${p1 ? breakdown(p1, 'You') : ''}${p2 ? breakdown(p2, 'Partner') : ''}
+    </details>`;
+  box.querySelector('.brk-fold').addEventListener('toggle', e => brkOpen = e.target.open);
 }
 
 $('rate').addEventListener('input', () => rateEdited = $('rate').value !== '');
