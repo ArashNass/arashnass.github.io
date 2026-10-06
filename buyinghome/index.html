@@ -90,7 +90,20 @@ tr.total td:last-child{padding-right:10px}
 .legend span::before{content:'';display:inline-block;width:9px;height:9px;border-radius:3px;margin-right:5px;background:var(--c)}
 .empty{color:var(--faint);font-size:14px}
 .foot{font-size:12px;color:var(--faint);line-height:1.6;margin-top:24px}
+.cmp th{font-size:12px;font-weight:500;color:var(--faint);text-align:right;padding:0 0 8px;border-bottom:1px solid var(--border)}
+.cmp th:first-child,.cmp td:first-child{text-align:left}
+.cmp td{text-align:right;width:auto;font-variant-numeric:tabular-nums}
+.cmp td:nth-child(3){font-weight:600}
+.cmp tbody tr{cursor:pointer}
+.cmp tbody tr:hover td{background:var(--surface-2)}
+.cmp tr.on td{color:var(--accent);font-weight:600}
+.cmp tr.on td:first-child::before{content:'';display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--accent);margin:0 6px 2px 0}
+.cmp td:last-child{color:var(--muted);padding-right:0}
 @media (max-width:480px){.hero .big{font-size:34px}td:last-child{width:110px}}
+.cmp th:not(:first-child),.cmp td:not(:first-child){padding-left:14px}
+.cmp td:first-child{white-space:nowrap}
+.cmp td:last-child{width:auto}
+@media (max-width:480px){.cmp td,.cmp th{font-size:14px}.cmp th:not(:first-child),.cmp td:not(:first-child){padding-left:10px}}
 </style>
 </head>
 <body>
@@ -156,6 +169,16 @@ tr.total td:last-child{padding-right:10px}
     </div>
   </section>
 
+  <!-- COMPARE -->
+  <section class="card">
+    <h2>Compare mortgage types</h2>
+    <table class="cmp">
+      <thead><tr><th>Type</th><th>Rate</th><th>Monthly</th><th>Diff</th></tr></thead>
+      <tbody id="cmpBody"></tbody>
+    </table>
+    <p class="hint" style="margin-top:10px">Same loan and term, rates estimated for your deposit. Tap a row to use it. Fixed and tracker deals usually move to the SVR when they end.</p>
+  </section>
+
   <!-- BILLS -->
   <section class="card">
     <h2>Monthly bills</h2>
@@ -206,6 +229,8 @@ const gbp = n => '£' + Math.round(n).toLocaleString('en-GB');
 
 /* Moneyfacts averages, 5 Oct 2026 */
 const BASE = { fix2:5.98, fix5:6.00, tracker:4.55, svr:7.13 };
+const NAMES = { fix2:'2-year fixed', fix5:'5-year fixed', tracker:'2-year tracker', svr:'Standard variable' };
+const payment = (loan, ratePct, years) => { const r = ratePct/100/12, n = years*12; return loan === 0 ? 0 : r === 0 ? loan/n : loan*r/(1 - Math.pow(1+r, -n)); };
 function ltvAdj(ltv){
   if (ltv <= 60) return -0.40;
   if (ltv <= 75) return -0.20;
@@ -262,7 +287,15 @@ function calc(){
   $('ltvHint').textContent = price ? `${(deposit/price*100).toFixed(1)}% deposit` + (ltv > 95 ? ' (most lenders need 5%+)' : '') : '';
 
   const r = rate / 100 / 12, n = term * 12;
-  const pmt = loan === 0 ? 0 : r === 0 ? loan / n : loan * r / (1 - Math.pow(1 + r, -n));
+  const pmt = payment(loan, rate, term);
+
+  const sel = $('product').value;
+  $('cmpBody').innerHTML = Object.keys(BASE).map(k => {
+    const kr = k === sel ? rate : +(BASE[k] + ltvAdj(ltv)).toFixed(2);
+    const kp = payment(loan, kr, term), d = Math.round(kp - pmt);
+    const diff = k === sel ? 'selected' : (d > 0 ? '+' : d < 0 ? '−' : '') + gbp(Math.abs(d));
+    return `<tr data-k="${k}" class="${k === sel ? 'on' : ''}"><td>${NAMES[k]}</td><td>${kr.toFixed(2)}%</td><td>${gbp(kp)}</td><td>${diff}</td></tr>`;
+  }).join('');
 
   $('monthly').innerHTML = `${gbp(pmt)} <small>/ month</small>`;
   $('sLoan').textContent = gbp(loan);
@@ -322,6 +355,10 @@ function calc(){
 
 $('rate').addEventListener('input', () => rateEdited = $('rate').value !== '');
 $('product').addEventListener('change', () => { rateEdited = false; calc(); });
+$('cmpBody').addEventListener('click', e => {
+  const tr = e.target.closest('tr'); if (!tr) return;
+  $('product').value = tr.dataset.k; rateEdited = false; calc();
+});
 $('term').addEventListener('input', () => termEdited = $('term').value !== '');
 $('age').addEventListener('input', () => termEdited = false);
 document.querySelectorAll('input,select').forEach(el => el.addEventListener('input', calc));
