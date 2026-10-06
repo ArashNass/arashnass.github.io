@@ -136,6 +136,14 @@ select{appearance:none;-webkit-appearance:none;cursor:pointer;background-image:l
 .checks{display:flex;flex-wrap:wrap;gap:0 22px}
 .check:has(input:disabled){opacity:.45;cursor:not-allowed}
 
+.fold summary{display:flex;align-items:center;gap:10px;cursor:pointer;list-style:none;user-select:none}
+.fold summary::-webkit-details-marker{display:none}
+.fold summary h2{margin:0;flex:1}
+.fold-total{font-weight:600;font-variant-numeric:tabular-nums}
+.chev{flex:none;display:block;box-sizing:content-box;width:7px;height:7px;border-right:2px solid var(--faint);border-bottom:2px solid var(--faint);transform:rotate(45deg);margin:0 4px 4px;transition:transform .2s}
+.fold[open] .chev{transform:rotate(-135deg);margin-bottom:-2px}
+.fold[open] summary{margin-bottom:14px}
+.fold[open] .fold-total{visibility:hidden}
 .hero{background:var(--hero-bg);color:var(--hero-ink);border:none}
 .hero .label{font-size:13px;opacity:.75}
 .hero .big{font-size:40px;font-weight:700;letter-spacing:-.03em;line-height:1.1;margin:4px 0 14px}
@@ -285,8 +293,8 @@ tr.total td:last-child{padding-right:10px}
   </section>
 
   <!-- BILLS -->
-  <section class="card">
-    <h2>Monthly bills</h2>
+  <details class="card fold" id="billsCard">
+    <summary><h2>Monthly bills</h2><span class="fold-total" id="billsHead">£0</span><span class="chev" aria-hidden="true"></span></summary>
     <table id="bills">
       <tr><td>Electricity</td><td><div class="field has-pre"><span class="pre">£</span><input class="bill" inputmode="numeric" value="70"></div></td></tr>
       <tr><td>Heating (gas)</td><td><div class="field has-pre"><span class="pre">£</span><input class="bill" inputmode="numeric" value="75"></div></td></tr>
@@ -298,7 +306,7 @@ tr.total td:last-child{padding-right:10px}
       <tr><td>Other<span class="note">Insurance, TV licence, maintenance</span></td><td><div class="field has-pre"><span class="pre">£</span><input class="bill" inputmode="numeric" value="50"></div></td></tr>
       <tr class="total"><td>Bills total</td><td id="billsTotal">£0</td></tr>
     </table>
-  </section>
+  </details>
 
   <!-- SALARY -->
   <section class="card">
@@ -434,6 +442,7 @@ function calc(){
   let bills = 0;
   document.querySelectorAll('.bill').forEach(i => bills += num(i.value));
   $('billsTotal').textContent = gbp(bills);
+  $('billsHead').textContent = gbp(bills) + ' / month';
 
   const pct = num($('pension').value);
   const people = [takeHome(num($('sal1').value), pct), takeHome(num($('sal2').value), pct)].filter(Boolean);
