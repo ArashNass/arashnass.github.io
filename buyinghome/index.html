@@ -9,13 +9,15 @@
 <meta name="description" content="Simple London home buying calculator: monthly mortgage at current UK rates, monthly bills and what is left from your take-home pay.">
 <link rel="canonical" href="https://arashnassirpour.com/buyinghome/">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<meta name="theme-color" content="#f5f6f8">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
 <script>
 (function(){
   try{
+    var pick = localStorage.getItem('buyinghomeTheme');
     var saved = localStorage.getItem('theme');
-    var dark = saved ? saved === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
-    document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+    var t = pick || (saved ? saved : (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'));
+    document.documentElement.setAttribute('data-theme', t);
   }catch(e){}
 })();
 </script>
@@ -26,20 +28,94 @@
   --text:#111827; --muted:#5f6673; --faint:#8a919e;
   --accent:#0f2350; --accent-soft:#e8edf7;
   --good:#15803d; --bad:#b91c1c;
+  --hero-bg:#0f2350; --hero-ink:#fff; --hero-stat:rgba(255,255,255,.1);
+  --c1:#3b6fd8; --c2:#e0a030; --c3:#2fa36b;
+  --page-bg:var(--bg);
 }
+/* themes, matching the Greenwich commute page */
 :root[data-theme="dark"]{
   --bg:#0d1117; --surface:#161b22; --surface-2:#1c222b; --border:#2a313c;
   --text:#e6e8eb; --muted:#9aa3af; --faint:#6e7681;
   --accent:#8fb0ff; --accent-soft:#1b2540;
   --good:#4ade80; --bad:#f87171;
+  --hero-bg:#1b2540; --hero-ink:#e6e8eb; --hero-stat:rgba(255,255,255,.05);
 }
+:root[data-theme="matrix"]{
+  --bg:#000; --surface:#040f07; --surface-2:#061a0c; --border:#0f4d22;
+  --text:#00ff41; --muted:#00b32c; --faint:#0a7a24;
+  --accent:#00ff41; --accent-soft:#062a10;
+  --good:#00ff41; --bad:#ff3b5c;
+  --hero-bg:#062a10; --hero-ink:#00ff41; --hero-stat:rgba(0,255,65,.06);
+  --c1:#00ff41; --c2:#ccff00; --c3:#00ffc3;
+}
+:root[data-theme="barbie"]{
+  --bg:#ffe3f1; --surface:#fff; --surface-2:#fff0f8; --border:#ff9ecf;
+  --text:#7a0050; --muted:#c4508f; --faint:#d878ac;
+  --accent:#e6007e; --accent-soft:#ffe1ec;
+  --good:#00b389; --bad:#d4004f;
+  --hero-bg:#e6007e; --hero-ink:#fff; --hero-stat:rgba(255,255,255,.16);
+  --c1:#e6007e; --c2:#ff8a00; --c3:#00b389;
+  --page-bg:radial-gradient(ellipse at top,#fff0f8,#ffd3ec 70%);
+}
+:root[data-theme="y2k"]{
+  --bg:#e4ecf5; --surface:#f7fafd; --surface-2:#eef3f9; --border:#b9c8dc;
+  --text:#101828; --muted:#5b6b83; --faint:#7d8ca3;
+  --accent:#3a5bd9; --accent-soft:#e0f7fb;
+  --good:#00a07a; --bad:#d6189f;
+  --hero-bg:linear-gradient(135deg,#0ac8e0,#7b3ff2 60%,#ff2fd1); --hero-ink:#fff; --hero-stat:rgba(255,255,255,.18);
+  --c1:#0ac8e0; --c2:#ff2fd1; --c3:#00c896;
+  --page-bg:linear-gradient(160deg,#dce8f7 0%,#f3e9fb 45%,#e0f7f5 100%);
+}
+:root[data-theme="cyberpunk"]{
+  --bg:#0a0a10; --surface:#12121c; --surface-2:#191926; --border:#2a1f3d;
+  --text:#eafcff; --muted:#8b8ba3; --faint:#6a6a88;
+  --accent:#00fff2; --accent-soft:#1a1030;
+  --good:#39ff6a; --bad:#ff2bd6;
+  --hero-bg:#1a1030; --hero-ink:#eafcff; --hero-stat:rgba(0,255,242,.07);
+  --c1:#00fff2; --c2:#f6ff00; --c3:#ff2bd6;
+  --page-bg:radial-gradient(circle at 15% 0%,rgba(255,43,214,.12),transparent 45%),radial-gradient(circle at 85% 20%,rgba(0,255,242,.12),transparent 45%),#0a0a10;
+}
+:root[data-theme="goldenhour"]{
+  --bg:#2b1b3d; --surface:#3a2a4d; --surface-2:#44325a; --border:#5a3f6e;
+  --text:#fdf1e0; --muted:#c9a9d6; --faint:#a184b2;
+  --accent:#ff8c6b; --accent-soft:#4a2436;
+  --good:#ffd166; --bad:#ff5a5f;
+  --hero-bg:linear-gradient(135deg,#ff6f59,#e0576b); --hero-ink:#fff; --hero-stat:rgba(255,255,255,.14);
+  --c1:#ff6f59; --c2:#ffb347; --c3:#ffd166;
+  --page-bg:linear-gradient(180deg,#3d2255 0%,#6a2f4d 45%,#a84c3f 100%);
+}
+:root[data-theme="halloween"]{
+  --bg:#0d0d0d; --surface:#181410; --surface-2:#211a14; --border:#3d2b1a;
+  --text:#f2e9dc; --muted:#a08560; --faint:#806a4a;
+  --accent:#ff7518; --accent-soft:#2a1410;
+  --good:#7ed957; --bad:#ff3b3b;
+  --hero-bg:#ff7518; --hero-ink:#0d0d0d; --hero-stat:rgba(0,0,0,.12);
+  --c1:#ff7518; --c2:#8a4fd1; --c3:#7ed957;
+  --page-bg:radial-gradient(ellipse at top,#1a1210 0%,#0d0d0d 70%);
+}
+:root[data-theme="mint"]{
+  --bg:#eafaf3; --surface:#fff; --surface-2:#f2fbf7; --border:#bfe8d6;
+  --text:#1f3d36; --muted:#5f8a7c; --faint:#7fa597;
+  --accent:#2f9a7b; --accent-soft:#e3f6ee;
+  --good:#2f9a7b; --bad:#e0645a;
+  --hero-bg:#3fb08f; --hero-ink:#fff; --hero-stat:rgba(255,255,255,.16);
+  --c1:#7c9ddb; --c2:#f4b860; --c3:#3fb08f;
+  --page-bg:linear-gradient(160deg,#eafaf3 0%,#eef2fb 100%);
+}
+:root[data-theme="matrix"] body{font-family:'IBM Plex Mono',monospace}
+:root[data-theme="matrix"] .card{text-shadow:0 0 6px rgba(0,255,65,.35)}
+:root[data-theme="cyberpunk"] .card{box-shadow:0 0 14px rgba(0,255,242,.08)}
+:root[data-theme="cyberpunk"] .hero .big,:root[data-theme="halloween"] h1{text-shadow:0 0 10px currentColor}
+#matrixRain{position:fixed;inset:0;z-index:-1;opacity:.35;pointer-events:none;display:none}
+:root[data-theme="matrix"] #matrixRain{display:block}
 html{font-size:16px}
-body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.5;-webkit-font-smoothing:antialiased}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--page-bg);background-attachment:fixed;min-height:100vh;color:var(--text);line-height:1.5;-webkit-font-smoothing:antialiased}
 .wrap{max-width:720px;margin:0 auto;padding:28px 16px 64px}
 header{display:flex;justify-content:space-between;align-items:center;margin-bottom:28px}
 header a{color:var(--muted);text-decoration:none;font-size:14px}
 header a:hover{color:var(--text)}
-.theme{background:none;border:1px solid var(--border);color:var(--muted);border-radius:8px;padding:6px 10px;font:inherit;font-size:13px;cursor:pointer}
+#themeSelect{width:auto;height:34px;font-size:13px;font-weight:500;color:var(--muted);background-color:var(--surface);border-radius:999px;padding:0 30px 0 14px;background-position:calc(100% - 16px) 14px,calc(100% - 11px) 14px}
+#themeSelect:hover{color:var(--text)}
 h1{font-size:28px;font-weight:700;letter-spacing:-.02em}
 .sub{color:var(--muted);margin:6px 0 24px;font-size:15px}
 .card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;margin-bottom:16px}
@@ -60,14 +136,12 @@ select{appearance:none;-webkit-appearance:none;cursor:pointer;background-image:l
 .checks{display:flex;flex-wrap:wrap;gap:0 22px}
 .check:has(input:disabled){opacity:.45;cursor:not-allowed}
 
-.hero{background:var(--accent);color:#fff;border:none}
-:root[data-theme="dark"] .hero{background:var(--accent-soft);color:var(--text)}
+.hero{background:var(--hero-bg);color:var(--hero-ink);border:none}
 .hero .label{font-size:13px;opacity:.75}
 .hero .big{font-size:40px;font-weight:700;letter-spacing:-.03em;line-height:1.1;margin:4px 0 14px}
 .hero .big small{font-size:16px;font-weight:500;opacity:.7}
 .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px}
-.stat{background:rgba(255,255,255,.1);border-radius:10px;padding:10px 12px}
-:root[data-theme="dark"] .stat{background:rgba(255,255,255,.05)}
+.stat{background:var(--hero-stat);border-radius:10px;padding:10px 12px}
 .stat .v{font-size:17px;font-weight:600}
 .stat .l{font-size:11px;opacity:.7;margin-top:2px}
 
@@ -113,10 +187,21 @@ tr.total td:last-child{padding-right:10px}
 </style>
 </head>
 <body>
+<canvas id="matrixRain"></canvas>
 <div class="wrap">
   <header>
     <a href="/">&larr; arashnassirpour.com</a>
-    <button class="theme" id="themeBtn" type="button">Theme</button>
+    <select id="themeSelect" aria-label="Theme">
+      <option value="light">Light</option>
+      <option value="dark">Dark</option>
+      <option value="matrix">Matrix</option>
+      <option value="barbie">Barbie</option>
+      <option value="y2k">Y2K</option>
+      <option value="cyberpunk">Cyberpunk</option>
+      <option value="goldenhour">Golden Hour</option>
+      <option value="halloween">Halloween</option>
+      <option value="mint">Mint</option>
+    </select>
   </header>
 
   <h1>Buying a home in London</h1>
@@ -378,14 +463,14 @@ function calc(){
       <div class="final"><span>Left each month <em>(${pn(left)} of take-home)</em></span><span class="${left >= 0 ? 'pos' : 'neg'}">${gbp(left)}</span></div>
     </div>
     <div class="bar">
-      <i style="width:${w(pmt)};background:#3b6fd8"></i>
-      <i style="width:${w(bills)};background:#e0a030"></i>
-      <i style="width:${w(Math.max(0,left))};background:#2fa36b"></i>
+      <i style="width:${w(pmt)};background:var(--c1)"></i>
+      <i style="width:${w(bills)};background:var(--c2)"></i>
+      <i style="width:${w(Math.max(0,left))};background:var(--c3)"></i>
     </div>
     <div class="legend">
-      <span style="--c:#3b6fd8">Mortgage</span>
-      <span style="--c:#e0a030">Bills</span>
-      <span style="--c:#2fa36b">Left</span>
+      <span style="--c:var(--c1)">Mortgage</span>
+      <span style="--c:var(--c2)">Bills</span>
+      <span style="--c:var(--c3)">Left</span>
     </div>
     <p class="hint" style="margin-top:12px">
       Housing takes ${share.toFixed(0)}% of take-home pay. Loan is ${lti.toFixed(1)}× gross income
@@ -410,11 +495,61 @@ document.querySelectorAll('.money').forEach(el => el.addEventListener('blur', ()
   const n = num(el.value); el.value = n ? n.toLocaleString('en-GB') : '';
 }));
 
-$('themeBtn').addEventListener('click', () => {
-  const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-  document.documentElement.setAttribute('data-theme', next);
-  try { localStorage.setItem('theme', next); } catch(e){}
-});
+/* ---------- themes ---------- */
+const THEME_COLORS = {
+  light:'#f5f6f8', dark:'#0d1117', matrix:'#000000', barbie:'#ffe3f1',
+  y2k:'#e4ecf5', cyberpunk:'#0a0a10', goldenhour:'#2b1b3d',
+  halloween:'#0d0d0d', mint:'#eafaf3'
+};
+let matrixHandle = null, matrixSize = null;
+
+function setTheme(name, save){
+  if (!THEME_COLORS[name]) name = 'light';
+  document.documentElement.setAttribute('data-theme', name);
+  $('themeSelect').value = name;
+  document.querySelector('meta[name="theme-color"]').setAttribute('content', THEME_COLORS[name]);
+  if (save) try {
+    localStorage.setItem('buyinghomeTheme', name);
+    if (name === 'light' || name === 'dark') localStorage.setItem('theme', name);
+  } catch(e){}
+  name === 'matrix' ? startMatrixRain() : stopMatrixRain();
+}
+
+function startMatrixRain(){
+  if (matrixHandle) return;
+  const canvas = $('matrixRain'), ctx = canvas.getContext('2d'), fs = 15;
+  const chars = 'アカサタナハマヤラワ0123456789£';
+  let drops = [];
+  matrixSize = () => {
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    canvas.width = Math.floor(innerWidth * dpr); canvas.height = Math.floor(innerHeight * dpr);
+    canvas.style.width = innerWidth + 'px'; canvas.style.height = innerHeight + 'px';
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    drops = new Array(Math.floor(innerWidth / fs)).fill(0);
+  };
+  matrixSize();
+  window.addEventListener('resize', matrixSize);
+  (function draw(){
+    ctx.fillStyle = 'rgba(0,0,0,0.06)'; ctx.fillRect(0, 0, innerWidth, innerHeight);
+    ctx.fillStyle = '#00ff41'; ctx.font = fs + 'px monospace';
+    drops.forEach((d, i) => {
+      ctx.fillText(chars[Math.floor(Math.random() * chars.length)], i * fs, d * fs);
+      drops[i] = d * fs > innerHeight && Math.random() > 0.975 ? 0 : d + 1;
+    });
+    matrixHandle = requestAnimationFrame(draw);
+  })();
+}
+
+function stopMatrixRain(){
+  if (!matrixHandle) return;
+  cancelAnimationFrame(matrixHandle); matrixHandle = null;
+  window.removeEventListener('resize', matrixSize);
+  const canvas = $('matrixRain'), ctx = canvas.getContext('2d');
+  ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(0, 0, canvas.width, canvas.height);
+}
+
+$('themeSelect').addEventListener('change', e => setTheme(e.target.value, true));
+setTheme(document.documentElement.getAttribute('data-theme'), false);
 
 calc();
 </script>
