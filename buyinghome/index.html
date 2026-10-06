@@ -57,6 +57,8 @@ select{appearance:none;-webkit-appearance:none;cursor:pointer;background-image:l
 .hint{font-size:12px;color:var(--faint);margin-top:6px}
 .check{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--muted);margin-top:14px;cursor:pointer}
 .check input{width:16px;height:16px;accent-color:var(--accent)}
+.checks{display:flex;flex-wrap:wrap;gap:0 22px}
+.check:has(input:disabled){opacity:.45;cursor:not-allowed}
 
 .hero{background:var(--accent);color:#fff;border:none}
 :root[data-theme="dark"] .hero{background:var(--accent-soft);color:var(--text)}
@@ -157,7 +159,11 @@ tr.total td:last-child{padding-right:10px}
         <div class="field has-suf"><input id="term" inputmode="numeric"><span class="suf">years</span></div>
       </div>
     </div>
-    <label class="check"><input type="checkbox" id="ftb" checked> First-time buyer</label>
+    <div class="checks">
+      <label class="check"><input type="checkbox" id="ftb" checked> First-time buyer</label>
+      <label class="check"><input type="checkbox" id="addl"> Second home or buy-to-let</label>
+      <label class="check"><input type="checkbox" id="nonres"> Non-UK resident</label>
+    </div>
     <div class="hint" id="ftbHint"></div>
   </section>
 
@@ -232,7 +238,7 @@ tr.total td:last-child{padding-right:10px}
   <p class="foot">
     Rates are UK market averages from Moneyfacts, 5 October 2026 (2-year fixed 5.98%, 5-year fixed 6.00%, 2-year tracker 4.55%, SVR 7.13%; Bank Rate 3.75%), adjusted for loan to value. Your actual rate depends on lender and credit profile.
     Term is capped so the mortgage ends by age 70, max 35 years. Take-home uses 2026/27 England income tax and employee National Insurance, with pension deducted before tax (net pay); student loans are not included.
-    Stamp duty uses current England rates. A guide only, not financial advice.
+    Stamp duty uses current England and Northern Ireland rates, including the 5% second home and 2% non-UK resident surcharges; Scotland and Wales have their own taxes. A guide only, not financial advice.
   </p>
 </div>
 
@@ -321,13 +327,23 @@ function calc(){
   $('monthly').innerHTML = `${gbp(pmt)} <small>/ month</small>`;
   $('sLoan').textContent = gbp(loan);
   $('sLtv').textContent = ltv.toFixed(0) + '%';
-  const ftb = $('ftb').checked, sdlt = stampDuty(price, ftb), sdltStd = stampDuty(price, false);
-  $('sSdlt').textContent = gbp(sdlt);
-  $('ftbHint').textContent = !ftb
-    ? 'Standard stamp duty: 0% to £125k, 2% to £250k, 5% to £925k, 10% to £1.5m, 12% above.'
-    : price <= 500000
-      ? `First-time buyer relief: 0% to £300k, 5% from £300k to £500k. You save ${gbp(sdltStd - sdlt)}.`
-      : 'No first-time buyer relief: it only applies to homes up to £500k, so standard stamp duty is charged.';
+  /* a second home rules out first-time buyer relief */
+  const addl = $('addl').checked, nonres = $('nonres').checked;
+  $('ftb').disabled = addl;
+  if (addl) $('ftb').checked = false;
+  const ftb = $('ftb').checked;
+  const base = stampDuty(price, ftb), sdltStd = stampDuty(price, false);
+  const surAddl = addl && price >= 40000 ? price * 0.05 : 0;
+  const surNonres = nonres ? price * 0.02 : 0;
+  $('sSdlt').textContent = gbp(base + surAddl + surNonres);
+  const notes = [ addl ? 'No first-time buyer relief on a second home. Standard rates apply.'
+    : !ftb ? 'Standard stamp duty: 0% to £125k, 2% to £250k, 5% to £925k, 10% to £1.5m, 12% above.'
+    : price <= 500000 ? `First-time buyer relief: 0% to £300k, 5% from £300k to £500k. You save ${gbp(sdltStd - base)}.`
+    : 'No first-time buyer relief: it only applies to homes up to £500k, so standard stamp duty is charged.' ];
+  if (surAddl) notes.push(`Second home surcharge: +5% on the full price (${gbp(surAddl)}).`);
+  if (surNonres) notes.push(`Non-UK resident surcharge: +2% on the full price (${gbp(surNonres)}).`);
+  if (surAddl || surNonres) notes.push(`Total stamp duty ${gbp(base + surAddl + surNonres)}.`);
+  $('ftbHint').textContent = notes.join(' ');
   $('sInterest').textContent = gbp(pmt * n - loan);
 
   let bills = 0;
