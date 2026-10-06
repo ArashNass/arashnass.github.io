@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<title>Buying a Home in London | Arash Nassirpour</title>
+<meta name="description" content="Simple London home buying calculator: monthly mortgage at current UK rates, monthly bills and what is left from your take-home pay.">
+<link rel="canonical" href="https://arashnassirpour.com/buyinghome/">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script>
+(function(){
+  try{
+    var saved = localStorage.getItem('theme');
+    var dark = saved ? saved === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+    document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+  }catch(e){}
+})();
+</script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f5f6f8; --surface:#fff; --surface-2:#f1f3f6; --border:#e3e6eb;
+  --text:#111827; --muted:#5f6673; --faint:#8a919e;
+  --accent:#0f2350; --accent-soft:#e8edf7;
+  --good:#15803d; --bad:#b91c1c;
+}
+:root[data-theme="dark"]{
+  --bg:#0d1117; --surface:#161b22; --surface-2:#1c222b; --border:#2a313c;
+  --text:#e6e8eb; --muted:#9aa3af; --faint:#6e7681;
+  --accent:#8fb0ff; --accent-soft:#1b2540;
+  --good:#4ade80; --bad:#f87171;
+}
+html{font-size:16px}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.5;-webkit-font-smoothing:antialiased}
+.wrap{max-width:720px;margin:0 auto;padding:28px 16px 64px}
+header{display:flex;justify-content:space-between;align-items:center;margin-bottom:28px}
+header a{color:var(--muted);text-decoration:none;font-size:14px}
+header a:hover{color:var(--text)}
+.theme{background:none;border:1px solid var(--border);color:var(--muted);border-radius:8px;padding:6px 10px;font:inherit;font-size:13px;cursor:pointer}
+h1{font-size:28px;font-weight:700;letter-spacing:-.02em}
+.sub{color:var(--muted);margin:6px 0 24px;font-size:15px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;margin-bottom:16px}
+.card h2{font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--faint);margin-bottom:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px}
+label{display:block;font-size:13px;font-weight:500;color:var(--muted);margin-bottom:6px}
+.field{position:relative}
+.field .pre,.field .suf{position:absolute;top:50%;transform:translateY(-50%);color:var(--faint);font-size:15px;pointer-events:none}
+.field .pre{left:12px}.field .suf{right:12px}
+input,select{width:100%;height:44px;border:1px solid var(--border);border-radius:10px;background:var(--surface-2);color:var(--text);font:inherit;font-size:16px;font-weight:500;padding:0 12px;outline:none;transition:border-color .15s}
+input:focus,select:focus{border-color:var(--accent)}
+.field.has-pre input{padding-left:26px}
+.field.has-suf input{padding-right:52px}
+select{appearance:none;-webkit-appearance:none;cursor:pointer;background-image:linear-gradient(45deg,transparent 50%,var(--faint) 50%),linear-gradient(135deg,var(--faint) 50%,transparent 50%);background-position:calc(100% - 18px) 19px,calc(100% - 13px) 19px;background-size:5px 5px;background-repeat:no-repeat}
+.hint{font-size:12px;color:var(--faint);margin-top:6px}
+.check{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--muted);margin-top:14px;cursor:pointer}
+.check input{width:16px;height:16px;accent-color:var(--accent)}
+
+.hero{background:var(--accent);color:#fff;border:none}
+:root[data-theme="dark"] .hero{background:var(--accent-soft);color:var(--text)}
+.hero .label{font-size:13px;opacity:.75}
+.hero .big{font-size:40px;font-weight:700;letter-spacing:-.03em;line-height:1.1;margin:4px 0 14px}
+.hero .big small{font-size:16px;font-weight:500;opacity:.7}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px}
+.stat{background:rgba(255,255,255,.1);border-radius:10px;padding:10px 12px}
+:root[data-theme="dark"] .stat{background:rgba(255,255,255,.05)}
+.stat .v{font-size:17px;font-weight:600}
+.stat .l{font-size:11px;opacity:.7;margin-top:2px}
+
+table{width:100%;border-collapse:collapse}
+td{padding:7px 0;border-bottom:1px solid var(--border);font-size:15px;vertical-align:middle}
+td:last-child{text-align:right;width:130px}
+td input{height:36px;font-size:15px;text-align:right;padding:0 10px 0 22px}
+td .field .pre{left:10px;font-size:14px}
+td .note{display:block;font-size:12px;color:var(--faint)}
+tr.total td{border-bottom:none;font-weight:700;padding-top:12px}
+tr.total td:last-child{padding-right:10px}
+
+.rows div{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:15px}
+.rows div span:last-child{font-weight:600;font-variant-numeric:tabular-nums}
+.rows div.minus span:last-child{color:var(--muted)}
+.rows em{font-style:normal;font-size:13px;font-weight:400;color:var(--faint);margin-left:4px;white-space:nowrap}
+.rows div.final{border-bottom:none;font-size:18px;padding-top:14px}
+.rows div.final span:last-child{font-weight:700}
+.pos{color:var(--good)!important}.neg{color:var(--bad)!important}
+.bar{height:10px;border-radius:6px;background:var(--surface-2);overflow:hidden;display:flex;margin:16px 0 8px}
+.bar i{display:block;height:100%}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--muted)}
+.legend span::before{content:'';display:inline-block;width:9px;height:9px;border-radius:3px;margin-right:5px;background:var(--c)}
+.empty{color:var(--faint);font-size:14px}
+.foot{font-size:12px;color:var(--faint);line-height:1.6;margin-top:24px}
+.cmp th{font-size:12px;font-weight:500;color:var(--faint);text-align:right;padding:0 0 8px;border-bottom:1px solid var(--border)}
+.cmp th:first-child,.cmp td:first-child{text-align:left}
+.cmp td{text-align:right;width:auto;font-variant-numeric:tabular-nums}
+.cmp td:nth-child(3){font-weight:600}
+.cmp tbody tr{cursor:pointer}
+.cmp tbody tr:hover td{background:var(--surface-2)}
+.cmp tr.on td{color:var(--accent);font-weight:600}
+.cmp tr.on td:first-child::before{content:'';display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--accent);margin:0 6px 2px 0}
+.cmp td:last-child{color:var(--muted);padding-right:0}
+@media (max-width:480px){.hero .big{font-size:34px}td:last-child{width:110px}}
+.cmp th:not(:first-child),.cmp td:not(:first-child){padding-left:14px}
+.cmp td:first-child{white-space:nowrap}
+.cmp td:last-child{width:auto}
+.steps td:nth-child(2){font-weight:600}
+.steps td:nth-child(3){font-weight:400;color:var(--muted)}
+.steps tr.on td{color:var(--accent)}
+@media (max-width:480px){.cmp td,.cmp th{font-size:14px}.cmp th:not(:first-child),.cmp td:not(:first-child){padding-left:10px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <a href="/">&larr; arashnassirpour.com</a>
+    <button class="theme" id="themeBtn" type="button">Theme</button>
+  </header>
+
+  <h1>Buying a home in London</h1>
+  <p class="sub">What it really costs each month, and what is left at the end.</p>
+
+  <!-- PROPERTY -->
+  <section class="card">
+    <h2>Property &amp; mortgage</h2>
+    <div class="grid">
+      <div>
+        <label for="price">Property price</label>
+        <div class="field has-pre"><span class="pre">£</span><input id="price" class="money" inputmode="numeric" value="700,000"></div>
+      </div>
+      <div>
+        <label for="deposit">Your deposit</label>
+        <div class="field has-pre"><span class="pre">£</span><input id="deposit" class="money" inputmode="numeric" value="120,000"></div>
+        <div class="hint" id="ltvHint"></div>
+      </div>
+      <div>
+        <label for="age">Your age</label>
+        <div class="field has-suf"><input id="age" inputmode="numeric" value="35"><span class="suf">years</span></div>
+        <div class="hint" id="termHint"></div>
+      </div>
+      <div>
+        <label for="product">Mortgage type</label>
+        <select id="product">
+          <option value="fix2" selected>2-year fixed</option>
+          <option value="fix5">5-year fixed</option>
+          <option value="tracker">2-year tracker</option>
+          <option value="svr">Standard variable (SVR)</option>
+        </select>
+      </div>
+      <div>
+        <label for="rate">Interest rate</label>
+        <div class="field has-suf"><input id="rate" inputmode="decimal"><span class="suf">%</span></div>
+        <div class="hint" id="rateHint">Estimated for your deposit. Edit if you have a quote.</div>
+      </div>
+      <div>
+        <label for="term">Term</label>
+        <div class="field has-suf"><input id="term" inputmode="numeric"><span class="suf">years</span></div>
+      </div>
+    </div>
+    <label class="check"><input type="checkbox" id="ftb" checked> First-time buyer</label>
+    <div class="hint" id="ftbHint"></div>
+  </section>
+
+  <!-- RESULT -->
+  <section class="card hero">
+    <div class="label">Monthly mortgage payment</div>
+    <div class="big" id="monthly">£0 <small>/ month</small></div>
+    <div class="stats">
+      <div class="stat"><div class="v" id="sLoan">£0</div><div class="l">Loan</div></div>
+      <div class="stat"><div class="v" id="sLtv">0%</div><div class="l">Loan to value</div></div>
+      <div class="stat"><div class="v" id="sSdlt">£0</div><div class="l">Stamp duty (one-off)</div></div>
+      <div class="stat"><div class="v" id="sInterest">£0</div><div class="l">Total interest</div></div>
+    </div>
+  </section>
+
+  <!-- COMPARE -->
+  <section class="card">
+    <h2>Compare mortgage types</h2>
+    <table class="cmp">
+      <thead><tr><th>Type</th><th>Rate</th><th>Monthly</th><th>Diff</th></tr></thead>
+      <tbody id="cmpBody"></tbody>
+    </table>
+    <p class="hint" style="margin-top:10px">Same loan and term, rates estimated for your deposit. Tap a row to use it. Fixed and tracker deals usually move to the SVR when they end.</p>
+  </section>
+
+  <!-- RATE STEPS -->
+  <section class="card">
+    <h2>Payment at different rates</h2>
+    <table class="cmp steps">
+      <thead><tr><th>Rate</th><th>Monthly</th><th>Total interest</th></tr></thead>
+      <tbody id="stepBody"></tbody>
+    </table>
+    <p class="hint" style="margin-top:10px">Same loan and term. The highlighted row is closest to your rate. Tap a row to use that rate.</p>
+  </section>
+
+  <!-- BILLS -->
+  <section class="card">
+    <h2>Monthly bills</h2>
+    <table id="bills">
+      <tr><td>Electricity</td><td><div class="field has-pre"><span class="pre">£</span><input class="bill" inputmode="numeric" value="70"></div></td></tr>
+      <tr><td>Heating (gas)</td><td><div class="field has-pre"><span class="pre">£</span><input class="bill" inputmode="numeric" value="75"></div></td></tr>
+      <tr><td>Water</td><td><div class="field has-pre"><span class="pre">£</span><input class="bill" inputmode="numeric" value="50"></div></td></tr>
+      <tr><td>Internet</td><td><div class="field has-pre"><span class="pre">£</span><input class="bill" inputmode="numeric" value="30"></div></td></tr>
+      <tr><td>Council tax<span class="note">London average, check your borough</span></td><td><div class="field has-pre"><span class="pre">£</span><input class="bill" inputmode="numeric" value="200"></div></td></tr>
+      <tr><td>Service charge<span class="note">Flats only, set 0 for freehold</span></td><td><div class="field has-pre"><span class="pre">£</span><input class="bill" inputmode="numeric" value="400"></div></td></tr>
+      <tr><td>Ground rent<span class="note">About £300 a year, leasehold only</span></td><td><div class="field has-pre"><span class="pre">£</span><input class="bill" inputmode="numeric" value="25"></div></td></tr>
+      <tr><td>Other<span class="note">Insurance, TV licence, maintenance</span></td><td><div class="field has-pre"><span class="pre">£</span><input class="bill" inputmode="numeric" value="50"></div></td></tr>
+      <tr class="total"><td>Bills total</td><td id="billsTotal">£0</td></tr>
+    </table>
+  </section>
+
+  <!-- SALARY -->
+  <section class="card">
+    <h2>Salary (optional)</h2>
+    <div class="grid">
+      <div>
+        <label for="sal1">Your salary, before tax</label>
+        <div class="field has-pre"><span class="pre">£</span><input id="sal1" class="money" inputmode="numeric" value="80,000" placeholder="e.g. 65,000"></div>
+      </div>
+      <div>
+        <label for="sal2">Partner's salary, before tax</label>
+        <div class="field has-pre"><span class="pre">£</span><input id="sal2" class="money" inputmode="numeric" value="80,000" placeholder="optional"></div>
+      </div>
+      <div>
+        <label for="pension">Pension contribution</label>
+        <div class="field has-suf"><input id="pension" inputmode="decimal" value="5"><span class="suf">%</span></div>
+      </div>
+    </div>
+    <div id="budget" style="margin-top:18px"></div>
+  </section>
+
+  <p class="foot">
+    Rates are UK market averages from Moneyfacts, 5 October 2026 (2-year fixed 5.98%, 5-year fixed 6.00%, 2-year tracker 4.55%, SVR 7.13%; Bank Rate 3.75%), adjusted for loan to value. Your actual rate depends on lender and credit profile.
+    Term is capped so the mortgage ends by age 70, max 35 years. Take-home uses 2026/27 England income tax and employee National Insurance, with pension deducted before tax (net pay); student loans are not included.
+    Stamp duty uses current England rates. A guide only, not financial advice.
+  </p>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const num = v => { const n = parseFloat(String(v).replace(/[^0-9.]/g,'')); return isNaN(n) ? 0 : n; };
+const gbp = n => '£' + Math.round(n).toLocaleString('en-GB');
+
+/* Moneyfacts averages, 5 Oct 2026 */
+const BASE = { fix2:5.98, fix5:6.00, tracker:4.55, svr:7.13 };
+const NAMES = { fix2:'2-year fixed', fix5:'5-year fixed', tracker:'2-year tracker', svr:'Standard variable' };
+const payment = (loan, ratePct, years) => { const r = ratePct/100/12, n = years*12; return loan === 0 ? 0 : r === 0 ? loan/n : loan*r/(1 - Math.pow(1+r, -n)); };
+function ltvAdj(ltv){
+  if (ltv <= 60) return -0.40;
+  if (ltv <= 75) return -0.20;
+  if (ltv <= 85) return 0;
+  if (ltv <= 90) return 0.20;
+  return 0.45;
+}
+
+function stampDuty(price, ftb){
+  const band = (bands) => { let t=0, prev=0; for (const [lim, r] of bands){ if (price > prev) t += (Math.min(price, lim) - prev) * r; prev = lim; } return t; };
+  if (ftb && price <= 500000) return band([[300000,0],[500000,.05]]);
+  return band([[125000,0],[250000,.02],[925000,.05],[1500000,.10],[Infinity,.12]]);
+}
+
+function takeHome(gross, pensionPct){
+  if (gross <= 0) return null;
+  const pension = gross * pensionPct / 100;
+  const taxable = gross - pension;
+  let pa = 12570;
+  if (taxable > 100000) pa = Math.max(0, pa - (taxable - 100000) / 2);
+  const basicTop = 50270, addStart = 125140;
+  let tax = 0;
+  const afterPA = Math.max(0, taxable - pa);
+  const basicBand = basicTop - 12570;
+  tax += Math.min(afterPA, basicBand) * 0.20;
+  if (taxable > addStart){
+    tax += Math.max(0, (addStart - pa) - basicBand) * 0.40;
+    tax += (taxable - addStart) * 0.45;
+  } else {
+    tax += Math.max(0, afterPA - basicBand) * 0.40;
+  }
+  const ni = Math.max(0, Math.min(gross, 50270) - 12570) * 0.08 + Math.max(0, gross - 50270) * 0.02;
+  return { gross, pension, tax, ni, net: gross - pension - tax - ni };
+}
+
+let rateEdited = false, termEdited = false;
+
+function calc(){
+  const price = num($('price').value);
+  const deposit = Math.min(num($('deposit').value), price);
+  const loan = Math.max(0, price - deposit);
+  const ltv = price ? loan / price * 100 : 0;
+  const age = num($('age').value);
+
+  const maxTerm = Math.max(5, Math.min(35, 70 - (age || 30)));
+  if (!termEdited) $('term').value = maxTerm;
+  const term = Math.max(1, num($('term').value) || maxTerm);
+  $('termHint').textContent = age ? `Max term at your age: ${maxTerm} years` : '';
+
+  const est = +(BASE[$('product').value] + ltvAdj(ltv)).toFixed(2);
+  if (!rateEdited) $('rate').value = est.toFixed(2);
+  const rate = num($('rate').value);
+
+  $('ltvHint').textContent = price ? `${(deposit/price*100).toFixed(1)}% deposit` + (ltv > 95 ? ' (most lenders need 5%+)' : '') : '';
+
+  const r = rate / 100 / 12, n = term * 12;
+  const pmt = payment(loan, rate, term);
+
+  const sel = $('product').value;
+  $('cmpBody').innerHTML = Object.keys(BASE).map(k => {
+    const kr = k === sel ? rate : +(BASE[k] + ltvAdj(ltv)).toFixed(2);
+    const kp = payment(loan, kr, term), d = Math.round(kp - pmt);
+    const diff = k === sel ? 'selected' : (d > 0 ? '+' : d < 0 ? '−' : '') + gbp(Math.abs(d));
+    return `<tr data-k="${k}" class="${k === sel ? 'on' : ''}"><td>${NAMES[k]}</td><td>${kr.toFixed(2)}%</td><td>${gbp(kp)}</td><td>${diff}</td></tr>`;
+  }).join('');
+
+  const steps = [4, 4.5, 5, 5.5, 6, 6.5, 7];
+  const near = steps.reduce((a, b) => Math.abs(b - rate) < Math.abs(a - rate) ? b : a);
+  $('stepBody').innerHTML = steps.map(sr => {
+    const sp = payment(loan, sr, term);
+    return `<tr data-r="${sr}" class="${sr === near ? 'on' : ''}"><td>${sr.toFixed(1)}%</td><td>${gbp(sp)}</td><td>${gbp(sp * term * 12 - loan)}</td></tr>`;
+  }).join('');
+
+  $('monthly').innerHTML = `${gbp(pmt)} <small>/ month</small>`;
+  $('sLoan').textContent = gbp(loan);
+  $('sLtv').textContent = ltv.toFixed(0) + '%';
+  const ftb = $('ftb').checked, sdlt = stampDuty(price, ftb), sdltStd = stampDuty(price, false);
+  $('sSdlt').textContent = gbp(sdlt);
+  $('ftbHint').textContent = !ftb
+    ? 'Standard stamp duty: 0% to £125k, 2% to £250k, 5% to £925k, 10% to £1.5m, 12% above.'
+    : price <= 500000
+      ? `First-time buyer relief: 0% to £300k, 5% from £300k to £500k. You save ${gbp(sdltStd - sdlt)}.`
+      : 'No first-time buyer relief: it only applies to homes up to £500k, so standard stamp duty is charged.';
+  $('sInterest').textContent = gbp(pmt * n - loan);
+
+  let bills = 0;
+  document.querySelectorAll('.bill').forEach(i => bills += num(i.value));
+  $('billsTotal').textContent = gbp(bills);
+
+  const pct = num($('pension').value);
+  const people = [takeHome(num($('sal1').value), pct), takeHome(num($('sal2').value), pct)].filter(Boolean);
+  const box = $('budget');
+  if (!people.length){
+    box.innerHTML = `<p class="empty">Add a salary to see your take-home pay and what is left each month.</p>`;
+    return;
+  }
+  const sum = k => people.reduce((a, p) => a + p[k], 0) / 12;
+  const gross = sum('gross');
+  const pg = x => (gross ? x / gross * 100 : 0).toFixed(0) + '%';
+  const net = sum('net'), housing = pmt + bills, left = net - housing;
+  const pn = x => (net > 0 ? x / net * 100 : 0).toFixed(0) + '%';
+  const share = net > 0 ? housing / net * 100 : 0;
+  const lti = loan / people.reduce((a, p) => a + p.gross, 0);
+  const w = x => Math.max(0, Math.min(100, x / (net || 1) * 100)).toFixed(1) + '%';
+
+  box.innerHTML = `
+    <div class="rows">
+      <div><span>Gross pay</span><span>${gbp(gross)}</span></div>
+      <div class="minus"><span>Pension <em>(${pg(sum('pension'))} of gross)</em></span><span>− ${gbp(sum('pension'))}</span></div>
+      <div class="minus"><span>Income tax <em>(${pg(sum('tax'))} of gross)</em></span><span>− ${gbp(sum('tax'))}</span></div>
+      <div class="minus"><span>National Insurance <em>(${pg(sum('ni'))} of gross)</em></span><span>− ${gbp(sum('ni'))}</span></div>
+      <div><span>Take-home pay <em>(${pg(net)} of gross)</em></span><span>${gbp(net)}</span></div>
+      <div class="minus"><span>Mortgage <em>(${pn(pmt)} of take-home)</em></span><span>− ${gbp(pmt)}</span></div>
+      <div class="minus"><span>Bills <em>(${pn(bills)} of take-home)</em></span><span>− ${gbp(bills)}</span></div>
+      <div class="final"><span>Left each month <em>(${pn(left)} of take-home)</em></span><span class="${left >= 0 ? 'pos' : 'neg'}">${gbp(left)}</span></div>
+    </div>
+    <div class="bar">
+      <i style="width:${w(pmt)};background:#3b6fd8"></i>
+      <i style="width:${w(bills)};background:#e0a030"></i>
+      <i style="width:${w(Math.max(0,left))};background:#2fa36b"></i>
+    </div>
+    <div class="legend">
+      <span style="--c:#3b6fd8">Mortgage</span>
+      <span style="--c:#e0a030">Bills</span>
+      <span style="--c:#2fa36b">Left</span>
+    </div>
+    <p class="hint" style="margin-top:12px">
+      Housing takes ${share.toFixed(0)}% of take-home pay. Loan is ${lti.toFixed(1)}× gross income
+      ${lti > 4.5 ? '<span class="neg">(above the usual 4.5× lender limit)</span>' : '(most lenders allow up to 4.5×)'}.
+    </p>`;
+}
+
+$('rate').addEventListener('input', () => rateEdited = $('rate').value !== '');
+$('product').addEventListener('change', () => { rateEdited = false; calc(); });
+$('stepBody').addEventListener('click', e => {
+  const tr = e.target.closest('tr'); if (!tr) return;
+  $('rate').value = (+tr.dataset.r).toFixed(2); rateEdited = true; calc();
+});
+$('cmpBody').addEventListener('click', e => {
+  const tr = e.target.closest('tr'); if (!tr) return;
+  $('product').value = tr.dataset.k; rateEdited = false; calc();
+});
+$('term').addEventListener('input', () => termEdited = $('term').value !== '');
+$('age').addEventListener('input', () => termEdited = false);
+document.querySelectorAll('input,select').forEach(el => el.addEventListener('input', calc));
+document.querySelectorAll('.money').forEach(el => el.addEventListener('blur', () => {
+  const n = num(el.value); el.value = n ? n.toLocaleString('en-GB') : '';
+}));
+
+$('themeBtn').addEventListener('click', () => {
+  const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', next);
+  try { localStorage.setItem('theme', next); } catch(e){}
+});
+
+calc();
+</script>
+</body>
+</html>
