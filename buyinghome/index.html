@@ -266,6 +266,12 @@ tr.total td:last-child{padding-right:10px}
 .ext{position:absolute;top:14px;right:12px;width:11px;height:11px;color:var(--faint);transition:color .15s,transform .15s}
 .deal:hover .ext{color:var(--accent);transform:translate(1px,-1px)}
 @media (max-width:480px){.deal-grid{grid-template-columns:1fr;gap:8px}.deal{padding:11px 34px 11px 14px}.ext{top:50%;right:14px;margin-top:-5px}.deal:hover .ext{transform:translate(1px,-1px)}}
+.card-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:14px}
+.card-head h2{margin:0}
+.reset{background:none;border:none;padding:0;font:inherit;font-size:12px;font-weight:500;color:var(--faint);cursor:pointer;text-decoration:underline;text-underline-offset:3px;text-decoration-color:var(--border)}
+.reset:hover{color:var(--accent);text-decoration-color:currentColor}
+.reset:disabled{cursor:default;color:var(--good);text-decoration:none}
+.reset:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:3px}
 </style>
 </head>
 <body>
@@ -292,7 +298,7 @@ tr.total td:last-child{padding-right:10px}
   <div class="layout">
   <!-- INPUTS -->
   <section class="card inputs">
-    <h2>Your numbers</h2>
+    <div class="card-head"><h2>Your numbers</h2><button type="button" class="reset" id="resetBtn">Reset</button></div>
     <div class="grid2">
       <div>
         <label for="price">Property price</label>
@@ -743,6 +749,18 @@ function stopMatrixRain(){
 
 $('themeSelect').addEventListener('change', e => setTheme(e.target.value, true));
 setTheme(document.documentElement.getAttribute('data-theme'), false);
+
+/* ---------- reset: remember the starting values, restore them on demand ---------- */
+const FORM = [...document.querySelectorAll('.layout input, .layout select')];
+const DEFAULTS = FORM.map(el => el.type === 'checkbox' ? el.checked : el.value);
+$('resetBtn').addEventListener('click', () => {
+  FORM.forEach((el, i) => el.type === 'checkbox' ? el.checked = DEFAULTS[i] : el.value = DEFAULTS[i]);
+  rateEdited = termEdited = false;
+  calc();
+  const btn = $('resetBtn');
+  btn.textContent = 'Done'; btn.disabled = true;
+  setTimeout(() => { btn.textContent = 'Reset'; btn.disabled = false; }, 1200);
+});
 
 calc();
 </script>
