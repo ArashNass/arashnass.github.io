@@ -168,6 +168,15 @@ td{padding:7px 0;border-bottom:1px solid var(--border);font-size:15px;vertical-a
 td:last-child{text-align:right;width:130px}
 td input{height:36px;font-size:15px;text-align:right;padding:0 10px 0 22px}
 td .field .pre{left:10px;font-size:14px}
+.stepper{position:absolute;top:3px;bottom:3px;right:3px;width:24px;display:flex;flex-direction:column;gap:2px}
+.stepper button{flex:1;display:flex;align-items:center;justify-content:center;border:none;border-radius:6px;background:transparent;color:var(--faint);cursor:pointer;padding:0;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.stepper button:hover{background:var(--border);color:var(--text)}
+.stepper button:active{background:var(--accent);color:var(--surface)}
+.stepper svg{width:10px;height:6px}
+.field.has-step input{padding-right:32px}
+.field.has-step.has-suf input{padding-right:62px}
+.field.has-step .suf{right:32px}
+td .field.has-step input{padding-right:30px}
 td .note{display:block;font-size:12px;color:var(--faint)}
 tr.total td{border-bottom:none;font-weight:700;padding-top:12px}
 tr.total td:last-child{padding-right:10px}
@@ -599,6 +608,54 @@ document.querySelectorAll('input,select').forEach(el => el.addEventListener('inp
 document.querySelectorAll('.money').forEach(el => el.addEventListener('blur', () => {
   const n = num(el.value); el.value = n ? n.toLocaleString('en-GB') : '';
 }));
+
+/* ---------- up/down steppers: step size depends on the field and its value ---------- */
+const STEP_RULES = {
+  price:   { step: v => v < 300000 ? 5000 : v < 1000000 ? 10000 : 25000, min: 0 },
+  deposit: { step: v => v < 20000 ? 1000 : 5000, min: 0 },
+  sal1:    { step: v => v < 150000 ? 1000 : 5000, min: 0 },
+  sal2:    { step: v => v < 150000 ? 1000 : 5000, min: 0 },
+  age:     { step: () => 1, min: 18, max: 69 },
+  rate:    { step: () => 0.05, min: 0, max: 15, dp: 2 },
+  term:    { step: () => 1, min: 5, max: 40 },
+  pension: { step: () => 1, min: 0, max: 60 },
+  bill:    { step: v => v < 50 ? 5 : 10, min: 0 },
+};
+const ARROW = d => `<svg viewBox="0 0 10 6" aria-hidden="true"><path d="${d}" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+
+function nudge(input, dir){
+  const rule = STEP_RULES[input.id] || STEP_RULES.bill;
+  const v = num(input.value);
+  /* step from the value just below when going down, so 300k down lands on 295k not 290k */
+  const st = rule.step(dir > 0 ? v : Math.max(0, v - 1e-9));
+  let next = dir > 0 ? Math.floor(v / st + 1e-9) * st + st : Math.ceil(v / st - 1e-9) * st - st;
+  next = Math.min(rule.max ?? Infinity, Math.max(rule.min ?? 0, next));
+  next = +next.toFixed(rule.dp || 0);
+  input.value = input.classList.contains('money') ? next.toLocaleString('en-GB') : rule.dp ? next.toFixed(rule.dp) : String(next);
+  input.dispatchEvent(new Event('input', { bubbles: true }));
+}
+
+document.querySelectorAll('.field input').forEach(input => {
+  const box = document.createElement('div');
+  box.className = 'stepper';
+  box.innerHTML = `<button type="button" tabindex="-1" aria-label="Increase">${ARROW('M1 5l4-4 4 4')}</button><button type="button" tabindex="-1" aria-label="Decrease">${ARROW('M1 1l4 4 4-4')}</button>`;
+  input.parentElement.classList.add('has-step');
+  input.parentElement.appendChild(box);
+  box.querySelectorAll('button').forEach((btn, i) => {
+    const dir = i === 0 ? 1 : -1;
+    let delay, repeat;
+    const stop = () => { clearTimeout(delay); clearInterval(repeat); };
+    btn.addEventListener('pointerdown', e => {
+      e.preventDefault();
+      nudge(input, dir);
+      delay = setTimeout(() => repeat = setInterval(() => nudge(input, dir), 80), 400);
+    });
+    ['pointerup', 'pointerleave', 'pointercancel'].forEach(t => btn.addEventListener(t, stop));
+  });
+  input.addEventListener('keydown', e => {
+    if (e.key === 'ArrowUp' || e.key === 'ArrowDown'){ e.preventDefault(); nudge(input, e.key === 'ArrowUp' ? 1 : -1); }
+  });
+});
 
 /* ---------- themes ---------- */
 const THEME_COLORS = {
