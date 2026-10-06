@@ -204,7 +204,13 @@ tr.total td:last-child{padding-right:10px}
 @media (max-width:480px){.cmp td,.cmp th{font-size:14px}.cmp th:not(:first-child),.cmp td:not(:first-child){padding-left:10px}}
 /* layout */
 .layout{display:block}
-.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px 12px}
+.inputs label{display:flex;justify-content:space-between;align-items:baseline;gap:6px;white-space:nowrap}
+.lv{font-size:11px;font-weight:500;color:var(--faint)}
+.lv.neg{color:var(--bad)}
+.hero .label{display:flex;align-items:center}
+.dot{display:inline-block;width:9px;height:9px;border-radius:3px;background:var(--c3);margin-right:8px}
+.dot[hidden]{display:none}
 .inputs .hint{font-size:11px}
 .more{margin-top:14px;border-top:1px solid var(--border);padding-top:12px}
 .more summary{font-size:14px;color:var(--muted)}
@@ -271,24 +277,23 @@ tr.total td:last-child{padding-right:10px}
         <div class="field has-pre"><span class="pre">£</span><input id="price" class="money" inputmode="numeric" value="700,000"></div>
       </div>
       <div>
-        <label for="deposit">Deposit</label>
+        <label for="deposit">Deposit <span class="lv" id="ltvHint"></span></label>
         <div class="field has-pre"><span class="pre">£</span><input id="deposit" class="money" inputmode="numeric" value="120,000"></div>
-        <div class="hint" id="ltvHint"></div>
       </div>
       <div>
-        <label for="sal1">Your salary</label>
+        <label for="sal1">Your salary <span class="lv">a year</span></label>
         <div class="field has-pre"><span class="pre">£</span><input id="sal1" class="money" inputmode="numeric" value="80,000" placeholder="before tax"></div>
       </div>
       <div>
-        <label for="sal2">Partner's salary</label>
+        <label for="sal2">Partner <span class="lv">a year</span></label>
         <div class="field has-pre"><span class="pre">£</span><input id="sal2" class="money" inputmode="numeric" value="80,000" placeholder="optional"></div>
       </div>
       <div>
-        <label for="age">Your age</label>
-        <div class="field has-suf"><input id="age" inputmode="numeric" value="35"><span class="suf">yrs</span></div>
+        <label for="age">Your age <span class="lv" id="ageLv"></span></label>
+        <div class="field has-suf"><input id="age" inputmode="numeric" value="38"><span class="suf">yrs</span></div>
       </div>
       <div>
-        <label for="product">Mortgage</label>
+        <label for="product">Mortgage <span class="lv" id="prodLv"></span></label>
         <select id="product">
           <option value="fix2" selected>2-year fixed</option>
           <option value="fix5">5-year fixed</option>
@@ -321,7 +326,7 @@ tr.total td:last-child{padding-right:10px}
   <div class="results">
   <!-- ANSWER -->
   <section class="card hero" aria-live="polite">
-    <div class="label" id="leftLabel">Left each month</div>
+    <div class="label"><i class="dot" id="leftDot"></i><span id="leftLabel">Left each month</span></div>
     <div class="big" id="leftBig">£0</div>
     <div class="hero-sub" id="leftSub"></div>
     <div class="hrows">
@@ -477,7 +482,10 @@ function calc(){
   if (!rateEdited) $('rate').value = est.toFixed(2);
   const rate = num($('rate').value);
 
-  $('ltvHint').textContent = price ? `${(deposit/price*100).toFixed(1)}% deposit` + (ltv > 95 ? ', most lenders need 5%+' : '') : '';
+  $('ltvHint').textContent = price ? `${(deposit/price*100).toFixed(0)}%` + (ltv > 95 ? ' · need 5%+' : '') : '';
+  $('ltvHint').classList.toggle('neg', ltv > 95);
+  $('ageLv').textContent = `${term}-yr term`;
+  $('prodLv').textContent = rate.toFixed(2) + '%';
   $('moreHead').textContent = `${rate.toFixed(2)}% · ${term} yrs`;
 
   const pmt = payment(loan, rate, term);
@@ -535,6 +543,7 @@ function calc(){
 
   if (!people.length){
     $('leftLabel').textContent = 'Monthly housing cost';
+    $('leftDot').hidden = true;
     $('leftBig').className = 'big';
     $('leftBig').textContent = gbp(housing);
     $('leftSub').textContent = 'Add a salary to see what is left each month.';
@@ -553,6 +562,7 @@ function calc(){
   const w = x => Math.max(0, Math.min(100, x / (net || 1) * 100)).toFixed(1) + '%';
 
   $('leftLabel').textContent = 'Left each month';
+  $('leftDot').hidden = false;
   $('leftBig').className = 'big' + (left < 0 ? ' neg' : '');
   $('leftBig').textContent = gbp(left);
   $('leftSub').textContent = `from ${gbp(net)} take-home, after mortgage and bills`;
