@@ -109,23 +109,23 @@ tr.total td:last-child{padding-right:10px}
     <div class="grid">
       <div>
         <label for="price">Property price</label>
-        <div class="field has-pre"><span class="pre">£</span><input id="price" class="money" inputmode="numeric" value="550,000"></div>
+        <div class="field has-pre"><span class="pre">£</span><input id="price" class="money" inputmode="numeric" value="700,000"></div>
       </div>
       <div>
         <label for="deposit">Your deposit</label>
-        <div class="field has-pre"><span class="pre">£</span><input id="deposit" class="money" inputmode="numeric" value="55,000"></div>
+        <div class="field has-pre"><span class="pre">£</span><input id="deposit" class="money" inputmode="numeric" value="120,000"></div>
         <div class="hint" id="ltvHint"></div>
       </div>
       <div>
         <label for="age">Your age</label>
-        <div class="field has-suf"><input id="age" inputmode="numeric" value="32"><span class="suf">years</span></div>
+        <div class="field has-suf"><input id="age" inputmode="numeric" value="35"><span class="suf">years</span></div>
         <div class="hint" id="termHint"></div>
       </div>
       <div>
         <label for="product">Mortgage type</label>
         <select id="product">
-          <option value="fix2">2-year fixed</option>
-          <option value="fix5" selected>5-year fixed</option>
+          <option value="fix2" selected>2-year fixed</option>
+          <option value="fix5">5-year fixed</option>
           <option value="tracker">2-year tracker</option>
           <option value="svr">Standard variable (SVR)</option>
         </select>
@@ -140,7 +140,8 @@ tr.total td:last-child{padding-right:10px}
         <div class="field has-suf"><input id="term" inputmode="numeric"><span class="suf">years</span></div>
       </div>
     </div>
-    <label class="check"><input type="checkbox" id="ftb" checked> First-time buyer (for stamp duty)</label>
+    <label class="check"><input type="checkbox" id="ftb" checked> First-time buyer</label>
+    <div class="hint" id="ftbHint"></div>
   </section>
 
   <!-- RESULT -->
@@ -266,7 +267,13 @@ function calc(){
   $('monthly').innerHTML = `${gbp(pmt)} <small>/ month</small>`;
   $('sLoan').textContent = gbp(loan);
   $('sLtv').textContent = ltv.toFixed(0) + '%';
-  $('sSdlt').textContent = gbp(stampDuty(price, $('ftb').checked));
+  const ftb = $('ftb').checked, sdlt = stampDuty(price, ftb), sdltStd = stampDuty(price, false);
+  $('sSdlt').textContent = gbp(sdlt);
+  $('ftbHint').textContent = !ftb
+    ? 'Standard stamp duty: 0% to £125k, 2% to £250k, 5% to £925k, 10% to £1.5m, 12% above.'
+    : price <= 500000
+      ? `First-time buyer relief: 0% to £300k, 5% from £300k to £500k. You save ${gbp(sdltStd - sdlt)}.`
+      : 'No first-time buyer relief: it only applies to homes up to £500k, so standard stamp duty is charged.';
   $('sInterest').textContent = gbp(pmt * n - loan);
 
   let bills = 0;
