@@ -282,6 +282,32 @@ td.calc{font-weight:600;padding-right:10px;font-variant-numeric:tabular-nums}
 .cmp.stress td:last-child{color:var(--text);font-weight:600}
 .cmp.stress td.neg{color:var(--bad)}
 .rvb-in label{white-space:normal}
+.inputs .card-head h2{font-size:15px;font-weight:600;color:var(--text);text-transform:none;letter-spacing:0}
+/* grouped list */
+.group-label{font-size:13px;font-weight:600;color:var(--muted);margin:22px 4px 8px;letter-spacing:0}
+.results .group-label:first-of-type{margin-top:18px}
+.card.list{padding:0;overflow:hidden;margin-bottom:0}
+.list > .row + .row{border-top:1px solid var(--border)}
+.row > summary{padding:15px 18px;margin:0!important;transition:background .15s}
+.row > summary:hover{background:var(--surface-2)}
+.row > summary h2{font-size:15px;font-weight:500;color:var(--text);text-transform:none;letter-spacing:0}
+.row .fold-total{font-size:14px;font-weight:500;color:var(--muted)}
+.row[open] > summary .fold-total{visibility:visible}
+.row-body{padding:2px 18px 18px}
+.stats{grid-template-columns:repeat(3,1fr)}
+.stat .v{font-size:16px}
+.notes{margin-top:22px}
+.notes summary{display:flex;align-items:center;gap:8px;cursor:pointer;list-style:none;font-size:13px;color:var(--faint);padding:4px}
+.notes summary::-webkit-details-marker{display:none}
+.notes summary:hover{color:var(--text)}
+.notes .chev{width:6px;height:6px}
+.notes .foot{margin-top:8px;padding:0 4px}
+/* arrows only on hover or focus where a mouse is used */
+@media (hover:hover) and (pointer:fine){
+  .stepper{opacity:0;transition:opacity .15s}
+  .field:hover .stepper,.field:focus-within .stepper{opacity:1}
+}
+@media (max-width:480px){.stat .v{font-size:14px}.stat{padding:9px 10px}.row > summary{padding:14px 16px}.row-body{padding:2px 16px 16px}}
 </style>
 </head>
 <body>
@@ -331,7 +357,7 @@ td.calc{font-weight:600;padding-right:10px;font-variant-numeric:tabular-nums}
         <div class="field has-suf"><input id="age" inputmode="numeric" value="38"><span class="suf">yrs</span></div>
       </div>
       <div>
-        <label for="product">Mortgage <span class="lv" id="prodLv"></span></label>
+        <label for="product">Mortgage</label>
         <select id="product">
           <option value="fix2" selected>2-year fixed</option>
           <option value="fix5">5-year fixed</option>
@@ -376,15 +402,16 @@ td.calc{font-weight:600;padding-right:10px;font-variant-numeric:tabular-nums}
     <div class="hero-note" id="hNote"></div>
     <div class="stats">
       <div class="stat"><div class="v" id="sLoan">£0</div><div class="l">Loan</div></div>
-      <div class="stat"><div class="v" id="sRate">0%</div><div class="l">Interest rate</div></div>
-      <div class="stat"><div class="v" id="sSdlt">£0</div><div class="l">Stamp duty</div></div>
+      <div class="stat"><div class="v" id="sCash">£0</div><div class="l">Cash needed</div></div>
       <div class="stat"><div class="v" id="sInterest">£0</div><div class="l">Total interest</div></div>
     </div>
   </section>
 
-  <!-- RATES -->
-  <details class="card fold">
+  <h2 class="group-label">Monthly</h2>
+  <section class="card list">
+  <details class="fold row">
     <summary><h2>Compare rates</h2><span class="fold-total" id="rateHead"></span><span class="chev" aria-hidden="true"></span></summary>
+    <div class="row-body">
     <table class="cmp">
       <thead><tr><th>Type</th><th>Rate</th><th>Monthly</th><th>Diff</th></tr></thead>
       <tbody id="cmpBody"></tbody>
@@ -395,11 +422,11 @@ td.calc{font-weight:600;padding-right:10px;font-variant-numeric:tabular-nums}
       <tbody id="stepBody"></tbody>
     </table>
     <p class="hint" style="margin-top:10px">Same loan and term. Tap a row to use it. Fixed and tracker deals usually move to the standard variable rate when they end.</p>
+    </div>
   </details>
-
-  <!-- BILLS -->
-  <details class="card fold" id="billsCard">
+  <details class="fold row" id="billsCard">
     <summary><h2>Monthly bills</h2><span class="fold-total" id="billsHead">£0</span><span class="chev" aria-hidden="true"></span></summary>
+    <div class="row-body">
     <table id="bills">
       <tr><td>Electricity</td><td><div class="field has-pre"><span class="pre">£</span><input class="bill" inputmode="numeric" value="70"></div></td></tr>
       <tr><td>Heating (gas)</td><td><div class="field has-pre"><span class="pre">£</span><input class="bill" inputmode="numeric" value="75"></div></td></tr>
@@ -411,49 +438,49 @@ td.calc{font-weight:600;padding-right:10px;font-variant-numeric:tabular-nums}
       <tr><td>Other<span class="note">Insurance, TV licence, maintenance</span></td><td><div class="field has-pre"><span class="pre">£</span><input class="bill" inputmode="numeric" value="150"></div></td></tr>
       <tr class="total"><td>Bills total</td><td id="billsTotal">£0</td></tr>
     </table>
-  </details>
-
-  <!-- PAY -->
-  <details class="card fold">
-    <summary><h2>Pay &amp; tax</h2><span class="fold-total" id="payHead"></span><span class="chev" aria-hidden="true"></span></summary>
-    <div id="pay"></div>
-  </details>
-
-  <!-- STAMP DUTY -->
-  <details class="card fold">
-    <summary><h2>Stamp duty</h2><span class="fold-total" id="sdltHead"></span><span class="chev" aria-hidden="true"></span></summary>
-    <div class="checks">
-      <label class="check"><input type="checkbox" id="ftb" checked> First-time buyer</label>
-      <label class="check"><input type="checkbox" id="addl"> Second home or buy-to-let</label>
-      <label class="check"><input type="checkbox" id="nonres"> Non-UK resident</label>
     </div>
-    <p class="hint" id="ftbHint" style="margin-top:12px"></p>
   </details>
+  <details class="fold row">
+    <summary><h2>Pay &amp; tax</h2><span class="fold-total" id="payHead"></span><span class="chev" aria-hidden="true"></span></summary>
+    <div class="row-body">
+    <div id="pay"></div>
+    </div>
+  </details>
+  </section>
 
-  <!-- UPFRONT -->
-  <details class="card fold">
+  <h2 class="group-label">Buying</h2>
+  <section class="card list">
+  <details class="fold row">
     <summary><h2>Upfront cash needed</h2><span class="fold-total" id="upHead"></span><span class="chev" aria-hidden="true"></span></summary>
+    <div class="row-body">
     <table id="upfront">
       <tr><td>Deposit</td><td class="calc" id="upDep">£0</td></tr>
-      <tr><td>Stamp duty<span class="note">From the stamp duty section</span></td><td class="calc" id="upSdlt">£0</td></tr>
+      <tr><td>Stamp duty<span class="note">Options below</span></td><td class="calc" id="upSdlt">£0</td></tr>
       <tr><td>Solicitor<span class="note">Conveyancing, searches, Land Registry</span></td><td><div class="field has-pre"><span class="pre">£</span><input class="fee money" data-step="fee" inputmode="numeric" value="2,000"></div></td></tr>
       <tr><td>Survey<span class="note">Level 2 or 3 survey</span></td><td><div class="field has-pre"><span class="pre">£</span><input class="fee money" data-step="fee" inputmode="numeric" value="700"></div></td></tr>
       <tr><td>Mortgage fee<span class="note">Arrangement fee, often £0 to £1,500</span></td><td><div class="field has-pre"><span class="pre">£</span><input class="fee money" data-step="fee" inputmode="numeric" value="1,000"></div></td></tr>
       <tr><td>Moving<span class="note">Removals, first furniture</span></td><td><div class="field has-pre"><span class="pre">£</span><input class="fee money" data-step="fee" inputmode="numeric" value="1,000"></div></td></tr>
       <tr class="total"><td>Total cash needed</td><td id="upTotal">£0</td></tr>
     </table>
-    <p class="hint" style="margin-top:10px">Keep a few months of costs aside as a buffer too.</p>
+    <h3 class="sub-h">Stamp duty</h3>
+    <div class="checks" style="margin-top:-6px">
+      <label class="check"><input type="checkbox" id="ftb" checked> First-time buyer</label>
+      <label class="check"><input type="checkbox" id="addl"> Second home or buy-to-let</label>
+      <label class="check"><input type="checkbox" id="nonres"> Non-UK resident</label>
+    </div>
+    <p class="hint" id="ftbHint" style="margin-top:12px"></p>
+    <p class="hint" style="margin-top:12px">Keep a few months of costs aside as a buffer too.</p>
+    </div>
   </details>
-
-  <!-- AFFORD -->
-  <details class="card fold">
+  <details class="fold row">
     <summary><h2>Affordability</h2><span class="fold-total" id="affHead"></span><span class="chev" aria-hidden="true"></span></summary>
+    <div class="row-body">
     <div id="afford"></div>
+    </div>
   </details>
-
-  <!-- RENT VS BUY -->
-  <details class="card fold">
+  <details class="fold row">
     <summary><h2>Rent vs buy</h2><span class="fold-total" id="rvbHead"></span><span class="chev" aria-hidden="true"></span></summary>
+    <div class="row-body">
     <div class="grid2 rvb-in">
       <div>
         <label for="rent">Rent for a similar home</label>
@@ -473,11 +500,11 @@ td.calc{font-weight:600;padding-right:10px;font-variant-numeric:tabular-nums}
       </div>
     </div>
     <div id="rvb"></div>
+    </div>
   </details>
-
-  <!-- DEALS -->
-  <details class="card fold deals">
+  <details class="fold row deals">
     <summary><h2>Find today's best deals</h2><span class="fold-total">6 sites</span><span class="chev" aria-hidden="true"></span></summary>
+    <div class="row-body">
     <p class="deals-lead">Search with your numbers:</p>
     <div class="chips" id="dealChips"></div>
     <div class="deal-grid">
@@ -489,15 +516,20 @@ td.calc{font-weight:600;padding-right:10px;font-variant-numeric:tabular-nums}
       <a class="deal" href="https://www.landc.co.uk/" target="_blank" rel="noopener noreferrer"><span class="deal-name">L&amp;C Mortgages<svg class="ext" viewBox="0 0 12 12" aria-hidden="true"><path d="M4 2h6v6M10 2 3 9" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="deal-desc">Fee-free broker, 90+ lenders</span></a>
     </div>
     <p class="hint" style="margin-top:12px">Independent links, no affiliation or commission. Rates on this page are market averages; the deal you are offered depends on your circumstances.</p>
+    </div>
   </details>
+  </section>
   </div>
   </div>
 
-  <p class="foot">
+  <details class="fold notes">
+    <summary><span class="notes-label">Assumptions &amp; sources</span><span class="chev" aria-hidden="true"></span></summary>
+    <p class="foot">
     Rates are the latest UK market averages from Moneyfacts, published 5 October 2026 and checked 6 October (2-year fixed 5.98%, 5-year fixed 6.00%, 2-year tracker 4.55%, SVR 7.13%; Bank Rate 3.75%), adjusted for loan to value. Your actual rate depends on lender and credit profile.
     Term is capped so the mortgage ends by age 70, max 35 years. Take-home uses 2026/27 England income tax and employee National Insurance, with pension deducted before tax (net pay); student loans are not included.
     Stamp duty uses current England and Northern Ireland rates, including the 5% second home and 2% non-UK resident surcharges; Scotland and Wales have their own taxes. Upfront fees are typical London estimates. Affordability uses common lender income multiples; each lender also checks your outgoings and credit. Rent vs buy keeps today's rate for 5 years and ignores selling costs. A guide only, not financial advice.
   </p>
+  </details>
 </div>
 
 <script>
@@ -584,7 +616,6 @@ function calc(){
   $('ltvHint').textContent = price ? `${(deposit/price*100).toFixed(0)}%` + (ltv > 95 ? ' · need 5%+' : '') : '';
   $('ltvHint').classList.toggle('neg', ltv > 95);
   $('ageLv').textContent = `${term}-yr term`;
-  $('prodLv').textContent = rate.toFixed(2) + '%';
   $('moreHead').textContent = `${rate.toFixed(2)}% · ${term} yrs`;
 
   const pmt = payment(loan, rate, term);
@@ -601,7 +632,8 @@ function calc(){
     const sp = payment(loan, sr, term);
     return `<tr data-r="${sr}" class="${sr === near ? 'on' : ''}"><td>${sr.toFixed(1)}%</td><td>${gbp(sp)}</td><td>${gbp(sp * term * 12 - loan)}</td></tr>`;
   }).join('');
-  $('rateHead').textContent = `${NAMES[sel]} · ${rate.toFixed(2)}%`;
+  const cheapest = Object.keys(BASE).reduce((a, k) => (k === sel ? rate : BASE[k] + ltvAdj(ltv)) < (a === sel ? rate : BASE[a] + ltvAdj(ltv)) ? k : a, sel);
+  $('rateHead').textContent = cheapest === sel ? 'Yours is cheapest' : `Cheapest: ${NAMES[cheapest].toLowerCase()}`;
 
   /* stamp duty; a second home rules out first-time buyer relief */
   const addl = $('addl').checked, nonres = $('nonres').checked;
@@ -620,7 +652,6 @@ function calc(){
   if (surNonres) notes.push(`Non-UK resident surcharge: +2% on the full price (${gbp(surNonres)}).`);
   if (surAddl || surNonres) notes.push(`Total stamp duty ${gbp(sdlt)}.`);
   $('ftbHint').textContent = notes.join(' ');
-  $('sdltHead').textContent = gbp(sdlt) + ' one-off';
 
   let bills = 0;
   document.querySelectorAll('.bill').forEach(i => bills += num(i.value));
@@ -634,8 +665,6 @@ function calc(){
   $('sLoan').textContent = gbp(loan);
   $('dealChips').innerHTML = [`${gbp(price)} price`, `${gbp(loan)} loan`, `${price ? Math.round(ltv) : 0}% LTV`, `${term}-year term`, NAMES[sel]]
     .map(c => `<span class="chip">${c}</span>`).join('');
-  $('sRate').textContent = rate.toFixed(2) + '%';
-  $('sSdlt').textContent = gbp(sdlt);
   $('sInterest').textContent = gbp(pmt * term * 12 - loan);
 
   /* upfront cash */
@@ -645,6 +674,7 @@ function calc(){
   $('upSdlt').textContent = gbp(sdlt);
   $('upTotal').textContent = gbp(upTotal);
   $('upHead').textContent = gbp(upTotal);
+  $('sCash').textContent = gbp(upTotal);
 
   /* rent vs buy over 5 years: unrecoverable costs of each, house price growth counted for the buyer */
   const YEARS = 5;
@@ -709,8 +739,8 @@ function calc(){
   $('leftBig').textContent = gbp(left);
   $('leftSub').textContent = `from ${gbp(net)} take-home, after mortgage and bills`;
   $('bar').innerHTML = `<i style="width:${w(pmt)};background:var(--c1)"></i><i style="width:${w(bills)};background:var(--c2)"></i><i style="width:${w(Math.max(0, left))};background:var(--c3)"></i>`;
-  $('hNote').innerHTML = `Housing is ${pn(housing)} of take-home · Loan is ${lti.toFixed(1)}× income` +
-    (lti > 4.5 ? ' <b>(above the usual 4.5× limit)</b>' : ' (lenders allow up to 4.5×)');
+  $('hNote').innerHTML = `Housing is ${pn(housing)} of take-home pay` +
+    (lti > 4.5 ? ` · <b>loan is ${lti.toFixed(1)}× income, above the usual 4.5× limit</b>` : '');
 
   $('payHead').textContent = gbp(net) + ' take-home';
   $('pay').innerHTML = `
