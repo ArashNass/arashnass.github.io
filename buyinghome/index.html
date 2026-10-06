@@ -253,6 +253,7 @@ tr.total td:last-child{padding-right:10px}
   .grid2{gap:10px}
   .grid2 label{font-size:12px}
 }
+@media (max-width:360px){.cmp td:first-child{white-space:normal}.cmp td,.cmp th{font-size:13px}.cmp th:not(:first-child),.cmp td:not(:first-child){padding-left:8px}.card{padding:14px}}
 </style>
 </head>
 <body>
@@ -404,7 +405,7 @@ tr.total td:last-child{padding-right:10px}
   </div>
 
   <p class="foot">
-    Rates are UK market averages from Moneyfacts, 5 October 2026 (2-year fixed 5.98%, 5-year fixed 6.00%, 2-year tracker 4.55%, SVR 7.13%; Bank Rate 3.75%), adjusted for loan to value. Your actual rate depends on lender and credit profile.
+    Rates are the latest UK market averages from Moneyfacts, published 5 October 2026 and checked 6 October (2-year fixed 5.98%, 5-year fixed 6.00%, 2-year tracker 4.55%, SVR 7.13%; Bank Rate 3.75%), adjusted for loan to value. Your actual rate depends on lender and credit profile.
     Term is capped so the mortgage ends by age 70, max 35 years. Take-home uses 2026/27 England income tax and employee National Insurance, with pension deducted before tax (net pay); student loans are not included.
     Stamp duty uses current England and Northern Ireland rates, including the 5% second home and 2% non-UK resident surcharges; Scotland and Wales have their own taxes. A guide only, not financial advice.
   </p>
@@ -415,7 +416,7 @@ const $ = id => document.getElementById(id);
 const num = v => { const n = parseFloat(String(v).replace(/[^0-9.]/g,'')); return isNaN(n) ? 0 : n; };
 const gbp = n => (Math.round(n) < 0 ? '−£' : '£') + Math.abs(Math.round(n)).toLocaleString('en-GB');
 
-/* Moneyfacts averages, 5 Oct 2026 */
+/* Moneyfacts averages, 5 Oct 2026 (latest published, checked 6 Oct) */
 const BASE = { fix2:5.98, fix5:6.00, tracker:4.55, svr:7.13 };
 const NAMES = { fix2:'2-year fixed', fix5:'5-year fixed', tracker:'2-year tracker', svr:'Standard variable' };
 const payment = (loan, ratePct, years) => { const r = ratePct/100/12, n = years*12; return loan === 0 ? 0 : r === 0 ? loan/n : loan*r/(1 - Math.pow(1+r, -n)); };
