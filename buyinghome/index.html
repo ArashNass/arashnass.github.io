@@ -103,6 +103,9 @@ tr.total td:last-child{padding-right:10px}
 .cmp th:not(:first-child),.cmp td:not(:first-child){padding-left:14px}
 .cmp td:first-child{white-space:nowrap}
 .cmp td:last-child{width:auto}
+.steps td:nth-child(2){font-weight:600}
+.steps td:nth-child(3){font-weight:400;color:var(--muted)}
+.steps tr.on td{color:var(--accent)}
 @media (max-width:480px){.cmp td,.cmp th{font-size:14px}.cmp th:not(:first-child),.cmp td:not(:first-child){padding-left:10px}}
 </style>
 </head>
@@ -177,6 +180,16 @@ tr.total td:last-child{padding-right:10px}
       <tbody id="cmpBody"></tbody>
     </table>
     <p class="hint" style="margin-top:10px">Same loan and term, rates estimated for your deposit. Tap a row to use it. Fixed and tracker deals usually move to the SVR when they end.</p>
+  </section>
+
+  <!-- RATE STEPS -->
+  <section class="card">
+    <h2>Payment at different rates</h2>
+    <table class="cmp steps">
+      <thead><tr><th>Rate</th><th>Monthly</th><th>Total interest</th></tr></thead>
+      <tbody id="stepBody"></tbody>
+    </table>
+    <p class="hint" style="margin-top:10px">Same loan and term. The highlighted row is closest to your rate. Tap a row to use that rate.</p>
   </section>
 
   <!-- BILLS -->
@@ -297,6 +310,13 @@ function calc(){
     return `<tr data-k="${k}" class="${k === sel ? 'on' : ''}"><td>${NAMES[k]}</td><td>${kr.toFixed(2)}%</td><td>${gbp(kp)}</td><td>${diff}</td></tr>`;
   }).join('');
 
+  const steps = [4, 4.5, 5, 5.5, 6, 6.5, 7];
+  const near = steps.reduce((a, b) => Math.abs(b - rate) < Math.abs(a - rate) ? b : a);
+  $('stepBody').innerHTML = steps.map(sr => {
+    const sp = payment(loan, sr, term);
+    return `<tr data-r="${sr}" class="${sr === near ? 'on' : ''}"><td>${sr.toFixed(1)}%</td><td>${gbp(sp)}</td><td>${gbp(sp * term * 12 - loan)}</td></tr>`;
+  }).join('');
+
   $('monthly').innerHTML = `${gbp(pmt)} <small>/ month</small>`;
   $('sLoan').textContent = gbp(loan);
   $('sLtv').textContent = ltv.toFixed(0) + '%';
@@ -355,6 +375,10 @@ function calc(){
 
 $('rate').addEventListener('input', () => rateEdited = $('rate').value !== '');
 $('product').addEventListener('change', () => { rateEdited = false; calc(); });
+$('stepBody').addEventListener('click', e => {
+  const tr = e.target.closest('tr'); if (!tr) return;
+  $('rate').value = (+tr.dataset.r).toFixed(2); rateEdited = true; calc();
+});
 $('cmpBody').addEventListener('click', e => {
   const tr = e.target.closest('tr'); if (!tr) return;
   $('product').value = tr.dataset.k; rateEdited = false; calc();
