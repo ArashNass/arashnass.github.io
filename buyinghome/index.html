@@ -81,6 +81,7 @@ tr.total td:last-child{padding-right:10px}
 .rows div{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:15px}
 .rows div span:last-child{font-weight:600;font-variant-numeric:tabular-nums}
 .rows div.minus span:last-child{color:var(--muted)}
+.rows em{font-style:normal;font-size:13px;font-weight:400;color:var(--faint);margin-left:4px;white-space:nowrap}
 .rows div.final{border-bottom:none;font-size:18px;padding-top:14px}
 .rows div.final span:last-child{font-weight:700}
 .pos{color:var(--good)!important}.neg{color:var(--bad)!important}
@@ -214,11 +215,11 @@ tr.total td:last-child{padding-right:10px}
     <div class="grid">
       <div>
         <label for="sal1">Your salary, before tax</label>
-        <div class="field has-pre"><span class="pre">£</span><input id="sal1" class="money" inputmode="numeric" placeholder="e.g. 65,000"></div>
+        <div class="field has-pre"><span class="pre">£</span><input id="sal1" class="money" inputmode="numeric" value="80,000" placeholder="e.g. 65,000"></div>
       </div>
       <div>
         <label for="sal2">Partner's salary, before tax</label>
-        <div class="field has-pre"><span class="pre">£</span><input id="sal2" class="money" inputmode="numeric" placeholder="optional"></div>
+        <div class="field has-pre"><span class="pre">£</span><input id="sal2" class="money" inputmode="numeric" value="80,000" placeholder="optional"></div>
       </div>
       <div>
         <label for="pension">Pension contribution</label>
@@ -341,21 +342,24 @@ function calc(){
     return;
   }
   const sum = k => people.reduce((a, p) => a + p[k], 0) / 12;
+  const gross = sum('gross');
+  const pg = x => (gross ? x / gross * 100 : 0).toFixed(0) + '%';
   const net = sum('net'), housing = pmt + bills, left = net - housing;
+  const pn = x => (net > 0 ? x / net * 100 : 0).toFixed(0) + '%';
   const share = net > 0 ? housing / net * 100 : 0;
   const lti = loan / people.reduce((a, p) => a + p.gross, 0);
   const w = x => Math.max(0, Math.min(100, x / (net || 1) * 100)).toFixed(1) + '%';
 
   box.innerHTML = `
     <div class="rows">
-      <div><span>Gross pay</span><span>${gbp(sum('gross'))}</span></div>
-      <div class="minus"><span>Pension</span><span>− ${gbp(sum('pension'))}</span></div>
-      <div class="minus"><span>Income tax</span><span>− ${gbp(sum('tax'))}</span></div>
-      <div class="minus"><span>National Insurance</span><span>− ${gbp(sum('ni'))}</span></div>
-      <div><span>Take-home pay</span><span>${gbp(net)}</span></div>
-      <div class="minus"><span>Mortgage</span><span>− ${gbp(pmt)}</span></div>
-      <div class="minus"><span>Bills</span><span>− ${gbp(bills)}</span></div>
-      <div class="final"><span>Left each month</span><span class="${left >= 0 ? 'pos' : 'neg'}">${gbp(left)}</span></div>
+      <div><span>Gross pay</span><span>${gbp(gross)}</span></div>
+      <div class="minus"><span>Pension <em>(${pg(sum('pension'))} of gross)</em></span><span>− ${gbp(sum('pension'))}</span></div>
+      <div class="minus"><span>Income tax <em>(${pg(sum('tax'))} of gross)</em></span><span>− ${gbp(sum('tax'))}</span></div>
+      <div class="minus"><span>National Insurance <em>(${pg(sum('ni'))} of gross)</em></span><span>− ${gbp(sum('ni'))}</span></div>
+      <div><span>Take-home pay <em>(${pg(net)} of gross)</em></span><span>${gbp(net)}</span></div>
+      <div class="minus"><span>Mortgage <em>(${pn(pmt)} of take-home)</em></span><span>− ${gbp(pmt)}</span></div>
+      <div class="minus"><span>Bills <em>(${pn(bills)} of take-home)</em></span><span>− ${gbp(bills)}</span></div>
+      <div class="final"><span>Left each month <em>(${pn(left)} of take-home)</em></span><span class="${left >= 0 ? 'pos' : 'neg'}">${gbp(left)}</span></div>
     </div>
     <div class="bar">
       <i style="width:${w(pmt)};background:#3b6fd8"></i>
