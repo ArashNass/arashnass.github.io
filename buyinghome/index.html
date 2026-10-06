@@ -284,16 +284,24 @@ td.calc{font-weight:600;padding-right:10px;font-variant-numeric:tabular-nums}
 .rvb-in label{white-space:normal}
 .inputs .card-head h2{font-size:15px;font-weight:600;color:var(--text);text-transform:none;letter-spacing:0}
 /* grouped list */
-.group-label{font-size:13px;font-weight:600;color:var(--muted);margin:22px 4px 8px;letter-spacing:0}
-.results .group-label:first-of-type{margin-top:18px}
+.group-label{font-size:13px;font-weight:600;color:var(--text);margin:26px 4px 10px;letter-spacing:0;opacity:.7}
+.results .group-label:first-of-type{margin-top:20px}
 .card.list{padding:0;overflow:hidden;margin-bottom:0}
-.list > .row + .row{border-top:1px solid var(--border)}
-.row > summary{padding:15px 18px;margin:0!important;transition:background .15s}
+.row{position:relative}
+.list > .row + .row::before{content:'';position:absolute;top:0;left:64px;right:0;height:1px;background:var(--border)}
+.row > summary{padding:13px 16px;gap:14px;margin:0!important;transition:background .15s}
 .row > summary:hover{background:var(--surface-2)}
-.row > summary h2{font-size:15px;font-weight:500;color:var(--text);text-transform:none;letter-spacing:0}
-.row .fold-total{font-size:14px;font-weight:500;color:var(--muted)}
+.row > summary h2{font-size:15px;font-weight:500;color:var(--text);text-transform:none;letter-spacing:0;transition:color .15s}
+.row .fold-total{font-size:14px;font-weight:500;color:var(--muted);font-variant-numeric:tabular-nums}
 .row[open] > summary .fold-total{visibility:visible}
-.row-body{padding:2px 18px 18px}
+.ico{flex:none;width:34px;height:34px;border-radius:10px;display:grid;place-items:center;background:var(--accent-soft);color:var(--accent)}
+.ico svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.row::after{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--accent);opacity:0;transition:opacity .15s}
+.row[open]::after{opacity:1}
+.row[open] > summary h2{color:var(--accent);font-weight:600}
+.row[open] + .row::before{left:0}
+.row-body{padding:16px 18px 18px 64px;background:var(--surface-2);border-top:1px solid var(--border)}
+.row-body input,.row-body select{background:var(--surface)}
 .stats{grid-template-columns:repeat(3,1fr)}
 .stat .v{font-size:16px}
 .notes{margin-top:22px}
@@ -307,7 +315,7 @@ td.calc{font-weight:600;padding-right:10px;font-variant-numeric:tabular-nums}
   .stepper{opacity:0;transition:opacity .15s}
   .field:hover .stepper,.field:focus-within .stepper{opacity:1}
 }
-@media (max-width:480px){.stat .v{font-size:14px}.stat{padding:9px 10px}.row > summary{padding:14px 16px}.row-body{padding:2px 16px 16px}}
+@media (max-width:480px){.stat .v{font-size:14px}.stat{padding:9px 10px}.row > summary{padding:12px 14px;gap:12px}.ico{width:32px;height:32px}.list > .row + .row::before{left:58px}.row-body{padding:14px 14px 16px}}
 </style>
 </head>
 <body>
@@ -410,7 +418,7 @@ td.calc{font-weight:600;padding-right:10px;font-variant-numeric:tabular-nums}
   <h2 class="group-label">Monthly</h2>
   <section class="card list">
   <details class="fold row">
-    <summary><h2>Compare rates</h2><span class="fold-total" id="rateHead"></span><span class="chev" aria-hidden="true"></span></summary>
+    <summary><span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24"><line x1="19" y1="5" x2="5" y2="19"/><circle cx="6.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="17.5" r="2.5"/></svg></span><h2>Compare rates</h2><span class="fold-total" id="rateHead"></span><span class="chev" aria-hidden="true"></span></summary>
     <div class="row-body">
     <table class="cmp">
       <thead><tr><th>Type</th><th>Rate</th><th>Monthly</th><th>Diff</th></tr></thead>
@@ -425,7 +433,7 @@ td.calc{font-weight:600;padding-right:10px;font-variant-numeric:tabular-nums}
     </div>
   </details>
   <details class="fold row" id="billsCard">
-    <summary><h2>Monthly bills</h2><span class="fold-total" id="billsHead">£0</span><span class="chev" aria-hidden="true"></span></summary>
+    <summary><span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M13 2 4 14h8l-1 8 9-12h-8l1-8z"/></svg></span><h2>Monthly bills</h2><span class="fold-total" id="billsHead">£0</span><span class="chev" aria-hidden="true"></span></summary>
     <div class="row-body">
     <table id="bills">
       <tr><td>Electricity</td><td><div class="field has-pre"><span class="pre">£</span><input class="bill" inputmode="numeric" value="70"></div></td></tr>
@@ -441,7 +449,7 @@ td.calc{font-weight:600;padding-right:10px;font-variant-numeric:tabular-nums}
     </div>
   </details>
   <details class="fold row">
-    <summary><h2>Pay &amp; tax</h2><span class="fold-total" id="payHead"></span><span class="chev" aria-hidden="true"></span></summary>
+    <summary><span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M19 7V5a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2"/><path d="M3 6v12a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-3"/></svg></span><h2>Pay &amp; tax</h2><span class="fold-total" id="payHead"></span><span class="chev" aria-hidden="true"></span></summary>
     <div class="row-body">
     <div id="pay"></div>
     </div>
@@ -451,7 +459,7 @@ td.calc{font-weight:600;padding-right:10px;font-variant-numeric:tabular-nums}
   <h2 class="group-label">Buying</h2>
   <section class="card list">
   <details class="fold row">
-    <summary><h2>Upfront cash needed</h2><span class="fold-total" id="upHead"></span><span class="chev" aria-hidden="true"></span></summary>
+    <summary><span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="7.5" cy="15.5" r="4.5"/><path d="m10.7 12.3 9.8-9.8M17 6l3 3M14.5 8.5l2 2"/></svg></span><h2>Upfront cash</h2><span class="fold-total" id="upHead"></span><span class="chev" aria-hidden="true"></span></summary>
     <div class="row-body">
     <table id="upfront">
       <tr><td>Deposit</td><td class="calc" id="upDep">£0</td></tr>
@@ -473,13 +481,13 @@ td.calc{font-weight:600;padding-right:10px;font-variant-numeric:tabular-nums}
     </div>
   </details>
   <details class="fold row">
-    <summary><h2>Affordability</h2><span class="fold-total" id="affHead"></span><span class="chev" aria-hidden="true"></span></summary>
+    <summary><span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m12 14 4-4"/><path d="M3.3 19a10 10 0 1 1 17.4 0"/></svg></span><h2>Affordability</h2><span class="fold-total" id="affHead"></span><span class="chev" aria-hidden="true"></span></summary>
     <div class="row-body">
     <div id="afford"></div>
     </div>
   </details>
   <details class="fold row">
-    <summary><h2>Rent vs buy</h2><span class="fold-total" id="rvbHead"></span><span class="chev" aria-hidden="true"></span></summary>
+    <summary><span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M7 4 3 8l4 4"/><path d="M3 8h18"/><path d="m17 20 4-4-4-4"/><path d="M21 16H3"/></svg></span><h2>Rent vs buy</h2><span class="fold-total" id="rvbHead"></span><span class="chev" aria-hidden="true"></span></summary>
     <div class="row-body">
     <div class="grid2 rvb-in">
       <div>
@@ -503,7 +511,7 @@ td.calc{font-weight:600;padding-right:10px;font-variant-numeric:tabular-nums}
     </div>
   </details>
   <details class="fold row deals">
-    <summary><h2>Find today's best deals</h2><span class="fold-total">6 sites</span><span class="chev" aria-hidden="true"></span></summary>
+    <summary><span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></span><h2>Find the best deals</h2><span class="fold-total">6 sites</span><span class="chev" aria-hidden="true"></span></summary>
     <div class="row-body">
     <p class="deals-lead">Search with your numbers:</p>
     <div class="chips" id="dealChips"></div>
@@ -539,6 +547,7 @@ const gbp = n => (Math.round(n) < 0 ? '−£' : '£') + Math.abs(Math.round(n)).
 
 /* Moneyfacts averages, 5 Oct 2026 (latest published, checked 6 Oct) */
 const BASE = { fix2:5.98, fix5:6.00, tracker:4.55, svr:7.13 };
+const SHORT = { fix2:'2-yr fixed', fix5:'5-yr fixed', tracker:'tracker', svr:'SVR' };
 const NAMES = { fix2:'2-year fixed', fix5:'5-year fixed', tracker:'2-year tracker', svr:'Standard variable' };
 const payment = (loan, ratePct, years) => { const r = ratePct/100/12, n = years*12; return loan === 0 ? 0 : r === 0 ? loan/n : loan*r/(1 - Math.pow(1+r, -n)); };
 function ltvAdj(ltv){
@@ -633,7 +642,7 @@ function calc(){
     return `<tr data-r="${sr}" class="${sr === near ? 'on' : ''}"><td>${sr.toFixed(1)}%</td><td>${gbp(sp)}</td><td>${gbp(sp * term * 12 - loan)}</td></tr>`;
   }).join('');
   const cheapest = Object.keys(BASE).reduce((a, k) => (k === sel ? rate : BASE[k] + ltvAdj(ltv)) < (a === sel ? rate : BASE[a] + ltvAdj(ltv)) ? k : a, sel);
-  $('rateHead').textContent = cheapest === sel ? 'Yours is cheapest' : `Cheapest: ${NAMES[cheapest].toLowerCase()}`;
+  $('rateHead').textContent = cheapest === sel ? 'Yours is cheapest' : `Cheapest: ${SHORT[cheapest]}`;
 
   /* stamp duty; a second home rules out first-time buyer relief */
   const addl = $('addl').checked, nonres = $('nonres').checked;
@@ -691,7 +700,7 @@ function calc(){
   const buyCost = interest5 + ownerBills * 12 * YEARS + sdlt + buyFees + lostInterest - gain;
   let rentCost = 0; for (let y = 0; y < YEARS; y++) rentCost += rent * 12 * Math.pow(1 + rentRise, y);
   const diff = rentCost - buyCost;
-  $('rvbHead').textContent = rent ? (diff >= 0 ? `Buying ${gbp(diff)} cheaper` : `Renting ${gbp(-diff)} cheaper`) : '';
+  $('rvbHead').textContent = rent ? (diff >= 0 ? `Buy saves ${gbp(diff)}` : `Rent saves ${gbp(-diff)}`) : '';
   $('rvb').innerHTML = !rent ? `<p class="empty" style="margin-top:14px">Enter a rent to compare.</p>` : `
     <div class="rows" style="margin-top:14px">
       <div class="sec"><span>Renting, 5 years</span><span></span></div>
