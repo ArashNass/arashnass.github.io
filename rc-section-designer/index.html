@@ -322,10 +322,14 @@ input[type="number"]:focus { border-color:var(--blue); box-shadow:0 0 0 3px var(
   .igroup:nth-child(2) { border-right:none; }
 }
 @media (max-width:800px) {
-  .input-strip { grid-template-columns:1fr; }
-  .inp-row1 { grid-template-columns:1fr 1fr; }
-  .kpi-row { grid-template-columns:1fr 1fr; }
-  .checks-grid { grid-template-columns:1fr; }
+  .input-strip { grid-template-columns:minmax(0,1fr); }
+  .inp-row1 { grid-template-columns:minmax(0,1fr); }
+  .kpi-row { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .checks-grid { grid-template-columns:minmax(0,1fr); }
+  .input-strip>*,.inp-row1>*,.kpi-row>*,.checks-grid>* { min-width:0; }
+  .inputs-box { border-right:none; }
+  .igroup { border-right:none; border-bottom:1px solid var(--border); }
+  .igroup:last-child { border-bottom:none; }
   .topnav { display:none; }
 }
 
