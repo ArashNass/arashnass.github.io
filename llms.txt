@@ -1,6 +1,6 @@
 # Arash Nassirpour
 
-> Structural and earthquake engineer working in natural catastrophe risk science, with a research background in seismic vulnerability. Currently Science Lead Specialist at AXA XL, leading earthquake and natural catastrophe risk science. Previously Director at Willis (WTW) and Lecturer in Earthquake Engineering at UCL. Builds free, interactive browser-based tools for earthquake science, structural analysis and catastrophe risk.
+> Structural and earthquake engineer working in natural catastrophe risk science, with a research background in seismic vulnerability. Currently Science Lead Specialist at AXA XL, leading earthquake and natural catastrophe risk science. Also Lecturer in Structural and Earthquake Engineering and Programme Director of the MSc Earthquake Engineering with Disaster Management at UCL. Previously Director at Willis (WTW). Builds free, interactive browser-based tools for earthquake science, structural analysis and catastrophe risk.
 
 ## Tools
 
