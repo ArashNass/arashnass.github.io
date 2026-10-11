@@ -69,6 +69,34 @@ main{flex:1;width:100%;max-width:1080px;margin:0 auto;padding:56px 24px 64px}
 h1{font-size:31px;font-weight:600;letter-spacing:-.02em;margin-bottom:10px}
 .lead{font-size:15px;color:var(--text-muted);margin-bottom:12px}
 .intro{font-size:14px;color:var(--text-muted);line-height:1.7;margin-bottom:22px;max-width:900px}
+/* --- live global alerts strip --- */
+.alerts{display:flex;align-items:center;gap:0;height:0;margin:0;opacity:0;overflow:hidden;border:1px solid var(--border);border-width:0;border-radius:14px;background:var(--surface);box-shadow:0 1px 2px var(--shadow);transition:height .45s cubic-bezier(.2,.8,.2,1),margin .45s cubic-bezier(.2,.8,.2,1),opacity .45s ease}
+.alerts.is-in{height:48px;margin:-6px 0 30px;opacity:1;border-width:1px}
+.al-label{display:flex;align-items:center;gap:8px;flex-shrink:0;height:100%;padding:0 16px 0 14px;border-right:1px solid var(--border)}
+.al-dot{position:relative;width:8px;height:8px;border-radius:50%;background:var(--live);flex-shrink:0}
+.al-dot::after{content:"";position:absolute;inset:-4px;border-radius:50%;border:2px solid var(--live);opacity:0;animation:alPulse 2s ease-out infinite}
+@keyframes alPulse{0%{transform:scale(.5);opacity:.7}100%{transform:scale(1.35);opacity:0}}
+.al-live{font-size:10.5px;font-weight:800;letter-spacing:.09em;color:var(--live)}
+.al-name{font-size:13px;font-weight:600;color:var(--text);white-space:nowrap}
+.al-track{flex:1;min-width:0;height:100%;overflow:hidden;position:relative}
+.al-run{position:absolute;left:0;top:0;height:100%;display:flex;align-items:center;white-space:nowrap;will-change:transform}
+.al-item{display:inline-flex;align-items:center;gap:8px;height:100%;padding:0 22px 0 0;color:var(--text);text-decoration:none;font-size:13px;font-weight:500;transition:color .15s}
+.al-item::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--ac,#6b7385);flex-shrink:0;margin-left:22px;box-shadow:0 0 0 3px color-mix(in srgb,var(--ac,#6b7385) 18%,transparent)}
+.al-cat{font-size:10.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--ac,var(--text-faint))}
+[data-theme="dark"] .al-cat{color:color-mix(in srgb,var(--ac,#9aa5b8) 55%,#fff)}
+.al-item:hover .al-txt{text-decoration:underline;text-underline-offset:3px}
+.al-ctl{display:flex;align-items:center;gap:6px;flex-shrink:0;height:100%;padding:0 12px 0 10px;border-left:1px solid var(--border)}
+.al-btn{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50%;border:1px solid var(--border);background:var(--surface);color:var(--text-muted);cursor:pointer;transition:background .15s,color .15s,border-color .15s}
+.al-btn:hover{background:var(--surface-2);color:var(--text)}
+.al-btn svg{width:13px;height:13px;display:block}
+.al-link{display:inline-flex;align-items:center;gap:5px;padding:0 6px;height:28px;border-radius:8px;color:var(--text);font-size:12.5px;font-weight:600;text-decoration:none;white-space:nowrap;transition:background .15s}
+.al-link:hover{background:var(--surface-2)}
+.al-link svg{width:13px;height:13px;transition:transform .15s}
+.al-link:hover svg{transform:translateX(2px)}
+.alerts :focus-visible{outline:2px solid #4f7dd9;outline-offset:2px;border-radius:8px}
+@media(prefers-reduced-motion:reduce){.al-dot::after{animation:none}.alerts{transition:none}.al-track{overflow-x:auto}.al-run{position:static}}
+@media(max-width:620px){.alerts.is-in{height:44px;margin:-4px 0 24px}.al-name{display:none}.al-label{padding:0 12px 0 12px}.al-link span{display:none}.al-link{padding:0 4px}.al-ctl{padding:0 8px 0 8px}.al-item{font-size:12.5px}}
+@media(max-width:380px){.al-live{display:none}.al-label{padding:0 10px 0 12px}}
 .category{margin-bottom:28px}
 .category-h{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700;color:var(--text-faint);text-transform:uppercase;letter-spacing:.06em;margin:0 0 12px;padding-bottom:9px;border-bottom:1px solid var(--border)}
 .category-h::before{content:"";width:8px;height:8px;border-radius:3px;background:var(--c,#0f2350);flex-shrink:0}
@@ -293,6 +321,15 @@ h1{font-size:31px;font-weight:600;letter-spacing:-.02em;margin-bottom:10px}
     </div>
     <p class="search-count" id="searchCount" role="status" aria-live="polite"></p>
   </div>
+
+  <section class="alerts" id="alerts" aria-label="Live global disaster alerts" hidden>
+    <div class="al-label"><span class="al-dot" aria-hidden="true"></span><span class="al-live">LIVE</span><span class="al-name">Global alerts</span></div>
+    <div class="al-track"><div class="al-run" id="alRun"></div></div>
+    <div class="al-ctl">
+      <button class="al-btn" id="alPause" type="button" aria-label="Pause alerts" title="Pause"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg></button>
+      <a class="al-link" href="/earthquake-dashboard/" title="Open the Earthquake Rapid Response dashboard"><span>Rapid Response</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+    </div>
+  </section>
 
   <section class="category" style="--c:#0E8C9E">
     <h2 class="category-h">Earthquake Science</h2>
@@ -563,5 +600,57 @@ h1{font-size:31px;font-weight:600;letter-spacing:-.02em;margin-bottom:10px}
 .site-ft .ft-ic svg{width:17px;height:17px}
 @media(max-width:520px){.site-ft .ft-in{justify-content:center;text-align:center}}
 </style><div class="ft-in"><span class="ft-copy">&copy; 2026 Arash Nassirpour. All rights reserved.</span><nav class="ft-links"><a href="/about/">About</a><a href="/contact/">Contact</a><a class="ft-ic" href="https://www.youtube.com/@Structural.Analysis" target="_blank" rel="noopener" aria-label="YouTube"><svg viewBox="0 0 24 24" fill="none"><rect x="2.5" y="5.5" width="19" height="13" rx="3.5" stroke="currentColor" stroke-width="1.8"/><path d="M10.3 9.4v5.2l4.6-2.6-4.6-2.6z" fill="currentColor"/></svg></a><a class="ft-ic" href="https://www.linkedin.com/in/arashnassirpour/" target="_blank" rel="noopener" aria-label="LinkedIn"><svg viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="18" height="18" rx="3" stroke="currentColor" stroke-width="1.8"/><path d="M8 10.5V17M8 7.2v.1M12 17v-3.7c0-1.3.9-2.3 2.2-2.3 1.3 0 2.3 1 2.3 2.3V17" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></a></nav></div></footer>
+<script>
+/* Live global alerts: NASA EONET open events + USGS significant earthquakes (both free, no key).
+   Moves by transform inside a clipped track, so there is no scrollbar. If the feeds fail the strip never appears. */
+(function(){
+  var box=document.getElementById('alerts'),run=document.getElementById('alRun'),btn=document.getElementById('alPause');
+  if(!box||!run||!window.fetch||!window.URL)return;
+  var track=run.parentNode,reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var COLORS={'Earthquake':'#d9534f','Volcanoes':'#ef6c00','Wildfires':'#e65100','Severe Storms':'#5b7fd6','Floods':'#1976d2','Drought':'#b08900','Landslides':'#8d6e63','Sea and Lake Ice':'#4aa3c8','Snow':'#6aa5c8','Dust and Haze':'#a1887f','Temperature Extremes':'#c62828','Water Color':'#26a69a','Manmade':'#7e57c2'};
+  var KEY='alerts-v1',TTL=10*60*1000;
+  function esc(t){return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+  function safe(u){try{var x=new URL(u);return(x.protocol==='https:'||x.protocol==='http:')?x.href:''}catch(e){return ''}}
+  function get(url){var c=new AbortController(),t=setTimeout(function(){c.abort()},8000);
+    return fetch(url,{signal:c.signal}).then(function(r){clearTimeout(t);if(!r.ok)throw 0;return r.json()}).catch(function(){clearTimeout(t);return null})}
+  function load(){
+    try{var c=JSON.parse(sessionStorage.getItem(KEY)||'null');if(c&&Date.now()-c.t<TTL&&c.items.length)return Promise.resolve(c.items)}catch(e){}
+    return Promise.all([
+      get('https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/significant_week.geojson'),
+      get('https://eonet.gsfc.nasa.gov/api/v3/events?status=open&limit=14')
+    ]).then(function(r){
+      var out=[];
+      ((r[0]&&r[0].features)||[]).slice(0,6).forEach(function(f){var p=f.properties||{};var u=safe(p.url);var t=(p.title||p.place||'').replace(/^M\s*/,'M ').trim();if(u&&t)out.push({cat:'Earthquake',txt:t,url:u})});
+      ((r[1]&&r[1].events)||[]).forEach(function(e){var cat=(e.categories&&e.categories[0]&&e.categories[0].title)||'Event';var u=safe(e.link||(e.sources&&e.sources[0]&&e.sources[0].url));var t=(e.title||'').trim();if(u&&t)out.push({cat:cat,txt:t,url:u})});
+      try{if(out.length)sessionStorage.setItem(KEY,JSON.stringify({t:Date.now(),items:out}))}catch(e){}
+      return out;
+    });
+  }
+  function item(i){return '<a class="al-item" href="'+esc(i.url)+'" target="_blank" rel="noopener" style="--ac:'+(COLORS[i.cat]||'#6b7385')+'"><span class="al-cat">'+esc(i.cat)+'</span><span class="al-txt">'+esc(i.txt)+'</span></a>'}
+  function start(items){
+    if(!items||!items.length)return;                         // nothing to show: the strip stays hidden
+    var unit=items.map(item).join(''),group=unit;
+    box.hidden=false;run.innerHTML=group;
+    var need=track.clientWidth||600,guard=0;
+    while(run.scrollWidth<need*1.3&&guard++<6){group+=unit;run.innerHTML=group}   // make one pass at least as wide as the track
+    run.innerHTML=group+group;
+    requestAnimationFrame(function(){box.classList.add('is-in')});
+    if(reduce){track.style.overflowX='auto';run.style.position='static';btn.hidden=true;return}   // reduced motion: no animation, scroll by hand
+    var half=run.scrollWidth/2,off=0,last=0,paused=false,hover=false;
+    function icon(){btn.setAttribute('aria-label',paused?'Play alerts':'Pause alerts');btn.title=paused?'Play':'Pause';
+      btn.innerHTML=paused?'<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>':'<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>'}
+    btn.addEventListener('click',function(){paused=!paused;icon()});
+    track.addEventListener('pointerenter',function(e){if(e.pointerType==='mouse')hover=true});
+    track.addEventListener('pointerleave',function(){hover=false});
+    track.addEventListener('focusin',function(){hover=true});track.addEventListener('focusout',function(){hover=false});
+    window.addEventListener('resize',function(){half=run.scrollWidth/2});
+    (function tick(ts){var dt=last?Math.min(ts-last,100)/1000:0;last=ts;
+      if(!paused&&!hover&&half>0){off=(off+32*dt)%half;run.style.transform='translate3d('+(-off).toFixed(2)+'px,0,0)'}
+      requestAnimationFrame(tick)})(0);
+  }
+  function go(){load().then(start)}
+  if('requestIdleCallback' in window)requestIdleCallback(go,{timeout:2500});else setTimeout(go,300);
+})();
+</script>
 </body>
 </html>
