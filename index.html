@@ -85,6 +85,11 @@ h1{font-size:31px;font-weight:600;letter-spacing:-.02em;margin-bottom:10px}
 .al-cat{font-size:10.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--ac,var(--text-faint))}
 [data-theme="dark"] .al-cat{color:color-mix(in srgb,var(--ac,#9aa5b8) 55%,#fff)}
 .al-item:hover .al-txt{text-decoration:underline;text-underline-offset:3px}
+.al-lvl{font-size:9.5px;font-weight:800;letter-spacing:.07em;padding:2px 6px;border-radius:5px;line-height:1.3}
+.al-lvl.red{background:color-mix(in srgb,#c62828 14%,transparent);color:#b3261e}
+.al-lvl.orange{background:color-mix(in srgb,#ef6c00 16%,transparent);color:#b34700}
+[data-theme="dark"] .al-lvl.red{background:color-mix(in srgb,#ff6b5e 20%,transparent);color:#ff9a90}
+[data-theme="dark"] .al-lvl.orange{background:color-mix(in srgb,#ff9f43 20%,transparent);color:#ffbe7d}
 .al-ctl{display:flex;align-items:center;gap:6px;flex-shrink:0;height:100%;padding:0 12px 0 10px;border-left:1px solid var(--border)}
 .al-btn{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50%;border:1px solid var(--border);background:var(--surface);color:var(--text-muted);cursor:pointer;transition:background .15s,color .15s,border-color .15s}
 .al-btn:hover{background:var(--surface-2);color:var(--text)}
@@ -607,26 +612,60 @@ h1{font-size:31px;font-weight:600;letter-spacing:-.02em;margin-bottom:10px}
   var box=document.getElementById('alerts'),run=document.getElementById('alRun'),btn=document.getElementById('alPause');
   if(!box||!run||!window.fetch||!window.URL)return;
   var track=run.parentNode,reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  var COLORS={'Earthquake':'#d9534f','Volcanoes':'#ef6c00','Wildfires':'#e65100','Severe Storms':'#5b7fd6','Floods':'#1976d2','Drought':'#b08900','Landslides':'#8d6e63','Sea and Lake Ice':'#4aa3c8','Snow':'#6aa5c8','Dust and Haze':'#a1887f','Temperature Extremes':'#c62828','Water Color':'#26a69a','Manmade':'#7e57c2'};
-  var KEY='alerts-v1',TTL=10*60*1000;
+  var COLORS={'Earthquake':'#d9534f','Tropical Cyclone':'#5b7fd6','Severe Storm':'#5b7fd6','Flood':'#1976d2','Volcano':'#ef6c00','Wildfire':'#e65100','Drought':'#b08900','Landslide':'#8d6e63','Sea and Lake Ice':'#4aa3c8','Snow':'#6aa5c8','Dust and Haze':'#a1887f','Temperature Extreme':'#c62828','Water Color':'#26a69a','Manmade':'#7e57c2'};
+  var CAP={'Earthquake':4,'Tropical Cyclone':3,'Severe Storm':2,'Flood':3,'Volcano':3,'Wildfire':3,'Drought':1};
+  var EONET_CAT={'Severe Storms':'Severe Storm','Volcanoes':'Volcano','Wildfires':'Wildfire','Floods':'Flood','Landslides':'Landslide','Drought':'Drought','Temperature Extremes':'Temperature Extreme','Earthquakes':'Earthquake','Snow':'Snow','Sea and Lake Ice':'Sea and Lake Ice','Dust and Haze':'Dust and Haze','Water Color':'Water Color','Manmade':'Manmade'};
+  var GD_CAT={TC:'Tropical Cyclone',FL:'Flood',VO:'Volcano',DR:'Drought',WF:'Wildfire'};
+  var KEY='alerts-v2',TTL=10*60*1000,DAY=864e5;
   function esc(t){return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
   function safe(u){try{var x=new URL(u);return(x.protocol==='https:'||x.protocol==='http:')?x.href:''}catch(e){return ''}}
   function get(url){var c=new AbortController(),t=setTimeout(function(){c.abort()},8000);
-    return fetch(url,{signal:c.signal}).then(function(r){clearTimeout(t);if(!r.ok)throw 0;return r.json()}).catch(function(){clearTimeout(t);return null})}
+    return fetch(url,{signal:c.signal}).then(function(r){clearTimeout(t);if(!r.ok)throw 0;return r.text()}).then(function(t){return t&&t.trim()?JSON.parse(t):null}).catch(function(){clearTimeout(t);return null})}
+  function iso(d){return new Date(d).toISOString().slice(0,10)}
+  function lvlOf(x){x=(x||'').toLowerCase();return x==='red'?3:x==='orange'?2:x==='yellow'?1:0}
+  function clean(name,re,country){var t=(name||'').replace(re,'').replace(/\s+/g,' ').replace(/^[\s:–—-]+/,'').trim();
+    if(country&&t&&country.length<34&&t.toLowerCase().indexOf(country.toLowerCase())<0&&country.toLowerCase().indexOf(t.toLowerCase())<0)t+=' ('+country+')';
+    return t||country||name}
+  function build(r){
+    var now=Date.now(),pool=[],gdTC=[];
+    // USGS: significant earthquakes of the past week
+    ((r[0]&&r[0].features)||[]).forEach(function(f){var p=f.properties||{},u=safe(p.url),t=(p.title||p.place||'').trim();
+      if(u&&t)pool.push({cat:'Earthquake',txt:t,url:u,lvl:lvlOf(p.alert)>=2?lvlOf(p.alert):0,t:p.time||0,m:p.mag||0})});
+    // GDACS: serious alerts of any type, plus recent green cyclones / floods / volcanoes
+    [r[1],r[2]].forEach(function(d){((d&&d.features)||[]).forEach(function(f){var p=f.properties||{},cat=GD_CAT[p.eventtype];if(!cat||String(p.iscurrent)==='false')return;
+      var t=Date.parse(p.fromdate+'Z')||0;if(cat==='Drought'&&now-t>60*DAY)return;if(cat==='Wildfire'&&lvlOf(p.alertlevel)<2)return;
+      var u=safe((p.url&&p.url.report)||'');var re=/^(tropical cyclone|flood|eruption|volcano|drought|(wild|forest)\s?fire)\s*(in|:)?\s*/i;
+      var txt=clean(p.name,re,(p.country||'').trim());if(!u||!txt)return;
+      if(cat==='Tropical Cyclone')gdTC.push((p.name||'').toLowerCase());
+      pool.push({cat:cat,txt:txt,url:u,lvl:lvlOf(p.alertlevel),t:t,m:0})})});
+    // NASA EONET: open natural events (storms, volcanoes, floods, wildfires ...)
+    ((r[3]&&r[3].events)||[]).forEach(function(e){var raw=(e.categories&&e.categories[0]&&e.categories[0].title)||'Event',cat=EONET_CAT[raw]||raw;
+      var u=safe(e.link||(e.sources&&e.sources[0]&&e.sources[0].url)),t=(e.title||'').trim();if(!u||!t||cat==='Earthquake')return;
+      if(/prescribed/i.test(t))return;                                           // controlled burns are not alerts
+      var last=(e.geometry&&e.geometry.length&&e.geometry[e.geometry.length-1].date)||'';
+      if(cat==='Severe Storm'){var nm=t.split(/\s+/).pop().toLowerCase();if(nm.length>3&&gdTC.some(function(g){return g.indexOf(nm)>=0}))return}   // already covered by GDACS, which carries the alert level
+      var re=new RegExp('^'+cat.replace(/ /g,'\\s*')+'s?\\s*','i');
+      pool.push({cat:cat,txt:t.replace(re,'')||t,url:u,lvl:0,t:Date.parse(last)||0,m:0})});
+    // group by hazard, best first (severity, then magnitude, then recency), capped per hazard
+    var groups={};pool.forEach(function(i){(groups[i.cat]=groups[i.cat]||[]).push(i)});
+    var cats=Object.keys(groups);cats.forEach(function(c){groups[c].sort(function(a,b){return b.lvl-a.lvl||b.m-a.m||b.t-a.t});groups[c]=groups[c].slice(0,CAP[c]||2)});
+    cats.sort(function(a,b){return groups[b][0].lvl-groups[a][0].lvl||groups[b].length-groups[a].length});
+    // round-robin across hazards so the ticker always mixes types
+    var out=[],more=true,i=0;while(more&&out.length<22){more=false;cats.forEach(function(c){if(groups[c][i]){out.push(groups[c][i]);more=true}});i++}
+    return out;
+  }
   function load(){
     try{var c=JSON.parse(sessionStorage.getItem(KEY)||'null');if(c&&Date.now()-c.t<TTL&&c.items.length)return Promise.resolve(c.items)}catch(e){}
+    var to=iso(Date.now()+DAY),G='https://www.gdacs.org/gdacsapi/api/events/geteventlist/SEARCH?';
     return Promise.all([
       get('https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/significant_week.geojson'),
-      get('https://eonet.gsfc.nasa.gov/api/v3/events?status=open&limit=14')
-    ]).then(function(r){
-      var out=[];
-      ((r[0]&&r[0].features)||[]).slice(0,6).forEach(function(f){var p=f.properties||{};var u=safe(p.url);var t=(p.title||p.place||'').replace(/^M\s*/,'M ').trim();if(u&&t)out.push({cat:'Earthquake',txt:t,url:u})});
-      ((r[1]&&r[1].events)||[]).forEach(function(e){var cat=(e.categories&&e.categories[0]&&e.categories[0].title)||'Event';var u=safe(e.link||(e.sources&&e.sources[0]&&e.sources[0].url));var t=(e.title||'').trim();if(u&&t)out.push({cat:cat,txt:t,url:u})});
-      try{if(out.length)sessionStorage.setItem(KEY,JSON.stringify({t:Date.now(),items:out}))}catch(e){}
-      return out;
-    });
+      get(G+'eventlist=TC;FL;VO;DR;WF&alertlevel=Orange;Red&fromdate='+iso(Date.now()-21*DAY)+'&todate='+to),
+      get(G+'eventlist=TC;FL;VO&alertlevel=Green&fromdate='+iso(Date.now()-7*DAY)+'&todate='+to),
+      get('https://eonet.gsfc.nasa.gov/api/v3/events?status=open&limit=30')
+    ]).then(function(r){var out=build(r);try{if(out.length)sessionStorage.setItem(KEY,JSON.stringify({t:Date.now(),items:out}))}catch(e){}return out});
   }
-  function item(i){return '<a class="al-item" href="'+esc(i.url)+'" target="_blank" rel="noopener" style="--ac:'+(COLORS[i.cat]||'#6b7385')+'"><span class="al-cat">'+esc(i.cat)+'</span><span class="al-txt">'+esc(i.txt)+'</span></a>'}
+  function item(i){var lv=i.lvl>=3?'<span class="al-lvl red">RED</span>':i.lvl===2?'<span class="al-lvl orange">ORANGE</span>':'';
+    return '<a class="al-item" href="'+esc(i.url)+'" target="_blank" rel="noopener" style="--ac:'+(COLORS[i.cat]||'#6b7385')+'"><span class="al-cat">'+esc(i.cat)+'</span>'+lv+'<span class="al-txt">'+esc(i.txt)+'</span></a>'}
   function start(items){
     if(!items||!items.length)return;                         // nothing to show: the strip stays hidden
     var unit=items.map(item).join(''),group=unit;
