@@ -69,9 +69,47 @@ main{flex:1;width:100%;max-width:1080px;margin:0 auto;padding:56px 24px 64px}
 h1{font-size:31px;font-weight:600;letter-spacing:-.02em;margin-bottom:10px}
 .lead{font-size:15px;color:var(--text-muted);margin-bottom:12px}
 .intro{font-size:14px;color:var(--text-muted);line-height:1.7;margin-bottom:22px;max-width:900px}
+/* --- hero v2: aurora background, bolder type, glass search, live seismograph --- */
+.hero{padding:38px 34px 110px;margin-bottom:22px;border-radius:22px;background:linear-gradient(135deg,#0f2350 0%,#132f6b 52%,#0e2147 100%);box-shadow:0 18px 50px -22px rgba(15,35,80,.55),inset 0 0 0 1px rgba(255,255,255,.06)}
+[data-theme="dark"] .hero{background:linear-gradient(135deg,#0d1a35 0%,#112553 52%,#0c1a3a 100%)}
+.hero::before{display:none}
+.hero::after{opacity:.35;background-size:38px 38px;mask-image:linear-gradient(to bottom,#000,transparent 70%)}
+.aurora{position:absolute;inset:-25%;z-index:0;pointer-events:none;filter:blur(46px);opacity:.8}
+.aurora i{position:absolute;border-radius:50%;will-change:transform}
+.aurora i:nth-child(1){width:46%;height:62%;left:46%;top:0;background:radial-gradient(circle,rgba(86,128,255,.62),transparent 66%);animation:aur1 19s ease-in-out infinite alternate}
+.aurora i:nth-child(2){width:36%;height:52%;left:64%;top:34%;background:radial-gradient(circle,rgba(45,212,191,.42),transparent 66%);animation:aur2 23s ease-in-out infinite alternate}
+.aurora i:nth-child(3){width:40%;height:60%;left:-4%;top:38%;background:radial-gradient(circle,rgba(168,85,247,.32),transparent 66%);animation:aur3 27s ease-in-out infinite alternate}
+@keyframes aur1{to{transform:translate3d(-9%,10%,0) scale(1.12)}}
+@keyframes aur2{to{transform:translate3d(-12%,-8%,0) scale(.92)}}
+@keyframes aur3{to{transform:translate3d(10%,-9%,0) scale(1.1)}}
+.hero h1{font-size:clamp(28px,4.3vw,44px);line-height:1.08;letter-spacing:-.04em;font-weight:700;margin:0 0 14px;max-width:900px;padding-right:96px;text-wrap:balance}
+@media(min-width:1100px){.hero h1{padding-right:0}}
+.hero-actions{position:absolute;top:18px;right:20px;margin:0;z-index:3}
+.hero h1 .grad{background:linear-gradient(90deg,#a8c6ff 0%,#6ee7d3 100%);-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent}
+.hero .intro{font-size:16.5px;line-height:1.55;max-width:540px;color:rgba(255,255,255,.8);margin:0 0 22px}
+.hero-chips{list-style:none;display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 0;padding:0}
+.hero-chips li{display:inline-flex;align-items:center;gap:8px;padding:6px 13px 6px 11px;border-radius:999px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.07);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);font-size:12.5px;font-weight:600;color:rgba(255,255,255,.92)}
+.hero-chips li::before{content:"";width:6px;height:6px;border-radius:50%;background:#5eead4;box-shadow:0 0 8px rgba(94,234,212,.8)}
+.search-wrap{max-width:540px;margin:0}
+.search-wrap .search-ic{left:18px;z-index:2}
+#toolSearch{height:52px;border-radius:16px;font-size:15.5px;padding:0 64px 0 48px;background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.24);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);box-shadow:0 10px 34px rgba(4,10,38,.38)}
+#toolSearch:focus{box-shadow:0 0 0 4px rgba(124,157,255,.28),0 10px 34px rgba(4,10,38,.38)}
+.search-key{position:absolute;right:14px;top:50%;transform:translateY(-50%);font:700 12px Inter,system-ui,sans-serif;color:rgba(255,255,255,.72);border:1px solid rgba(255,255,255,.28);border-radius:7px;padding:3px 9px;background:rgba(255,255,255,.08);pointer-events:none;transition:opacity .15s}
+.search-wrap:focus-within .search-key{opacity:0}
+.seis{position:absolute;left:0;right:0;bottom:0;width:100%;height:104px;z-index:0;pointer-events:none;display:block}
+.seis-tag{opacity:0;transition:opacity .5s ease;position:absolute;right:22px;bottom:14px;z-index:2;display:flex;align-items:center;gap:8px;padding:7px 13px;border-radius:999px;background:rgba(7,16,45,.58);border:1px solid rgba(255,255,255,.16);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);font:600 11.5px/1 ui-monospace,'SF Mono',Menlo,Consolas,monospace;letter-spacing:.03em;color:#d3e3ff;max-width:calc(100% - 44px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.seis-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;background:#34d399;animation:seisPulse 2s ease-out infinite}
+#seisTag.on{opacity:1}
+.seis-k{color:rgba(211,227,255,.62);font-weight:600;letter-spacing:.08em;text-transform:uppercase;font-size:10px}
+@keyframes seisPulse{0%{box-shadow:0 0 0 0 rgba(52,211,153,.6)}100%{box-shadow:0 0 0 9px rgba(52,211,153,0)}}
+@media(min-width:900px){.seis-tag{bottom:128px}}
+@media(max-width:380px){.hero-chips{gap:6px}.hero-chips li{font-size:11px;padding:5px 9px 5px 8px;gap:6px}.hero-chips li:nth-child(3){display:none}.hero .intro{font-size:14.5px;margin-bottom:18px}}
+@media(hover:none){.search-key{display:none}#toolSearch{padding-right:18px}}
+@media(prefers-reduced-motion:reduce){.aurora i,.seis-dot{animation:none}}
+@media(max-width:680px){.hero{padding:14px 18px 124px;margin-bottom:18px;border-radius:18px}.hero-actions{position:static;justify-content:flex-end;margin:0 0 12px}.hero h1{padding-right:0}.seis-k{display:none}.hero .intro{font-size:15px}.search-wrap{max-width:none}#toolSearch{height:48px}.seis{height:78px}.seis-tag{right:14px;bottom:11px;font-size:10.5px;padding:6px 11px}}
 /* --- live global alerts strip --- */
 .alerts{display:flex;align-items:center;gap:0;height:0;margin:0;opacity:0;overflow:hidden;border:1px solid var(--border);border-width:0;border-radius:14px;background:var(--surface);box-shadow:0 1px 2px var(--shadow);transition:height .45s cubic-bezier(.2,.8,.2,1),margin .45s cubic-bezier(.2,.8,.2,1),opacity .45s ease}
-.alerts.is-in{height:48px;margin:-6px 0 30px;opacity:1;border-width:1px}
+.alerts.is-in{height:48px;margin:0 0 32px;opacity:1;border-width:1px}
 .al-label{display:flex;align-items:center;gap:8px;flex-shrink:0;height:100%;padding:0 16px 0 14px;border-right:1px solid var(--border)}
 .al-dot{position:relative;width:8px;height:8px;border-radius:50%;background:var(--live);flex-shrink:0}
 .al-dot::after{content:"";position:absolute;inset:-4px;border-radius:50%;border:2px solid var(--live);opacity:0;animation:alPulse 2s ease-out infinite}
@@ -100,7 +138,7 @@ h1{font-size:31px;font-weight:600;letter-spacing:-.02em;margin-bottom:10px}
 .al-link:hover svg{transform:translateX(2px)}
 .alerts :focus-visible{outline:2px solid #4f7dd9;outline-offset:2px;border-radius:8px}
 @media(prefers-reduced-motion:reduce){.al-dot::after{animation:none}.alerts{transition:none}.al-track{overflow-x:auto}.al-run{position:static}}
-@media(max-width:620px){.alerts.is-in{height:44px;margin:-4px 0 24px}.al-name{display:none}.al-label{padding:0 12px 0 12px}.al-link span{display:none}.al-link{padding:0 4px}.al-ctl{padding:0 8px 0 8px}.al-item{font-size:12.5px}}
+@media(max-width:620px){.alerts.is-in{height:44px;margin:0 0 26px}.al-name{display:none}.al-label{padding:0 12px 0 12px}.al-link span{display:none}.al-link{padding:0 4px}.al-ctl{padding:0 8px 0 8px}.al-item{font-size:12.5px}}
 @media(max-width:380px){.al-live{display:none}.al-label{padding:0 10px 0 12px}}
 .category{margin-bottom:28px}
 .category-h{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700;color:var(--text-faint);text-transform:uppercase;letter-spacing:.06em;margin:0 0 12px;padding-bottom:9px;border-bottom:1px solid var(--border)}
@@ -189,7 +227,7 @@ h1{font-size:31px;font-weight:600;letter-spacing:-.02em;margin-bottom:10px}
 .reveal .card:nth-child(6){animation-delay:.25s}
 .reveal .card:nth-child(7){animation-delay:.3s}
 
-@media(max-width:680px){main{padding:36px 16px 48px}h1{font-size:24px}.hero{padding:10px 16px 18px;border-radius:14px}.hero h1{font-size:23px}.grid{grid-template-columns:1fr}.card[style*="grid-column"]{grid-column:auto !important}.search-wrap{max-width:none}#toolSearch{padding-right:16px}}
+@media(max-width:680px){main{padding:36px 16px 48px}h1{font-size:24px}.grid{grid-template-columns:1fr}.card[style*="grid-column"]{grid-column:auto !important}.search-wrap{max-width:none}#toolSearch{padding-right:16px}}
 @media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}.card:hover{transform:none}.card:hover .card-ic{transform:none}}
 </style>
 <script type="application/ld+json">
@@ -308,6 +346,7 @@ h1{font-size:31px;font-weight:600;letter-spacing:-.02em;margin-bottom:10px}
 </header>
 <main>
   <div class="hero">
+    <div class="aurora" aria-hidden="true"><i></i><i></i><i></i></div>
     <div class="hero-actions">
       <button class="hero-btn" id="themeBtn" type="button" aria-label="Switch to dark theme" title="Switch theme">
         <svg class="ic-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.6v2.2M12 19.2v2.2M2.6 12h2.2M19.2 12h2.2M5.4 5.4l1.6 1.6M17 17l1.6 1.6M18.6 5.4L17 7M7 17l-1.6 1.6"/></svg>
@@ -317,14 +356,18 @@ h1{font-size:31px;font-weight:600;letter-spacing:-.02em;margin-bottom:10px}
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="17.5" cy="5.5" r="2.6"/><circle cx="6.5" cy="12" r="2.6"/><circle cx="17.5" cy="18.5" r="2.6"/><path d="M8.9 10.7l6.3-3.7M8.9 13.3l6.3 3.7"/></svg>
       </button>
     </div>
-    <h1>Structural &amp; earthquake engineering tools</h1>
-    <p class="intro">I built these free, interactive tools to make earthquake and structural engineering concepts easier to understand and use, whether you're a student learning the fundamentals, an engineer checking a design, or a researcher exploring seismic risk. Everything runs directly in your browser, no downloads or sign ups needed.</p>
+    <h1>Structural &amp; <span class="grad">earthquake</span> engineering tools</h1>
+    <p class="intro">Free, interactive tools I built for students learning the fundamentals, engineers checking a design, and researchers exploring seismic risk.</p>
 
     <div class="search-wrap">
       <span class="search-ic"><svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="9" cy="9" r="6"/><line x1="13.5" y1="13.5" x2="18" y2="18" stroke-linecap="round"/></svg></span>
       <input id="toolSearch" type="search" placeholder="Search tools, e.g. spectrum, fault, modal" aria-label="Search tools" autocomplete="off" spellcheck="false">
+      <kbd class="search-key" aria-hidden="true">/</kbd>
     </div>
     <p class="search-count" id="searchCount" role="status" aria-live="polite"></p>
+    <ul class="hero-chips" aria-label="Highlights"><li id="chipTools">13 free tools</li><li>Runs in your browser</li><li>No sign-up</li></ul>
+    <canvas class="seis" id="heroSeis" aria-hidden="true"></canvas>
+    <div class="seis-tag" id="seisTag" aria-hidden="true"><span class="seis-dot"></span><span class="seis-k">This week</span><span id="seisTxt"></span></div>
   </div>
 
   <section class="alerts" id="alerts" aria-label="Live global disaster alerts" hidden>
@@ -668,6 +711,7 @@ h1{font-size:31px;font-weight:600;letter-spacing:-.02em;margin-bottom:10px}
     return '<a class="al-item" href="'+esc(i.url)+'" target="_blank" rel="noopener" style="--ac:'+(COLORS[i.cat]||'#6b7385')+'"><span class="al-cat">'+esc(i.cat)+'</span>'+lv+'<span class="al-txt">'+esc(i.txt)+'</span></a>'}
   function start(items){
     if(!items||!items.length)return;                         // nothing to show: the strip stays hidden
+    window.__alerts=items;document.dispatchEvent(new CustomEvent('alerts:ready',{detail:items}));   // the hero seismograph reads the earthquake magnitudes
     var unit=items.map(item).join(''),group=unit;
     box.hidden=false;run.innerHTML=group;
     var need=track.clientWidth||600,guard=0;
@@ -689,6 +733,54 @@ h1{font-size:31px;font-weight:600;letter-spacing:-.02em;margin-bottom:10px}
   }
   function go(){load().then(start)}
   if('requestIdleCallback' in window)requestIdleCallback(go,{timeout:2500});else setTimeout(go,300);
+})();
+</script>
+<script>
+/* Hero extras: real tool count, "/" to search, and a live seismograph whose spikes come from recent USGS earthquakes. */
+(function(){
+  var chip=document.getElementById('chipTools');
+  if(chip){var n=[].filter.call(document.querySelectorAll('.category .card'),function(a){var h=a.getAttribute('href')||'';return h.charAt(0)==='/'&&h!=='/about/'&&h!=='/contact/'}).length;if(n)chip.textContent=n+' free tools'}
+  var inp=document.getElementById('toolSearch');
+  document.addEventListener('keydown',function(e){
+    if(e.key!=='/'||e.ctrlKey||e.metaKey||e.altKey||!inp)return;
+    var t=(document.activeElement&&document.activeElement.tagName)||'';if(/INPUT|TEXTAREA|SELECT/.test(t))return;
+    e.preventDefault();inp.focus()});
+
+  var cv=document.getElementById('heroSeis'),tag=document.getElementById('seisTxt'),tagBox=document.getElementById('seisTag');
+  if(!cv||!cv.getContext)return;
+  var ctx=cv.getContext('2d'),reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var dpr=Math.min(window.devicePixelRatio||1,2),W=0,H=0,STEP=2,SPEED=64,buf=[],T=0,nextAt=1.4,qi=0,spikes=[],quakes=[],on=true;
+  function place(t){return String(t).replace(/^M\s*[\d.]+\s*-\s*/,'').replace(/^\d+\s*km\s+\w+\s+of\s+/i,'')}
+  function load(items){quakes=(items||[]).filter(function(i){return i.cat==='Earthquake'&&i.m>0}).map(function(i){return{m:i.m,txt:'M'+i.m.toFixed(1)+' · '+place(i.txt)}})}
+  if(window.__alerts)load(window.__alerts);
+  document.addEventListener('alerts:ready',function(e){load(e.detail)});
+  function base(t){return(Math.sin(t*23.1)+Math.sin(t*37.7+1)+Math.sin(t*11.3+2))*.9+(Math.random()-.5)*1.5}
+  function val(t){var v=base(t);for(var i=0;i<spikes.length;i++){var s=spikes[i],d=t-s.t0;if(d<0||d>3.4)continue;
+      var arrive=d<.1?d/.1:1;v+=s.A*Math.exp(-d*2.1)*Math.sin(d*40+s.ph)*arrive;if(d>.1&&d<.5)v+=s.A*.18*Math.sin(d*90)}return v}
+  function size(){var r=cv.getBoundingClientRect();W=r.width;H=r.height;if(!W)return;cv.width=Math.round(W*dpr);cv.height=Math.round(H*dpr);ctx.setTransform(dpr,0,0,dpr,0,0);
+    var n=Math.ceil(W/STEP)+3;buf=[];for(var i=0;i<n;i++)buf.push(base(i*.016))}
+  function spike(){var q=quakes.length?quakes[qi++%quakes.length]:null,m=q?q.m:3.6+Math.random()*1.4;
+    spikes.push({t0:T,A:Math.max(9,Math.min(H*.44,(m-3)*10.5)),ph:Math.random()*6});if(spikes.length>3)spikes.shift();
+    if(q){tag.textContent=q.txt;tagBox.classList.add('on')}nextAt=T+3.4+Math.random()*1.8}
+  function draw(){
+    ctx.clearRect(0,0,W,H);var mid=H*.56;
+    ctx.lineWidth=1;ctx.strokeStyle='rgba(255,255,255,.07)';ctx.beginPath();ctx.moveTo(0,mid);ctx.lineTo(W,mid);ctx.stroke();
+    var g=ctx.createLinearGradient(0,0,W,0);g.addColorStop(0,'rgba(125,211,252,0)');g.addColorStop(.3,'rgba(125,211,252,.45)');g.addColorStop(1,'rgba(110,231,211,1)');
+    ctx.strokeStyle=g;ctx.lineWidth=1.8;ctx.lineJoin='round';ctx.shadowColor='rgba(94,234,212,.55)';ctx.shadowBlur=9;ctx.beginPath();
+    for(var i=0;i<buf.length;i++){var x=i*STEP,y=mid+buf[i];if(i)ctx.lineTo(x,y);else ctx.moveTo(x,y)}ctx.stroke();ctx.shadowBlur=0}
+  size();draw();
+  window.addEventListener('resize',function(){size();draw()});
+  if(reduce){   // static trace: one earthquake spike about two thirds of the way across, no animation
+    var still=function(){var q0=quakes[0];spikes=[{t0:buf.length*.62*.016,A:Math.min(H*.44,((q0?q0.m:5.5)-3)*10.5),ph:0}];
+      for(var k=0;k<buf.length;k++)buf[k]=val(k*.016);draw();if(q0){tag.textContent=q0.txt;tagBox.classList.add('on')}};
+    still();document.addEventListener('alerts:ready',still);window.addEventListener('resize',still);return}
+  if('IntersectionObserver' in window)new IntersectionObserver(function(en){on=en[0].isIntersecting},{threshold:0}).observe(cv);
+  var last=0,acc=0;
+  (function frame(ts){
+    var dt=last?Math.min((ts-last)/1000,.05):0;last=ts;
+    if(on&&!document.hidden&&W){T+=dt;if(T>=nextAt)spike();acc+=SPEED*dt;
+      while(acc>=STEP){acc-=STEP;buf.shift();buf.push(val(T-acc/SPEED))}draw()}
+    requestAnimationFrame(frame)})(0);
 })();
 </script>
 </body>
