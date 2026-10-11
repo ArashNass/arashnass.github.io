@@ -31,6 +31,9 @@ Most tools are maintained in their own repository with GitHub Pages enabled inde
 - `CNAME` — custom-domain configuration.
 - `404.html` — fallback page.
 - `robots.txt` and `sitemap.xml` — search-engine discovery.
+- `sentinel/` — the optional Sentinel mission-control theme (CSS, JS, loader and audit script) shared by the live pages: the earthquake dashboard, the global-faults globe and its statistics page. See `sentinel/README.md`.
+- `llms.txt` — plain-text summary for AI search tools.
+- `indexnow.sh` — notifies Bing and other IndexNow search engines when pages change.
 - `about/` — about page.
 - `contact/` — contact page.
 - `hazus/` — built copy of the Hazus Vulnerability Explorer (source lives in the `hazus` repo; not auto-synced).
