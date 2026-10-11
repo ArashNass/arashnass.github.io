@@ -70,17 +70,19 @@ h1{font-size:31px;font-weight:600;letter-spacing:-.02em;margin-bottom:10px}
 .lead{font-size:15px;color:var(--text-muted);margin-bottom:12px}
 .intro{font-size:14px;color:var(--text-muted);line-height:1.7;margin-bottom:22px;max-width:900px}
 /* --- hero: clean navy card, headline, one line, search --- */
-.hero{padding:40px 36px 38px;margin-bottom:22px;border-radius:20px;background:linear-gradient(135deg,#0f2350 0%,#14306a 100%);box-shadow:0 14px 40px -26px rgba(15,35,80,.65)}
+.hero{padding:40px 36px 24px;margin-bottom:22px;border-radius:20px;background:linear-gradient(135deg,#0f2350 0%,#14306a 100%);box-shadow:0 14px 40px -26px rgba(15,35,80,.65)}
 [data-theme="dark"] .hero{background:linear-gradient(135deg,#0d1a35 0%,#112553 100%)}
 .hero::after{display:none}
 .hero-actions{position:absolute;top:18px;right:20px;margin:0;z-index:3}
 .hero h1{font-size:clamp(28px,4vw,40px);line-height:1.12;letter-spacing:-.03em;font-weight:700;margin:0 0 12px;max-width:900px;padding-right:96px;text-wrap:balance}
 @media(min-width:1100px){.hero h1{padding-right:0}}
-.hero .intro{font-size:16px;line-height:1.55;max-width:560px;color:rgba(255,255,255,.78);margin:0 0 26px}
+.hero .intro span{display:block}
+.hero .search-count{position:absolute;left:36px;right:36px;bottom:5px;margin:0;min-height:0;line-height:15px}
+.hero .intro{font-size:16px;line-height:1.55;max-width:640px;color:rgba(255,255,255,.78);margin:0 0 26px}
 .search-wrap{max-width:520px;margin:0}
 .search-wrap .search-ic{left:17px;z-index:2}
 #toolSearch{height:50px;border-radius:14px;font-size:15px;padding:0 18px 0 46px;background:rgba(255,255,255,.10);border-color:rgba(255,255,255,.22)}
-@media(max-width:680px){.hero{padding:14px 18px 24px;border-radius:18px}.hero-actions{position:static;justify-content:flex-end;margin:0 0 12px}.hero h1{padding-right:0}.hero .intro{font-size:15px;margin-bottom:20px}.search-wrap{max-width:none}#toolSearch{height:48px}}
+@media(max-width:680px){.hero{padding:14px 18px 22px;border-radius:18px}.hero .search-count{left:18px;right:18px}.hero-actions{position:static;justify-content:flex-end;margin:0 0 12px}.hero h1{padding-right:0}.hero .intro{font-size:15px;margin-bottom:20px}.search-wrap{max-width:none}#toolSearch{height:48px}}
 /* --- live global alerts strip --- */
 .alerts{display:flex;align-items:center;gap:0;height:0;margin:0;opacity:0;overflow:hidden;border:1px solid var(--border);border-width:0;border-radius:14px;background:var(--surface);box-shadow:0 1px 2px var(--shadow);transition:height .45s cubic-bezier(.2,.8,.2,1),margin .45s cubic-bezier(.2,.8,.2,1),opacity .45s ease}
 .alerts.is-in{height:48px;margin:0 0 32px;opacity:1;border-width:1px}
@@ -330,7 +332,7 @@ h1{font-size:31px;font-weight:600;letter-spacing:-.02em;margin-bottom:10px}
       </button>
     </div>
     <h1>Structural &amp; earthquake engineering tools</h1>
-    <p class="intro">Free, interactive tools for students, engineers and researchers. They run in your browser, with no downloads or sign-up.</p>
+    <p class="intro"><span>All tools run in your browser, with no downloads or sign-up.</span> <span>Free, interactive tools for students, engineers and researchers.</span></p>
 
     <div class="search-wrap">
       <span class="search-ic"><svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="9" cy="9" r="6"/><line x1="13.5" y1="13.5" x2="18" y2="18" stroke-linecap="round"/></svg></span>
