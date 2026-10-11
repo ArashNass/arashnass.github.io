@@ -110,20 +110,9 @@ html.sx .site-hd .hd-dd-menu { background: rgba(5, 20, 36, .97) !important; bord
 }
 .sx-btn:hover { background: rgba(56, 213, 255, .22); color: #fff; box-shadow: var(--sx-glow); }
 
-/* floating "SENTINEL" switch, shown once the egg has been found */
-#sx-chip {
-  position: fixed; left: 14px; bottom: 14px; z-index: 99991;
-  display: inline-flex; align-items: center; gap: 8px; padding: 7px 14px 7px 10px;
-  font: 700 12px 'Rajdhani', 'Segoe UI', system-ui, sans-serif; letter-spacing: .24em; color: #8af2ff;
-  background: rgba(3, 14, 28, .92); border: 1px solid rgba(56, 213, 255, .5); cursor: pointer;
-  clip-path: polygon(0 0, calc(100% - 9px) 0, 100% 9px, 100% 100%, 9px 100%, 0 calc(100% - 9px));
-  box-shadow: 0 0 22px rgba(56, 213, 255, .25);
-  animation: sx-chip-in .6s cubic-bezier(.2, .8, .2, 1) both;
-}
-#sx-chip:hover { background: rgba(8, 40, 70, .95); color: #fff; }
-#sx-chip .sx-chip-ic { width: 18px; height: 18px; display: inline-flex; animation: sx-spin 12s linear infinite; }
-#sx-chip svg { width: 100%; height: 100%; }
-@keyframes sx-chip-in { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+/* the Theme switch itself comes from the loader; just give it the HUD look while Sentinel is on */
+html.sx #sx-switch { background: rgba(3, 14, 28, .92); border-color: rgba(56, 213, 255, .5); box-shadow: 0 0 22px rgba(56, 213, 255, .22); font-family: 'Rajdhani', 'Segoe UI', system-ui, sans-serif; letter-spacing: .12em; text-transform: uppercase; }
+html.sx #sx-switch button[aria-pressed=true]:not([data-t=sentinel]) { background: transparent; }
 
 #sx-toast {
   position: fixed; left: 50%; top: 84px; z-index: 99993; transform: translate(-50%, -14px); opacity: 0; pointer-events: none;
@@ -222,7 +211,7 @@ html.sx .ea-bar {
   background: linear-gradient(90deg, rgba(70, 8, 24, .92), rgba(24, 6, 16, .92) 60%, rgba(70, 8, 24, .85)) !important;
   border-color: rgba(255, 77, 109, .38) !important; position: relative; z-index: 2;
 }
-html.sx .ea-label { background: linear-gradient(90deg, #ff2d55, #c4163a) !important; font-family: var(--sx-font); letter-spacing: .22em; box-shadow: 0 0 18px rgba(255, 45, 85, .5);
+html.sx .ea-label { background: linear-gradient(90deg, #ff2d55, #c4163a) !important; font-family: var(--sx-font); letter-spacing: .14em; box-shadow: 0 0 18px rgba(255, 45, 85, .5);
   clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 50%, calc(100% - 8px) 100%, 0 100%); padding-right: 18px !important; }
 html.sx .ea-item { color: #ffd6de !important; font-family: var(--sx-font); letter-spacing: .03em; }
 html.sx .ea-item:hover { color: #fff !important; text-shadow: 0 0 10px rgba(255, 77, 109, .9); }
@@ -445,4 +434,4 @@ html[data-sx-page="stats"].sx select, html[data-sx-page="stats"].sx input:not([t
   html.sx { --sx-line: rgba(56, 213, 255, .45); --sx-line2: rgba(56, 213, 255, .7); --sx-dim: #b9d4ec; --sx-faint: #9bb7d1; }
   html.sx body::after, html.sx::after { display: none; }
 }
-@media print { #sx-hud, #sx-chip, #sx-toast, #sx-boot, html.sx body::before, html.sx body::after, html.sx::after { display: none !important; } }
+@media print { #sx-hud, #sx-switch, #sx-toast, #sx-boot, html.sx body::before, html.sx body::after, html.sx::after { display: none !important; } }

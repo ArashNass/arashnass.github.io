@@ -1,19 +1,19 @@
 /*! SENTINEL - mission-control theme for arashnassirpour.com (shared by the live pages).
- *  Loaded on demand by a tiny inline loader; nothing here runs unless the theme is
- *  unlocked (Konami code, typing "sentinel", tapping the page title 7 times, or ?theme=sentinel).
+ *  Loaded on demand by a tiny inline loader, only when the visitor picks the Sentinel theme
+ *  (the "Theme: Standard | Sentinel" switch, or ?theme=sentinel).
  */
 (function () {
   'use strict';
   if (window.Sentinel) return;
 
   var doc = document, root = doc.documentElement;
-  var KEY = 'sx-theme', UNLOCK = 'sx-unlocked';
+  var KEY = 'sx-theme';
   var reduce = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
   var path = location.pathname;
   var page = /earthquake-dashboard/.test(path) ? 'quake' : /world-faults\/stats/.test(path) ? 'stats' : /world-faults/.test(path) ? 'faults' : 'generic';
   var LABEL = { quake: 'SEISMIC WATCH', faults: 'GLOBAL FAULT SURVEY', stats: 'SEISMIC STATISTICS', generic: 'MISSION CONTROL' };
 
-  var active = false, hud = null, chip = null, toastEl = null, bootEl = null, bootTimers = [];
+  var active = false, hud = null, toastEl = null, bootEl = null, bootTimers = [];
   var clockTimer = 0, t0 = Date.now(), themeObserver = null, changedFaultsTheme = false, fontsLoaded = false;
 
   function get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
@@ -72,7 +72,7 @@
       '<span class="sx-stat"><em>UTC</em><b id="sx-utc">--:--:--</b></span>' +
       '<span class="sx-stat sx-met"><em>MET</em><b id="sx-met">T+00:00:00</b></span>' +
       '<span class="sx-stat sx-linkstat"><em>LINK</em><b id="sx-link" class="sx-ok">NOMINAL</b></span>' +
-      '<button type="button" id="sx-exit" class="sx-btn" aria-label="Exit SENTINEL theme" title="Exit SENTINEL (Esc)">EXIT</button>' +
+      '<button type="button" id="sx-exit" class="sx-btn" aria-label="Exit SENTINEL theme" title="Back to the standard theme (Esc)">EXIT</button>' +
       '</div>');
     el.querySelector('#sx-exit').addEventListener('click', function () { disengage(true); });
     return el;
@@ -96,15 +96,6 @@
     }
   }
 
-  function buildChip() {
-    if (chip) return;
-    chip = h('button', { type: 'button', id: 'sx-chip', 'aria-pressed': 'false', 'aria-label': 'Enable SENTINEL mission-control theme', title: 'SENTINEL mission-control theme' },
-      '<span class="sx-chip-ic">' + RING + '</span><span>SENTINEL</span>');
-    chip.addEventListener('click', function () { engage(true); });
-    if (page === 'quake') chip.style.bottom = '54px';   /* the dashboard footer sits inside the fixed-height layout */
-    doc.body.appendChild(chip);
-  }
-  function removeChip() { if (chip && chip.parentNode) chip.parentNode.removeChild(chip); chip = null; }
 
   /* ---------- boot sequence ---------- */
   var BOOT_LINES = {
@@ -136,7 +127,7 @@
       done && done();
     }
     var born = Date.now();
-    function skip(e) { if (Date.now() - born < 700 || (e && e.repeat)) return; finish(); }   /* ignore the key that unlocked it and key-repeat */
+    function skip(e) { if (Date.now() - born < 700 || (e && e.repeat)) return; finish(); }   /* ignore a stray key held over from the click and key-repeat */
     doc.addEventListener('keydown', skip, true);
     bootEl.addEventListener('click', skip);
     var step = 330, i = 0;
@@ -222,13 +213,12 @@
     active = true;   /* must be set before the hooks below, which read it */
     watchTheme(); ensureDark(); chartsOn();
     tick(); clearInterval(clockTimer); clockTimer = setInterval(tick, 1000);
-    removeChip();
     try { window.dispatchEvent(new Event('resize')); } catch (e) { /* ignore */ }
   }
 
   function engage(withBoot, quiet) {
     if (active) return;
-    set(KEY, 'sentinel'); set(UNLOCK, '1');
+    set(KEY, 'sentinel');
     track('sentinel_engage');
     var showBoot = withBoot && !reduce;
     if (showBoot) { runBoot(null); }
@@ -246,7 +236,6 @@
     root.classList.remove('sx'); root.removeAttribute('data-sx-page');
     if (hud && hud.parentNode) hud.parentNode.removeChild(hud); hud = null;
     restoreFaultsTheme(); chartsOff();
-    buildChip();
     if (announce) toast('SENTINEL STANDBY');
     try { window.dispatchEvent(new Event('resize')); } catch (e) { /* ignore */ }
   }
@@ -263,11 +252,10 @@
 
   /* ---------- start-up (called by the loader) ---------- */
   function start(mode) {
-    // mode: 'resume' (theme was on), 'unlocked' (show the chip), 'engage' (egg just triggered)
+    // mode: 'resume' (theme was on last visit) or 'engage' (just chosen: play the boot sequence)
     var go = function () {
       if (mode === 'engage') engage(true);
       else if (mode === 'resume') { engage(false, true); }
-      else if (mode === 'unlocked') buildChip();
     };
     if (doc.readyState === 'loading') doc.addEventListener('DOMContentLoaded', go); else go();
   }

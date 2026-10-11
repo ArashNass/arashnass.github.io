@@ -4,24 +4,16 @@ A hidden mission-control theme for the live pages on arashnassirpour.com.
 
 **Pages:** `/earthquake-dashboard/`, `/world-faults/` and `/world-faults/stats/`.
 
-## Unlocking it
+## Choosing it
 
-Any one of these, on any of the pages:
-
-| Where | How |
-|---|---|
-| Keyboard | Konami code: `↑ ↑ ↓ ↓ ← → ← → B A` |
-| Keyboard | Type `sentinel` with nothing focused (not available on the globe page, whose "type to search" shortcut takes the keys) |
-| Phone | Tap the page title 7 times, quickly |
-| Link | Add `?theme=sentinel` to the URL (`?theme=off` turns it back off) |
-
-Once found it stays on across all three pages. `Esc` or the **EXIT** button in the HUD leaves it; a small
-**SENTINEL** chip (bottom-left) lets you re-enter. The choice is remembered in `localStorage` (`sx-theme`, `sx-unlocked`).
+Each themed page has a **Theme: Standard | Sentinel** switch (bottom-left). The choice is remembered in `localStorage`
+(`sx-theme`) and shared by the three pages. `Esc` or the **EXIT** button in the HUD also returns to Standard.
+Links can set it too: `?theme=sentinel` / `?theme=off`.
 
 ## How it works
 
-- `loader.html` is a ~1.5 KB inline script in each page's `<head>`. It does nothing (no network, no styles) until the
-  theme is unlocked, so the normal pages are unchanged.
+- `loader.html` is a small inline script in each page's `<head>`. It draws the theme switch and fetches nothing until
+  Sentinel is chosen (or was chosen last time), so the Standard pages are unchanged.
 - `sentinel.css` / `sentinel.js` are fetched on demand. Everything in the CSS is scoped to `html.sx`.
 - `sentinel.js` builds the boot sequence, the HUD bar, the toast and the chip, keeps `world-faults` on its own dark theme,
   and recolours the Chart.js charts on the stats page (all of it undone on exit).
