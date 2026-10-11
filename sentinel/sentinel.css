@@ -209,8 +209,9 @@ html.sx .nav [style*="font-weight:600"] { color: var(--sx-cyan-hi) !important; }
 /* global alert strip becomes an emergency-channel bar */
 html.sx .ea-bar {
   background: linear-gradient(90deg, rgba(70, 8, 24, .92), rgba(24, 6, 16, .92) 60%, rgba(70, 8, 24, .85)) !important;
-  border-color: rgba(255, 77, 109, .38) !important; position: relative; z-index: 2;
+  border-color: rgba(255, 77, 109, .38) !important; position: relative; z-index: 99995;   /* above the scanline/sweep overlays so the ticker text is never dimmed */
 }
+html.sx .ea-track { -webkit-mask-image: none !important; mask-image: none !important; }   /* no edge fade: the text stays full-strength to the edge */
 html.sx .ea-label { background: linear-gradient(90deg, #ff2d55, #c4163a) !important; font-family: var(--sx-font); letter-spacing: .14em; box-shadow: 0 0 18px rgba(255, 45, 85, .5);
   clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 50%, calc(100% - 8px) 100%, 0 100%); padding-right: 18px !important; }
 html.sx .ea-item { color: #ffd6de !important; font-family: var(--sx-font); letter-spacing: .03em; }
