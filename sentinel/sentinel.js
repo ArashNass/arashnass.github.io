@@ -202,6 +202,25 @@
     chartList().forEach(function (c) { chartRestore(c); c.update('none'); });
   }
 
+  /* ---------- stats map: Sentinel is dark, so use the dark basemap (and put it back on exit) ---------- */
+  var prevTile = null;
+  function setTile(name) {
+    try {
+      var bar = doc.getElementById('mapStyleBar');
+      if (typeof switchTile === 'function' && typeof G !== 'undefined' && G.mapObj) switchTile(name);   /* page globals (const G is not on window) */
+      else { currentTile = name; if (bar) Array.prototype.forEach.call(bar.querySelectorAll('.map-style-btn'), function (b) { b.classList.toggle('active', b.dataset.tile === name); }); }
+    } catch (e) { /* page internals changed: leave the map alone */ }
+  }
+  function mapOn() {
+    if (page !== 'stats') return;
+    try { if (currentTile === 'light') { prevTile = 'light'; setTile('dark'); } } catch (e) { /* ignore */ }
+  }
+  function mapOff() {
+    if (page !== 'stats' || !prevTile) return;
+    try { if (currentTile === 'dark') setTile(prevTile); } catch (e) { /* ignore */ }
+    prevTile = null;
+  }
+
   /* ---------- engage / disengage ---------- */
   function apply(withBoot) {
     loadFonts();
@@ -211,7 +230,7 @@
     if (!hud) { hud = buildHud(); placeHud(); }
     if (!reduce) hud.classList.add('sx-hud-in');
     active = true;   /* must be set before the hooks below, which read it */
-    watchTheme(); ensureDark(); chartsOn();
+    watchTheme(); ensureDark(); chartsOn(); mapOn();
     tick(); clearInterval(clockTimer); clockTimer = setInterval(tick, 1000);
     try { window.dispatchEvent(new Event('resize')); } catch (e) { /* ignore */ }
   }
@@ -235,7 +254,7 @@
     bootTimers.forEach(clearTimeout); bootTimers = [];
     root.classList.remove('sx'); root.removeAttribute('data-sx-page');
     if (hud && hud.parentNode) hud.parentNode.removeChild(hud); hud = null;
-    restoreFaultsTheme(); chartsOff();
+    restoreFaultsTheme(); chartsOff(); mapOff();
     if (announce) toast('SENTINEL STANDBY');
     try { window.dispatchEvent(new Event('resize')); } catch (e) { /* ignore */ }
   }

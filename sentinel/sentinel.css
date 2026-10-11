@@ -323,6 +323,11 @@ html.sx .header-tags button { background: rgba(56, 213, 255, .1) !important; col
 html.sx .header-tags button:hover { background: rgba(56, 213, 255, .24) !important; box-shadow: var(--sx-glow); }
 html.sx .quake-toggle { background: linear-gradient(90deg, rgba(10, 52, 90, .9), rgba(6, 28, 52, .9)) !important; border: 1px solid var(--sx-line3) !important; color: var(--sx-text) !important; border-radius: 2px !important; box-shadow: 0 0 22px rgba(56, 213, 255, .22); font-family: var(--sx-font) !important; letter-spacing: .06em; }
 html.sx .quake-toggle.active { box-shadow: 0 0 30px rgba(56, 213, 255, .45); }
+html.sx .quake-toggle .qt-text small { color: var(--sx-dim); opacity: 1; font-family: var(--sx-mono); letter-spacing: .04em; }
+html.sx .qt-switch { background: rgba(56, 213, 255, .18); border: 1px solid var(--sx-line2); }
+html.sx .quake-toggle.active .qt-switch { background: rgba(61, 255, 154, .35); border-color: #3dff9a; box-shadow: 0 0 12px rgba(61, 255, 154, .5); }
+html.sx .quake-stats-cta { background: linear-gradient(90deg, rgba(56, 213, 255, .30), rgba(56, 213, 255, .10)) !important; border: 1px solid var(--sx-line3); border-radius: 2px !important; color: var(--sx-cyan-hi) !important; font-family: var(--sx-font); letter-spacing: .14em; text-transform: uppercase; box-shadow: var(--sx-glow); }
+html.sx .quake-stats-cta:hover { background: rgba(56, 213, 255, .34) !important; color: #fff !important; transform: none; }
 html.sx .pulse-dot { background: var(--sx-green) !important; box-shadow: 0 0 12px var(--sx-green) !important; }
 html.sx .type-pill { background: rgba(4, 18, 34, .8) !important; border-radius: 2px !important; font-family: var(--sx-font) !important; letter-spacing: .08em; text-transform: uppercase; }
 html.sx .type-pill.active { box-shadow: 0 0 16px rgba(56, 213, 255, .28); }
@@ -350,6 +355,7 @@ html.sx .map-style-options, html.sx .map-style-bar, html.sx .map-legend, html.sx
   background: rgba(4, 16, 30, .86) !important; border: 1px solid var(--sx-line2) !important; color: var(--sx-cyan-hi) !important; border-radius: 3px !important; box-shadow: 0 0 18px rgba(56, 213, 255, .12);
 }
 html.sx .map-style-btn { font-family: var(--sx-font) !important; letter-spacing: .14em; text-transform: uppercase; color: var(--sx-dim) !important; }
+html[data-sx-page="stats"].sx .map-style-btn[data-tile="light"] { display: none; }   /* Sentinel is dark: the basemap follows it */
 html.sx .map-style-btn.active { background: rgba(56, 213, 255, .22) !important; color: #fff !important; box-shadow: var(--sx-glow); }
 html.sx .globe-hint { color: var(--sx-dim) !important; font-family: var(--sx-mono) !important; letter-spacing: .06em; }
 html.sx .fault-search { background: rgba(3, 14, 28, .9) !important; color: var(--sx-text) !important; border: 1px solid var(--sx-line2) !important; border-radius: 2px !important; font-family: var(--sx-font) !important; letter-spacing: .04em; }
