@@ -25,6 +25,7 @@ ALL_PATHS=(
   "/"
   "/earthquake-rupture/"
   "/world-faults/"
+  "/world-faults/stats/"
   "/earthquake-dashboard/"
   "/hazus/"
   "/hazard-sequence-simulator/"
