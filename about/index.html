@@ -4,16 +4,16 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1"><link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2024%2024%27%3E%3Crect%20width%3D%2724%27%20height%3D%2724%27%20rx%3D%275%27%20fill%3D%27%230f2350%27%2F%3E%3Crect%20x%3D%274%27%20y%3D%274%27%20width%3D%277%27%20height%3D%277%27%20rx%3D%271.4%27%20fill%3D%27white%27%2F%3E%3Crect%20x%3D%2713%27%20y%3D%274%27%20width%3D%277%27%20height%3D%277%27%20rx%3D%271.4%27%20fill%3D%27white%27%2F%3E%3Crect%20x%3D%274%27%20y%3D%2713%27%20width%3D%277%27%20height%3D%277%27%20rx%3D%271.4%27%20fill%3D%27white%27%2F%3E%3Crect%20x%3D%2713%27%20y%3D%2713%27%20width%3D%277%27%20height%3D%277%27%20rx%3D%271.4%27%20fill%3D%27white%27%2F%3E%3C%2Fsvg%3E"/>
 <title>About - Arash Nassirpour</title>
-<meta name="description" content="Arash Nassirpour - Science Lead Specialist at AXA XL, leading earthquake and natural catastrophe risk science. Background, experience and education." />
+<meta name="description" content="Arash Nassirpour - Science Lead Specialist at AXA XL, leading earthquake and natural catastrophe risk science. Lecturer and MSc Programme Director at UCL. Background, experience and education." />
 <link rel="canonical" href="https://arashnassirpour.com/about/" />
 <meta property="og:title" content="About - Arash Nassirpour" />
-<meta property="og:description" content="Science Lead Specialist at AXA XL, leading earthquake and natural catastrophe risk science. Background, experience and education." />
+<meta property="og:description" content="Science Lead Specialist at AXA XL, leading earthquake and natural catastrophe risk science. Lecturer and MSc Programme Director at UCL. Background, experience and education." />
 <meta property="og:url" content="https://arashnassirpour.com/about/" />
 <meta property="og:type" content="website" />
 <meta property="og:image" content="https://arashnassirpour.com/about/og-image.png" />
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:title" content="About - Arash Nassirpour" />
-<meta name="twitter:description" content="Science Lead Specialist at AXA XL, leading earthquake and natural catastrophe risk science." />
+<meta name="twitter:description" content="Science Lead Specialist at AXA XL, leading earthquake and natural catastrophe risk science. Lecturer and MSc Programme Director at UCL." />
 <meta name="twitter:image" content="https://arashnassirpour.com/about/og-image.png" />
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
@@ -68,6 +68,15 @@ h1{font-size:31px;font-weight:600;letter-spacing:-.02em;margin-bottom:10px}
 .bio-org a,.bio-edu-list a{color:inherit;text-decoration:none;border-bottom:1px solid color-mix(in srgb,var(--accent) 40%,transparent)}
 .bio-org a:hover,.bio-edu-list a:hover{color:var(--text);border-bottom-color:var(--text)}
 .bio-desc{font-size:14px;color:var(--text-muted);line-height:1.65}
+.bio-lead{display:flex;align-items:center;gap:12px;margin:2px 0 16px;padding:12px 14px;border:1px solid color-mix(in srgb,var(--accent) 30%,var(--border));border-radius:12px;background:color-mix(in srgb,var(--accent) 7%,var(--surface))}
+.bio-lead svg{width:22px;height:22px;flex-shrink:0;color:var(--accent)}
+.bio-lead-k{display:block;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--accent);margin-bottom:2px}
+.bio-lead-v{display:block;font-size:14.5px;font-weight:600;color:var(--text);line-height:1.4}
+.bio-label{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text-faint);margin:0 0 10px}
+.topic-grid{list-style:none;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,250px),1fr));gap:8px}
+.topic-grid li{display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border:1px solid var(--border);border-radius:10px;background:var(--surface);font-size:13.5px;line-height:1.45;font-weight:500;color:var(--text);transition:border-color .15s,background .15s}
+.topic-grid li::before{content:"";flex-shrink:0;width:6px;height:6px;margin-top:7px;border-radius:50%;background:var(--accent)}
+.topic-grid li:hover{border-color:color-mix(in srgb,var(--accent) 45%,var(--border));background:color-mix(in srgb,var(--accent) 5%,var(--surface))}
 .bio-edu{margin-top:28px;max-width:none}
 .bio-edu-list{list-style:none;display:flex;flex-direction:column;gap:10px}
 .bio-edu-list li{font-size:14px;color:var(--text-muted);line-height:1.6;padding-left:16px;position:relative}
@@ -199,9 +208,18 @@ h1{font-size:31px;font-weight:600;letter-spacing:-.02em;margin-bottom:10px}
         <div class="bio-item">
           <div class="bio-title">Lecturer, Earthquake Engineering</div>
           <div class="bio-org"><a href="https://profiles.ucl.ac.uk/41266-arash-nassirpour" target="_blank" rel="noopener">University College London (UCL)</a></div>
-          <div class="bio-desc">
-            Taught earthquake engineering, covering fault mechanics, ground motion, structural dynamics, and seismic risk assessment.
+          <div class="bio-lead">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4L2.5 8.5 12 13l9.5-4.5L12 4z"/><path d="M6 10.6V15c0 1.7 2.7 3 6 3s6-1.3 6-3v-4.4"/><path d="M21.5 8.5v5"/></svg>
+            <div><span class="bio-lead-k">Programme Director</span><span class="bio-lead-v">MSc Earthquake Engineering with Disaster Management</span></div>
           </div>
+          <div class="bio-label" id="teach-h">Teaching &amp; research</div>
+          <ul class="topic-grid" aria-labelledby="teach-h">
+            <li>Natural Hazards Risk Assessment &amp; Loss Estimation</li>
+            <li>Analytical Fragility &amp; Vulnerability Derivation for Catastrophe Modelling</li>
+            <li>Structural Damage Assessment &amp; Resilience</li>
+            <li>Probabilistic Seismic Hazard Assessment (PSHA)</li>
+            <li>Performance Based Earthquake Engineering (PBEE)</li>
+          </ul>
         </div>
       </section>
 
