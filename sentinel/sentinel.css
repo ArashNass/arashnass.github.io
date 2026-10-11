@@ -177,6 +177,7 @@ html.sx [style*="color:#64748b"], html.sx [style*="color:#888"], html.sx [style*
 /* status / alert hues -> neon equivalents (brighter, readable on dark) */
 html.sx [style*="color:#d32f2f"], html.sx [style*="color:#b91c1c"] { color: #ff6f89 !important; }
 html.sx [style*="color:#e65100"] { color: #ff8a3d !important; }
+html.sx [style*="color:#c62828"] { color: #ff6b81 !important; }
 html.sx [style*="color:#f9a825"] { color: #ffc94a !important; }
 html.sx [style*="color:#2e7d32"] { color: var(--sx-green) !important; }
 html.sx [style*="color:#1565c0"], html.sx [style*="color:#2d5fc4"] { color: var(--sx-blue) !important; }
