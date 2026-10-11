@@ -443,3 +443,6 @@ html[data-sx-page="stats"].sx select, html[data-sx-page="stats"].sx input:not([t
   html.sx body::after, html.sx::after { display: none; }
 }
 @media print { #sx-hud, #sx-switch, #sx-toast, #sx-boot, html.sx body::before, html.sx body::after, html.sx::after { display: none !important; } }
+
+/* Rapid-response level chips (PAGER / ground failure): dark text on the neon alert colours */
+html.sx .lvl-chip{color:#06101c !important}
