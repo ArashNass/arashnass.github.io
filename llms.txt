@@ -6,6 +6,7 @@
 
 - [Live Earthquake Dashboard](https://arashnassirpour.com/earthquake-dashboard/): Live USGS earthquake briefing with ShakeMaps, aftershock forecasts, and a global disaster alerts ticker.
 - [Global Faults & Live Earthquakes](https://arashnassirpour.com/world-faults/): Interactive map of tectonic plate boundaries, named fault systems and recent earthquakes.
+- [Earthquake Statistics](https://arashnassirpour.com/world-faults/stats/): Live global earthquake statistics: magnitude distribution, daily activity, depth breakdown, active swarms and notable volcanoes.
 - [Fault Mechanism](https://arashnassirpour.com/earthquake-rupture/): Interactive 3D model of earthquake rupture styles: strike, dip and rake.
 - [Vulnerability Function Explorer](https://arashnassirpour.com/hazus/): Browse, compare and export building vulnerability functions from FEMA Hazus (flood, wind, earthquake).
 - [Hazard Sequence Simulator](https://arashnassirpour.com/hazard-sequence-simulator/): Simulates cascading and sequential natural hazard events.
