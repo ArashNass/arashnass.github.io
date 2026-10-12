@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<meta name="theme-color" content="#0b0620">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<title>The Funfair | Arash Nassirpour</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#f3eeff;--dim:#b5a9d9;--gold:#ffd98a;--card:rgba(24,14,60,.62)}
+*{box-sizing:border-box;margin:0}
+html,body{min-height:100%}
+body{font-family:Inter,'Segoe UI',system-ui,sans-serif;color:var(--ink);background:radial-gradient(120% 90% at 50% 0%,#2a1366 0%,#150a3a 45%,#07031a 100%) fixed;overflow-x:hidden;position:relative}
+#sky{position:fixed;inset:0;width:100%;height:100%;z-index:0;pointer-events:none}
+.moon{position:fixed;top:7vh;right:9vw;width:clamp(70px,11vw,130px);aspect-ratio:1;border-radius:50%;z-index:0;pointer-events:none;
+ background:radial-gradient(circle at 35% 35%,#fffbe8,#ffe9a8 55%,#e8c66e);box-shadow:0 0 60px 18px rgba(255,226,150,.28),0 0 160px 60px rgba(160,120,255,.18);transition:transform .2s ease-out}
+.moon::after{content:"";position:absolute;inset:0;border-radius:50%;background:radial-gradient(circle at 62% 60%,rgba(150,120,60,.28) 0 9%,transparent 10%),radial-gradient(circle at 30% 65%,rgba(150,120,60,.2) 0 6%,transparent 7%),radial-gradient(circle at 55% 25%,rgba(150,120,60,.2) 0 5%,transparent 6%)}
+.hills{position:fixed;left:0;right:0;bottom:0;height:22vh;z-index:0;pointer-events:none}
+main{position:relative;z-index:1;max-width:1040px;margin:0 auto;padding:clamp(28px,6vh,64px) 20px 90px}
+.back{display:inline-flex;align-items:center;gap:6px;color:var(--dim);text-decoration:none;font-size:13px;padding:6px 12px;border:1px solid rgba(255,255,255,.14);border-radius:20px;background:rgba(255,255,255,.04);transition:.2s}
+.back:hover{color:#fff;border-color:rgba(255,217,138,.6)}
+h1{font-family:Cinzel,Georgia,serif;font-weight:700;text-align:center;font-size:clamp(34px,7vw,66px);letter-spacing:.04em;margin:clamp(24px,6vh,56px) 0 10px;background:linear-gradient(100deg,#ffe9a8,#ffb4f0 40%,#9fd3ff 70%,#ffe9a8);background-size:200% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:shine 8s linear infinite;filter:drop-shadow(0 0 22px rgba(190,140,255,.45))}
+@keyframes shine{to{background-position:200% 0}}
+.sub{text-align:center;color:var(--dim);font-size:clamp(14px,2.2vw,17px);max-width:560px;margin:0 auto clamp(30px,6vh,56px);line-height:1.6}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,235px),1fr));gap:20px;perspective:900px}
+.card{--h:270;position:relative;display:flex;flex-direction:column;gap:12px;min-height:250px;padding:24px 22px;border-radius:20px;text-decoration:none;color:inherit;background:var(--card);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);isolation:isolate;transform-style:preserve-3d;transition:transform .25s ease-out,box-shadow .25s;
+ box-shadow:0 10px 40px rgba(0,0,0,.35)}
+.card::before{content:"";position:absolute;inset:0;border-radius:inherit;padding:1.5px;background:linear-gradient(140deg,hsl(var(--h) 90% 70%),transparent 40%,hsl(calc(var(--h) + 60) 90% 70%));-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none}
+.card::after{content:"";position:absolute;inset:0;border-radius:inherit;z-index:-1;background:radial-gradient(260px circle at var(--mx,50%) var(--my,0%),hsl(var(--h) 90% 65% / .28),transparent 65%);opacity:0;transition:opacity .25s}
+.card:hover,.card:focus-visible{box-shadow:0 18px 60px hsl(var(--h) 90% 50% / .35);outline:none}
+.card:hover::after,.card:focus-visible::after{opacity:1}
+.card:focus-visible{outline:2px solid var(--gold);outline-offset:3px}
+.ico{width:58px;height:58px;border-radius:16px;display:grid;place-items:center;background:linear-gradient(145deg,hsl(var(--h) 80% 60% / .35),hsl(calc(var(--h) + 50) 80% 55% / .15));border:1px solid hsl(var(--h) 90% 75% / .45);box-shadow:0 0 24px hsl(var(--h) 90% 60% / .35);animation:bob 4.5s ease-in-out infinite}
+.card:nth-child(2) .ico{animation-delay:-1.1s}.card:nth-child(3) .ico{animation-delay:-2.2s}.card:nth-child(4) .ico{animation-delay:-3.3s}
+@keyframes bob{50%{transform:translateY(-5px)}}
+.ico svg{width:30px;height:30px;stroke:#fff;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.kick{font-family:Cinzel,Georgia,serif;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:hsl(var(--h) 95% 80%)}
+.card h2{font-family:Cinzel,Georgia,serif;font-size:21px;line-height:1.25;font-weight:700}
+.card p{font-size:14px;line-height:1.55;color:var(--dim);flex:1}
+.go{font-size:13px;font-weight:600;color:var(--gold);display:flex;align-items:center;gap:6px}
+.go i{display:inline-block;transition:transform .2s;font-style:normal}
+.card:hover .go i{transform:translateX(5px)}
+.foot{text-align:center;color:rgba(181,169,217,.7);font-size:12px;margin-top:44px}
+@media(prefers-reduced-motion:reduce){h1,.ico{animation:none}.card,.moon{transition:none}}
+</style>
+</head>
+<body>
+<canvas id="sky" aria-hidden="true"></canvas>
+<div class="moon" id="moon" aria-hidden="true"></div>
+<svg class="hills" viewBox="0 0 1200 200" preserveAspectRatio="none" aria-hidden="true"><path d="M0 120C150 60 280 150 430 100S700 40 860 100s250 40 340-10v110H0z" fill="#0d0630" opacity=".9"/><path d="M0 160C180 110 330 190 520 150s330-60 480-10l200 20v40H0z" fill="#07031a"/></svg>
+<main>
+  <a class="back" href="/">&larr; Back to the tools</a>
+  <h1>The Funfair</h1>
+  <p class="sub">Step inside. A few side quests that don&rsquo;t belong in an engineering toolbox, but were too much fun to leave out.</p>
+  <div class="grid">
+    <a class="card" style="--h:275" href="https://london.arashnassirpour.com/">
+      <span class="ico"><svg viewBox="0 0 24 24"><path d="M12 3v3M9 6h6M10 6l-1 15M14 6l1 15M8 21h8M10 11h4M10 15h4"/></svg></span>
+      <span class="kick">The Realm of London</span><h2>London Guide</h2>
+      <p>Museums, views, pubs, restaurants and the local apps worth having, all hand-picked.</p>
+      <span class="go">Enter the city <i>&rarr;</i></span>
+    </a>
+    <a class="card" style="--h:190" href="/greenwich-commute/">
+      <span class="ico"><svg viewBox="0 0 24 24"><circle cx="6" cy="18" r="2"/><circle cx="18" cy="6" r="2"/><path d="M8 18h6a4 4 0 0 0 0-8h-4a4 4 0 0 1 0-8h6"/></svg></span>
+      <span class="kick">The Greenwich Road</span><h2>Greenwich &rarr; Work</h2>
+      <p>The daily journey, mapped and compared, so the morning takes the least magic.</p>
+      <span class="go">Follow the road <i>&rarr;</i></span>
+    </a>
+    <a class="card" style="--h:330" href="/buyinghome/">
+      <span class="ico"><svg viewBox="0 0 24 24"><path d="M3 11l9-8 9 8M5 10v10h14V10M10 20v-6h4v6"/></svg></span>
+      <span class="kick">The Home Quest</span><h2>Buying a Home in London</h2>
+      <p>Run the numbers on deposits, mortgages and monthly costs before taking the leap.</p>
+      <span class="go">Begin the quest <i>&rarr;</i></span>
+    </a>
+    <a class="card" style="--h:42" href="/car-finance-calculator/">
+      <span class="ico"><svg viewBox="0 0 24 24"><path d="M4 16v-4l2-5h12l2 5v4M4 16h16M4 16v2h3v-2M17 16v2h3v-2M7 12h10"/></svg></span>
+      <span class="kick">The Finance Forge</span><h2>Car Finance Calculator</h2>
+      <p>Compare the real cost of a car deal: payments, interest and the total over the term.</p>
+      <span class="go">Light the forge <i>&rarr;</i></span>
+    </a>
+  </div>
+  <p class="foot">&copy; 2026 Arash Nassirpour</p>
+</main>
+<script>
+(function(){
+  var c=document.getElementById('sky'),x=c.getContext('2d'),W,H,dpr=Math.min(devicePixelRatio||1,2),P=[],S=[];
+  var calm=matchMedia('(prefers-reduced-motion:reduce)').matches;
+  function size(){W=innerWidth;H=innerHeight;c.width=W*dpr;c.height=H*dpr;x.setTransform(dpr,0,0,dpr,0,0);
+    var n=Math.round(W*H/9000);S=[];for(var i=0;i<n;i++)S.push({x:Math.random()*W,y:Math.random()*H*.85,r:Math.random()*1.2+.2,t:Math.random()*6.28,s:Math.random()*.02+.005});
+    var m=Math.min(46,Math.round(W/28));P=[];for(var j=0;j<m;j++)P.push({x:Math.random()*W,y:H*.45+Math.random()*H*.55,vx:(Math.random()-.5)*.25,vy:-Math.random()*.25-.05,r:Math.random()*2+1,t:Math.random()*6.28,h:Math.random()<.5?48:290})}
+  function draw(){x.clearRect(0,0,W,H);
+    for(var i=0;i<S.length;i++){var s=S[i];s.t+=s.s;x.globalAlpha=.35+.65*Math.abs(Math.sin(s.t));x.fillStyle='#fff';x.beginPath();x.arc(s.x,s.y,s.r,0,6.283);x.fill()}
+    for(var j=0;j<P.length;j++){var p=P[j];if(!calm){p.t+=.03;p.x+=p.vx+Math.sin(p.t)*.3;p.y+=p.vy;if(p.y<-10){p.y=H+10;p.x=Math.random()*W}}
+      var a=.45+.4*Math.sin(p.t*1.4),g=x.createRadialGradient(p.x,p.y,0,p.x,p.y,p.r*7);
+      g.addColorStop(0,'hsla('+p.h+',100%,75%,'+a+')');g.addColorStop(1,'hsla('+p.h+',100%,70%,0)');x.globalAlpha=1;x.fillStyle=g;x.beginPath();x.arc(p.x,p.y,p.r*7,0,6.283);x.fill()}
+    if(!calm)requestAnimationFrame(draw)}
+  size();addEventListener('resize',size);draw();
+  if(calm)return;
+  var moon=document.getElementById('moon');
+  if(matchMedia('(hover:hover)').matches){
+    addEventListener('pointermove',function(e){moon.style.transform='translate('+((e.clientX/W-.5)*-14)+'px,'+((e.clientY/H-.5)*-10)+'px)'});
+    document.querySelectorAll('.card').forEach(function(k){
+      k.addEventListener('pointermove',function(e){var r=k.getBoundingClientRect(),px=(e.clientX-r.left)/r.width,py=(e.clientY-r.top)/r.height;
+        k.style.setProperty('--mx',px*100+'%');k.style.setProperty('--my',py*100+'%');
+        k.style.transform='rotateX('+((.5-py)*7)+'deg) rotateY('+((px-.5)*9)+'deg) translateY(-4px)'});
+      k.addEventListener('pointerleave',function(){k.style.transform=''});
+    });
+  }
+})();
+</script>
+</body>
+</html>
