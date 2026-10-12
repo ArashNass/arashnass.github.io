@@ -102,51 +102,97 @@ h1{font-family:Cinzel,Georgia,serif;font-weight:700;text-align:center;font-size:
     if(!calm)requestAnimationFrame(draw)}
   size();addEventListener('resize',size);draw();
   var moon=document.getElementById('moon');
-  var clicks=[],busy=false;
+  var clicks=[],busy=false,lastScene=-1;
   var DINO=['..........#######...','.........#########..','.........##.#######.','.........###########','.........###########','.........#####......','.........########...','#.......####........','#......#####.#......','##....#########.....','###..###########....','.##############.#...','..############......','...##########.......','....########........'],
       LEGA=['.....###...##.......','.....##....#........','.....##....##.......'],
       LEGB=['.....##...###.......','.....#....##........','.....##...##........'];
-  function runDino(done){
-    var cv=document.createElement('canvas'),px=5,h=190,w=innerWidth,d=Math.min(devicePixelRatio||1,2);
-    cv.id='dino';cv.width=w*d;cv.height=h*d;cv.style.height=h+'px';cv.setAttribute('aria-hidden','true');cv.style.cssText+=';opacity:0;transition:opacity .4s';document.body.appendChild(cv);requestAnimationFrame(function(){cv.style.opacity=1});
-    var g=cv.getContext('2d');g.scale(d,d);
-    var gy=h-22,speed=Math.max(230,w/6),cactus=[.3,.55,.8].map(function(f,i){return{x:w*f+i*7,h:52+i%2*16}}),
-        X=-70,Y=0,vy=0,t0=performance.now(),last=t0;
-    function sprite(x,y,rows,col){g.fillStyle=col;for(var r=0;r<rows.length;r++)for(var c=0;c<rows[r].length;c++)if(rows[r][c]==='#')g.fillRect(x+c*px,y+r*px,px,px)}
-    function cact(c){var x=c.x,b=gy,H=c.h;g.save();g.shadowColor='rgba(120,255,170,.7)';g.shadowBlur=10;g.fillStyle='#9be8b4';g.fillRect(x,b-H,12,H);g.fillRect(x-12,b-H*.62,12,7);g.fillRect(x-12,b-H*.62-18,7,19);g.fillRect(x+12,b-H*.78,12,7);g.fillRect(x+19,b-H*.78-15,7,16);g.restore()}
-    function frame(now){
-      var dt=Math.min(.05,(now-last)/1000);last=now;X+=speed*dt;
-      for(var i=0;i<cactus.length;i++){var c=cactus[i];if(Y===0&&c.x-(X+100)<54&&c.x-(X+100)>-10&&!c.j){c.j=1;vy=780}}
+  // Every scene draws on its own transparent canvas (or element) and removes itself; done() is called at the end.
+  function overlay(h,bottom){
+    var cv=document.createElement('canvas'),d=Math.min(devicePixelRatio||1,2),w=innerWidth;
+    cv.width=w*d;cv.height=h*d;cv.setAttribute('aria-hidden','true');
+    cv.style.cssText='position:fixed;left:0;'+(bottom?'bottom:0;':'top:0;')+'width:100%;height:'+h+'px;z-index:3;pointer-events:none';
+    document.body.appendChild(cv);var g=cv.getContext('2d');g.scale(d,d);return{cv:cv,g:g,w:w,h:h};
+  }
+  function sprite(g,x,y,rows,px,col){g.fillStyle=col;for(var r=0;r<rows.length;r++)for(var c=0;c<rows[r].length;c++)if(rows[r][c]==='#')g.fillRect(x+c*px,y+r*px,px,px)}
+  function runLoop(O,dur,draw,done){var t0=performance.now();(function f(now){var k=Math.min(1,(now-t0)/dur);O.g.clearRect(0,0,O.w,O.h);draw(k,now);if(k<1)requestAnimationFrame(f);else{O.cv.remove();done()}})(t0)}
+
+  // 1. dino: small, runs along the very bottom and hops three cacti
+  function sceneDino(done){
+    var px=3,O=overlay(150,true),g=O.g,w=O.w,h=O.h,gy=h-12,speed=Math.max(230,w/6),X=-70,Y=0,vy=0,last=performance.now(),
+        cactus=[.3,.55,.8].map(function(f,i){return{x:w*f+i*7,h:26+i%2*8}});
+    function cact(c){g.fillStyle='#9be8b4';g.fillRect(c.x,gy-c.h,6,c.h);g.fillRect(c.x-6,gy-c.h*.62,6,4);g.fillRect(c.x-6,gy-c.h*.62-9,4,10);g.fillRect(c.x+6,gy-c.h*.78,6,4);g.fillRect(c.x+9,gy-c.h*.78-8,4,9)}
+    runLoop(O,(w+200)/speed*1000,function(k,now){
+      var dt=Math.min(.1,(now-last)/1000);last=now;X+=speed*dt;
+      cactus.forEach(function(c){if(Y===0&&c.x-(X+60)<40&&c.x-(X+60)>-10&&!c.j){c.j=1;vy=540}});
       if(vy!==0||Y>0){Y+=vy*dt;vy-=1800*dt;if(Y<=0){Y=0;vy=0}}
-      g.clearRect(0,0,w,h);
-      var sc=g.createLinearGradient(0,0,0,h);sc.addColorStop(0,'rgba(7,3,26,0)');sc.addColorStop(.45,'rgba(7,3,26,.78)');sc.addColorStop(1,'rgba(7,3,26,.92)');g.fillStyle=sc;g.fillRect(0,0,w,h);
-      g.fillStyle='rgba(243,238,255,.7)';g.fillRect(0,gy,w,2);
-      for(var k=0;k<w;k+=34){g.fillRect((k*7+(now/9|0)%w)%w,gy+6+(k%3)*3,6,1.5)}
+      g.fillStyle='rgba(243,238,255,.5)';g.fillRect(0,gy,w,2);
       cactus.forEach(cact);
       var run=Y>0?DINO.concat(LEGA):DINO.concat((now/110|0)%2?LEGA:LEGB);
-      g.save();g.shadowColor='rgba(210,190,255,.95)';g.shadowBlur=14;sprite(X,gy-run.length*px-Y,run,'#ffffff');g.restore();g.fillStyle='#150a3a';g.fillRect(X+12*px,gy-run.length*px-Y+2*px,px,px);
-      if(X>w-140)cv.style.opacity=0;
-      if(X<w+110)requestAnimationFrame(frame);else{setTimeout(function(){cv.remove();done()},0)}
-    }
-    requestAnimationFrame(frame);
+      g.save();g.shadowColor='rgba(210,190,255,.9)';g.shadowBlur=8;sprite(g,X,gy-run.length*px-Y,run,px,'#fff');g.restore();
+      g.fillStyle='#150a3a';g.fillRect(X+12*px,gy-run.length*px-Y+2*px,px,px);
+    },done);
   }
-  function flyRocket(done){
-    var rk=document.createElement('div');rk.className='rocket';rk.textContent='\uD83D\uDE80';rk.setAttribute('aria-hidden','true');document.body.appendChild(rk);
-    var W2=innerWidth,H2=innerHeight,cx=W2/2,cy=H2*.4,ax=W2*.36,ay=H2*.26,D=8000,t0=performance.now(),last=0,px0=null,py0=null;
+
+  // 2. rocket: loops around the sky leaving a fiery trail
+  function sceneRocket(done){
+    var rk=document.createElement('div');rk.className='rocket';rk.textContent='🚀';rk.setAttribute('aria-hidden','true');document.body.appendChild(rk);
+    var W2=innerWidth,H2=innerHeight,cx=W2/2,cy=H2*.4,ax=W2*.36,ay=H2*.26,D=8000,t0=performance.now(),last=0;
     function pos(k){var a=k*Math.PI*4+Math.PI;return[cx+ax*Math.sin(a)*(1-.15*k),cy+ay*Math.sin(a*2+.6)*.9-k*k*H2*.25]}
     function step(now){var k=Math.min(1,(now-t0)/D),p=pos(k),q=pos(Math.min(1,k+.004)),ang=Math.atan2(q[1]-p[1],q[0]-p[0])*180/Math.PI;
       rk.style.transform='translate('+(p[0]-24)+'px,'+(p[1]-24)+'px) rotate('+(ang+45)+'deg)';
-      if(now-last>40){last=now;var pf=document.createElement('div');pf.className='puff';var bx=p[0]-Math.cos(ang*Math.PI/180)*26,by=p[1]-Math.sin(ang*Math.PI/180)*26;pf.style.left=bx+'px';pf.style.top=by+'px';document.body.appendChild(pf);setTimeout(function(){pf.remove()},720)}
+      if(now-last>40){last=now;var pf=document.createElement('div');pf.className='puff';pf.style.left=(p[0]-Math.cos(ang*Math.PI/180)*26)+'px';pf.style.top=(p[1]-Math.sin(ang*Math.PI/180)*26)+'px';document.body.appendChild(pf);setTimeout(function(){pf.remove()},720)}
       if(k<1)requestAnimationFrame(step);else{rk.remove();done()}}
     requestAnimationFrame(step);
   }
+
+  // 3. web-slinging hero: swings across the sky on three webs (a red-and-blue suit; an original sprite)
+  function sceneSwing(done){
+    var O=overlay(innerHeight,false),g=O.g,w=O.w,h=O.h,n=3,span=w/(2*n),th0=.9,L=span/Math.sin(th0),low=h*.6;
+    function hero(x,y,rot){g.save();g.translate(x,y);g.rotate(rot);g.scale(1.35,1.35);
+      g.strokeStyle='#1d3fa8';g.lineWidth=7;g.lineCap='round';
+      g.beginPath();g.moveTo(0,10);g.lineTo(-11,34);g.moveTo(0,10);g.lineTo(11,36);g.moveTo(0,-4);g.lineTo(-13,-18);g.moveTo(0,-4);g.lineTo(0,-30);g.stroke();     // limbs (one arm shoots the web)
+      g.fillStyle='#d4202c';g.beginPath();g.ellipse(0,2,9,15,0,0,6.283);g.fill();                                  // torso
+      g.fillStyle='#1d3fa8';g.fillRect(-9,8,18,8);
+      g.fillStyle='#d4202c';g.beginPath();g.arc(0,-17,8,0,6.283);g.fill();                                          // masked head
+      g.fillStyle='#fff';g.beginPath();g.ellipse(-3.5,-18,3,4.4,-.4,0,6.283);g.ellipse(3.5,-18,3,4.4,.4,0,6.283);g.fill();
+      g.strokeStyle='rgba(0,0,0,.35)';g.lineWidth=.8;g.beginPath();g.moveTo(0,-25);g.lineTo(0,-9);g.moveTo(-8,-17);g.lineTo(8,-17);g.stroke();
+      g.restore()}
+    runLoop(O,5400,function(k){
+      var i=Math.min(n-1,Math.floor(k*n)),u=k*n-i,ax_=w*(2*i+1)/(2*n),ay_=low-L,th=-th0*Math.cos(Math.PI*u),
+          bx=ax_+L*Math.sin(th),by=ay_+L*Math.cos(th);
+      g.strokeStyle='rgba(255,255,255,.9)';g.lineWidth=1.6;g.beginPath();g.moveTo(bx-0*Math.sin(th),by-14);g.lineTo(ax_,ay_);g.stroke();
+      g.fillStyle='rgba(255,255,255,.9)';g.beginPath();g.arc(ax_,Math.max(ay_,0),3,0,6.283);g.fill();
+      hero(bx,by,-th*.9);
+    },done);
+  }
+
+  // 4. cat with a rainbow tail
+  function sceneCat(done){
+    var O=overlay(200,false),g=O.g,w=O.w,trail=[],cols=['#ff3b3b','#ff9a1f','#ffe600','#37d94a','#2f9bff','#8a4dff'];
+    O.cv.style.top='22vh';
+    function cat(x,y,fr){g.fillStyle='#ffb7d5';g.fillRect(x-30,y-22,60,44);g.fillStyle='#e56fa0';g.fillRect(x-30,y-22,60,4);g.fillRect(x-30,y+18,60,4);   // pastry body
+      g.fillStyle='#ff7ab2';[[-18,-8],[6,-14],[14,6],[-8,8],[22,-6]].forEach(function(s){g.fillRect(x+s[0],y+s[1],4,4)});
+      g.fillStyle='#9a9aa8';g.fillRect(x+22,y-14,30,26);g.fillRect(x+22,y-22,8,9);g.fillRect(x+44,y-22,8,9);                                     // head and ears
+      g.fillStyle='#111';g.fillRect(x+29,y-6,4,5);g.fillRect(x+43,y-6,4,5);g.fillRect(x+36,y+1,4,3);                                              // eyes, nose
+      g.fillStyle='#ff9ec4';g.fillRect(x+27,y+2,5,4);g.fillRect(x+46,y+2,5,4);                                                                     // cheeks
+      g.fillStyle='#9a9aa8';var l=fr%2?4:0;g.fillRect(x-20,y+22,8,8+l);g.fillRect(x+6,y+22,8,12-l);g.fillRect(x-36,y-4,10,8)}                        // legs, tail tip
+    runLoop(O,5200,function(k,now){
+      var x=-60+(w+180)*k,y=100+Math.sin(k*Math.PI*5)*46,fr=now/120|0;
+      trail.push([x,y]);if(trail.length>260)trail.shift();
+      for(var b=0;b<6;b++){g.strokeStyle=cols[b];g.lineWidth=8;g.lineCap='butt';g.beginPath();
+        for(var i=0;i<trail.length;i++){var t=trail[i],wob=Math.sin(i*.35+now/150)*3;if(i===0)g.moveTo(t[0]-30,t[1]-20+b*8+wob);else g.lineTo(t[0]-30,t[1]-20+b*8+wob)}g.stroke()}
+      cat(x,y,fr);
+    },done);
+  }
+
+  var SCENES=[sceneRocket,sceneDino,sceneSwing,sceneCat];
   moon.addEventListener('click',function(){
     var now=Date.now();clicks=clicks.filter(function(t){return now-t<1500});clicks.push(now);
     if(clicks.length<3||busy)return;
     clicks=[];
     if(matchMedia('(prefers-reduced-motion:reduce)').matches)return;
-    busy=true;var left=2;function fin(){if(--left===0)busy=false}
-    flyRocket(fin);runDino(fin);
+    var i;do{i=Math.floor(Math.random()*SCENES.length)}while(i===lastScene);lastScene=i;   // one surprise at a time, never the same twice in a row
+    busy=true;SCENES[i](function(){busy=false});
   });
   if(calm)return;
   if(matchMedia('(hover:hover)').matches){
