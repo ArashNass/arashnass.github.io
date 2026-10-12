@@ -145,53 +145,13 @@ h1{font-family:Cinzel,Georgia,serif;font-weight:700;text-align:center;font-size:
     requestAnimationFrame(step);
   }
 
-  // 3. web-slinging hero: swings across the sky on three webs (a red-and-blue suit; an original sprite)
-  function sceneSwing(done){
-    var O=overlay(innerHeight,false),g=O.g,w=O.w,h=O.h,n=3,span=w/(2*n),th0=.9,L=span/Math.sin(th0),low=h*.6;
-    function hero(x,y,rot){g.save();g.translate(x,y);g.rotate(rot);g.scale(1.35,1.35);
-      g.strokeStyle='#1d3fa8';g.lineWidth=7;g.lineCap='round';
-      g.beginPath();g.moveTo(0,10);g.lineTo(-11,34);g.moveTo(0,10);g.lineTo(11,36);g.moveTo(0,-4);g.lineTo(-13,-18);g.moveTo(0,-4);g.lineTo(0,-30);g.stroke();     // limbs (one arm shoots the web)
-      g.fillStyle='#d4202c';g.beginPath();g.ellipse(0,2,9,15,0,0,6.283);g.fill();                                  // torso
-      g.fillStyle='#1d3fa8';g.fillRect(-9,8,18,8);
-      g.fillStyle='#d4202c';g.beginPath();g.arc(0,-17,8,0,6.283);g.fill();                                          // masked head
-      g.fillStyle='#fff';g.beginPath();g.ellipse(-3.5,-18,3,4.4,-.4,0,6.283);g.ellipse(3.5,-18,3,4.4,.4,0,6.283);g.fill();
-      g.strokeStyle='rgba(0,0,0,.35)';g.lineWidth=.8;g.beginPath();g.moveTo(0,-25);g.lineTo(0,-9);g.moveTo(-8,-17);g.lineTo(8,-17);g.stroke();
-      g.restore()}
-    runLoop(O,5400,function(k){
-      var i=Math.min(n-1,Math.floor(k*n)),u=k*n-i,ax_=w*(2*i+1)/(2*n),ay_=low-L,th=-th0*Math.cos(Math.PI*u),
-          bx=ax_+L*Math.sin(th),by=ay_+L*Math.cos(th);
-      g.strokeStyle='rgba(255,255,255,.9)';g.lineWidth=1.6;g.beginPath();g.moveTo(bx-0*Math.sin(th),by-14);g.lineTo(ax_,ay_);g.stroke();
-      g.fillStyle='rgba(255,255,255,.9)';g.beginPath();g.arc(ax_,Math.max(ay_,0),3,0,6.283);g.fill();
-      hero(bx,by,-th*.9);
-    },done);
-  }
-
-  // 4. cat with a rainbow tail
-  function sceneCat(done){
-    var O=overlay(200,false),g=O.g,w=O.w,trail=[],cols=['#ff3b3b','#ff9a1f','#ffe600','#37d94a','#2f9bff','#8a4dff'];
-    O.cv.style.top='22vh';
-    function cat(x,y,fr){g.fillStyle='#ffb7d5';g.fillRect(x-30,y-22,60,44);g.fillStyle='#e56fa0';g.fillRect(x-30,y-22,60,4);g.fillRect(x-30,y+18,60,4);   // pastry body
-      g.fillStyle='#ff7ab2';[[-18,-8],[6,-14],[14,6],[-8,8],[22,-6]].forEach(function(s){g.fillRect(x+s[0],y+s[1],4,4)});
-      g.fillStyle='#9a9aa8';g.fillRect(x+22,y-14,30,26);g.fillRect(x+22,y-22,8,9);g.fillRect(x+44,y-22,8,9);                                     // head and ears
-      g.fillStyle='#111';g.fillRect(x+29,y-6,4,5);g.fillRect(x+43,y-6,4,5);g.fillRect(x+36,y+1,4,3);                                              // eyes, nose
-      g.fillStyle='#ff9ec4';g.fillRect(x+27,y+2,5,4);g.fillRect(x+46,y+2,5,4);                                                                     // cheeks
-      g.fillStyle='#9a9aa8';var l=fr%2?4:0;g.fillRect(x-20,y+22,8,8+l);g.fillRect(x+6,y+22,8,12-l);g.fillRect(x-36,y-4,10,8)}                        // legs, tail tip
-    runLoop(O,5200,function(k,now){
-      var x=-60+(w+180)*k,y=100+Math.sin(k*Math.PI*5)*46,fr=now/120|0;
-      trail.push([x,y]);if(trail.length>260)trail.shift();
-      for(var b=0;b<6;b++){g.strokeStyle=cols[b];g.lineWidth=8;g.lineCap='butt';g.beginPath();
-        for(var i=0;i<trail.length;i++){var t=trail[i],wob=Math.sin(i*.35+now/150)*3;if(i===0)g.moveTo(t[0]-30,t[1]-20+b*8+wob);else g.lineTo(t[0]-30,t[1]-20+b*8+wob)}g.stroke()}
-      cat(x,y,fr);
-    },done);
-  }
-
-  var SCENES=[sceneRocket,sceneDino,sceneSwing,sceneCat];
+  var SCENES=[sceneRocket,sceneDino];
   moon.addEventListener('click',function(){
     var now=Date.now();clicks=clicks.filter(function(t){return now-t<1500});clicks.push(now);
     if(clicks.length<3||busy)return;
     clicks=[];
     if(matchMedia('(prefers-reduced-motion:reduce)').matches)return;
-    var i;do{i=Math.floor(Math.random()*SCENES.length)}while(i===lastScene);lastScene=i;   // one surprise at a time, never the same twice in a row
+    var i=Math.floor(Math.random()*SCENES.length);   // one surprise at a time, picked at random
     busy=true;SCENES[i](function(){busy=false});
   });
   if(calm)return;

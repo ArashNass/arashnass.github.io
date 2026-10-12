@@ -143,6 +143,14 @@ h1{font-size:31px;font-weight:600;letter-spacing:-.02em;margin-bottom:10px}
 [data-theme="dark"] .card-go{color:color-mix(in srgb,var(--c,#0f2350) 50%,#fff)}
 [data-theme="dark"] .card:hover{border-color:color-mix(in srgb,var(--c,#0f2350) 50%,var(--border))}
 [data-theme="dark"] .hero{background:#0d1a35}
+/* hero: richer, more vivid colour and a visible texture */
+.hero,[data-theme="dark"] .hero{background:linear-gradient(135deg,#0a1d58 0%,#15399f 52%,#2c5bdc 100%);box-shadow:0 22px 50px -24px rgba(21,57,159,.8),0 0 0 1px rgba(255,255,255,.1) inset}
+[data-theme="dark"] .hero{background:linear-gradient(135deg,#081437 0%,#12308a 55%,#2250c8 100%);box-shadow:0 22px 50px -24px rgba(34,80,200,.65),0 0 0 1px rgba(255,255,255,.1) inset}
+.hero::before{background:linear-gradient(115deg,rgba(255,255,255,.22) 0%,rgba(255,255,255,.06) 28%,rgba(255,255,255,0) 52%),radial-gradient(60% 100% at 100% -15%,rgba(120,210,255,.5),transparent 62%),radial-gradient(55% 95% at 0% 125%,rgba(140,90,255,.38),transparent 64%),radial-gradient(40% 70% at 55% 130%,rgba(60,220,170,.22),transparent 70%)}
+.hero::after{background-image:radial-gradient(rgba(255,255,255,.2) 1px,transparent 1.4px);background-size:22px 22px;opacity:.55;mask-image:linear-gradient(to bottom left,#000 0%,transparent 70%);-webkit-mask-image:linear-gradient(to bottom left,#000 0%,transparent 70%)}
+.hero h1{text-shadow:0 2px 18px rgba(8,20,60,.35)}
+.hero .intro{color:rgba(255,255,255,.88)}
+#toolSearch{background:rgba(255,255,255,.16);border-color:rgba(255,255,255,.34)}
 [data-theme="dark"] .no-results button{background:#2f4d8f}
 [data-theme="dark"] .no-results button:hover{background:#3d5fa8}
 
