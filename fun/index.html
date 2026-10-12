@@ -15,7 +15,7 @@
 html,body{min-height:100%}
 body{font-family:Inter,'Segoe UI',system-ui,sans-serif;color:var(--ink);background:radial-gradient(120% 90% at 50% 0%,#2a1366 0%,#150a3a 45%,#07031a 100%) fixed;overflow-x:hidden;position:relative}
 #sky{position:fixed;inset:0;width:100%;height:100%;z-index:0;pointer-events:none}
-.moon{position:fixed;top:7vh;right:9vw;width:clamp(70px,11vw,130px);aspect-ratio:1;border-radius:50%;z-index:0;pointer-events:none;
+.moon{cursor:pointer;-webkit-tap-highlight-color:transparent;position:fixed;top:7vh;right:9vw;width:clamp(70px,11vw,130px);aspect-ratio:1;border-radius:50%;z-index:2;
  background:radial-gradient(circle at 35% 35%,#fffbe8,#ffe9a8 55%,#e8c66e);box-shadow:0 0 60px 18px rgba(255,226,150,.28),0 0 160px 60px rgba(160,120,255,.18);transition:transform .2s ease-out}
 .moon::after{content:"";position:absolute;inset:0;border-radius:50%;background:radial-gradient(circle at 62% 60%,rgba(150,120,60,.28) 0 9%,transparent 10%),radial-gradient(circle at 30% 65%,rgba(150,120,60,.2) 0 6%,transparent 7%),radial-gradient(circle at 55% 25%,rgba(150,120,60,.2) 0 5%,transparent 6%)}
 .hills{position:fixed;left:0;right:0;bottom:0;height:22vh;z-index:0;pointer-events:none}
@@ -44,6 +44,11 @@ h1{font-family:Cinzel,Georgia,serif;font-weight:700;text-align:center;font-size:
 .go i{display:inline-block;transition:transform .2s;font-style:normal}
 .card:hover .go i{transform:translateX(5px)}
 .foot{text-align:center;color:rgba(181,169,217,.7);font-size:12px;margin-top:44px}
+.moon.cheese{background:radial-gradient(circle at 35% 35%,#fff3a8,#ffd54a 55%,#f0a91c);box-shadow:0 0 60px 18px rgba(255,200,60,.4),0 0 160px 60px rgba(255,150,40,.2)}
+.moon.cheese::after{background:radial-gradient(circle at 62% 60%,#c98a12 0 11%,transparent 12%),radial-gradient(circle at 28% 62%,#c98a12 0 8%,transparent 9%),radial-gradient(circle at 52% 24%,#c98a12 0 7%,transparent 8%),radial-gradient(circle at 75% 32%,#c98a12 0 4%,transparent 5%),radial-gradient(circle at 40% 85%,#c98a12 0 4%,transparent 5%)}
+.cow{position:fixed;z-index:3;font-size:clamp(34px,6vw,58px);pointer-events:none;left:0;top:0;filter:drop-shadow(0 0 12px rgba(255,255,255,.5))}
+.toast{position:fixed;left:50%;bottom:9vh;transform:translate(-50%,20px);z-index:5;max-width:min(92vw,420px);text-align:center;font:500 14px/1.5 Inter,system-ui,sans-serif;color:#2b1a00;background:linear-gradient(135deg,#ffe9a8,#ffd54a);padding:12px 18px;border-radius:14px;box-shadow:0 10px 40px rgba(255,200,60,.35);opacity:0;transition:.4s;pointer-events:none}
+.toast.on{opacity:1;transform:translate(-50%,0)}
 @media(prefers-reduced-motion:reduce){h1,.ico{animation:none}.card,.moon{transition:none}}
 </style>
 </head>
@@ -97,8 +102,31 @@ h1{font-family:Cinzel,Georgia,serif;font-weight:700;text-align:center;font-size:
       g.addColorStop(0,'hsla('+p.h+',100%,75%,'+a+')');g.addColorStop(1,'hsla('+p.h+',100%,70%,0)');x.globalAlpha=1;x.fillStyle=g;x.beginPath();x.arc(p.x,p.y,p.r*7,0,6.283);x.fill()}
     if(!calm)requestAnimationFrame(draw)}
   size();addEventListener('resize',size);draw();
-  if(calm)return;
   var moon=document.getElementById('moon');
+  var clicks=[],busy=false;
+  moon.addEventListener('click',function(){
+    var now=Date.now();clicks=clicks.filter(function(t){return now-t<1500});clicks.push(now);
+    if(clicks.length<3||busy)return;
+    clicks=[];busy=true;
+    var calmNow=matchMedia('(prefers-reduced-motion:reduce)').matches;
+    var t=document.createElement('div');t.className='toast';t.setAttribute('role','status');
+    t.innerHTML='Hey diddle diddle, the cow jumped over the moon.<br>Also: it is made of cheese. Scientists are baffled.';
+    document.body.appendChild(t);
+    moon.classList.add('cheese');requestAnimationFrame(function(){t.classList.add('on')});
+    function end(){setTimeout(function(){t.classList.remove('on');moon.classList.remove('cheese');setTimeout(function(){t.remove();busy=false},500)},calmNow?4200:1800)}
+    if(calmNow){end();return}
+    var r=moon.getBoundingClientRect(),cx=r.left+r.width/2,top=r.top,cow=document.createElement('div');
+    cow.className='cow';cow.textContent='\uD83D\uDC04';cow.setAttribute('aria-hidden','true');document.body.appendChild(cow);
+    var sy=Math.min(H-80,top+r.height*1.6),peak=Math.max(10,top-r.height*.55);
+    var a=cow.animate([
+      {transform:'translate('+(-80)+'px,'+sy+'px) rotate(-10deg)',offset:0},
+      {transform:'translate('+(cx-30)+'px,'+peak+'px) rotate(0deg) scale(1.15)',offset:.5},
+      {transform:'translate('+(W+80)+'px,'+sy+'px) rotate(12deg)',offset:1}
+    ],{duration:2600,easing:'ease-in-out'});
+    a.onfinish=function(){cow.remove()};
+    end();
+  });
+  if(calm)return;
   if(matchMedia('(hover:hover)').matches){
     addEventListener('pointermove',function(e){moon.style.transform='translate('+((e.clientX/W-.5)*-14)+'px,'+((e.clientY/H-.5)*-10)+'px)'});
     document.querySelectorAll('.card').forEach(function(k){
