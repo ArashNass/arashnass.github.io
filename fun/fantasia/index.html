@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<meta name="theme-color" content="#1a0f3d">
+<meta name="description" content="Legends of Fantasia: a cartoon 2D platformer. Pick a hero, from a caveman to a cool T-Rex, and adventure through three fantasy realms.">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<title>Legends of Fantasia | Arash Nassirpour</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#f6f0ff;--dim:#c9bce8;--gold:#ffd98a;--panel:rgba(26,14,64,.86);--line:rgba(255,217,138,.42)}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden;background:#1a0f3d}
+body{font-family:Inter,system-ui,sans-serif;color:var(--ink);touch-action:none;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent}
+canvas#game{position:fixed;inset:0;display:block}
+button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
+.hidden{display:none!important}
+/* HUD */
+#hud{position:fixed;inset:0 0 auto 0;z-index:5;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:max(12px,env(safe-area-inset-top)) max(14px,env(safe-area-inset-right)) 0 max(14px,env(safe-area-inset-left));pointer-events:none}
+#hud>*{pointer-events:auto}
+.pill{display:inline-flex;align-items:center;gap:7px;height:38px;padding:0 14px;border-radius:20px;background:var(--panel);border:1.5px solid var(--line);font-weight:700;font-size:15px;white-space:nowrap}
+.hl,.hr{display:flex;gap:8px;align-items:center}
+.back{color:var(--ink);text-decoration:none;font-size:13px}
+.gem{width:13px;height:13px;transform:rotate(45deg);background:linear-gradient(135deg,#a8f6ff,#2bb7ea);border:1.5px solid #fff;border-radius:2px}
+#hearts{gap:2px;font-size:19px;padding:0 11px}
+#hearts span{color:#ff4d6d;text-shadow:0 0 8px rgba(255,80,110,.6)}
+#hearts span.off{color:rgba(255,255,255,.2);text-shadow:none}
+.icon{width:38px;padding:0;justify-content:center}
+.icon svg{width:18px;height:18px;fill:none;stroke:#fff;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+#lvlName{font-family:Cinzel,serif;font-size:13px;letter-spacing:.06em;color:var(--gold)}
+#banner{position:fixed;left:50%;top:30%;transform:translate(-50%,-50%);z-index:6;text-align:center;pointer-events:none;opacity:0;white-space:nowrap}
+#banner.show{animation:ban 2.6s ease-out}
+#banner small{display:block;font:700 12px Inter,sans-serif;letter-spacing:.3em;text-transform:uppercase;color:var(--gold);margin-bottom:6px}
+#banner b{font-family:Cinzel,serif;font-weight:900;font-size:clamp(30px,6vw,52px);color:#fff;text-shadow:0 3px 0 #3a1a6a,0 0 26px rgba(190,140,255,.9)}
+@keyframes ban{0%{opacity:0;transform:translate(-50%,-30%) scale(.8)}12%{opacity:1;transform:translate(-50%,-50%) scale(1.04)}80%{opacity:1}100%{opacity:0}}
+/* touch controls */
+#touch{position:fixed;inset:auto 0 0 0;z-index:5;display:flex;justify-content:space-between;align-items:flex-end;padding:0 max(18px,env(safe-area-inset-right)) max(18px,env(safe-area-inset-bottom)) max(18px,env(safe-area-inset-left));pointer-events:none}
+#touch .grp{display:flex;gap:14px;pointer-events:auto}
+.tb{width:76px;height:76px;border-radius:50%;display:grid;place-items:center;background:rgba(26,14,64,.55);border:2px solid rgba(255,217,138,.5);touch-action:none}
+.tb.on{background:rgba(255,217,138,.35)}
+.tb svg{width:32px;height:32px;fill:#fff}
+.tb.big{width:88px;height:88px}
+/* overlays */
+.ov{position:fixed;inset:0;z-index:8;display:grid;place-items:center;padding:16px;overflow:auto;background:radial-gradient(ellipse at center,rgba(20,8,50,.35),rgba(14,6,36,.78))}
+.panel{width:min(100%,520px);text-align:center;padding:28px 24px 24px;border-radius:24px;background:var(--panel);border:1.5px solid var(--line);box-shadow:0 20px 60px rgba(0,0,0,.45)}
+.wide{width:min(100%,920px)}
+.kick{font-family:Cinzel,serif;font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:#d8b8ff}
+h1,h2,h3{font-family:Cinzel,Georgia,serif;font-weight:900;line-height:1.05}
+h1{font-size:clamp(36px,8vw,64px);margin:8px 0 12px;background:linear-gradient(100deg,#ffe9a8,#ffb4f0 40%,#9fd3ff 70%,#ffe9a8);background-size:200% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:shine 8s linear infinite;filter:drop-shadow(0 0 18px rgba(190,140,255,.5))}
+@keyframes shine{to{background-position:200% 0}}
+h2{font-size:clamp(26px,5vw,36px);margin:6px 0 14px;color:var(--gold)}
+.sub{color:var(--dim);font-size:14.5px;line-height:1.55;margin:0 auto 18px;max-width:440px}
+.play{display:inline-block;padding:13px 40px;border-radius:30px;font-family:Cinzel,serif;font-weight:900;font-size:19px;letter-spacing:.05em;color:#3a1660;background:linear-gradient(180deg,#ffe9a0,#ffb43c);box-shadow:0 5px 0 #a0520f,0 10px 26px rgba(255,170,60,.4);transition:transform .12s}
+.play:hover{transform:translateY(-2px)}
+.play:active{transform:translateY(3px);box-shadow:0 2px 0 #a0520f}
+.play:disabled{opacity:.5;cursor:default;transform:none}
+.alt{display:inline-block;margin-top:14px;color:var(--dim);font-size:13px;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+.row{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;align-items:center}
+.keys{margin-top:18px;font-size:12.5px;color:var(--dim);line-height:2}
+.keys kbd{display:inline-block;min-width:22px;padding:0 6px;border-radius:5px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);font:600 11.5px Inter,sans-serif;color:#fff;line-height:20px}
+.touchonly{display:none}
+@media (pointer:coarse){.touchonly{display:block}.deskonly{display:none}}
+/* hero select */
+.heroes{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,190px),1fr));gap:14px;margin:6px 0 20px}
+.hero{position:relative;padding:12px 12px 14px;border-radius:18px;background:rgba(255,255,255,.05);border:2px solid rgba(255,255,255,.1);text-align:left;transition:.18s}
+.hero:hover{border-color:rgba(255,217,138,.5);transform:translateY(-3px)}
+.hero.sel{border-color:var(--gold);background:rgba(255,217,138,.1);box-shadow:0 0 0 4px rgba(255,217,138,.15),0 12px 30px rgba(0,0,0,.3)}
+.hero canvas{width:100%;height:130px;display:block;border-radius:12px;background:linear-gradient(#3b2a8a,#6a4fc0 70%,#4a7a3a 70%,#3d6a30)}
+.hero h3{font-size:19px;margin:10px 0 2px;color:#fff}
+.hero .tt{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#d8b8ff}
+.hero p{font-size:12.5px;color:var(--dim);line-height:1.45;margin:6px 0 8px;min-height:36px}
+.stat{display:grid;grid-template-columns:52px 1fr;align-items:center;gap:6px;font-size:11px;color:var(--dim);margin-top:3px}
+.stat i{display:flex;gap:3px}
+.stat i b{flex:1;height:6px;border-radius:3px;background:rgba(255,255,255,.12)}
+.stat i b.on{background:linear-gradient(90deg,#ffd166,#ff8fab)}
+.badge{position:absolute;top:18px;right:18px;padding:3px 9px;border-radius:10px;background:#ff5d8f;color:#fff;font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase}
+/* level select */
+.levels{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr));gap:14px;margin:6px 0 18px}
+.lvl{position:relative;min-height:150px;padding:18px;border-radius:18px;text-align:left;border:2px solid rgba(255,255,255,.12);display:flex;flex-direction:column;justify-content:flex-end;overflow:hidden;transition:.18s}
+.lvl:not(:disabled):hover{transform:translateY(-3px);border-color:var(--gold)}
+.lvl:disabled{filter:grayscale(.85) brightness(.6);cursor:default}
+.lvl .n{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:rgba(255,255,255,.85)}
+.lvl h3{font-size:22px;color:#fff;text-shadow:0 2px 0 rgba(0,0,0,.35);margin:3px 0}
+.lvl p{font-size:12.5px;color:rgba(255,255,255,.85)}
+.lvl .lock{position:absolute;top:14px;right:14px;font-size:12px;font-weight:700;padding:3px 9px;border-radius:10px;background:rgba(0,0,0,.4)}
+.l0{background:linear-gradient(160deg,#5ec8ff,#7fbf8f 55%,#3f8f4a)}
+.l1{background:linear-gradient(160deg,#3b2a7a,#d9608a 45%,#ffb36b 75%,#e8a868)}
+.l2{background:linear-gradient(160deg,#120a33,#3b1f75 50%,#6c5ce7)}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:6px 0 20px}
+.stats div{padding:10px 4px;border-radius:14px;background:rgba(255,255,255,.07)}
+.stats b{display:block;font-family:Cinzel,serif;font-size:24px;color:#fff}
+.stats span{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim)}
+@media (max-width:520px){.pill{height:34px;padding:0 10px;font-size:14px}.icon{width:34px}#lvlName,.back .lbl{display:none}.tb{width:66px;height:66px}.tb.big{width:76px;height:76px}}
+</style>
+</head>
+<body>
+<canvas id="game"></canvas>
+
+<div id="hud">
+  <div class="hl">
+    <a class="pill back" href="/fun/" aria-label="Back to the Funfair">&larr;<span class="lbl">&nbsp;Funfair</span></a>
+    <span class="pill hidden" id="lvlName"></span>
+  </div>
+  <div class="hr">
+    <span class="pill ingame hidden"><i class="gem"></i><span id="gems">0</span></span>
+    <span class="pill ingame hidden" id="hearts" aria-label="Hearts"></span>
+    <button class="pill icon ingame hidden" id="pauseBtn" aria-label="Pause"><svg viewBox="0 0 24 24"><path d="M9 5v14M15 5v14"/></svg></button>
+    <button class="pill icon" id="muteBtn" aria-label="Toggle sound"><svg viewBox="0 0 24 24"><path id="muteIco" d=""/></svg></button>
+  </div>
+</div>
+<div id="banner"><small id="banSmall"></small><b id="banBig"></b></div>
+
+<div id="touch" class="hidden">
+  <div class="grp">
+    <button class="tb" data-k="left" aria-label="Left"><svg viewBox="0 0 24 24"><path d="M15 5l-8 7 8 7z"/></svg></button>
+    <button class="tb" data-k="right" aria-label="Right"><svg viewBox="0 0 24 24"><path d="M9 5l8 7-8 7z"/></svg></button>
+  </div>
+  <div class="grp">
+    <button class="tb" data-k="attack" aria-label="Attack"><svg viewBox="0 0 24 24"><path d="M12 2l2.4 6.6L21 9l-5.2 4.3L17.6 21 12 17.2 6.4 21l1.8-7.7L3 9l6.6-.4z"/></svg></button>
+    <button class="tb big" data-k="jump" aria-label="Jump"><svg viewBox="0 0 24 24"><path d="M12 4l8 9h-5v7H9v-7H4z"/></svg></button>
+  </div>
+</div>
+
+<section id="s-title" class="ov">
+  <div class="panel">
+    <p class="kick">A Funfair side quest</p>
+    <h1>Legends of Fantasia</h1>
+    <p class="sub">Three enchanted realms. Volcanoes, desert palaces and a crystal castle in the stars. Pick your hero, grab the gems, bop the baddies and reach the portal.</p>
+    <button class="play" id="startBtn">Play</button>
+    <div class="keys deskonly"><kbd>&larr;</kbd> <kbd>&rarr;</kbd> move &nbsp;·&nbsp; <kbd>&uarr;</kbd> / <kbd>Space</kbd> jump &nbsp;·&nbsp; <kbd>X</kbd> attack &nbsp;·&nbsp; <kbd>P</kbd> pause</div>
+    <div class="keys touchonly">On-screen buttons to move, jump and attack.<br>Turn your phone sideways for the widest view.</div>
+  </div>
+</section>
+
+<section id="s-heroes" class="ov hidden">
+  <div class="panel wide">
+    <p class="kick">Step 1</p>
+    <h2>Choose your hero</h2>
+    <div class="heroes" id="heroList"></div>
+    <button class="play" id="toLevels">Choose a realm &rarr;</button><br>
+    <span class="alt" data-go="title">Back</span>
+  </div>
+</section>
+
+<section id="s-levels" class="ov hidden">
+  <div class="panel wide">
+    <p class="kick">Step 2</p>
+    <h2>Choose a realm</h2>
+    <div class="levels" id="lvlList"></div>
+    <span class="alt" data-go="heroes">Change hero</span>
+  </div>
+</section>
+
+<section id="s-pause" class="ov hidden">
+  <div class="panel">
+    <p class="kick">Catching your breath</p>
+    <h2>Paused</h2>
+    <div class="row"><button class="play" id="resumeBtn">Resume</button></div>
+    <span class="alt" data-go="levels">Quit to realm select</span>
+  </div>
+</section>
+
+<section id="s-complete" class="ov hidden">
+  <div class="panel">
+    <p class="kick" id="cKick">Realm cleared</p>
+    <h2 id="cTitle">Well done!</h2>
+    <div class="stats">
+      <div><b id="cGems">0</b><span>gems</span></div>
+      <div><b id="cFoes">0</b><span>baddies bopped</span></div>
+      <div><b id="cTime">0</b><span>time</span></div>
+    </div>
+    <div class="row"><button class="play" id="nextBtn">Next realm &rarr;</button></div>
+    <span class="alt" data-go="levels">Realm select</span>
+  </div>
+</section>
+
+<section id="s-over" class="ov hidden">
+  <div class="panel">
+    <p class="kick">Out of hearts</p>
+    <h2>Game over</h2>
+    <p class="sub" id="overMsg"></p>
+    <div class="row"><button class="play" id="retryBtn">Try again</button></div>
+    <span class="alt" data-go="heroes">Change hero</span>
+  </div>
+</section>
+
+<section id="s-win" class="ov hidden">
+  <div class="panel">
+    <p class="kick">All three realms saved</p>
+    <h1>Legend!</h1>
+    <p class="sub" id="winMsg"></p>
+    <div class="row"><button class="play" data-go="heroes">Play again</button></div>
+    <a class="alt" href="/fun/">Back to the Funfair</a>
+  </div>
+</section>
+
+<script src="game.js?v=3"></script>
+</body>
+</html>

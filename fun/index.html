@@ -34,7 +34,7 @@ h1{font-family:Cinzel,Georgia,serif;font-weight:700;text-align:center;font-size:
 .card:hover::after,.card:focus-visible::after{opacity:1}
 .card:focus-visible{outline:2px solid var(--gold);outline-offset:3px}
 .ico{width:58px;height:58px;border-radius:16px;display:grid;place-items:center;background:linear-gradient(145deg,hsl(var(--h) 80% 60% / .35),hsl(calc(var(--h) + 50) 80% 55% / .15));border:1px solid hsl(var(--h) 90% 75% / .45);box-shadow:0 0 24px hsl(var(--h) 90% 60% / .35);animation:bob 4.5s ease-in-out infinite}
-.card:nth-child(2) .ico{animation-delay:-1.1s}.card:nth-child(3) .ico{animation-delay:-2.2s}.card:nth-child(4) .ico{animation-delay:-3.3s}
+.card:nth-child(2) .ico{animation-delay:-1.1s}.card:nth-child(3) .ico{animation-delay:-2.2s}.card:nth-child(4) .ico{animation-delay:-3.3s}.card:nth-child(5) .ico{animation-delay:-.6s}
 @keyframes bob{50%{transform:translateY(-5px)}}
 .ico svg{width:30px;height:30px;stroke:#fff;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
 .kick{font-family:Cinzel,Georgia,serif;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:hsl(var(--h) 95% 80%)}
@@ -83,6 +83,12 @@ h1{font-family:Cinzel,Georgia,serif;font-weight:700;text-align:center;font-size:
       <span class="kick">The Finance Forge</span><h2>Car Finance Calculator</h2>
       <p>Compare the real cost of a car deal: payments, interest and the total over the term.</p>
       <span class="go">Light the forge <i>&rarr;</i></span>
+    </a>
+    <a class="card" style="--h:22" href="/fun/fantasia/">
+      <span class="ico"><svg viewBox="0 0 24 24"><path d="M12 3l2.2 5.3L20 9l-4.4 3.8L17 19l-5-3-5 3 1.4-6.2L4 9l5.8-.7z"/></svg></span>
+      <span class="kick">The Enchanted Realms</span><h2>Legends of Fantasia</h2>
+      <p>A cartoon platformer in the spirit of the 90s classics. Play as a caveman, a prince, a sorceress or a cool T-Rex.</p>
+      <span class="go">Choose your hero <i>&rarr;</i></span>
     </a>
   </div>
   <p class="foot">&copy; 2026 Arash Nassirpour</p>
