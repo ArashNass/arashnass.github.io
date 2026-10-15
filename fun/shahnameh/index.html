@@ -78,6 +78,15 @@ h2{font-size:clamp(21px,4.6vw,27px);margin:2px 0 8px}
   background:#e8d6ae url(assets/ui/parch.png) 0 0/160px;image-rendering:pixelated;border:2px solid #7a4e14;outline:1px solid #c8902a;outline-offset:-6px;box-shadow:0 8px 22px rgba(0,0,0,.55);
   font:16px/1.4 'IM Fell English',Georgia,serif;color:var(--inkb);text-align:center;opacity:0;transition:opacity .3s,transform .3s;pointer-events:none}
 #toast.on{opacity:1;transform:translate(-50%,0)}
+/* the standing hint: a narrow parchment slip under the HUD, saying what to do now */
+#hint{position:fixed;left:50%;top:calc(max(10px,env(safe-area-inset-top)) + 46px);transform:translateX(-50%);z-index:5;width:max-content;max-width:min(92vw,560px);padding:6px 14px;pointer-events:none;
+  background:rgba(232,214,174,.94) url(assets/ui/parch.png) 0 0/160px;image-rendering:pixelated;border:1.5px solid #7a4e14;box-shadow:0 4px 12px rgba(0,0,0,.45);
+  font:15px/1.35 'IM Fell English',Georgia,serif;color:var(--inkb);text-align:center}
+#hint b{color:var(--rubric);font-weight:normal;font-style:italic}
+#boss:not(.hidden)~#hint{top:calc(max(10px,env(safe-area-inset-top)) + 84px)}
+#hint.new{animation:hintIn .6s ease}@keyframes hintIn{0%{opacity:0;transform:translate(-50%,-6px)}100%{opacity:1;transform:translateX(-50%)}}
+@media (max-width:620px),(max-height:520px){#hint{font-size:13px;padding:4px 10px;max-width:min(70vw,460px)}}
+@media (prefers-reduced-motion:reduce){#hint.new{animation:none}}
 @media (pointer:fine){#toast{bottom:28px}}
 .btns{display:flex;flex-wrap:wrap;gap:10px 12px;justify-content:center;align-items:center}
 .btn2{display:inline-flex;align-items:center;justify-content:center;height:36px;padding:0 10px;border:solid transparent;border-width:9px 16px;border-image:url(assets/ui/btn-cream.png) 9 16 fill stretch;image-rendering:pixelated;
@@ -155,6 +164,7 @@ h2{font-size:clamp(21px,4.6vw,27px);margin:2px 0 8px}
   </div>
 </div>
 <div id="boss" class="hidden"><span id="bossName">The Lion of the Reeds</span><i><b id="bossHp"></b></i></div>
+<div id="hint" class="hidden" role="status" aria-live="polite"></div>
 <div id="banner" aria-hidden="true"><div class="fa">شیرِ نیستان</div><h2>The Lion of the Reeds</h2></div>
 <div id="toast" role="status" aria-live="polite"></div>
 <div id="touch" class="hidden">
@@ -196,7 +206,7 @@ h2{font-size:clamp(21px,4.6vw,27px);margin:2px 0 8px}
     <p class="kick">Even heroes fall</p>
     <h2>Rise again, Rostam</h2>
     <p class="story" id="deadTip">The road to Mazandaran is long. Try once more.</p>
-    <div class="btns"><button class="btn" id="retryBtn">Try again</button><button class="btn2" data-story>Read the tale</button></div>
+    <div class="btns"><button class="btn" id="retryBtn">Try again</button><button class="btn2 hidden" id="freshBtn">Start the labour again</button><button class="btn2" data-story>Read the tale</button></div>
   </div>
 </section>
 
@@ -348,6 +358,6 @@ h2{font-size:clamp(21px,4.6vw,27px);margin:2px 0 8px}
 </template>
 
 <script src="https://cdn.jsdelivr.net/npm/phaser@3.80.1/dist/phaser.min.js"></script>
-<script src="game.js?v=11"></script>
+<script src="game.js?v=12"></script>
 </body>
 </html>

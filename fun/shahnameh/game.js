@@ -39,7 +39,7 @@ const FPS = { 'rostam-idle': 5, 'rostam-run': 12, 'rostam-jump': 6, 'rostam-atta
 const SIZE = { rostam: 80, lion: 100, jackal: 58, div: 64, scorpion: 72, vulture: 72, ram: 64, dragon: 136, rakhsh: 104, bat: 72, serpent: 72, hag: 72, beauty: 64, spearman: 80, olad: 72, divwarrior: 104, arzhang: 136, whitediv: 136 };
 const BODY = { rostam: [0.2, 0.55], lion: [0.48, 0.3], jackal: [0.48, 0.31], div: [0.34, 0.52], scorpion: [0.5, 0.28], vulture: [0.42, 0.26], ram: [0.5, 0.5],
   dragon: [0.46, 0.42], rakhsh: [0.5, 0.5], bat: [0.36, 0.22], serpent: [0.4, 0.4], hag: [0.4, 0.62], beauty: [0.34, 0.8], spearman: [0.2, 0.68], olad: [0.26, 0.76], divwarrior: [0.3, 0.62], arzhang: [0.3, 0.7], whitediv: [0.4, 0.58] };
-const V = 11;   // bump to bust caches when assets change
+const V = 12;   // bump to bust caches when assets change
 
 // PixelLab VFX strips in ./assets/fx: frame size, frame count, fps, and the effect's origin as a fraction of the frame
 const FX = {
@@ -269,6 +269,12 @@ function map6() {
 // Khan VII: the seven mountains and the White Div's cave. Columns from CAVE7 on are inside the cave.
 // 'k' Kay Kavus in chains  'X' the White Div
 const CAVE7 = 120;
+// the row a thing can stand on in a map column (or the nearest column that has ground): for fires and hearts
+function topAt(map, c) {
+  const solid = ch => ch === '#' || ch === '=';
+  for (const dc of [0, 1, -1, 2, -2, 3, -3]) { const k = c + dc; for (let r = 1; r < map.length; r++) if (map[r][k] && solid(map[r][k]) && !solid(map[r - 1][k])) return r; }
+  return null;
+}
 function map7() {
   const C = 200, g = Array.from({ length: ROWS }, () => Array(C).fill('.'));
   const ground = (a, b, top) => { for (let c = a; c <= b; c++) for (let r = top; r < ROWS; r++) g[r][c] = '#'; };
@@ -406,7 +412,11 @@ const LEVELS = {
     },
     // roast lamb on the high perches, fruit and bread everywhere else
     food: (c, r, n) => (c === 44 && r === 8) || (c === 80 && r === 5) ? 'lamb' : FOOD[1 + (n % 3)],
-    create(s) { for (const fx of [14, 37, 58, 76, 98, 118]) s.add.sprite(fx * TS, 160, 'fx-fireflies').play({ key: 'fx-fireflies', startFrame: fx % 16 }).setDepth(11).setAlpha(0.9); },
+    create(s) {
+      for (const fx of [14, 37, 58, 76, 98, 118]) s.add.sprite(fx * TS, 160, 'fx-fireflies').play({ key: 'fx-fireflies', startFrame: fx % 16 }).setDepth(11).setAlpha(0.9);
+      hint(`Cross the reeds. <b>Strike</b> with ${touch ? 'the mace button' : '<b>X</b>'}, or land on foes from above. <b>Walk past a fire altar</b> to light it: you rise there if you fall.`);
+    },
+    fires: [82], hearts: [80],                       // a last fire and a heart before the lion's den
     update(s, k, time, p) { if (!s.bossOn && p.x > 88 * TS) s.startBoss(); },
     win: 'With the lion of the reeds slain, Rostam takes up a feather of the Simurgh. Ahead lies the waterless desert of the second labour.',
     tips: ['The lion charges in a straight line. Step aside, or leap over it, and strike while it is dazed.',
@@ -443,6 +453,7 @@ const LEVELS = {
     },
     // two roast lambs on the high perches heal; dates and fruit everywhere else
     food: (c, r, n) => (c === 77 && r === 9) || (c === 94 && r === 10) ? 'lamb' : n % 4 === 3 ? 'dates' : FOOD[1 + (n % 3)],
+    hearts: [110, 142],                              // one before the sandstorm, one where the storm parts
     parse(s, ch, x, y) {
       if (ch === 'w') s.pickup(x, y - 6, 'props', 0, 'skin');
       else if (ch === 's') s.spawnFoe('scorpion', x, y);
@@ -458,6 +469,7 @@ const LEVELS = {
     create(s) {
       s.water = 100; s.thirstT = 0; s.stormOn = 0; s.prayed = false;
       $('waterPill').classList.remove('hidden'); s.renderWater();
+      hint('Your <b>water</b> (blue bar, top right) drains in the heat. <b>Walk past a well</b> to drink your fill; water skins give a sip. If it runs dry you lose hearts.');
     },
     update(s, k, time, p, b) {
       if (s.done) return;
@@ -467,6 +479,7 @@ const LEVELS = {
       s.storm.emitting = s.stormOn > 0.08; s.storm.frequency = 40 - s.stormOn * 30; s.haze.setAlpha(s.stormOn * 0.55);
       s.veil.setAlpha(s.stormOn * 0.9); s.veil.tilePositionX += 9 * k; s.veil.tilePositionY = Math.round(Math.sin(time * 0.002) * 6);
       if (s.stormOn > 0.1 && !s.frozen) b.velocity.x -= 9 * s.stormOn * k;          // the wind pushes back
+      if (s.stormOn > 0.3 && !s.prayed) hint('A <b>sandstorm</b>! The wind pushes you back and water drains twice as fast. <b>Keep pressing on</b>.');
       // thirst: water drains in the heat, twice as fast in the storm
       if (!s.frozen) s.water = Math.max(0, s.water - k * (0.045 + s.stormOn * 0.045));
       if (s.water <= 0) { s.thirstT += k; if (s.thirstT > 150) { s.thirstT = 0; s.hurt(p.x, true); toast('Rostam is dying of thirst. Find water!'); } }
@@ -505,7 +518,9 @@ const LEVELS = {
       for (const w of s.wisps) s.light(w, 0.7, 0.08);
       for (const a of s.altars) { a.ember = s.add.image(a.x, a.y - 22, 'glow').setScale(0.4).setBlendMode(Phaser.BlendModes.ADD).setDepth(3); s.light(a.ember, 0.6, 0.1); }
       toast('Night falls. Rostam rides on in the dark; the light of his torch is all he has.');
+      hint('Night. Your torch is your only light. <b>Walk past fire altars</b> to light them: you rise at the last one if you fall.');
     },
+    fires: [107], hearts: [105],
     update(s, k, time, p) { if (!s.bossOn && p.x > 113 * TS) s.startDragon(); },
     win: 'With Rakhsh at his side Rostam slays the dragon that ruled the night. At dawn he rides on, and the road leads into a garden where a feast is laid.',
     tips: ['The dragon hides in the dark. Wait for Rakhsh to rear and neigh: then it shows itself.', 'Strike the dragon while it is revealed, and jump its fire.',
@@ -536,11 +551,13 @@ const LEVELS = {
       s.darkness(0.6, 0x0a0820);
       for (const w of s.wisps) s.light(w, 0.8, 0.06);
       for (const a of s.altars) s.light(a, 0.6);
+      hint('A moonlit garden. <b>Serpents strike when they rear up</b>: hit them first, or jump over them.');
       // the feast: a carpet laid with bread, fruit and roast lamb
       const f = s.feastAt; s.add.rectangle(f.x, f.y - 2, 92, 5, 0x8a1a2a).setDepth(2).setStrokeStyle(1, 0xe8c25a);
       [['food', 1, -34], ['food', 2, -14], ['food', 0, 8], ['food', 3, 28], ['props', 1, 44]].forEach(([t, fr, dx]) => s.add.image(f.x + dx, f.y - 4, t, fr).setOrigin(0.5, 1).setDepth(2));
       const glow = s.add.image(f.x, f.y - 20, 'glow').setScale(1.2).setTint(0xffd08a).setBlendMode(Phaser.BlendModes.ADD).setDepth(1); s.light(glow, 1.4, 0.05);
     },
+    fires: [107], hearts: [105],
     update(s, k, time, p) {
       if (!s.bossOn && p.x > 114 * TS) s.startWitch();
       if (s.witch && !s.unmasked && Math.abs(p.x - s.witch.x) < 95 && s.atk > 14) s.unmask();
@@ -559,7 +576,8 @@ const LEVELS = {
     scroll(s, sx) { s.fgReeds.tilePositionX = Math.round(sx * 1.25); },
     food: (c, r, n) => (c === 84 && r === 8) || (c === 104 && r === 9) ? 'lamb' : FOOD[1 + (n % 3)],
     parse(s, ch, x, y) { if (ch === 'q') s.spawnFoe('spearman', x, y); else if (ch === 'O') s.oladAt = { x, y }; },
-    create(s) { toast('Morning in Mazandaran. The fields are green, and the warden Olad keeps watch with his men.'); },
+    create(s) { toast('Morning in Mazandaran. The fields are green, and the warden Olad keeps watch with his men.'); hint('Spearmen have a long reach. <b>Close in right after they thrust</b>.'); },
+    fires: [107], hearts: [105],
     update(s, k, time, p) { if (!s.bossOn && p.x > 114 * TS) s.startOlad(); },
     win: 'Rostam lassos Olad and spares his life. Olad swears to guide him to the camp of Arzhang Div and to the White Div\'s cave, and he is promised the throne of Mazandaran.',
     tips: ['Olad catches frontal blows on his shield. Strike just after he swings, or jump over him and hit from behind.', 'Spearmen have a long reach. Close in after their thrust.',
@@ -586,7 +604,10 @@ const LEVELS = {
     create(s) {
       s.darkness(0.45, 0x1a0606); for (const w of s.wisps) s.light(w, 1.1, 0.08); for (const a of s.altars) s.light(a, 0.6);
       toast('Olad leads you by night to the war camp of Arzhang Div. Drums beat among the fires.');
+      hint('The Div camp. Div warriors\' clubs send <b>shockwaves along the ground: jump them</b>, then strike.');
     },
+    fires: [118], hearts: [90, 116],                 // one past the horde's gates, one at the last fire
+    resume(s) { if (s.start.x > s.hordeAt.x) s.hordeDone = true; },   // rising past the horde: it stays beaten
     update(s, k, time, p) {
       if (!s.hordeDone && !s.horde && p.x > s.hordeAt.x - 2 * TS) s.startHorde();
       if (s.horde) s.hordeTick();
@@ -621,7 +642,9 @@ const LEVELS = {
     create(s) {
       s.darkness(0.15, 0x060a18); for (const a of s.altars) s.light(a, 0.7); s.light(s.kavus, 0.8);
       s.boltT = 120; toast('Beyond the seven mountains the White Div waits in his cave. A storm breaks over the peaks.');
+      hint('Lightning strikes <b>where the ground glows</b>: keep moving.');
     },
+    hearts: [100, 140],                              // one after the lightning, one at the cave's last fire
     update(s, k, time, p) {
       // lightning on the mountain path: a glow marks the ground, then the bolt falls
       if (p.x < (CAVE7 - 4) * TS && !s.frozen) {
@@ -995,6 +1018,7 @@ class Play extends Phaser.Scene {
     for (const [k, f] of Object.entries(FX)) L.spritesheet('fx-' + k, `assets/fx/${k}.png${q}`, { frameWidth: f.w, frameHeight: f.h });
     L.spritesheet('food', 'assets/food.png' + q, { frameWidth: 27, frameHeight: 27 });
     L.spritesheet('props', 'assets/k2/props.png' + q, { frameWidth: 27, frameHeight: 27 });
+    L.image('heart-pick', 'assets/ui/heart.png' + q);
     this.lv = LEVELS[cur]; this.lv.load(L, q);
   }
   create() {
@@ -1041,6 +1065,13 @@ class Play extends Phaser.Scene {
       else if (ch === 'L') this.lionAt = { x, y };
       else if (lv.parse) lv.parse(this, ch, x, y, c, r);
     }));
+    // the labour's own extra fires (one before every boss) and hearts, set on the ground of their column
+    for (const c of lv.fires || []) { const r = topAt(map, c); if (r != null) { const a = this.add.image(c * TS + TS / 2, r * TS, 'altar').setOrigin(0.5, 1).setDepth(2); a.lit = false; this.altars.push(a); } }
+    this.altars.sort((a, b) => a.x - b.x);
+    for (const c of lv.hearts || []) { const r = topAt(map, c); if (r != null) this.heart(c * TS + TS / 2, r * TS - 12); }
+    // rising again after a fall: start at the last fire lit, with what was gathered on the way
+    const R = this.resuming && resumeAt?.n === cur ? resumeAt : null; this.resuming = false;
+    if (R && this.altars[R.i]) { const a = this.altars[R.i]; this.start = { x: a.x, y: a.y }; for (const b of this.altars.slice(0, R.i + 1)) this.kindle(b, true); }
     this.respawn = { ...this.start };
     this.player = this.physics.add.sprite(this.start.x, this.start.y - 30, 'rostam-idle', 0);
     this.fit(this.player, 'rostam');
@@ -1055,12 +1086,36 @@ class Play extends Phaser.Scene {
     this.cam.setRoundPixels(true);
     if (matchMedia('(prefers-reduced-motion: reduce)').matches) { this.cam.shake = () => this.cam; this.cam.flash = () => this.cam; }
     this.hp = 5; this.coinCount = 0; this.kills = 0; this.wasGround = true; this.face = 1; this.inv = 0; this.atk = 0; this.cool = 0; this.coyote = 0; this.buf = 0; this.bossOn = false; this.done = false; this.t0 = this.time.now;
-    this.renderHearts(); $('coins').textContent = 0;
+    if (R) {
+      this.coinCount = R.coins || 0; this.kills = R.kills || 0; this.t0 -= R.t || 0;
+      for (const c of this.coins.getChildren().slice()) if (c.x < this.start.x) { c.glow?.destroy(); c.destroy(); }
+      for (const f of this.foes.getChildren().slice()) if (Math.abs(f.x - this.start.x) < 8 * TS) f.destroy();   // a safe place to rise
+      this.inv = 120;
+    }
+    this.renderHearts(); $('coins').textContent = this.coinCount; hint(null);
     this.parts = this.add.particles(0, 0, 'coin-spin', { frame: 0, speed: { min: 30, max: 90 }, lifespan: 450, scale: { start: 0.8, end: 0 }, gravityY: 120, emitting: false }).setDepth(9);
     this.shots = this.physics.add.group({ allowGravity: false }); this.hazards = [];
     this.physics.add.collider(this.shots, this.layer, sh => sh.destroy());
     this.physics.add.overlap(this.player, this.shots, (pl, sh) => { if (!sh.active) return; this.hurt(sh.x); this.fx('hit', sh.x, sh.y, { depth: 10 }); sh.destroy(); });
     lv.create?.(this);
+    if (R) { lv.resume?.(this); toast(R.well ? 'Rostam rises again beside the well.' : 'Rostam rises again beside the sacred fire.'); }
+  }
+  // a heart: one more life, glowing so it can be found even in the dark
+  heart(x, y) {
+    const h = this.pickup(x, y, 'heart-pick', 0, 'heart'); h.setScale(2); h.body.setSize(24, 24); h.setDepth(4);
+    h.glow = this.add.image(x, y, 'glow').setScale(0.5).setTint(0xff5a6a).setBlendMode(Phaser.BlendModes.ADD).setDepth(3);
+    this.tweens.add({ targets: h.glow, alpha: 0.45, scale: 0.6, yoyo: true, repeat: -1, duration: 700, ease: 'Sine.easeInOut' });
+    this.light(h, 0.5, 0.1); return h;
+  }
+  // light a fire altar (or drink at a well): the checkpoint
+  kindle(a, quiet = false) {
+    a.lit = true; this.respawn = { x: a.x, y: a.y };
+    if (a.onLight) { if (!quiet) a.onLight(); return; }
+    const g = this.add.image(a.x, a.y - 22, 'glow').setDepth(1).setScale(2).setBlendMode(Phaser.BlendModes.ADD);
+    this.tweens.add({ targets: g, alpha: 0.6, yoyo: true, repeat: -1, duration: 700, ease: 'Sine.easeInOut' });
+    if (quiet) return;
+    sfx('fire'); this.fx('fire', a.x, a.y - 20, { depth: 3 }); this.fx('pickup', a.x, a.y - 18);
+    toast('The sacred fire is lit. If Rostam falls, he will rise again here.');
   }
   pickup(x, y, tex, frame, kind) {
     const f = this.coins.create(x, y, tex, frame); f.kind = kind; f.body.setSize(16, 16);
@@ -1086,6 +1141,11 @@ class Play extends Phaser.Scene {
   }
   eat(c) {
     if (!c.active) return;
+    if (c.kind === 'heart') {
+      c.glow?.destroy(); c.destroy(); this.fx('heal', this.player.x, this.player.body.bottom - 4, { depth: 6 }); sfx('fire');
+      if (this.hp < 5) { this.hp++; this.renderHearts(); toast('A heart! Rostam\'s strength returns.'); } else toast('A heart, but Rostam is already whole.');
+      return;
+    }
     const heal = c.kind === 'lamb' && this.hp < 5;
     if (c.kind === 'skin') { c.destroy(); this.water = Math.min(100, this.water + 30); this.renderWater(); sfx('coin'); this.fx('splash', c.x, c.y + 4); toast('A water skin! Rostam drinks.'); return; }
     c.destroy(); this.coinCount++; $('coins').textContent = this.coinCount; sfx('coin');
@@ -1098,7 +1158,14 @@ class Play extends Phaser.Scene {
     if ((this.inv > 0 && !thirst) || this.done || this.frozen) return;   // no harm during a cutscene
     this.hp--; this.renderHearts(); this.inv = thirst ? 30 : 90; sfx('hurt'); this.cam.shake(160, 0.008); this.cam.flash(120, 180, 40, 60);
     if (!thirst) this.player.setVelocity((this.player.x < fromX ? -1 : 1) * 160, -220);
-    if (this.hp <= 0) { this.done = true; playing = false; music(false); document.body.classList.remove('playing'); this.player.setTint(0x777777); const t = this.lv.tips; $('deadTip').textContent = t[Math.floor(Math.random() * t.length)]; setTimeout(() => $('s-dead').classList.remove('hidden'), 900); }
+    if (this.hp <= 0) {
+      this.done = true; playing = false; music(false); document.body.classList.remove('playing'); this.player.setTint(0x777777); hint(null);
+      const t = this.lv.tips; $('deadTip').textContent = t[Math.floor(Math.random() * t.length)];
+      const cp = resumeAt?.n === cur;
+      if (cp) Object.assign(resumeAt, { coins: this.coinCount, kills: this.kills, t: this.time.now - this.t0 });
+      $('retryBtn').textContent = cp ? (resumeAt.well ? 'Rise at the well' : 'Rise at the sacred fire') : 'Try again'; $('freshBtn').classList.toggle('hidden', !cp);
+      setTimeout(() => { if (!playing && this.done) $('s-dead').classList.remove('hidden'); }, 900);
+    }
   }
   strikeBox() { const p = this.player; return new Phaser.Geom.Rectangle(this.face > 0 ? p.body.right - 4 : p.body.left - 30, p.body.top - 6, 34, p.body.height + 8); }
   damage(f, n = 1) {
@@ -1107,6 +1174,10 @@ class Play extends Phaser.Scene {
     const hx = Phaser.Math.Clamp(this.face > 0 ? f.body.left + 6 : f.body.right - 6, f.body.left, f.body.right);
     this.fx('hit', hx, f.body.center.y - 4, { depth: 10 }); sfx('hit'); this.cam.shake(80, 0.004);
     this.hitStop(f === this.boss ? 70 : 45);
+    if (f === this.boss && !f.gaveHeart && f.hp > 0 && f.hp <= f.max / 2 && this.hp < 5) {
+      f.gaveHeart = true; const x = this.player.x + (this.player.x < this.cam.scrollX + W / 2 ? 60 : -60), r = this.groundAt(x);
+      if (r != null) { this.fx('beam', x, r * TS + 1, { depth: 4 }); this.heart(x, r * TS - 12); toast('A heart shines in the arena. Take it!'); }
+    }
     if (f.hp <= 0) {
       if (f === this.boss) return f.onDown();
       this.kills++; f.body.enable = false;
@@ -1136,6 +1207,7 @@ class Play extends Phaser.Scene {
     this.physics.add.collider(l, this.layer); this.physics.add.collider(l, this.wall);
     sfx('roar'); this.roarRings(l);
     $('boss').classList.remove('hidden'); this.bossBar(); banner();
+    hint('The lion roars, then charges. <b>Jump over the charge</b>: if it runs into the rocks it is dazed, so <b>strike it then</b>.');
   }
   bossBar() { $('bossHp').style.width = (this.boss.hp / this.boss.max * 100) + '%'; }
   lionAI() {
@@ -1169,7 +1241,7 @@ class Play extends Phaser.Scene {
     this.cam.startFollow(this.player, true, 0.12, 0.12);
   }
   win(f) {
-    if (this.done) return; this.done = true; playing = false; music(false); sfx('fire'); document.body.classList.remove('playing');
+    if (this.done) return; this.done = true; playing = false; music(false); sfx('fire'); document.body.classList.remove('playing'); hint(null); resumeAt = null;
     this.tweens.killTweensOf([f, f.glow].filter(Boolean)); f.destroy();
     const s = Math.round((this.time.now - this.t0) / 1000);
     $('winMsg').textContent = this.lv.win;
@@ -1232,15 +1304,7 @@ class Play extends Phaser.Scene {
       }
     }
     // checkpoint
-    for (const a of this.altars) if (!a.lit && p.x > a.x) {
-      a.lit = true; this.respawn = { x: a.x, y: a.y };
-      if (a.onLight) { a.onLight(); continue; }
-      sfx('fire');
-      const g = this.add.image(a.x, a.y - 22, 'glow').setDepth(1).setScale(2).setBlendMode(Phaser.BlendModes.ADD);
-      this.tweens.add({ targets: g, alpha: 0.6, yoyo: true, repeat: -1, duration: 700, ease: 'Sine.easeInOut' });
-      this.fx('fire', a.x, a.y - 20, { depth: 3 }); this.fx('pickup', a.x, a.y - 18);
-      toast('The sacred fire is lit. Rostam will return here if he falls.');
-    }
+    for (const a of this.altars) if (!a.lit && p.x > a.x) { this.kindle(a); resumeAt = { n: cur, i: this.altars.indexOf(a), well: !!a.onLight }; }
     this.lv.update?.(this, k, time, p, b);
     // projectiles expire; hazard zones (fire breath, shockwaves) hurt while they last
     for (const sh of this.shots.getChildren()) if (time > sh.die) sh.destroy(); else if (sh.spin) sh.angle += sh.spin * k;
@@ -1260,7 +1324,7 @@ class Play extends Phaser.Scene {
   // darkness: a dark layer over the world with soft holes of light around Rostam and every lamp
   darkness(alpha = 0.86, tint = 0x05060f) {
     this.dark = this.add.renderTexture(0, 0, W, H).setOrigin(0).setScrollFactor(0).setDepth(11);
-    this.darkA = alpha; this.darkTint = tint; this.lights = [];
+    this.darkA = alpha; this.darkTint = tint; this.lights ||= [];
     this.lamp = this.make.image({ key: 'lightmask', add: false });
     this.light(this.player, 1.5);
   }
@@ -1324,13 +1388,14 @@ class Play extends Phaser.Scene {
     d.ai = () => this.dragonAI(); d.onDown = () => this.bossFall(d);
     this.arena(112 * TS, d, 12);
     toast('Rakhsh gallops up beside you, snorting. Something vast stirs in the dark...');
+    hint('Rakhsh can sense the dragon. <b>When he rears and neighs, the dragon shows itself: strike it then.</b> While it hides, your blows pass through. Jump its fire.');
   }
   dragonAI() {
     const d = this.boss, p = this.player, r = this.rakhsh; d.tm--;
     if (r.body.velocity.x > 0 && r.x >= this.rakhshAt.x) { r.setVelocityX(0); r.anims.stop(); r.setFrame(0); }
     const toP = Math.sign(p.x - d.x) || -1; d.dir = toP; d.setFlipX(toP < 0);
     const seen = d.hp <= d.max / 2;                                   // once wounded, God lets Rostam see it
-    if (seen && !this.dragonSeen) { this.dragonSeen = true; this.tweens.killTweensOf(d); d.setAlpha(1); banner('خدا', 'The dragon can hide no more'); }
+    if (seen && !this.dragonSeen) { this.dragonSeen = true; this.tweens.killTweensOf(d); d.setAlpha(1); banner('خدا', 'The dragon can hide no more'); hint('The dragon can hide no more. <b>Strike it whenever you can</b>, and jump its fire.'); }
     if (d.state === 'lurk') {
       d.setVelocityX(toP * (seen ? 45 : 28));
       if (d.tm <= 0) {
@@ -1368,6 +1433,7 @@ class Play extends Phaser.Scene {
     this.arena(112 * TS, w, 10); $('bossName').textContent = 'The Lady of the Garden';
     this.light(w, 1.2); banner('ضیافت', 'The Feast');
     toast('A lovely woman steps from the pavilion and offers you a cup of wine. Stand near her and strike to give thanks in the name of God.');
+    hint('The lady offers you wine. <b>Stand close to her and strike</b> to give thanks in the name of God, and see what she really is.');
   }
   unmask() {
     // at the name of God her true face shows
@@ -1378,6 +1444,7 @@ class Play extends Phaser.Scene {
       w.setTexture('hag-cast', 0); this.fit(w, 'hag'); w.play('hag-cast'); w.body.setAllowGravity(false); w.setVelocity(0);
       w.baseY = w.y - 20; w.state = 'float'; w.tm = 60; w.tx = w.x; $('bossName').textContent = 'The Witch';
       toast('The beauty withers into a hideous witch! She shrieks a curse.');
+      hint('A witch! <b>Dodge her green curses</b>. She vanishes and reappears: <b>strike her when she is solid</b>.');
     });
     this.time.delayedCall(1300, () => { this.frozen = false; });
   }
@@ -1422,6 +1489,7 @@ class Play extends Phaser.Scene {
     o.ai = () => this.oladAI(); o.onDown = () => this.oladYields();
     this.arena(112 * TS, o, 10); this.olad = o;
     toast('Olad rides out to meet you, sword drawn: "Who are you, to cross the marches of Mazandaran?"');
+    hint('Olad\'s <b>shield blocks blows from the front</b>. Strike <b>just after his sword swing</b>, or jump over him and hit his back.');
   }
   oladAI() {
     const o = this.olad, p = this.player; o.tm--; const d = p.x - o.x;
@@ -1461,7 +1529,7 @@ class Play extends Phaser.Scene {
       const f = this.fx('fire', gx, 14 * TS, { depth: 6 }); const g = this.add.image(gx, 13 * TS, 'glow').setScale(1.4).setBlendMode(Phaser.BlendModes.ADD).setDepth(5); this.light(g, 1.2, 0.1);
       return { r, f, g };
     });
-    banner('سپاهِ دیوان', 'The Horde of the Divs'); this.drums = this.time.addEvent({ delay: 420, loop: true, callback: () => tone(70, 0.25, { type: 'sine', vol: 0.22, to: 40 }) });
+    banner('سپاهِ دیوان', 'The Horde of the Divs'); hint('The gates are shut! <b>Survive three waves of Divs</b>. Keep moving, and strike as they land.'); this.drums = this.time.addEvent({ delay: 420, loop: true, callback: () => tone(70, 0.25, { type: 'sine', vol: 0.22, to: 40 }) });
     this.time.delayedCall(900, () => this.hordeWave());
   }
   hordeWave() {
@@ -1479,7 +1547,7 @@ class Play extends Phaser.Scene {
     if (h.live.every(f => !f.active || !f.body.enable)) {
       if (h.wave < 3) { h.live = []; this.hordeWave(); return; }
       // the last wave is broken: the gates of fire die down
-      this.horde = null; this.hordeDone = true; this.drums.remove(); sfx('win');
+      this.horde = null; this.hordeDone = true; this.drums.remove(); sfx('win'); hint('The gates open. <b>Arzhang waits ahead</b>: light the last fire before you face him.');
       for (const g of this.gates) { g.r.destroy(); g.f.destroy(); this.tweens.add({ targets: g.g, alpha: 0, duration: 600 }); }
       toast('The horde is broken! The way to Arzhang lies open.');
     }
@@ -1491,6 +1559,7 @@ class Play extends Phaser.Scene {
     this.arena(124 * TS, a, 14); this.light(a, 2); sfx('roar'); this.cam.shake(500, 0.008);
     this.drums = this.time.addEvent({ delay: 500, loop: true, callback: () => tone(62, 0.3, { type: 'sine', vol: 0.2, to: 38 }) });
     toast('Arzhang Div rises from his throne of bones: "Who dares walk into my camp?"');
+    hint('Arzhang\'s axe <b>splits the ground both ways: jump the wave</b>, then <b>strike him before he lifts it again</b>.');
   }
   arzhangAI() {
     const a = this.boss, p = this.player; a.tm--; const d = p.x - a.x, hurt = a.hp <= a.max / 2;
@@ -1527,6 +1596,7 @@ class Play extends Phaser.Scene {
     w.ai = () => this.whiteAI(); w.onDown = () => this.bossFall(w, () => this.whiteFallen());
     this.arena(146 * TS, w, 18); this.light(w, 2.4); sfx('roar'); this.cam.shake(700, 0.01);
     toast('The White Div rises from the dark like a mountain of snow: "So, the son of Zal comes at last."');
+    hint('<b>Jump the shockwave of his slam</b>, then strike. When he lifts a boulder, <b>move away from where it will land</b>.');
   }
   whiteAI() {
     const w = this.boss, p = this.player; w.tm--; const d = p.x - w.x, mad = w.hp <= w.max / 2;
@@ -1561,6 +1631,7 @@ class Play extends Phaser.Scene {
   whiteFallen() {
     this.whiteDown = true; this.boss = null;
     toast('The White Div is slain. Rostam takes the blood of its heart and goes to find the king.');
+    hint('<b>Walk to Kay Kavus</b>, chained at the back of the cave.');
   }
   freeKing() {
     // the blood of the White Div's heart opens the king's eyes
@@ -1597,6 +1668,7 @@ class Play extends Phaser.Scene {
     this.time.delayedCall(3600, () => {
       this.player.anims.resume(); this.pose = null; this.frozen = false;
       toast('A ram, glowing like the dawn. It turns, and waits. Follow it.');
+      hint('<b>Follow the glowing ram</b>: it leads you to a spring. Step into the water to drink.');
     });
   }
   ramGuide(k) {
@@ -1625,11 +1697,13 @@ class Play extends Phaser.Scene {
   }
 }
 
-function begin(n = cur) {
+let resumeAt = null;           // the last fire lit in this labour: { n, i, well, coins, kills, t }
+function begin(n = cur, rise = false) {
   audio(); ['s-title', 's-win', 's-dead', 's-pause', 's-map'].forEach(id => $(id).classList.add('hidden'));
-  $('touch').classList.toggle('hidden', !touch); $('boss').classList.add('hidden');
+  $('touch').classList.toggle('hidden', !touch); $('boss').classList.add('hidden'); $('toast').classList.remove('on'); hint(null);
   const sc = game.scene.getScene('play');
-  if (!sc.player) { sc.events.once('create', () => begin(n)); return; }     // still loading: start once it is ready
+  if (!sc.player) { sc.events.once('create', () => begin(n, rise)); return; }     // still loading: start once it is ready
+  if (!rise || resumeAt?.n !== n) resumeAt = null; sc.resuming = !!resumeAt;
   if (paused) { paused = false; game.scene.resume('play'); }
   const changed = n !== cur; cur = n; store.set('sh-cur', n);
   if (sc.done || sc.started || changed) sc.scene.restart();
@@ -1679,6 +1753,12 @@ function setPaused(on) {
 }
 // a short line at the bottom of the screen
 let toastT = 0;
+// a standing line under the HUD: what to do right now. It changes as the labour unfolds.
+function hint(html) {
+  const h = $('hint'); if (!html) { h.classList.add('hidden'); h.dataset.t = ''; return; }
+  if (h.dataset.t === html) return; h.dataset.t = html; h.innerHTML = html;
+  h.classList.remove('hidden', 'new'); void h.offsetWidth; h.classList.add('new');
+}
 function toast(msg) { const t = $('toast'); t.textContent = msg; t.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('on'), 3200); }
 function banner(fa, name) {
   const lv = LEVELS[cur], b = $('banner');
@@ -1712,7 +1792,7 @@ game = new Phaser.Game({
   physics: { default: 'arcade', arcade: { gravity: { y: 900 }, debug: location.hash === '#physics' } },
   scene: [Play]
 });
-$('playBtn').onclick = () => (unlocked() > 1 ? openMap() : begin(1)); $('againBtn').onclick = () => begin(); $('retryBtn').onclick = () => begin();
+$('playBtn').onclick = () => (unlocked() > 1 ? openMap() : begin(1)); $('againBtn').onclick = () => begin(); $('retryBtn').onclick = () => begin(cur, true); $('freshBtn').onclick = () => begin();
 $('muteBtn').onclick = () => { audio(); setMuted(!A.muted); };
 setMuted(A.muted);
 if (location.hash === '#debug') window.__sh = { game, scene: () => game.scene.getScene('play'), keys, pressed, setPaused, openStory, begin, openMap, LEVELS, FOES, snd: { A, audio, newSong, musicTick, sfx } };
