@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<meta name="theme-color" content="#14286b">
+<meta name="description" content="Shahnameh: The Seven Labours of Rostam. A pixel-art platformer inspired by Ferdowsi's Book of Kings.">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<title>Shahnameh: Seven Labours | Arash Nassirpour</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Lalezar&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--lapis:#14286b;--lapis2:#1f3f9a;--gold:#e8c25a;--gold2:#f6dc8c;--turq:#2fa8b5;--ink:#fdf6e3;--panel:rgba(16,28,80,.9)}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden;background:#0c1640}
+body{font-family:Inter,system-ui,sans-serif;color:var(--ink);touch-action:none;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent}
+#game{position:fixed;inset:0;display:grid;place-items:center}
+#game canvas{image-rendering:pixelated}
+button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
+.hidden{display:none!important}
+#hud{position:fixed;inset:0 0 auto 0;z-index:5;display:flex;justify-content:space-between;align-items:center;gap:8px;padding:max(10px,env(safe-area-inset-top)) max(12px,env(safe-area-inset-right)) 0 max(12px,env(safe-area-inset-left));pointer-events:none}
+#hud>*{pointer-events:auto}
+.pill{display:inline-flex;align-items:center;gap:7px;height:36px;padding:0 13px;border-radius:18px;background:var(--panel);border:1.5px solid var(--gold);font-weight:700;font-size:14px;white-space:nowrap;color:var(--ink);text-decoration:none}
+.row{display:flex;gap:8px;align-items:center}
+.coin{width:12px;height:12px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#fff3b0,#e8c25a 50%,#a8761e);border:1px solid #6a4a10}
+#hearts span{color:#e8434f;font-size:17px}#hearts span.off{color:rgba(255,255,255,.2)}
+.icon{width:36px;padding:0;justify-content:center}
+.icon svg{width:17px;height:17px;fill:none;stroke:#fff;stroke-width:2.2;stroke-linecap:round}
+#boss{position:fixed;left:50%;top:calc(max(10px,env(safe-area-inset-top)) + 46px);transform:translateX(-50%);z-index:5;text-align:center;font:700 12px Cinzel,serif;letter-spacing:.14em;color:var(--gold2);text-shadow:0 2px 0 #000}
+#boss i{display:block;width:180px;height:8px;margin-top:4px;border:1.5px solid var(--gold);border-radius:4px;background:rgba(0,0,0,.5);overflow:hidden}
+#boss b{display:block;height:100%;background:linear-gradient(90deg,#e8434f,#f6a03a);transition:width .2s}
+#touch{position:fixed;inset:auto 0 0 0;z-index:5;display:flex;justify-content:space-between;align-items:flex-end;padding:0 max(16px,env(safe-area-inset-right)) max(16px,env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left));pointer-events:none}
+#touch .row{gap:12px;pointer-events:auto}
+.tb{width:70px;height:70px;border-radius:50%;display:grid;place-items:center;background:rgba(16,28,80,.55);border:2px solid rgba(232,194,90,.6);touch-action:none}
+.tb.on{background:rgba(232,194,90,.4)}
+.tb svg{width:30px;height:30px;fill:#fff}
+.ov{position:fixed;inset:0;z-index:8;display:grid;place-items:center;padding:16px;background:radial-gradient(ellipse at center,rgba(8,14,44,.4),rgba(8,14,44,.85))}
+/* a frame in the spirit of a manuscript page: gold rules, lapis field, illuminated corners */
+.page{position:relative;width:min(100%,520px);text-align:center;padding:30px 26px 24px;background:linear-gradient(var(--lapis2),var(--lapis));border:3px double var(--gold);outline:1.5px solid var(--gold);outline-offset:5px;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+.page::before,.page::after{content:"";position:absolute;width:34px;height:34px;background:radial-gradient(circle,var(--gold2) 0 3px,transparent 4px),conic-gradient(from 45deg,var(--gold) 0 25%,transparent 0 50%,var(--gold) 0 75%,transparent 0);opacity:.85}
+.page::before{top:-8px;left:-8px}.page::after{bottom:-8px;right:-8px}
+.fa{font-family:Lalezar,serif;font-size:clamp(46px,11vw,72px);line-height:1;color:var(--gold2);text-shadow:0 3px 0 #6a4a10,0 0 22px rgba(232,194,90,.5)}
+h1,h2{font-family:Cinzel,serif;font-weight:900;color:var(--gold2)}
+h1{font-size:clamp(20px,4.6vw,28px);letter-spacing:.06em;margin:6px 0 4px}
+h2{font-size:28px;margin:4px 0 10px}
+.kick{font:700 11px Cinzel,serif;letter-spacing:.24em;text-transform:uppercase;color:#9fd6d6}
+.story{font-size:14px;line-height:1.6;color:#dfe6ff;margin:14px auto 18px;max-width:420px}
+.story em{color:var(--gold2);font-style:normal}
+.btn{display:inline-block;padding:12px 40px;font:900 18px Cinzel,serif;letter-spacing:.05em;color:#2a1a04;background:linear-gradient(#f6dc8c,#d9a83a);border:2px solid #6a4a10;box-shadow:0 4px 0 #6a4a10;transition:transform .1s}
+.btn:active{transform:translateY(3px);box-shadow:0 1px 0 #6a4a10}
+.keys{margin-top:16px;font-size:12px;color:#b8c4ec;line-height:2}
+.keys kbd{display:inline-block;min-width:22px;padding:0 6px;border:1px solid rgba(232,194,90,.5);background:rgba(255,255,255,.08);font:600 11px Inter,sans-serif;color:#fff;line-height:19px}
+.touchonly{display:none}@media (pointer:coarse){.touchonly{display:block}.deskonly{display:none}}
+.alt{display:inline-block;margin-top:12px;color:#b8c4ec;font-size:13px;text-decoration:underline;cursor:pointer}
+@media (max-width:520px){#lbl,.back .t{display:none}.tb{width:62px;height:62px}}
+</style>
+</head>
+<body>
+<div id="game"></div>
+<div id="hud">
+  <div class="row"><a class="pill back" href="/fun/" aria-label="Back to the Funfair">&larr;<span class="t">&nbsp;Funfair</span></a><span class="pill" id="lbl">Khan I &middot; The Lion</span></div>
+  <div class="row">
+    <span class="pill"><i class="coin"></i><span id="coins">0</span></span>
+    <span class="pill" id="hearts"></span>
+    <button class="pill icon" id="muteBtn" aria-label="Toggle sound"><svg viewBox="0 0 24 24"><path id="muteIco" d=""/></svg></button>
+  </div>
+</div>
+<div id="boss" class="hidden">The Lion of the Reeds<i><b id="bossHp"></b></i></div>
+<div id="touch" class="hidden">
+  <div class="row">
+    <button class="tb" data-k="left" aria-label="Left"><svg viewBox="0 0 24 24"><path d="M15 5l-8 7 8 7z"/></svg></button>
+    <button class="tb" data-k="right" aria-label="Right"><svg viewBox="0 0 24 24"><path d="M9 5l8 7-8 7z"/></svg></button>
+  </div>
+  <div class="row">
+    <button class="tb" data-k="attack" aria-label="Strike"><svg viewBox="0 0 24 24"><path d="M5 19l9-9M12 4l8 8-3 3-8-8z"/></svg></button>
+    <button class="tb" data-k="jump" aria-label="Jump"><svg viewBox="0 0 24 24"><path d="M12 4l8 9h-5v7H9v-7H4z"/></svg></button>
+  </div>
+</div>
+
+<section class="ov" id="s-title">
+  <div class="page">
+    <div class="fa">شاهنامه</div>
+    <h1>The Seven Labours of Rostam</h1>
+    <p class="kick">Khan I &middot; The Lion of the Reeds</p>
+    <p class="story">King Kay Kavus lies captive in Mazandaran, land of the Divs. <em>Rostam</em> sets out on the shortest and most perilous road. On the first night, among the reeds, a great lion stirs&hellip;</p>
+    <button class="btn" id="playBtn">Begin</button>
+    <div class="keys deskonly"><kbd>&larr;</kbd> <kbd>&rarr;</kbd> move &middot; <kbd>&uarr;</kbd>/<kbd>Space</kbd> jump &middot; <kbd>X</kbd> strike with the ox-head mace</div>
+    <div class="keys touchonly">On-screen buttons to move, jump and strike.<br>Turn your phone sideways for the best view.</div>
+  </div>
+</section>
+<section class="ov hidden" id="s-win">
+  <div class="page">
+    <p class="kick">The first labour is done</p>
+    <h2>The lion is slain</h2>
+    <p class="story" id="winMsg"></p>
+    <button class="btn" id="againBtn">Play again</button><br>
+    <a class="alt" href="/fun/">Back to the Funfair</a>
+  </div>
+</section>
+<section class="ov hidden" id="s-dead">
+  <div class="page">
+    <p class="kick">Even heroes fall</p>
+    <h2>Rise again, Rostam</h2>
+    <p class="story">The road to Mazandaran is long. Try once more.</p>
+    <button class="btn" id="retryBtn">Try again</button>
+  </div>
+</section>
+
+<script src="https://cdn.jsdelivr.net/npm/phaser@3.80.1/dist/phaser.min.js"></script>
+<script src="game.js?v=1"></script>
+</body>
+</html>
