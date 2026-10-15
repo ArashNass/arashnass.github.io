@@ -97,6 +97,21 @@ h2{font-size:28px;margin:4px 0 10px}
 .x{position:absolute;top:8px;right:10px;width:34px;height:34px;font-size:22px;color:var(--gold2)}
 #pauseBtn{display:none}body.playing #pauseBtn{display:inline-flex}
 .ov{overflow:auto}
+.wbar{display:block;width:72px;height:9px;border:1.5px solid #9fd6d6;background:rgba(0,0,0,.45);overflow:hidden}
+.wbar b{display:block;height:100%;width:100%;background:linear-gradient(90deg,#1f6f9a,#2fa8b5 60%,#8fe0d8);transition:width .3s}
+#waterPill.low .wbar{border-color:#e8434f;animation:thirst .6s ease-in-out infinite alternate}#waterPill.low .wbar b{background:linear-gradient(90deg,#b8303f,#e8434f)}
+@keyframes thirst{to{box-shadow:0 0 10px #e8434f}}
+.mapPage{width:min(100%,720px)}
+.road{list-style:none;display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin:14px 0 6px;position:relative}
+.road:before{content:"";position:absolute;left:7%;right:7%;top:30px;border-top:2px dashed rgba(232,194,90,.45)}
+.road li{position:relative;display:flex;flex-direction:column;align-items:center;gap:4px}
+.road button{width:58px;height:58px;border-radius:50%;display:grid;place-items:center;background:radial-gradient(circle at 35% 30%,#2a4fc0,#14286b 70%);border:2px solid var(--gold);color:var(--gold2);font:900 15px Cinzel,serif;box-shadow:0 0 0 3px rgba(20,40,107,.9),0 4px 10px rgba(0,0,0,.5);transition:transform .15s}
+.road button:hover:not(:disabled),.road button.sel{transform:scale(1.1);box-shadow:0 0 0 3px #f6dc8c,0 0 18px rgba(246,220,140,.6)}
+.road button:disabled{background:#1a2040;border-color:#5a5a7a;color:#6a6a8a;cursor:default}
+.road button.done:after{content:"\2713";position:absolute;top:-2px;right:calc(50% - 32px);width:18px;height:18px;border-radius:50%;background:#2fa8b5;color:#fff;font:700 11px/18px Inter,sans-serif}
+.road span{font:700 10px Cinzel,serif;letter-spacing:.06em;color:#b8c4ec;text-align:center;line-height:1.3}.road .pf{font:16px Lalezar,serif;color:var(--gold2);letter-spacing:0}
+#mapInfo{min-height:3.2em;margin:8px auto 12px}
+@media (max-width:620px){.road{grid-template-columns:repeat(4,1fr);row-gap:12px}.road:before{display:none}}
 .hero{display:none;position:absolute;right:calc(100% + 18px);bottom:-14px;width:195px;height:auto;image-rendering:pixelated;filter:drop-shadow(0 12px 24px rgba(0,0,0,.6));pointer-events:none}
 .hero.r{right:auto;left:calc(100% + 18px);transform:scaleX(-1)}
 @media (min-width:980px) and (min-height:560px){.hero{display:block}}
@@ -113,13 +128,14 @@ h2{font-size:28px;margin:4px 0 10px}
 <div id="hud">
   <div class="row"><a class="pill back" href="/fun/" aria-label="Back to the Funfair">&larr;<span class="t">&nbsp;Funfair</span></a><span class="pill" id="lbl">Khan I &middot; The Lion</span></div>
   <div class="row">
+    <span class="pill hidden" id="waterPill" title="Water"><img class="food" src="assets/ui/waterskin.png" alt="Water"><i class="wbar"><b id="water"></b></i></span>
     <span class="pill" title="Provisions gathered"><img class="food" src="assets/ui/pomegranate.png" alt="Provisions"><span id="coins">0</span></span>
     <span class="pill" id="hearts" role="img"></span>
     <button class="pill icon" id="muteBtn" aria-label="Toggle sound"><svg viewBox="0 0 24 24"><path id="muteIco" d=""/></svg></button>
     <button class="pill icon" id="pauseBtn" aria-label="Pause"><svg viewBox="0 0 24 24"><path d="M9 6v12M15 6v12"/></svg></button>
   </div>
 </div>
-<div id="boss" class="hidden">The Lion of the Reeds<i><b id="bossHp"></b></i></div>
+<div id="boss" class="hidden"><span id="bossName">The Lion of the Reeds</span><i><b id="bossHp"></b></i></div>
 <div id="banner" aria-hidden="true"><div class="fa">شیرِ نیستان</div><h2>The Lion of the Reeds</h2></div>
 <div id="toast" role="status" aria-live="polite"></div>
 <div id="touch" class="hidden">
@@ -140,19 +156,19 @@ h2{font-size:28px;margin:4px 0 10px}
     <h1>The Seven Labours of Rostam</h1>
     <p class="kick">Khan I &middot; The Lion of the Reeds</p>
     <p class="story">King Kay Kavus lies captive in Mazandaran, land of the Divs. <em>Rostam</em> sets out on the shortest and most perilous road. On the first night, among the reeds, a great lion stirs&hellip;</p>
-    <div class="btns"><button class="btn" id="playBtn">Begin</button><button class="btn2" data-story>Read the tale</button></div>
+    <div class="btns"><button class="btn" id="playBtn">Begin</button><button class="btn2" data-map>The seven labours</button><button class="btn2" data-story>Read the tale</button></div>
     <div class="keys deskonly"><kbd>&larr;</kbd> <kbd>&rarr;</kbd> move &middot; <kbd>&uarr;</kbd>/<kbd>Space</kbd> jump &middot; <kbd>X</kbd> strike with the ox-head mace</div>
     <div class="keys touchonly">On-screen buttons to move, jump and strike.<br>Turn your phone sideways for the best view.</div>
   </div>
 </section>
 <section class="ov hidden" id="s-win">
   <div class="page">
-    <p class="kick">The first labour is done</p>
-    <h2>The lion is slain</h2>
+    <p class="kick" id="winKick">The first labour is done</p>
+    <h2 id="winTitle">The lion is slain</h2>
     <p class="story" id="winMsg"></p>
     <div class="stats" id="winStats"></div>
     <p id="winBest"></p>
-    <div class="btns"><button class="btn" id="againBtn">Play again</button><button class="btn2" data-story="3">What comes next</button></div>
+    <div class="btns"><button class="btn" id="nextBtn">Next labour</button><button class="btn2" id="againBtn">Play again</button><button class="btn2" data-map>The seven labours</button></div>
     <a class="alt" href="/fun/">Back to the Funfair</a>
   </div>
 </section>
@@ -173,6 +189,7 @@ h2{font-size:28px;margin:4px 0 10px}
       <button class="btn" id="resumeBtn">Resume</button>
       <button class="btn2" data-story>Read the tale</button>
       <button class="btn2" id="restartBtn">Restart the labour</button>
+      <button class="btn2" data-map>The seven labours</button>
       <a class="btn2" href="/fun/">Leave for the Funfair</a>
     </div>
     <div class="keys deskonly"><kbd>Esc</kbd> or <kbd>P</kbd> to pause &middot; <kbd>M</kbd> sound</div>
@@ -185,7 +202,18 @@ h2{font-size:28px;margin:4px 0 10px}
     <div class="pager"><button class="btn2" id="prevPg">&larr; Back</button><div class="dots" id="dots"></div><button class="btn2" id="nextPg">Next &rarr;</button></div>
   </div>
 </section>
-<template id="tale">
+<section class="ov hidden" id="s-map" role="dialog" aria-modal="true" aria-label="The seven labours">
+  <div class="page mapPage">
+    <button class="x" id="mapClose" aria-label="Close">&times;</button>
+    <div class="fa">هفت خوان</div>
+    <h2>The Seven Labours</h2>
+    <p class="kick">The road from Zabulistan to Mazandaran</p>
+    <ol class="road" id="road"></ol>
+    <p class="story" id="mapInfo"></p>
+    <div class="btns"><button class="btn" id="rideBtn">Ride out</button><button class="btn2" id="mapTale">Read its tale</button></div>
+  </div>
+</section>
+<template id="tale-1">
   <article>
     <div class="fa">شاهنامه</div><h2>The King in Chains</h2><span class="kick">Prologue</span>
     <p>Kay Kavus, King of Iran, was proud and easily flattered. One day a Div disguised as a minstrel sang to him of Mazandaran, a land of endless gardens, rose-scented air and treasure without end. The king's heart caught fire, and against the warnings of his wisest men he marched his army north to take it.</p>
@@ -221,8 +249,21 @@ h2{font-size:28px;margin:4px 0 10px}
     <p>Rostam is its greatest hero, the son of Zal. When Zal was born with white hair, his father abandoned him on Mount Alborz, where the Simurgh, a vast and wise bird, raised him as her own. When he left her nest she gave him three of her feathers: burn one, she said, and I will come. That is why the Simurgh's feather is Rostam's reward here.</p>
   </article>
 </template>
+<template id="tale-2">
+  <article>
+    <div class="fa">خوانِ دوم</div><h2>The Waterless Desert</h2><span class="kick">The second labour</span>
+    <p>From the reed-beds Rostam rode on into a desert where no bird flew and no grass grew. The sun hung over the sand like a burning shield; the ground was so hot that a man's feet would blister through his boots, and the very air shimmered.</p>
+    <p>Rakhsh slowed, and Rostam's tongue cracked with thirst. At last he could ride no further. He climbed down, and leaning on his spear he lifted his face to the sky and prayed: "O Lord, You who give relief to every sorrow, I have come here only to free the king. Do not let me die of thirst in this wilderness."</p>
+  </article>
+  <article>
+    <div class="fa">میش</div><h2>The Ram</h2><span class="kick">A sign in the sand</span>
+    <p>As he prayed, a fine ram came walking across the sand before him. Rostam thought: "Where does this ram drink? Surely there is water near." He rose, took his sword in hand and followed it.</p>
+    <p>The ram led him to a hidden spring, cool and clear among the rocks, and there it vanished. Rostam drank, and gave thanks, and blessed the ram as a gift from heaven. Then he washed Rakhsh, hunted an onager for his supper, and lay down to rest by the water, knowing that the dragon of the third labour waited in the night ahead.</p>
+    <p class="note">In the game the desert burns, wells and water skins keep Rostam alive, and the ram leads him through a sandstorm to the spring.</p>
+  </article>
+</template>
 
 <script src="https://cdn.jsdelivr.net/npm/phaser@3.80.1/dist/phaser.min.js"></script>
-<script src="game.js?v=5"></script>
+<script src="game.js?v=6"></script>
 </body>
 </html>
