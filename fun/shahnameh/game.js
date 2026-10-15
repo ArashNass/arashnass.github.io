@@ -12,13 +12,14 @@ const store = { get(k) { try { return localStorage.getItem(k); } catch (e) { ret
    transparent background, character facing RIGHT.
    ------------------------------------------------------------- */
 const ART = {
-  'rostam-idle': null, 'rostam-run': null, 'rostam-jump': null, 'rostam-attack': null, 'rostam-hurt': null,
-  'lion-walk': null, 'lion-run': null, 'lion-roar': null,
-  'jackal-run': null, 'div-hop': null
+  'rostam-idle': 'rostam-idle.png', 'rostam-run': 'rostam-run.png', 'rostam-jump': 'rostam-jump.png', 'rostam-attack': 'rostam-attack.png', 'rostam-hurt': 'rostam-hurt.png',
+  'lion-walk': 'lion-walk.png', 'lion-run': 'lion-run.png', 'lion-roar': 'lion-roar.png',
+  'jackal-run': 'jackal-run.png', 'div-hop': 'div-hop.png'
 };
-const FPS = { 'rostam-idle': 6, 'rostam-run': 12, 'rostam-jump': 6, 'rostam-attack': 16, 'rostam-hurt': 6, 'lion-walk': 8, 'lion-run': 14, 'lion-roar': 6, 'jackal-run': 12, 'div-hop': 8, 'coin-spin': 8, 'fire-burn': 10 };
-const SIZE = { rostam: 48, lion: 72, jackal: 32, div: 34 };      // on-screen height in game pixels
-const BODY = { rostam: [0.3, 0.62], lion: [0.62, 0.42], jackal: [0.6, 0.45], div: [0.45, 0.6] };
+const FPS = { 'rostam-idle': 5, 'rostam-run': 12, 'rostam-jump': 6, 'rostam-attack': 15, 'rostam-hurt': 6, 'lion-walk': 9, 'lion-run': 14, 'lion-roar': 6, 'jackal-run': 12, 'div-hop': 8, 'coin-spin': 8, 'fire-burn': 10 };
+// on-screen frame height in game pixels; equal to the PixelLab frame size so sprites draw 1:1
+const SIZE = { rostam: 80, lion: 100, jackal: 58, div: 64 };
+const BODY = { rostam: [0.2, 0.55], lion: [0.48, 0.3], jackal: [0.48, 0.31], div: [0.34, 0.52] };
 
 const W = 480, H = 270, TS = 16, ROWS = 17;
 const OUT = '#1a0f2e';
