@@ -14,9 +14,9 @@
 <meta name="twitter:card" content="summary_large_image">
 <title>Shahnameh: Seven Labours | Arash Nassirpour</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=IM+Fell+English:ital@0;1&family=IM+Fell+English+SC&family=Lalezar&family=Noto+Nastaliq+Urdu:wght@700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=EB+Garamond:ital,wght@0,500;0,700;1,500&family=Lalezar&family=Noto+Nastaliq+Urdu:wght@700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
-:root{--lapis:#14286b;--lapis2:#1f3f9a;--gold:#e8c25a;--gold2:#f6dc8c;--turq:#2fa8b5;--ink:#fdf6e3;--panel:rgba(16,28,80,.9);--inkb:#3b2412;--rubric:#9a2a1c;--lapisInk:#1d2f7c;--goldInk:#8a5a12}
+:root{--book:'EB Garamond',Georgia,serif;--lapis:#14286b;--lapis2:#1f3f9a;--gold:#e8c25a;--gold2:#f6dc8c;--turq:#2fa8b5;--ink:#fdf6e3;--panel:rgba(16,28,80,.9);--inkb:#24150a;--rubric:#9a2a1c;--lapisInk:#1d2f7c;--goldInk:#8a5a12}
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%;overflow:hidden;background:#070a18}
 body{font-family:Inter,system-ui,sans-serif;color:var(--ink);touch-action:none;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent}
@@ -31,7 +31,9 @@ button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
 .coin{width:12px;height:12px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#fff3b0,#e8c25a 50%,#a8761e);border:1px solid #6a4a10}
 #hearts span{color:#e8434f;font-size:17px}#hearts span.off{color:rgba(255,255,255,.2)}
 .icon{width:36px;padding:0;justify-content:center}
-.icon svg{width:17px;height:17px;fill:none;stroke:#fff;stroke-width:2.2;stroke-linecap:round}
+.icon svg,#pauseBtn svg{width:17px;height:17px;fill:none;stroke:#fff;stroke-width:2.2;stroke-linecap:round}
+.home-only{display:none!important}#s-map.home .home-only{display:block!important}#s-map.home .keys.deskonly.home-only{display:block!important}
+@media (pointer:coarse){#s-map.home .keys.deskonly{display:none!important}}@media (pointer:fine){#s-map.home .keys.touchonly{display:none!important}}
 #boss{position:fixed;left:50%;top:calc(max(10px,env(safe-area-inset-top)) + 46px);transform:translateX(-50%);z-index:5;text-align:center;font:700 12px Cinzel,serif;letter-spacing:.14em;color:var(--gold2);text-shadow:0 2px 0 #000}
 #boss i{display:block;width:180px;height:8px;margin-top:4px;border:1.5px solid var(--gold);border-radius:4px;background:rgba(0,0,0,.5);overflow:hidden}
 #boss b{display:block;height:100%;background:linear-gradient(90deg,#e8434f,#f6a03a);transition:width .2s}
@@ -51,8 +53,8 @@ button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
 h1,h2{font-family:Cinzel,serif;font-weight:900;color:var(--rubric)}
 h1{font-size:clamp(19px,4.4vw,26px);letter-spacing:.05em;margin:6px 0 2px}
 h2{font-size:clamp(21px,4.6vw,27px);margin:2px 0 8px}
-.kick{font:15px 'IM Fell English SC',Georgia,serif;letter-spacing:.14em;color:var(--goldInk)}
-.story{font:17px/1.5 'IM Fell English',Georgia,serif;color:var(--inkb);margin:10px auto 16px;max-width:430px}
+.kick{font:700 16px var(--book);font-variant-caps:small-caps;letter-spacing:.1em;color:#6b4210}
+.story{font:500 19px/1.5 var(--book);color:var(--inkb);margin:10px auto 16px;max-width:460px}.story b{font-weight:700;color:var(--lapisInk)}
 .story em{color:var(--rubric);font-style:italic}
 /* buttons are gilded cartouches: lapis for the main road, parchment for the side paths */
 .btn{display:inline-flex;align-items:center;justify-content:center;height:42px;padding:0 26px;border:solid transparent;border-width:14px 22px;border-image:url(assets/ui/btn-blue.png) 14 22 fill stretch;image-rendering:pixelated;
@@ -60,7 +62,7 @@ h2{font-size:clamp(21px,4.6vw,27px);margin:2px 0 8px}
 .btn:hover:not(:disabled){filter:brightness(1.15) saturate(1.1)}
 .btn:active{transform:translateY(2px)}
 .btn:disabled{filter:grayscale(.8) brightness(.8);cursor:default}
-.keys{margin-top:14px;font:12px Inter,sans-serif;color:#6b4a2a;line-height:2}
+.keys{margin-top:14px;font:600 13px Inter,sans-serif;color:#4a2e14;line-height:2}
 .keys kbd{display:inline-block;min-width:22px;padding:0 6px;border:1px solid #9a7440;background:rgba(255,248,225,.55);font:600 11px Inter,sans-serif;color:var(--inkb);line-height:19px}
 .touchonly{display:none}@media (pointer:coarse){.touchonly{display:block}.deskonly{display:none}}
 .alt{display:inline-block;margin-top:12px;color:#b8c4ec;font-size:13px;text-decoration:underline;cursor:pointer}
@@ -76,39 +78,39 @@ h2{font-size:clamp(21px,4.6vw,27px);margin:2px 0 8px}
 @keyframes ban{0%{opacity:0;transform:scale(1.08)}15%,75%{opacity:1;transform:none}100%{opacity:0}}
 #toast{position:fixed;left:50%;bottom:calc(max(16px,env(safe-area-inset-bottom)) + 96px);transform:translate(-50%,10px);z-index:6;max-width:min(92vw,480px);padding:9px 18px;
   background:#e8d6ae url(assets/ui/parch.png) 0 0/160px;image-rendering:pixelated;border:2px solid #7a4e14;outline:1px solid #c8902a;outline-offset:-6px;box-shadow:0 8px 22px rgba(0,0,0,.55);
-  font:16px/1.4 'IM Fell English',Georgia,serif;color:var(--inkb);text-align:center;opacity:0;transition:opacity .3s,transform .3s;pointer-events:none}
+  font:500 18px/1.4 var(--book);color:var(--inkb);text-align:center;opacity:0;transition:opacity .3s,transform .3s;pointer-events:none}
 #toast.on{opacity:1;transform:translate(-50%,0)}
 /* the standing hint: a narrow parchment slip under the HUD, saying what to do now */
-#hint{position:fixed;left:50%;top:calc(max(10px,env(safe-area-inset-top)) + 46px);transform:translateX(-50%);z-index:5;width:max-content;max-width:min(92vw,560px);padding:6px 14px;pointer-events:none;
-  background:rgba(232,214,174,.94) url(assets/ui/parch.png) 0 0/160px;image-rendering:pixelated;border:1.5px solid #7a4e14;box-shadow:0 4px 12px rgba(0,0,0,.45);
-  font:15px/1.35 'IM Fell English',Georgia,serif;color:var(--inkb);text-align:center}
-#hint b{color:var(--rubric);font-weight:normal;font-style:italic}
+#hint{position:fixed;left:50%;top:calc(max(10px,env(safe-area-inset-top)) + 48px);transform:translateX(-50%);z-index:5;width:max-content;max-width:min(94vw,640px);pointer-events:none;
+  background:#efe0bc;border:2px solid #7a4e14;outline:1px solid #c8902a;outline-offset:-5px;box-shadow:0 6px 16px rgba(0,0,0,.55);padding:8px 18px;
+  font:500 18px/1.4 var(--book);color:var(--inkb);text-align:center}
+#hint b{color:#8a1e10;font-weight:700}
 #boss:not(.hidden)~#hint{top:calc(max(10px,env(safe-area-inset-top)) + 84px)}
 #hint.new{animation:hintIn .6s ease}@keyframes hintIn{0%{opacity:0;transform:translate(-50%,-6px)}100%{opacity:1;transform:translateX(-50%)}}
-@media (max-width:620px),(max-height:520px){#hint{font-size:13px;padding:4px 10px;max-width:min(70vw,460px)}}
+@media (max-width:620px),(max-height:520px){#hint{font-size:15px;padding:5px 12px;max-width:min(78vw,520px)}}
 @media (prefers-reduced-motion:reduce){#hint.new{animation:none}}
 @media (pointer:fine){#toast{bottom:28px}}
 .btns{display:flex;flex-wrap:wrap;gap:10px 12px;justify-content:center;align-items:center}
 .btn2{display:inline-flex;align-items:center;justify-content:center;height:36px;padding:0 10px;border:solid transparent;border-width:9px 16px;border-image:url(assets/ui/btn-cream.png) 9 16 fill stretch;image-rendering:pixelated;
-  font:700 14px/1 Cinzel,serif;letter-spacing:.04em;color:var(--inkb);text-decoration:none;transition:transform .1s,filter .15s}
+  font:700 15px/1 Cinzel,serif;letter-spacing:.04em;color:var(--inkb);text-decoration:none;transition:transform .1s,filter .15s}
 .btn2:hover:not(:disabled),.btn2:focus-visible{filter:brightness(1.08) drop-shadow(0 0 6px rgba(200,144,42,.7))}
 .btn2:active{transform:translateY(2px)}
 .btn:focus-visible,.btn2:focus-visible,.pill:focus-visible{outline:2px solid var(--rubric);outline-offset:3px}
-.alt{display:inline-block;margin-top:10px;font:15px 'IM Fell English',Georgia,serif;color:var(--rubric);text-decoration:underline;cursor:pointer}
+.alt{display:inline-block;margin-top:10px;font:500 17px var(--book);color:var(--rubric);text-decoration:underline;cursor:pointer}
 .menu{display:grid;gap:8px;margin-top:12px;justify-items:center}.menu .btn,.menu .btn2{min-width:230px}
 .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:4px auto 6px;max-width:380px}
-.stats div{padding:7px 4px;border:1px solid rgba(122,78,20,.5);background:rgba(255,246,220,.35);font:12px 'IM Fell English SC',Georgia,serif;letter-spacing:.08em;color:#6b4a2a}
+.stats div{padding:7px 4px;border:1px solid rgba(122,78,20,.5);background:rgba(255,246,220,.35);font:700 13px var(--book);font-variant-caps:small-caps;letter-spacing:.06em;color:#4a2e14}
 .stats b{display:block;font:900 20px Cinzel,serif;color:var(--rubric);letter-spacing:0}
-#winBest{font:italic 15px 'IM Fell English',Georgia,serif;color:#1f6f75;margin-bottom:12px}
+#winBest{font:italic 500 17px var(--book);color:#155a60;margin-bottom:12px}
 /* the tale: a manuscript you can page through */
 #s-story .page{width:min(100%,640px);text-align:left;padding:14px 22px 10px;max-height:calc(100dvh - 32px);display:flex;flex-direction:column}
 .leaf{overflow:auto;min-height:0;flex:1;padding-right:6px}
 .leaf .fa{font-size:clamp(26px,5.6vw,36px);text-align:center}
 .leaf h2{font-size:clamp(20px,4.2vw,25px);text-align:center;margin:0 0 2px}
 .leaf .kick{text-align:center;display:block;margin-bottom:12px}
-.leaf p{font:17px/1.6 'IM Fell English',Georgia,serif;color:var(--inkb);margin:0 0 12px}
+.leaf p{font:500 19px/1.6 var(--book);color:var(--inkb);margin:0 0 12px}
 .leaf p:first-of-type:first-letter{font:900 2.7em/.85 Cinzel,serif;float:left;margin:4px 8px 0 0;color:var(--rubric);text-shadow:1px 1px 0 var(--gold)}
-.leaf ol{margin:0 0 12px 22px;font:17px/1.55 'IM Fell English',Georgia,serif;color:var(--inkb)}.leaf li{margin-bottom:6px}.leaf li b{color:var(--rubric);font-weight:normal;font-family:Cinzel,serif}
+.leaf ol{margin:0 0 12px 22px;font:500 19px/1.55 var(--book);color:var(--inkb)}.leaf li{margin-bottom:6px}.leaf li b{color:var(--rubric);font-weight:normal;font-family:Cinzel,serif}
 .leaf em{color:var(--rubric);font-style:italic}
 .leaf .note{border-left:3px double #1f6f75;padding:4px 0 4px 12px;color:#2c4a4a;font-style:italic}
 .pager{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:6px;padding-top:34px;background:url(assets/ui/divider.png) center 0/192px 27px no-repeat;image-rendering:pixelated}
@@ -132,6 +134,7 @@ h2{font-size:clamp(21px,4.6vw,27px);margin:2px 0 8px}
 #mapInfo{min-height:3.1em;margin:8px auto 12px}#mapInfo .pf{display:block;font:700 26px/1.5 'Noto Nastaliq Urdu',Lalezar,serif;color:var(--lapisInk);margin:0 0 .75em}
 .hero{display:none;position:absolute;right:calc(100% + 52px);bottom:-40px;width:195px;height:auto;image-rendering:pixelated;filter:drop-shadow(0 12px 24px rgba(0,0,0,.6));pointer-events:none}
 @media (min-width:1000px) and (min-height:560px){.hero{display:block}}
+#s-map.home .hero{display:none!important}@media (min-width:1320px) and (min-height:640px){#s-map.home .hero{display:block!important}}
 /* in play the titles float over the game, so they stay gold on the dark */
 #banner .fa{font-size:clamp(36px,8vw,58px);color:var(--gold2);text-shadow:0 3px 0 #3a2208,0 0 20px rgba(0,0,0,.9);margin:0}
 #banner h2{color:var(--gold2)}
@@ -143,9 +146,9 @@ h2{font-size:clamp(21px,4.6vw,27px);margin:2px 0 8px}
 @media (max-width:420px){.road button{width:22px;height:22px;font-size:8px;border-width:1.5px}.road button.done:after{width:12px;height:12px;top:-5px;right:-5px;font-size:8px;line-height:11px}}
 @media (max-height:520px){
   .fa{font-size:28px}h1{font-size:18px;margin:0}h2{font-size:20px;margin:0 0 4px}
-  .story{font-size:15px;line-height:1.35;margin:6px auto 8px}.keys{margin-top:6px;line-height:1.6}.stats{margin:2px auto}.stats b{font-size:16px}
+  .story{font-size:17px;line-height:1.35;margin:6px auto 8px}#s-map.home .story.home-only{display:none!important}.keys{margin-top:6px;line-height:1.6}.stats{margin:2px auto}.stats b{font-size:16px}
   .menu{margin-top:6px;gap:5px}#winBest{margin-bottom:6px}
-  .leaf p{font-size:15px;line-height:1.5}.pager{padding-top:30px}
+  .leaf p,.leaf ol{font-size:17px;line-height:1.5}.pager{padding-top:30px}
   .ov{padding:10px 16px}.keys{display:none}#s-title .page{padding-top:22px}
   .mapPage .kick,#mapInfo .pf{display:none}.mapPage .fa{font-size:24px;margin-bottom:.2em}.road{width:min(100%,calc((100dvh - 230px) * 2.876));margin-inline:auto}#mapInfo{min-height:0;margin:6px auto 8px}
 }
@@ -160,7 +163,7 @@ h2{font-size:clamp(21px,4.6vw,27px);margin:2px 0 8px}
     <span class="pill" title="Provisions gathered"><img class="food" src="assets/ui/pomegranate.png" alt="Provisions"><span id="coins">0</span></span>
     <span class="pill" id="hearts" role="img"></span>
     <button class="pill icon" id="muteBtn" aria-label="Toggle sound"><svg viewBox="0 0 24 24"><path id="muteIco" d=""/></svg></button>
-    <button class="pill icon" id="pauseBtn" aria-label="Pause"><svg viewBox="0 0 24 24"><path d="M9 6v12M15 6v12"/></svg></button>
+    <button class="pill" id="pauseBtn" aria-label="Open the menu"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg>Menu</button>
   </div>
 </div>
 <div id="boss" class="hidden"><span id="bossName">The Lion of the Reeds</span><i><b id="bossHp"></b></i></div>
@@ -178,7 +181,7 @@ h2{font-size:clamp(21px,4.6vw,27px);margin:2px 0 8px}
   </div>
 </div>
 
-<section class="ov" id="s-title">
+<section class="ov hidden" id="s-title">
   <div class="page">
     <img class="hero" src="assets/ui/rostam.png" alt="Rostam in his tiger-skin coat, holding the ox-head mace" width="195" height="247">
     <div class="fa">شاهنامه</div>
@@ -186,7 +189,7 @@ h2{font-size:clamp(21px,4.6vw,27px);margin:2px 0 8px}
     <p class="kick">Khan I &middot; The Lion of the Reeds</p>
     <p class="story">King Kay Kavus lies captive in Mazandaran, land of the Divs. <em>Rostam</em> sets out on the shortest and most perilous road. On the first night, among the reeds, a great lion stirs&hellip;</p>
     <div class="btns"><button class="btn" id="playBtn">Begin</button><button class="btn2" data-map>The seven labours</button><button class="btn2" data-story>Read the tale</button></div>
-    <div class="keys deskonly"><kbd>&larr;</kbd> <kbd>&rarr;</kbd> move &middot; <kbd>&uarr;</kbd>/<kbd>Space</kbd> jump &middot; <kbd>X</kbd> strike with the ox-head mace</div>
+    <div class="keys deskonly"><kbd>&larr;</kbd> <kbd>&rarr;</kbd> move &middot; <kbd>&uarr;</kbd>/<kbd>Space</kbd> jump (twice for a super jump) &middot; <kbd>X</kbd> strike with the ox-head mace</div>
     <div class="keys touchonly">On-screen buttons to move, jump and strike.<br>Turn your phone sideways for the best view.</div>
   </div>
 </section>
@@ -213,12 +216,12 @@ h2{font-size:clamp(21px,4.6vw,27px);margin:2px 0 8px}
 <section class="ov hidden" id="s-pause">
   <div class="page">
     <p class="kick">The road waits</p>
-    <h2>Paused</h2>
+    <h2>Menu</h2>
     <div class="menu">
-      <button class="btn" id="resumeBtn">Resume</button>
+      <button class="btn" id="resumeBtn">Continue</button>
+      <button class="btn2" data-map>The seven labours</button>
       <button class="btn2" data-story>Read the tale</button>
       <button class="btn2" id="restartBtn">Restart the labour</button>
-      <button class="btn2" data-map>The seven labours</button>
       <a class="btn2" href="/fun/">Leave for the Funfair</a>
     </div>
     <div class="keys deskonly"><kbd>Esc</kbd> or <kbd>P</kbd> to pause &middot; <kbd>M</kbd> sound</div>
@@ -234,12 +237,16 @@ h2{font-size:clamp(21px,4.6vw,27px);margin:2px 0 8px}
 <section class="ov hidden" id="s-map" role="dialog" aria-modal="true" aria-label="The seven labours">
   <div class="page mapPage">
     <button class="x" id="mapClose" aria-label="Close">&times;</button>
+    <img class="hero home-only" src="assets/ui/rostam.png" alt="" width="195" height="247">
     <div class="fa">هفت خوان</div>
-    <h2>The Seven Labours</h2>
+    <h2>The Seven Labours of Rostam</h2>
     <p class="kick">The road from Zabulistan to Mazandaran</p>
+    <p class="story home-only">King Kay Kavus lies captive in Mazandaran, land of the Divs. <em>Rostam</em> rides out on the shortest and most perilous road. <b>Choose a labour on the map, then ride out.</b></p>
     <ol class="road" id="road"></ol>
     <p class="story" id="mapInfo"></p>
     <div class="btns"><button class="btn" id="rideBtn">Ride out</button><button class="btn2" id="mapTale">Read its tale</button></div>
+    <div class="keys deskonly home-only"><kbd>&larr;</kbd> <kbd>&rarr;</kbd> move &middot; <kbd>&uarr;</kbd>/<kbd>Space</kbd> jump (twice for a super jump) &middot; <kbd>X</kbd> strike &middot; <kbd>Esc</kbd> menu</div>
+    <div class="keys touchonly home-only">On-screen buttons to move, jump and strike. Turn your phone sideways for the best view.</div>
   </div>
 </section>
 <template id="tale-1">
@@ -358,6 +365,6 @@ h2{font-size:clamp(21px,4.6vw,27px);margin:2px 0 8px}
 </template>
 
 <script src="https://cdn.jsdelivr.net/npm/phaser@3.80.1/dist/phaser.min.js"></script>
-<script src="game.js?v=16"></script>
+<script src="game.js?v=21"></script>
 </body>
 </html>
