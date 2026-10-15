@@ -20,7 +20,7 @@ const FPS = { 'rostam-idle': 5, 'rostam-run': 12, 'rostam-jump': 6, 'rostam-atta
 // on-screen frame height in game pixels; equal to the PixelLab frame size so sprites draw 1:1
 const SIZE = { rostam: 80, lion: 100, jackal: 58, div: 64 };
 const BODY = { rostam: [0.2, 0.55], lion: [0.48, 0.3], jackal: [0.48, 0.31], div: [0.34, 0.52] };
-const V = 3;   // bump to bust caches when assets change
+const V = 4;   // bump to bust caches when assets change
 
 // PixelLab VFX strips in ./assets/fx: frame size, frame count, fps, and the effect's origin as a fraction of the frame
 const FX = {
@@ -28,7 +28,8 @@ const FX = {
   dust: { w: 53, h: 29, n: 8, fps: 16, ox: 0.491, oy: 0.448 }, pickup: { w: 43, h: 49, n: 10, fps: 18, ox: 0.488, oy: 0.653 },
   poof: { w: 56, h: 45, n: 10, fps: 14, ox: 0.536, oy: 0.6 }, heal: { w: 36, h: 60, n: 12, fps: 14, ox: 0.5, oy: 0.7 },
   stun: { w: 39, h: 23, n: 12, fps: 12, ox: 0.487, oy: 0.652, loop: true }, fire: { w: 27, h: 27, n: 12, fps: 12, ox: 0.481, oy: 0.815, loop: true },
-  fireflies: { w: 172, h: 141, n: 16, fps: 8, ox: 0.483, oy: 0.418, loop: true }, glow: { w: 53, h: 79, n: 12, fps: 10, ox: 0.491, oy: 0.506, loop: true }
+  fireflies: { w: 172, h: 141, n: 16, fps: 8, ox: 0.483, oy: 0.418, loop: true }, glow: { w: 53, h: 79, n: 12, fps: 10, ox: 0.491, oy: 0.506, loop: true },
+  liondust: { w: 79, h: 70, n: 16, fps: 14, ox: 0.43, oy: 0.957 }
 };
 // provisions on the road to Mazandaran; 'lamb' is a roast leg that restores a heart
 const FOOD = ['lamb', 'pomegranate', 'naan', 'grapes'];
@@ -269,7 +270,18 @@ function musicTick() {
     A.step++; A.next += 0.21;
   }
 }
-const music = on => { clearInterval(A.timer); A.timer = null; if (on && !A.muted && audio()) { A.next = A.ctx.currentTime + 0.05; A.timer = setInterval(musicTick, 60); } };
+// a low drone on D and A under the melody, breathing slowly: the reeds at night
+function drone(on) {
+  const c = A.ctx; if (!c) return;
+  if (A.drone) { const d = A.drone; A.drone = null; d.g.gain.setTargetAtTime(0.0001, c.currentTime, 0.4); setTimeout(() => d.o.forEach(o => o.stop()), 1500); }
+  if (!on) return;
+  const g = c.createGain(), lp = c.createBiquadFilter(), lfo = c.createOscillator(), lg = c.createGain();
+  lp.type = 'lowpass'; lp.frequency.value = 420; g.gain.value = 0.0001; g.gain.setTargetAtTime(0.05, c.currentTime, 1.2);
+  lfo.frequency.value = 0.09; lg.gain.value = 0.02; lfo.connect(lg).connect(g.gain);
+  const o = [73.42, 73.9, 110].map((f, i) => { const x = c.createOscillator(); x.type = i === 2 ? 'triangle' : 'sawtooth'; x.frequency.value = f; x.connect(lp); x.start(); return x; });
+  lp.connect(g).connect(A.master); lfo.start(); o.push(lfo); A.drone = { g, o };
+}
+const music = on => { clearInterval(A.timer); A.timer = null; drone(false); if (on && !A.muted && audio()) { A.next = A.ctx.currentTime + 0.05; A.timer = setInterval(musicTick, 60); drone(true); } };
 function setMuted(m) {
   A.muted = m; store.set('sh-muted', m ? '1' : '0'); if (A.master) A.master.gain.value = m ? 0 : 0.5;
   $('muteIco').setAttribute('d', m ? 'M4 9v6h4l5 4V5L8 9z M17 9l5 6 M22 9l-5 6' : 'M4 9v6h4l5 4V5L8 9z M16 9a4 4 0 0 1 0 6 M19 6a8 8 0 0 1 0 12');
@@ -463,8 +475,8 @@ class Play extends Phaser.Scene {
   }
   lionDown() {
     const l = this.lion; l.body.enable = false; l.anims.stop(); sfx('win'); this.stars?.destroy(); this.stars = null;
-    this.fx('poof', l.x, l.body.bottom - 14, { depth: 10 }); this.cam.flash(300, 255, 240, 200);
-    this.tweens.add({ targets: l, alpha: 0, duration: 1200, delay: 300 });
+    // the lion breaks into motes the colour of the Simurgh
+    l.setVisible(false); this.fx('liondust', l.x + (l.flipX ? 6 : -6), l.body.bottom + 1, { flip: l.flipX, depth: 4 }); this.cam.flash(300, 255, 240, 200);
     $('boss').classList.add('hidden'); this.wall.destroy();
     // the Simurgh's feather drifts down where the lion fell
     const fx = Phaser.Math.Clamp(l.x, 88 * TS, this.levelW - 40), fy = this.lionAt.y - 30;

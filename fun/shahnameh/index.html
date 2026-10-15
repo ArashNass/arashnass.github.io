@@ -90,6 +90,16 @@ h2{font-size:28px;margin:4px 0 10px}
 .pager button:disabled{opacity:.3;cursor:default}
 .x{position:absolute;top:8px;right:10px;width:34px;height:34px;font-size:22px;color:var(--gold2)}
 #pauseBtn{display:none}body.playing #pauseBtn{display:inline-flex}
+.ov{overflow:auto}
+.hero{display:none;position:absolute;right:calc(100% + 18px);bottom:-14px;width:195px;height:auto;image-rendering:pixelated;filter:drop-shadow(0 12px 24px rgba(0,0,0,.6));pointer-events:none}
+.hero.r{right:auto;left:calc(100% + 18px);transform:scaleX(-1)}
+@media (min-width:980px) and (min-height:560px){.hero{display:block}}
+@media (max-height:520px){
+  .page{padding:16px 20px 14px;outline-offset:3px}.fa{font-size:38px}h1{font-size:19px;margin:2px 0}h2{font-size:22px;margin:2px 0 6px}
+  .story{font-size:13px;line-height:1.45;margin:8px auto 10px}.keys{margin-top:8px;line-height:1.6}.stats{margin:2px auto}.stats b{font-size:16px}
+  .btn{padding:9px 30px;font-size:16px}.menu{margin-top:8px;gap:7px}#winBest{margin-bottom:8px}
+  #s-story .page{padding:16px 20px 10px}.leaf p{font-size:14px;line-height:1.55}.pager{margin-top:8px;padding-top:8px}
+}
 </style>
 </head>
 <body>
@@ -119,6 +129,7 @@ h2{font-size:28px;margin:4px 0 10px}
 
 <section class="ov" id="s-title">
   <div class="page">
+    <img class="hero" src="assets/ui/rostam.png" alt="Rostam in his tiger-skin coat, holding the ox-head mace" width="195" height="247">
     <div class="fa">شاهنامه</div>
     <h1>The Seven Labours of Rostam</h1>
     <p class="kick">Khan I &middot; The Lion of the Reeds</p>
@@ -206,6 +217,6 @@ h2{font-size:28px;margin:4px 0 10px}
 </template>
 
 <script src="https://cdn.jsdelivr.net/npm/phaser@3.80.1/dist/phaser.min.js"></script>
-<script src="game.js?v=3"></script>
+<script src="game.js?v=4"></script>
 </body>
 </html>
