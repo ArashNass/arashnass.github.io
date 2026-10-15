@@ -16,6 +16,7 @@ const ART = {
   'lion-walk': 'lion-walk.png', 'lion-run': 'lion-run.png', 'lion-roar': 'lion-roar.png',
   'jackal-run': 'jackal-run.png', 'div-hop': 'div-hop.png',
   // Khan II
+  'ride-gallop': 'k3/ride-gallop.png', 'ride-strike': 'k3/ride-strike.png', 'ride-rear': 'k3/ride-rear.png',
   'scorpion-crawl': 'k2/scorpion-crawl.png', 'vulture-fly': 'k2/vulture-fly.png', 'ram-walk': 'k2/ram-walk.png', 'rostam-drink': 'rostam-drink.png',
   // Khan III
   'dragon-move': 'k3/dragon-move.png', 'dragon-fire': 'k3/dragon-fire.png', 'rakhsh-gallop': 'k3/rakhsh-gallop.png', 'rakhsh-rear': 'k3/rakhsh-rear.png', 'bat-fly': 'k3/bat-fly.png',
@@ -29,17 +30,17 @@ const ART = {
   'whitediv-walk': 'k7/whitediv-walk.png', 'whitediv-smash': 'k7/whitediv-smash.png', 'whitediv-throw': 'k7/whitediv-throw.png', 'kavus-sight': 'k7/kavus-sight.png'
 };
 const FPS = { 'rostam-idle': 5, 'rostam-run': 12, 'rostam-jump': 6, 'rostam-attack': 15, 'rostam-hurt': 6, 'lion-walk': 9, 'lion-run': 14, 'lion-roar': 6, 'jackal-run': 12, 'div-hop': 8, 'coin-spin': 8, 'fire-burn': 10,
-  'scorpion-crawl': 10, 'vulture-fly': 10, 'ram-walk': 8, 'rostam-drink': 6,
+  'scorpion-crawl': 10, 'vulture-fly': 10, 'ram-walk': 8, 'rostam-drink': 6, 'ride-gallop': 12, 'ride-strike': 18, 'ride-rear': 11,
   'dragon-move': 7, 'dragon-fire': 9, 'rakhsh-gallop': 12, 'rakhsh-rear': 9, 'bat-fly': 14,
   'serpent': 8, 'hag-cast': 10, 'beauty-idle': 4,
   'spearman-walk': 10, 'spearman-thrust': 12, 'olad-walk': 10, 'olad-slash': 14, 'olad-kneel': 6,
   'divwarrior-walk': 8, 'divwarrior-smash': 10, 'arzhang-walk': 7, 'arzhang-smash': 9,
   'whitediv-walk': 6, 'whitediv-smash': 11, 'whitediv-throw': 10, 'kavus-sight': 4 };
 // on-screen frame height in game pixels; equal to the PixelLab frame size so sprites draw 1:1
-const SIZE = { rostam: 80, lion: 100, jackal: 58, div: 64, scorpion: 72, vulture: 72, ram: 64, dragon: 136, rakhsh: 104, bat: 72, serpent: 72, hag: 72, beauty: 64, spearman: 80, olad: 72, divwarrior: 104, arzhang: 136, whitediv: 136 };
-const BODY = { rostam: [0.2, 0.55], lion: [0.48, 0.3], jackal: [0.48, 0.31], div: [0.34, 0.52], scorpion: [0.5, 0.28], vulture: [0.42, 0.26], ram: [0.5, 0.5],
+const SIZE = { rider: 124, rostam: 80, lion: 100, jackal: 58, div: 64, scorpion: 72, vulture: 72, ram: 64, dragon: 136, rakhsh: 104, bat: 72, serpent: 72, hag: 72, beauty: 64, spearman: 80, olad: 72, divwarrior: 104, arzhang: 136, whitediv: 136 };
+const BODY = { rider: [0.3, 0.5], rostam: [0.2, 0.55], lion: [0.48, 0.3], jackal: [0.48, 0.31], div: [0.34, 0.52], scorpion: [0.5, 0.28], vulture: [0.42, 0.26], ram: [0.5, 0.5],
   dragon: [0.46, 0.42], rakhsh: [0.5, 0.5], bat: [0.36, 0.22], serpent: [0.4, 0.4], hag: [0.4, 0.62], beauty: [0.34, 0.8], spearman: [0.2, 0.68], olad: [0.26, 0.76], divwarrior: [0.3, 0.62], arzhang: [0.3, 0.7], whitediv: [0.4, 0.58] };
-const V = 21;   // bump to bust caches when assets change
+const V = 24;   // bump to bust caches when assets change
 
 // PixelLab VFX strips in ./assets/fx: frame size, frame count, fps, and the effect's origin as a fraction of the frame
 const FX = {
@@ -498,7 +499,7 @@ const LEVELS = {
       'Scorpions take two blows. Jump on them, or strike twice.', 'In the sandstorm the wind pushes you back. Keep moving forward.', 'At the dry rock, watch the order the ram taps the stones, then strike them in that order.', 'If your water runs dry you lose a heart every few seconds.']
   },
   3: {
-    hud: 'Khan III &middot; The Dragon', winTitle: 'The dragon is slain', name: 'The Dragon of the Night', fa: 'اژدها', bossName: 'The Dragon', tiles: 'tiles-3', map: map3,
+    hud: 'Khan III &middot; The Dragon', winTitle: 'The dragon is slain', name: 'The Dragon of the Night', fa: 'اژدها', bossName: 'The Dragon', tiles: 'tiles-3', map: map3, mounted: true,
     load(L, q) { L.image('tiles-3', 'assets/k3/tiles.png' + q); L.image('k3-far', 'assets/k3/far.png' + q); L.image('altar', 'assets/altar.png' + q); },
     backdrop(s) {
       s.add.image(0, 0, 'k3-far').setOrigin(0).setScrollFactor(0);
@@ -522,8 +523,8 @@ const LEVELS = {
       s.darkness(0.9, 0x04040c);
       for (const w of s.wisps) s.light(w, 0.7, 0.08);
       for (const a of s.altars) { a.ember = s.add.image(a.x, a.y - 22, 'glow').setScale(0.4).setBlendMode(Phaser.BlendModes.ADD).setDepth(3); s.light(a.ember, 0.6, 0.1); }
-      toast('Night falls. Rostam rides on in the dark; the light of his torch is all he has.');
-      hint('Night. Your torch is your only light. <b>Walk past fire altars</b> to light them: you rise at the last one if you fall.');
+      toast('Night falls. Rostam rides Rakhsh on into the dark; the light of his torch is all he has.');
+      hint('You ride <b>Rakhsh</b> tonight: faster, with a longer reach from the saddle. <b>Ride past fire altars</b> to light them: you rise at the last one if you fall.');
     },
     fires: [107], hearts: [105],
     update(s, k, time, p) { if (!s.bossOn && p.x > 113 * TS) s.startDragon(); },
@@ -970,7 +971,7 @@ class Play extends Phaser.Scene {
   create() {
     // the scene object is reused from labour to labour: forget whatever the last one left behind
     for (const k of ['dark', 'lights', 'lamp', 'wall', 'wallR', 'stars', 'pose', 'swingFx', 'witch', 'unmasked', 'olad', 'rakhsh', 'dragonSeen', 'horde', 'hordeDone',
-      'gates', 'drums', 'whiteDown', 'ended', 'prayed', 'drank', 'toldImmune', 'toldDeflect', 'kavus', 'stones', 'puzzle', 'springOpen', 'pool']) delete this[k];
+      'gates', 'drums', 'whiteDown', 'ended', 'mounted', 'prayed', 'drank', 'toldImmune', 'toldDeflect', 'kavus', 'stones', 'puzzle', 'springOpen', 'pool']) delete this[k];
     // turn loaded strips into square frames; anything missing falls back to placeholder art
     for (const [k, f] of Object.entries(ART)) if (f && this.textures.exists(k)) {
       const t = this.textures.get(k), img = t.getSourceImage(), fh = img.height, n = Math.max(1, Math.round(img.width / fh));
@@ -979,7 +980,7 @@ class Play extends Phaser.Scene {
     makeTextures(this);
     for (const k of Object.keys(FPS)) {
       const t = this.textures.get(k), n = t.frameTotal - 1;
-      if (!this.anims.exists(k)) this.anims.create({ key: k, frames: this.anims.generateFrameNumbers(k, { start: 0, end: Math.max(0, n - 1) }), frameRate: FPS[k], repeat: /attack|hurt|roar|jump|thrust|slash|kneel|smash|throw|fire|rear|sight/.test(k) ? 0 : -1 });
+      if (!this.anims.exists(k)) this.anims.create({ key: k, frames: this.anims.generateFrameNumbers(k, { start: 0, end: Math.max(0, n - 1) }), frameRate: FPS[k], repeat: /attack|hurt|roar|jump|thrust|slash|kneel|smash|throw|fire|rear|sight|strike/.test(k) ? 0 : -1 });
     }
     const lv = this.lv, map = lv.map(), C = map[0].length;
     $('lbl').innerHTML = lv.hud; $('waterPill').classList.add('hidden'); $('bossName').textContent = lv.bossName || lv.name;
@@ -1019,8 +1020,10 @@ class Play extends Phaser.Scene {
     const R = this.resuming && resumeAt?.n === cur ? resumeAt : null; this.resuming = false;
     if (R && this.altars[R.i]) { const a = this.altars[R.i]; this.start = { x: a.x, y: a.y }; for (const b of this.altars.slice(0, R.i + 1)) this.kindle(b, true); }
     this.respawn = { ...this.start };
-    this.player = this.physics.add.sprite(this.start.x, this.start.y - 30, 'rostam-idle', 0);
-    this.fit(this.player, 'rostam');
+    this.mounted = !!lv.mounted && this.textures.exists('ride-gallop');
+    this.player = this.physics.add.sprite(this.start.x, this.start.y - 30, this.mounted ? 'ride-gallop' : 'rostam-idle', 0);
+    this.fit(this.player, this.mounted ? 'rider' : 'rostam');
+    this.player.setY(this.start.y - 1 - 0.47 * this.player.displayHeight); this.player.body.reset(this.player.x, this.player.y);   // feet on the floor, however tall the rider
     this.player.setDepth(5);
     this.physics.add.collider(this.player, this.layer);
     this.physics.add.collider(this.foes, this.layer);
@@ -1115,7 +1118,7 @@ class Play extends Phaser.Scene {
       setTimeout(() => { if (!playing && this.done) $('s-dead').classList.remove('hidden'); }, 900);
     }
   }
-  strikeBox() { const p = this.player; return new Phaser.Geom.Rectangle(this.face > 0 ? p.body.right - 4 : p.body.left - 30, p.body.top - 6, 34, p.body.height + 8); }
+  strikeBox() { const p = this.player, r = this.mounted ? 48 : 34; return new Phaser.Geom.Rectangle(this.face > 0 ? p.body.right - 4 : p.body.left - r + 4, p.body.top - 6, r, p.body.height + 8); }
   damage(f, n = 1) {
     if (f.immune?.()) { this.fx('dust', f.x, f.body.center.y, { depth: 10 }); if (!this.toldImmune) { this.toldImmune = true; toast(f.immuneMsg || 'Your blow passes through shadow.'); } return; }
     f.hp -= n; f.setTintFill(0xffffff); this.time.delayedCall(80, () => f.active && f.clearTint());
@@ -1209,7 +1212,7 @@ class Play extends Phaser.Scene {
     if (this.frozen) { pressed.jump = pressed.attack = false; }
     const dirX = this.frozen ? 0 : (keys.right ? 1 : 0) - (keys.left ? 1 : 0), ground = b.blocked.down;
     if (dirX) this.face = dirX;
-    const tv = dirX * 125; b.velocity.x += (tv - b.velocity.x) * (ground ? 0.3 : 0.15);
+    const tv = dirX * (this.mounted ? 165 : 125); b.velocity.x += (tv - b.velocity.x) * (ground ? 0.3 : 0.15);   // Rakhsh outruns any man
     this.coyote = ground ? 6 : this.coyote - 1;
     if (pressed.jump) this.buf = 6; pressed.jump = false;
     if (ground) this.airJumps = 1;
@@ -1224,7 +1227,7 @@ class Play extends Phaser.Scene {
     if (!keys.jump && b.velocity.y < -120) p.setVelocityY(b.velocity.y * 0.85);
     this.cool -= k;
     if (pressed.attack && this.cool <= 0) {
-      this.atk = 16; this.cool = 22; sfx('swing'); p.play('rostam-attack', true); this.hitDone = new Set();
+      this.atk = 16; this.cool = this.mounted ? 26 : 22; sfx('swing'); p.play(this.mounted ? 'ride-strike' : 'rostam-attack', true); this.hitDone = new Set();
       this.swingFx = this.fx('swing', p.x + this.face * 6, p.y - 2, { flip: this.face < 0, depth: 6 });
     }
     if (this.swingFx?.active) this.swingFx.setPosition(Math.round(p.x + this.face * 6), Math.round(p.y - 2));
@@ -1242,10 +1245,12 @@ class Play extends Phaser.Scene {
     // thorns and pits
     const tile = this.layer.getTileAtWorldXY(p.x, b.bottom - 2);
     if (tile && tile.index % 4 === 3) { this.hurt(tile.pixelX + 8); p.setVelocityY(-300); }
-    if (p.y > ROWS * TS + 60) { this.inv = 0; this.hurt(p.x); if (this.hp > 0) { p.setPosition(this.respawn.x, this.respawn.y - 30); p.setVelocity(0); this.inv = 80; } }
+    if (p.y > ROWS * TS + 60) { this.inv = 0; this.hurt(p.x); if (this.hp > 0) { p.setPosition(this.respawn.x, this.respawn.y - 4 - 0.47 * p.displayHeight); p.setVelocity(0); this.inv = 80; } }
     // animation
-    const anim = this.pose || (this.atk > 0 ? 'rostam-attack' : this.inv > 70 ? 'rostam-hurt' : !ground ? 'rostam-jump' : Math.abs(b.velocity.x) > 15 ? 'rostam-run' : 'rostam-idle');
-    if (p.anims.currentAnim?.key !== anim && !(anim === 'rostam-attack' && p.anims.isPlaying)) p.play(anim);
+    const M = this.mounted, swinging = p.anims.isPlaying && /attack|strike/.test(p.anims.currentAnim?.key || '');
+    const anim = this.pose || (this.atk > 0 || (M && swinging) ? (M ? 'ride-strike' : 'rostam-attack') : M ? 'ride-gallop' : this.inv > 70 ? 'rostam-hurt' : !ground ? 'rostam-jump' : Math.abs(b.velocity.x) > 15 ? 'rostam-run' : 'rostam-idle');
+    if (p.anims.currentAnim?.key !== anim && !(/attack|strike/.test(anim) && p.anims.isPlaying)) p.play(anim);
+    if (anim === 'ride-gallop') { if (ground && Math.abs(b.velocity.x) > 15) p.anims.resume(); else { p.anims.pause(); if (!ground) p.setFrame(2); } }
     if (anim === 'rostam-jump') p.setFrame(b.velocity.y < 0 ? 0 : 1);
     p.setFlipX(this.face < 0);
     this.cam.setFollowOffset(-this.face * 30, 0);
@@ -1339,21 +1344,24 @@ class Play extends Phaser.Scene {
   }
   /* ---- Khan III: Rakhsh and the dragon that hides in the dark ---- */
   startDragon() {
-    const r = this.rakhsh = this.physics.add.sprite(this.rakhshAt.x - 220, this.rakhshAt.y - 40, 'rakhsh-gallop', 0).setDepth(4);
-    this.fit(r, 'rakhsh'); this.physics.add.collider(r, this.layer); r.play('rakhsh-gallop'); r.setVelocityX(180);
-    this.light(r, 1.1); sfx('neigh');
+    if (!this.mounted) {
+      const r = this.rakhsh = this.physics.add.sprite(this.rakhshAt.x - 220, this.rakhshAt.y - 40, 'rakhsh-gallop', 0).setDepth(4);
+      this.fit(r, 'rakhsh'); this.physics.add.collider(r, this.layer); r.play('rakhsh-gallop'); r.setVelocityX(180);
+      this.light(r, 1.1);
+    }
+    sfx('neigh');
     const d = this.physics.add.sprite(this.dragonAt.x, this.dragonAt.y - 60, 'dragon-move', 0).setDepth(4).setFlipX(true).setAlpha(0.05);
     this.fit(d, 'dragon'); d.play('dragon-move'); d.state = 'lurk'; d.tm = 170; d.dir = -1;
     this.light(d, 2.4, 0.04);                                         // when it shows itself, it can be seen
     d.immune = () => d.alpha < 0.5; d.immuneMsg = 'Your mace passes through shadow. Wait for Rakhsh to warn you!';
     d.ai = () => this.dragonAI(); d.onDown = () => this.bossFall(d);
     this.arena(112 * TS, d, 12);
-    toast('Rakhsh gallops up beside you, snorting. Something vast stirs in the dark...');
+    toast(this.mounted ? 'Rakhsh snorts and tosses his head beneath you. Something vast stirs in the dark...' : 'Rakhsh gallops up beside you, snorting. Something vast stirs in the dark...');
     hint('Rakhsh can sense the dragon. <b>When he rears and neighs, the dragon shows itself: strike it then.</b> While it hides, your blows pass through. Jump its fire.');
   }
   dragonAI() {
     const d = this.boss, p = this.player, r = this.rakhsh; d.tm--;
-    if (r.body.velocity.x > 0 && r.x >= this.rakhshAt.x) { r.setVelocityX(0); r.anims.stop(); r.setFrame(0); }
+    if (r && r.body.velocity.x > 0 && r.x >= this.rakhshAt.x) { r.setVelocityX(0); r.anims.stop(); r.setFrame(0); }
     const toP = Math.sign(p.x - d.x) || -1; d.dir = toP; d.setFlipX(toP < 0);
     const seen = d.hp <= d.max / 2;                                   // once wounded, God lets Rostam see it
     if (seen && !this.dragonSeen) { this.dragonSeen = true; this.tweens.killTweensOf(d); d.setAlpha(1); banner('خدا', 'The dragon can hide no more'); hint('The dragon can hide no more. <b>Strike it whenever you can</b>, and jump its fire.'); }
@@ -1361,7 +1369,7 @@ class Play extends Phaser.Scene {
       d.setVelocityX(toP * (seen ? 45 : 28));
       if (d.tm <= 0) {
         // Rakhsh rears and neighs: the dragon is revealed
-        r.play('rakhsh-rear'); r.once('animationcomplete', () => { r.anims.stop(); r.setFrame(0); }); sfx('neigh');
+        if (r) { r.play('rakhsh-rear'); r.once('animationcomplete', () => { r.anims.stop(); r.setFrame(0); }); } else this.rear(); sfx('neigh');
         this.tweens.add({ targets: d, alpha: 1, duration: 280 }); this.cam.flash(160, 255, 200, 140); sfx('roar');
         d.state = 'reveal'; d.tm = seen ? 18 : 30; d.setVelocityX(0);
       }
@@ -1385,6 +1393,13 @@ class Play extends Phaser.Scene {
       d.setVelocityX(0);
       if (d.tm <= 0) { d.state = 'lurk'; d.tm = (seen ? 80 : 150) + Math.random() * 60; if (!seen) this.tweens.add({ targets: d, alpha: 0.05, duration: 600 }); }
     }
+  }
+  // Rakhsh rears beneath his rider: the warning that reveals the dragon
+  rear() {
+    const p = this.player; this.pose = 'ride-rear'; p.play('ride-rear', true);
+    // the strip only lifts a little: tip the whole horse back on its haunches so the warning reads
+    this.tweens.add({ targets: p, angle: -18 * this.face, duration: 260, yoyo: true, hold: 220, ease: 'Sine.easeOut', onComplete: () => p.setAngle(0) });
+    p.once('animationcomplete', () => { if (this.pose === 'ride-rear') this.pose = null; });
   }
   /* ---- Khan IV: the feast, the name of God, and the witch ---- */
   startWitch() {
