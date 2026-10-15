@@ -14,9 +14,9 @@
 <meta name="twitter:card" content="summary_large_image">
 <title>Shahnameh: Seven Labours | Arash Nassirpour</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Lalezar&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=IM+Fell+English:ital@0;1&family=IM+Fell+English+SC&family=Lalezar&family=Noto+Nastaliq+Urdu:wght@700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
-:root{--lapis:#14286b;--lapis2:#1f3f9a;--gold:#e8c25a;--gold2:#f6dc8c;--turq:#2fa8b5;--ink:#fdf6e3;--panel:rgba(16,28,80,.9)}
+:root{--lapis:#14286b;--lapis2:#1f3f9a;--gold:#e8c25a;--gold2:#f6dc8c;--turq:#2fa8b5;--ink:#fdf6e3;--panel:rgba(16,28,80,.9);--inkb:#3b2412;--rubric:#9a2a1c;--lapisInk:#1d2f7c;--goldInk:#8a5a12}
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%;overflow:hidden;background:#070a18}
 body{font-family:Inter,system-ui,sans-serif;color:var(--ink);touch-action:none;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent}
@@ -40,22 +40,28 @@ button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
 .tb{width:70px;height:70px;border-radius:50%;display:grid;place-items:center;background:rgba(16,28,80,.55);border:2px solid rgba(232,194,90,.6);touch-action:none}
 .tb.on{background:rgba(232,194,90,.4)}
 .tb svg{width:30px;height:30px;fill:#fff}
-.ov{position:fixed;inset:0;z-index:8;display:grid;place-items:center;padding:16px;background:radial-gradient(ellipse at center,rgba(8,14,44,.4),rgba(8,14,44,.85))}
-/* a frame in the spirit of a manuscript page: gold rules, lapis field, illuminated corners */
-.page{position:relative;width:min(100%,520px);text-align:center;padding:30px 26px 24px;background:linear-gradient(var(--lapis2),var(--lapis));border:3px double var(--gold);outline:1.5px solid var(--gold);outline-offset:5px;box-shadow:0 20px 60px rgba(0,0,0,.5)}
-.page::before,.page::after{content:"";position:absolute;width:34px;height:34px;background:radial-gradient(circle,var(--gold2) 0 3px,transparent 4px),conic-gradient(from 45deg,var(--gold) 0 25%,transparent 0 50%,var(--gold) 0 75%,transparent 0);opacity:.85}
-.page::before{top:-8px;left:-8px}.page::after{bottom:-8px;right:-8px}
-.fa{font-family:Lalezar,serif;font-size:clamp(46px,11vw,72px);line-height:1;color:var(--gold2);text-shadow:0 3px 0 #6a4a10,0 0 22px rgba(232,194,90,.5)}
-h1,h2{font-family:Cinzel,serif;font-weight:900;color:var(--gold2)}
-h1{font-size:clamp(20px,4.6vw,28px);letter-spacing:.06em;margin:6px 0 4px}
-h2{font-size:28px;margin:4px 0 10px}
-.kick{font:700 11px Cinzel,serif;letter-spacing:.24em;text-transform:uppercase;color:#9fd6d6}
-.story{font-size:14px;line-height:1.6;color:#dfe6ff;margin:14px auto 18px;max-width:420px}
-.story em{color:var(--gold2);font-style:normal}
-.btn{display:inline-block;padding:12px 40px;font:900 18px Cinzel,serif;letter-spacing:.05em;color:#2a1a04;background:linear-gradient(#f6dc8c,#d9a83a);border:2px solid #6a4a10;box-shadow:0 4px 0 #6a4a10;transition:transform .1s}
-.btn:active{transform:translateY(3px);box-shadow:0 1px 0 #6a4a10}
-.keys{margin-top:16px;font-size:12px;color:#b8c4ec;line-height:2}
-.keys kbd{display:inline-block;min-width:22px;padding:0 6px;border:1px solid rgba(232,194,90,.5);background:rgba(255,255,255,.08);font:600 11px Inter,sans-serif;color:#fff;line-height:19px}
+.ov{position:fixed;inset:0;z-index:8;display:flex;flex-direction:column;padding:16px;overflow:auto;background:radial-gradient(ellipse at center,rgba(8,10,30,.45),rgba(6,8,24,.88))}
+/* menus are leaves of an illuminated manuscript: a tazhib border round a parchment page, ink and rubric for the text */
+.page{position:relative;margin:auto;flex:none;width:min(100%,560px);text-align:center;padding:12px 18px 10px;color:var(--inkb);
+  border:40px solid transparent;border-image:url(assets/ui/frame.png) 40 round;
+  background:#e8d6ae url(assets/ui/parch.png) 0 0/160px padding-box;image-rendering:pixelated;filter:drop-shadow(0 18px 36px rgba(0,0,0,.65))}
+#s-title .page{padding-top:34px}
+#s-title .page::before{content:"";position:absolute;left:50%;top:-70px;width:92px;height:92px;margin-left:-46px;background:url(assets/ui/rosette.png) center/92px no-repeat;image-rendering:pixelated;filter:drop-shadow(0 3px 2px rgba(40,20,0,.45))}
+.fa{font:700 clamp(30px,7vw,44px)/1.5 'Noto Nastaliq Urdu',Lalezar,serif;color:var(--lapisInk);text-shadow:0 2px 0 rgba(200,150,60,.55);margin:0 0 .45em;padding-top:.1em}
+h1,h2{font-family:Cinzel,serif;font-weight:900;color:var(--rubric)}
+h1{font-size:clamp(19px,4.4vw,26px);letter-spacing:.05em;margin:6px 0 2px}
+h2{font-size:clamp(21px,4.6vw,27px);margin:2px 0 8px}
+.kick{font:15px 'IM Fell English SC',Georgia,serif;letter-spacing:.14em;color:var(--goldInk)}
+.story{font:17px/1.5 'IM Fell English',Georgia,serif;color:var(--inkb);margin:10px auto 16px;max-width:430px}
+.story em{color:var(--rubric);font-style:italic}
+/* buttons are gilded cartouches: lapis for the main road, parchment for the side paths */
+.btn{display:inline-flex;align-items:center;justify-content:center;height:42px;padding:0 26px;border:solid transparent;border-width:14px 22px;border-image:url(assets/ui/btn-blue.png) 14 22 fill stretch;image-rendering:pixelated;
+  font:900 17px/1 Cinzel,serif;letter-spacing:.06em;color:var(--gold2);text-shadow:0 2px 0 #0b1546;transition:transform .1s,filter .15s}
+.btn:hover:not(:disabled){filter:brightness(1.15) saturate(1.1)}
+.btn:active{transform:translateY(2px)}
+.btn:disabled{filter:grayscale(.8) brightness(.8);cursor:default}
+.keys{margin-top:14px;font:12px Inter,sans-serif;color:#6b4a2a;line-height:2}
+.keys kbd{display:inline-block;min-width:22px;padding:0 6px;border:1px solid #9a7440;background:rgba(255,248,225,.55);font:600 11px Inter,sans-serif;color:var(--inkb);line-height:19px}
 .touchonly{display:none}@media (pointer:coarse){.touchonly{display:block}.deskonly{display:none}}
 .alt{display:inline-block;margin-top:12px;color:#b8c4ec;font-size:13px;text-decoration:underline;cursor:pointer}
 @media (max-width:520px){#lbl,.back .t{display:none}.tb{width:62px;height:62px}}
@@ -68,58 +74,71 @@ h2{font-size:28px;margin:4px 0 10px}
 #banner:before{content:"";position:absolute;left:10%;right:10%;top:-12px;bottom:-12px;background:radial-gradient(ellipse at center,rgba(6,8,22,.75),transparent 70%);z-index:-1}
 @media (prefers-reduced-motion:reduce){#banner.on{animation-duration:.01s;animation-delay:0s;opacity:0}#toast{transition:none}}
 @keyframes ban{0%{opacity:0;transform:scale(1.08)}15%,75%{opacity:1;transform:none}100%{opacity:0}}
-#toast{position:fixed;left:50%;bottom:calc(max(16px,env(safe-area-inset-bottom)) + 96px);transform:translate(-50%,10px);z-index:6;max-width:min(92vw,460px);padding:9px 16px;background:var(--panel);border:1.5px solid var(--gold);font-size:13px;color:#e8eeff;text-align:center;opacity:0;transition:opacity .3s,transform .3s;pointer-events:none}
+#toast{position:fixed;left:50%;bottom:calc(max(16px,env(safe-area-inset-bottom)) + 96px);transform:translate(-50%,10px);z-index:6;max-width:min(92vw,480px);padding:9px 18px;
+  background:#e8d6ae url(assets/ui/parch.png) 0 0/160px;image-rendering:pixelated;border:2px solid #7a4e14;outline:1px solid #c8902a;outline-offset:-6px;box-shadow:0 8px 22px rgba(0,0,0,.55);
+  font:16px/1.4 'IM Fell English',Georgia,serif;color:var(--inkb);text-align:center;opacity:0;transition:opacity .3s,transform .3s;pointer-events:none}
 #toast.on{opacity:1;transform:translate(-50%,0)}
 @media (pointer:fine){#toast{bottom:28px}}
-.btns{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;align-items:center}
-.btn2{display:inline-block;padding:10px 20px;font:700 14px Cinzel,serif;letter-spacing:.05em;color:var(--gold2);border:1.5px solid var(--gold);background:rgba(255,255,255,.04);transition:background .15s}
-.btn2:hover,.btn2:focus-visible{background:rgba(232,194,90,.15)}
-.btn:focus-visible,.btn2:focus-visible,.pill:focus-visible{outline:2px solid #fff;outline-offset:3px}
-.menu{display:grid;gap:10px;margin-top:16px;justify-items:center}.menu .btn2{min-width:220px}
+.btns{display:flex;flex-wrap:wrap;gap:10px 12px;justify-content:center;align-items:center}
+.btn2{display:inline-flex;align-items:center;justify-content:center;height:36px;padding:0 10px;border:solid transparent;border-width:9px 16px;border-image:url(assets/ui/btn-cream.png) 9 16 fill stretch;image-rendering:pixelated;
+  font:700 14px/1 Cinzel,serif;letter-spacing:.04em;color:var(--inkb);text-decoration:none;transition:transform .1s,filter .15s}
+.btn2:hover:not(:disabled),.btn2:focus-visible{filter:brightness(1.08) drop-shadow(0 0 6px rgba(200,144,42,.7))}
+.btn2:active{transform:translateY(2px)}
+.btn:focus-visible,.btn2:focus-visible,.pill:focus-visible{outline:2px solid var(--rubric);outline-offset:3px}
+.alt{display:inline-block;margin-top:10px;font:15px 'IM Fell English',Georgia,serif;color:var(--rubric);text-decoration:underline;cursor:pointer}
+.menu{display:grid;gap:8px;margin-top:12px;justify-items:center}.menu .btn,.menu .btn2{min-width:230px}
 .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:4px auto 6px;max-width:380px}
-.stats div{padding:8px 4px;border:1px solid rgba(232,194,90,.35);background:rgba(0,0,0,.18);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#b8c4ec}
-.stats b{display:block;font:900 20px Cinzel,serif;color:var(--gold2);letter-spacing:0;text-transform:none}
-#winBest{font-size:12px;color:#9fd6d6;margin-bottom:14px;letter-spacing:.06em}
+.stats div{padding:7px 4px;border:1px solid rgba(122,78,20,.5);background:rgba(255,246,220,.35);font:12px 'IM Fell English SC',Georgia,serif;letter-spacing:.08em;color:#6b4a2a}
+.stats b{display:block;font:900 20px Cinzel,serif;color:var(--rubric);letter-spacing:0}
+#winBest{font:italic 15px 'IM Fell English',Georgia,serif;color:#1f6f75;margin-bottom:12px}
 /* the tale: a manuscript you can page through */
-#s-story .page{width:min(100%,600px);text-align:left;padding:26px 28px 18px;max-height:calc(100dvh - 32px);display:flex;flex-direction:column}
-.leaf{overflow:auto;min-height:0;flex:1;padding-right:4px}
-.leaf .fa{font-size:clamp(30px,6vw,42px);text-align:center;margin-bottom:2px}
-.leaf h2{font-size:clamp(20px,4.4vw,26px);text-align:center;margin:0 0 4px}
-.leaf .kick{text-align:center;display:block;margin-bottom:14px}
-.leaf p{font-size:15px;line-height:1.7;color:#e3e9ff;margin:0 0 12px;font-family:Georgia,'Times New Roman',serif}
-.leaf p:first-of-type:first-letter{font:900 2.6em/0.9 Cinzel,serif;float:left;margin:4px 8px 0 0;color:var(--gold2)}
-.leaf ol{margin:0 0 12px 20px;color:#e3e9ff;font:15px/1.6 Georgia,serif}.leaf li{margin-bottom:6px}.leaf li b{color:var(--gold2);font-weight:normal;font-family:Cinzel,serif}
-.leaf em{color:var(--gold2);font-style:italic}
-.leaf .note{border-left:2px solid var(--turq);padding:6px 0 6px 12px;color:#bfe6ea;font-style:italic}
-.pager{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:14px;padding-top:12px;border-top:1px solid rgba(232,194,90,.3)}
-.dots{display:flex;gap:7px}.dots i{width:8px;height:8px;transform:rotate(45deg);border:1px solid var(--gold);display:block}.dots i.on{background:var(--gold)}
-.pager button:disabled{opacity:.3;cursor:default}
-.x{position:absolute;top:8px;right:10px;width:34px;height:34px;font-size:22px;color:var(--gold2)}
+#s-story .page{width:min(100%,640px);text-align:left;padding:14px 22px 10px;max-height:calc(100dvh - 32px);display:flex;flex-direction:column}
+.leaf{overflow:auto;min-height:0;flex:1;padding-right:6px}
+.leaf .fa{font-size:clamp(26px,5.6vw,36px);text-align:center}
+.leaf h2{font-size:clamp(20px,4.2vw,25px);text-align:center;margin:0 0 2px}
+.leaf .kick{text-align:center;display:block;margin-bottom:12px}
+.leaf p{font:17px/1.6 'IM Fell English',Georgia,serif;color:var(--inkb);margin:0 0 12px}
+.leaf p:first-of-type:first-letter{font:900 2.7em/.85 Cinzel,serif;float:left;margin:4px 8px 0 0;color:var(--rubric);text-shadow:1px 1px 0 var(--gold)}
+.leaf ol{margin:0 0 12px 22px;font:17px/1.55 'IM Fell English',Georgia,serif;color:var(--inkb)}.leaf li{margin-bottom:6px}.leaf li b{color:var(--rubric);font-weight:normal;font-family:Cinzel,serif}
+.leaf em{color:var(--rubric);font-style:italic}
+.leaf .note{border-left:3px double #1f6f75;padding:4px 0 4px 12px;color:#2c4a4a;font-style:italic}
+.pager{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:6px;padding-top:34px;background:url(assets/ui/divider.png) center 0/192px 27px no-repeat;image-rendering:pixelated}
+.dots{display:flex;gap:7px}.dots i{width:8px;height:8px;transform:rotate(45deg);border:1px solid #7a4e14;display:block}.dots i.on{background:var(--rubric)}
+.pager button:disabled{opacity:.35;cursor:default;filter:grayscale(1)}
+.x{position:absolute;top:-34px;right:-34px;width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font:22px/1 Georgia,serif;color:var(--gold2);background:radial-gradient(circle at 35% 30%,#2a4fc0,#14286b 70%);border:2px solid var(--gold);box-shadow:0 2px 4px rgba(0,0,0,.5);z-index:1}
 #pauseBtn{display:none}body.playing #pauseBtn{display:inline-flex}
-.ov{overflow:auto}
 .wbar{display:block;width:72px;height:9px;border:1.5px solid #9fd6d6;background:rgba(0,0,0,.45);overflow:hidden}
 .wbar b{display:block;height:100%;width:100%;background:linear-gradient(90deg,#1f6f9a,#2fa8b5 60%,#8fe0d8);transition:width .3s}
 #waterPill.low .wbar{border-color:#e8434f;animation:thirst .6s ease-in-out infinite alternate}#waterPill.low .wbar b{background:linear-gradient(90deg,#b8303f,#e8434f)}
 @keyframes thirst{to{box-shadow:0 0 10px #e8434f}}
-.mapPage{width:min(100%,720px)}
-.road{list-style:none;display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin:14px 0 6px;position:relative}
-.road:before{content:"";position:absolute;left:7%;right:7%;top:30px;border-top:2px dashed rgba(232,194,90,.45)}
-.road li{position:relative;display:flex;flex-direction:column;align-items:center;gap:4px}
-.road button{width:58px;height:58px;border-radius:50%;display:grid;place-items:center;background:radial-gradient(circle at 35% 30%,#2a4fc0,#14286b 70%);border:2px solid var(--gold);color:var(--gold2);font:900 15px Cinzel,serif;box-shadow:0 0 0 3px rgba(20,40,107,.9),0 4px 10px rgba(0,0,0,.5);transition:transform .15s}
-.road button:hover:not(:disabled),.road button.sel{transform:scale(1.1);box-shadow:0 0 0 3px #f6dc8c,0 0 18px rgba(246,220,140,.6)}
-.road button:disabled{background:#1a2040;border-color:#5a5a7a;color:#6a6a8a;cursor:default}
-.road button.done:after{content:"\2713";position:absolute;top:-2px;right:calc(50% - 32px);width:18px;height:18px;border-radius:50%;background:#2fa8b5;color:#fff;font:700 11px/18px Inter,sans-serif}
-.road span{font:700 10px Cinzel,serif;letter-spacing:.06em;color:#b8c4ec;text-align:center;line-height:1.3}.road .pf{font:16px Lalezar,serif;color:var(--gold2);letter-spacing:0}
-#mapInfo{min-height:3.2em;margin:8px auto 12px}
-@media (max-width:620px){.road{grid-template-columns:repeat(4,1fr);row-gap:12px}.road:before{display:none}}
-.hero{display:none;position:absolute;right:calc(100% + 18px);bottom:-14px;width:195px;height:auto;image-rendering:pixelated;filter:drop-shadow(0 12px 24px rgba(0,0,0,.6));pointer-events:none}
-.hero.r{right:auto;left:calc(100% + 18px);transform:scaleX(-1)}
-@media (min-width:980px) and (min-height:560px){.hero{display:block}}
+/* the labour map: a miniature of the road, with a lapis seal for each labour */
+.mapPage{width:min(100%,800px)}
+.road{list-style:none;position:relative;aspect-ratio:512/178;margin:8px 0 4px;background:url(assets/ui/map.png) center/100% 100% no-repeat;image-rendering:pixelated;border:3px double #7a4e14;box-shadow:0 0 0 1px #c8902a}
+.road svg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.road li{position:absolute;transform:translate(-50%,-50%)}
+.road button{position:relative;width:36px;height:36px;border-radius:50%;display:grid;place-items:center;background:radial-gradient(circle at 35% 30%,#2a4fc0,#14286b 70%);border:2px solid var(--gold);color:var(--gold2);font:900 12px Cinzel,serif;box-shadow:0 0 0 2px #2a1a08,0 3px 8px rgba(0,0,0,.6);transition:transform .15s}
+.road button:hover:not(:disabled),.road button.sel{transform:scale(1.2);box-shadow:0 0 0 2px #2a1a08,0 0 0 4px var(--gold2),0 0 16px rgba(246,220,140,.8)}
+.road button:disabled{background:radial-gradient(circle at 35% 30%,#8a7f6a,#4f463a 70%);border-color:#9a8f78;color:#d8ccb0;cursor:default}
+.road button.done:after{content:"\2713";position:absolute;top:-6px;right:-6px;width:16px;height:16px;border-radius:50%;background:#1f8a92;border:1px solid #e8d6ae;color:#fff;font:700 10px/14px Inter,sans-serif}
+#mapInfo{min-height:3.1em;margin:8px auto 12px}#mapInfo .pf{display:block;font:700 26px/1.5 'Noto Nastaliq Urdu',Lalezar,serif;color:var(--lapisInk);margin:0 0 .75em}
+.hero{display:none;position:absolute;right:calc(100% + 52px);bottom:-40px;width:195px;height:auto;image-rendering:pixelated;filter:drop-shadow(0 12px 24px rgba(0,0,0,.6));pointer-events:none}
+@media (min-width:1000px) and (min-height:560px){.hero{display:block}}
+/* in play the titles float over the game, so they stay gold on the dark */
+#banner .fa{font-size:clamp(36px,8vw,58px);color:var(--gold2);text-shadow:0 3px 0 #3a2208,0 0 20px rgba(0,0,0,.9);margin:0}
+#banner h2{color:var(--gold2)}
+@media (max-width:620px),(max-height:520px){
+  .page{border-width:26px;padding:8px 12px 8px}.x{top:-24px;right:-24px;width:26px;height:26px;font-size:19px}
+  #s-title .page{padding-top:28px}#s-title .page::before{top:-52px;width:64px;height:64px;margin-left:-32px;background-size:64px}
+  .road button{width:28px;height:28px;font-size:10px}
+}
+@media (max-width:420px){.road button{width:22px;height:22px;font-size:8px;border-width:1.5px}.road button.done:after{width:12px;height:12px;top:-5px;right:-5px;font-size:8px;line-height:11px}}
 @media (max-height:520px){
-  .page{padding:16px 20px 14px;outline-offset:3px}.fa{font-size:38px}h1{font-size:19px;margin:2px 0}h2{font-size:22px;margin:2px 0 6px}
-  .story{font-size:13px;line-height:1.45;margin:8px auto 10px}.keys{margin-top:8px;line-height:1.6}.stats{margin:2px auto}.stats b{font-size:16px}
-  .btn{padding:9px 30px;font-size:16px}.menu{margin-top:8px;gap:7px}#winBest{margin-bottom:8px}
-  #s-story .page{padding:16px 20px 10px}.leaf p{font-size:14px;line-height:1.55}.pager{margin-top:8px;padding-top:8px}
+  .fa{font-size:28px}h1{font-size:18px;margin:0}h2{font-size:20px;margin:0 0 4px}
+  .story{font-size:15px;line-height:1.35;margin:6px auto 8px}.keys{margin-top:6px;line-height:1.6}.stats{margin:2px auto}.stats b{font-size:16px}
+  .menu{margin-top:6px;gap:5px}#winBest{margin-bottom:6px}
+  .leaf p{font-size:15px;line-height:1.5}.pager{padding-top:30px}
+  .ov{padding:10px 16px}.keys{display:none}#s-title .page{padding-top:22px}
+  .mapPage .kick,#mapInfo .pf{display:none}.mapPage .fa{font-size:24px;margin-bottom:.2em}.road{width:min(100%,calc((100dvh - 230px) * 2.876));margin-inline:auto}#mapInfo{min-height:0;margin:6px auto 8px}
 }
 </style>
 </head>
@@ -329,6 +348,6 @@ h2{font-size:28px;margin:4px 0 10px}
 </template>
 
 <script src="https://cdn.jsdelivr.net/npm/phaser@3.80.1/dist/phaser.min.js"></script>
-<script src="game.js?v=8"></script>
+<script src="game.js?v=11"></script>
 </body>
 </html>

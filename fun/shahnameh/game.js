@@ -39,7 +39,7 @@ const FPS = { 'rostam-idle': 5, 'rostam-run': 12, 'rostam-jump': 6, 'rostam-atta
 const SIZE = { rostam: 80, lion: 100, jackal: 58, div: 64, scorpion: 72, vulture: 72, ram: 64, dragon: 136, rakhsh: 104, bat: 72, serpent: 72, hag: 72, beauty: 64, spearman: 80, olad: 72, divwarrior: 104, arzhang: 136, whitediv: 136 };
 const BODY = { rostam: [0.2, 0.55], lion: [0.48, 0.3], jackal: [0.48, 0.31], div: [0.34, 0.52], scorpion: [0.5, 0.28], vulture: [0.42, 0.26], ram: [0.5, 0.5],
   dragon: [0.46, 0.42], rakhsh: [0.5, 0.5], bat: [0.36, 0.22], serpent: [0.4, 0.4], hag: [0.4, 0.62], beauty: [0.34, 0.8], spearman: [0.2, 0.68], olad: [0.26, 0.76], divwarrior: [0.3, 0.62], arzhang: [0.3, 0.7], whitediv: [0.4, 0.58] };
-const V = 8;   // bump to bust caches when assets change
+const V = 11;   // bump to bust caches when assets change
 
 // PixelLab VFX strips in ./assets/fx: frame size, frame count, fps, and the effect's origin as a fraction of the frame
 const FX = {
@@ -772,54 +772,188 @@ function makeTextures(scene) {
 }
 
 /* ---------------------------- audio ---------------------------- */
-const A = { ctx: null, master: null, muted: store.get('sh-muted') === '1', timer: null, step: 0, next: 0 };
+// Everything is synthesised in the browser: a santur (hammered dulcimer) and a tar from a plucked-string
+// model, a breathy ney, and a daf frame drum, all in a small hall of reverb. Each labour has its own
+// dastgah (mode, with the quarter-tone koron steps), tempo and drum cycle, and the melody improvises
+// phrases around a theme that keeps returning, the way a radif is played.
+const A = { ctx: null, master: null, muted: store.get('sh-muted') === '1', timer: null, next: 0, bufs: {}, song: null };
 function audio() {
-  if (!A.ctx) { const C = window.AudioContext || window.webkitAudioContext; if (!C) return null; A.ctx = new C(); A.master = A.ctx.createGain(); A.master.gain.value = A.muted ? 0 : 0.5; A.master.connect(A.ctx.destination); }
+  if (!A.ctx) {
+    const C = window.AudioContext || window.webkitAudioContext; if (!C) return null;
+    const c = A.ctx = new C();
+    const comp = c.createDynamicsCompressor(); comp.threshold.value = -16; comp.ratio.value = 3; comp.connect(c.destination);
+    A.master = c.createGain(); A.master.gain.value = A.muted ? 0 : 0.8; A.master.connect(comp);
+    A.verb = c.createConvolver(); A.verb.buffer = hall(c, 2.8); const wet = c.createGain(); wet.gain.value = 0.42; A.verb.connect(wet).connect(A.master);
+    A.music = c.createGain(); A.music.gain.value = 0.5; A.music.connect(A.master);
+    A.fx = c.createGain(); A.fx.gain.value = 0.85; A.fx.connect(A.master);
+    const ms = c.createGain(); ms.gain.value = 0.55; A.music.connect(ms).connect(A.verb);
+    const fs = c.createGain(); fs.gain.value = 0.2; A.fx.connect(fs).connect(A.verb);
+    A.noise = c.createBuffer(1, c.sampleRate, c.sampleRate); const nd = A.noise.getChannelData(0); for (let i = 0; i < nd.length; i++) nd[i] = Math.random() * 2 - 1;
+  }
   if (A.ctx.state === 'suspended') A.ctx.resume(); return A.ctx;
 }
-function tone(f, d, { type = 'triangle', vol = 0.15, to = 0, t } = {}) {
+// a hall: stereo noise falling away, darker as it fades
+function hall(c, sec) {
+  const n = Math.floor(c.sampleRate * sec), b = c.createBuffer(2, n, c.sampleRate);
+  for (let ch = 0; ch < 2; ch++) { const d = b.getChannelData(ch); let lp = 0; for (let i = 0; i < n; i++) { const k = i / n; lp += ((Math.random() * 2 - 1) - lp) * (0.9 - 0.75 * k); d[i] = lp * Math.pow(1 - k, 3); } }
+  return b;
+}
+// a struck or plucked string (Karplus-Strong), rendered once per pitch and kept
+function string(f, kind) {
+  const key = kind + Math.round(f * 4); if (A.bufs[key]) return A.bufs[key];
+  const c = A.ctx, sr = c.sampleRate, N = Math.max(2, Math.round(sr / f + 0.5)), santur = kind === 'santur';
+  const len = Math.floor(sr * (santur ? 2.6 : 1.7)), b = c.createBuffer(1, len, sr), d = b.getChannelData(0), ring = new Float32Array(N);
+  let lp = 0; const soft = santur ? 0.15 : 0.62;                  // a bright hammer for the santur, a softer plectrum for the tar
+  for (let i = 0; i < N; i++) { lp += ((Math.random() * 2 - 1) - lp) * (1 - soft); ring[i] = lp; }
+  const loss = santur ? 0.99996 : 0.9998;
+  for (let i = 0, j = 0; i < len; i++) { const x = ring[j], y = ring[(j + 1) % N]; ring[j] = loss * 0.5 * (x + y); d[i] = x; j = (j + 1) % N; }
+  b.f0 = sr / (N - 0.5); return A.bufs[key] = b;                   // averaging forward shortens the loop by half a sample
+}
+function voice(src, g, pan, out) {
+  const c = A.ctx;
+  if (pan && c.createStereoPanner) { const p = c.createStereoPanner(); p.pan.value = pan; src.connect(g).connect(p).connect(out); } else src.connect(g).connect(out);
+}
+function pluck(f, t, { kind = 'santur', vol = 0.2, pan = 0, out = A.music, bend = 0 } = {}) {
+  const c = A.ctx, b = string(f, kind), courses = kind === 'santur' ? [1, 1.0028] : [1]; t = Math.max(t, c.currentTime);
+  for (const k of courses) {
+    const s = c.createBufferSource(), g = c.createGain(), r = f * k / b.f0;
+    s.buffer = b; s.playbackRate.setValueAtTime(r, t); if (bend) s.playbackRate.linearRampToValueAtTime(r * bend, t + 0.35);
+    g.gain.value = vol / courses.length; voice(s, g, pan + (k > 1 ? 0.15 : 0), out); s.start(t); s.stop(t + b.duration / r);
+  }
+}
+// the ney: a breathy reed flute that leans into its vibrato
+function ney(f, t, d, vol = 0.08) {
+  const c = A.ctx, o = c.createOscillator(), o2 = c.createOscillator(), g = c.createGain(), lp = c.createBiquadFilter(), vib = c.createOscillator(), vg = c.createGain();
+  o.type = 'sine'; o2.type = 'triangle'; o.frequency.value = f; o2.frequency.value = f * 2; lp.type = 'lowpass'; lp.frequency.value = 2200;
+  vib.frequency.value = 5.2; vg.gain.setValueAtTime(0, t); vg.gain.linearRampToValueAtTime(f * 0.008, t + d * 0.6); vib.connect(vg); vg.connect(o.frequency); vg.connect(o2.frequency);
+  const g2 = c.createGain(); g2.gain.value = 0.18; o2.connect(g2).connect(lp); o.connect(lp);
+  const br = c.createBufferSource(), bp = c.createBiquadFilter(), bg = c.createGain(); br.buffer = A.noise; br.loop = true; bp.type = 'bandpass'; bp.frequency.value = f * 2; bp.Q.value = 3; bg.gain.value = 0.35;
+  br.connect(bp).connect(bg).connect(lp);
+  g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + 0.12); g.gain.setValueAtTime(vol, t + d - 0.15); g.gain.exponentialRampToValueAtTime(0.0001, t + d + 0.25);
+  voice(lp, g, -0.2, A.music);
+  for (const x of [o, o2, vib, br]) { x.start(t); x.stop(t + d + 0.3); }
+}
+function noise(t, d, { type = 'bandpass', f = 1000, to = 0, q = 1, vol = 0.1, out = A.fx } = {}) {
+  const c = A.ctx, s = c.createBufferSource(), fl = c.createBiquadFilter(), g = c.createGain();
+  s.buffer = A.noise; s.loop = true; fl.type = type; fl.frequency.setValueAtTime(f, t); if (to) fl.frequency.exponentialRampToValueAtTime(to, t + d); fl.Q.value = q;
+  g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + 0.005); g.gain.exponentialRampToValueAtTime(0.0001, t + d);
+  s.connect(fl).connect(g).connect(out); s.start(t, Math.random() * 0.5); s.stop(t + d + 0.05);
+}
+function tone(f, d, { type = 'triangle', vol = 0.15, to = 0, t, out = A.fx } = {}) {
   const c = A.ctx; if (!c) return; t = t ?? c.currentTime;
   const o = c.createOscillator(), g = c.createGain(); o.type = type; o.frequency.setValueAtTime(f, t); if (to) o.frequency.exponentialRampToValueAtTime(to, t + d);
   g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + 0.008); g.gain.exponentialRampToValueAtTime(0.0001, t + d);
-  o.connect(g).connect(A.master); o.start(t); o.stop(t + d + 0.02);
+  o.connect(g).connect(out); o.start(t); o.stop(t + d + 0.02);
 }
-const sfx = (k) => { if (!A.ctx || A.muted) return; ({
-  jump: () => tone(260, 0.15, { type: 'square', vol: 0.05, to: 520 }),
-  coin: () => { tone(1320, 0.08, { vol: 0.08 }); tone(1760, 0.14, { vol: 0.06, t: A.ctx.currentTime + 0.05 }); },
-  swing: () => tone(200, 0.12, { type: 'sawtooth', vol: 0.05, to: 90 }),
-  hit: () => tone(120, 0.18, { type: 'square', vol: 0.12, to: 50 }),
-  hurt: () => tone(300, 0.3, { type: 'sawtooth', vol: 0.1, to: 80 }),
-  neigh: () => { tone(520, 0.5, { type: 'sawtooth', vol: 0.06, to: 880 }); tone(700, 0.35, { type: 'square', vol: 0.03, to: 400, t: A.ctx.currentTime + 0.25 }); },
-  roar: () => { tone(90, 0.7, { type: 'sawtooth', vol: 0.18, to: 55 }); tone(140, 0.6, { type: 'square', vol: 0.06, to: 70 }); },
-  fire: () => [0, 3, 7].forEach((n, i) => tone(440 * 2 ** (n / 12), 0.2, { vol: 0.07, t: A.ctx.currentTime + i * 0.07 })),
-  win: () => [0, 1, 5, 7, 8, 12].forEach((n, i) => tone(293.66 * 2 ** (n / 12), 0.3, { vol: 0.08, t: A.ctx.currentTime + i * 0.13 }))
-})[k](); };
-// a little setar-and-daf loop in a Shur-like mode
-const SHUR = [0, 1, 3, 5, 7, 8, 10, 12], MEL = [4, 3, 2, 1, 2, -1, 1, 0, 3, 2, 1, 2, 1, -1, 0, -1];
+// the daf: a deep 'dum' in the centre of the skin, a dry 'tak' at the rim, and the rattle of its rings
+function daf(t, k, vol = 1, out = A.music) {
+  if (k === 'D' || k === 'd') { const v = (k === 'D' ? 0.5 : 0.28) * vol; tone(105, 0.42, { type: 'sine', vol: v, to: 52, t, out }); noise(t, 0.09, { type: 'lowpass', f: 380, vol: v * 0.5, out }); noise(t + 0.01, 0.3, { type: 'highpass', f: 6500, vol: 0.035 * vol, out }); }
+  if (k === 't') { noise(t, 0.07, { f: 1900, q: 1.4, vol: 0.2 * vol, out }); noise(t, 0.22, { type: 'highpass', f: 7000, vol: 0.06 * vol, out }); }
+  if (k === 'j') noise(t, 0.28, { type: 'highpass', f: 7500, vol: 0.05 * vol, out });
+}
+// dastgah: the cents of each step; the koron steps sit a quarter tone flat
+const MODES = {
+  shur: [0, 150, 300, 500, 700, 800, 1000], homayoun: [0, 150, 400, 500, 700, 800, 1000], chahargah: [0, 150, 400, 500, 700, 850, 1100],
+  segah: [0, 150, 350, 500, 700, 850, 1000], mahur: [0, 200, 400, 500, 700, 900, 1100], dashti: [0, 150, 300, 500, 700, 850, 1000]
+};
+// one score per labour: root (Hz), tempo, steps per bar (eighths), a daf cycle, how busy the santur is, and who else plays
+const SONGS = {
+  1: { mode: 'shur', root: 293.66, bpm: 88, bar: 8, daf: 'D..tD.t.', dv: 0.7, busy: 0.55, ney: 0.35, tar: 1, home: 0 , gain: 1.15 },
+  2: { mode: 'dashti', root: 329.63, bpm: 66, bar: 6, daf: 'D....j', dv: 0.5, busy: 0.35, ney: 0.6, tar: 1, home: 4 , gain: 1.9 },
+  3: { mode: 'chahargah', root: 261.63, bpm: 62, bar: 8, daf: 'D.d.....', dv: 0.8, busy: 0.4, ney: 0.25, tar: 2, home: 0, low: 1 , gain: 1.5 },
+  4: { mode: 'homayoun', root: 293.66, bpm: 96, bar: 6, daf: 'D.tt.t', dv: 0.6, busy: 0.7, ney: 0.2, tar: 1, home: 3 , gain: 1.05 },
+  5: { mode: 'mahur', root: 392.0, bpm: 116, bar: 6, daf: 'D.tD.t', dv: 0.8, busy: 0.75, ney: 0, tar: 1, home: 2 , gain: 1.3 },
+  6: { mode: 'chahargah', root: 293.66, bpm: 128, bar: 8, daf: 'D.tDD.t.', dv: 1, busy: 0.6, ney: 0, tar: 2, home: 0, low: 1 , gain: 0.8 },
+  7: { mode: 'segah', root: 329.63, bpm: 76, bar: 8, daf: 'D...t...', dv: 0.7, busy: 0.45, ney: 0.45, tar: 1, home: 2 , gain: 1.45 }
+};
+const BOSS_DAF = { 6: 'DtDt.tDt', 8: 'DtDtDttD' };
+// a seeded random, so each labour keeps its own theme
+const rng = seed => () => { seed = (seed + 0x6d2b79f5) | 0; let x = Math.imul(seed ^ (seed >>> 15), 1 | seed); x = (x + Math.imul(x ^ (x >>> 7), 61 | x)) ^ x; return ((x ^ (x >>> 14)) >>> 0) / 4294967296; };
+function pitch(S, deg) { const m = MODES[S.mode], o = Math.floor(deg / 7), i = ((deg % 7) + 7) % 7; return S.root * 2 ** (o + m[i] / 1200) / (S.low ? 2 : 1); }
+// a phrase of two bars: a contour (rise, hover, or the forud that falls home), a rhythm, and ornaments
+function phrase(S, R, shape) {
+  const len = S.bar * 2, ev = []; let at = 0, deg = shape === 'rise' ? S.home - 2 : S.home + (shape === 'forud' ? 4 : 1);
+  while (at < len) {
+    const left = len - at, last = left <= 4;
+    let d = last ? left : R() < 0.55 ? 1 : R() < 0.75 ? 2 : 0.5; if (d > left) d = left;
+    if (!last && R() > S.busy + 0.25) { at += d; continue; }                     // breath
+    const aim = shape === 'rise' ? S.home + 4 : shape === 'forud' ? S.home - (at / len) * 4 : S.home + 1;
+    deg += Math.sign(aim - deg + (R() - 0.5) * 3) * (R() < 0.85 ? 1 : 2);
+    if (last) deg = shape === 'forud' ? 0 : S.home;
+    deg = Math.max(-3, Math.min(10, Math.round(deg)));
+    ev.push({ at, deg, d, grace: d >= 1 && R() < 0.3, riz: d >= 2 });
+    at += d;
+  }
+  return ev;
+}
+function newSong(n) {
+  const S = { ...SONGS[n] || SONGS[1], n }, R = rng(n * 977 + 13);
+  const A1 = phrase(S, R, 'rise'), B = phrase(S, R, 'hover');
+  S.form = [A1, B, A1, phrase(S, R, 'forud')]; S.R = rng(n * 31 + 7); S.ph = 0; S.ev = S.form[0].slice(); S.step = 0; S.bars = 0;
+  for (let d = -3; d <= 10; d++) { string(pitch(S, d), 'santur'); string(pitch(S, d) / 2, 'tar'); }
+  return S;
+}
 function musicTick() {
-  const c = A.ctx;
+  const c = A.ctx, S = A.song; if (!S) return;
+  const sc = game?.scene.getScene('play'), boss = !!(sc && sc.bossOn && !sc.done);
   while (A.next < c.currentTime + 0.25) {
-    const i = A.step % 16, n = MEL[i], t = A.next;
-    if (n >= 0) { tone(293.66 * 2 ** (SHUR[n] / 12), 0.22, { vol: 0.05, t }); tone(587.3 * 2 ** (SHUR[n] / 12), 0.08, { vol: 0.015, t: t + 0.02 }); }
-    if (i % 4 === 0) tone(80, 0.18, { type: 'sine', vol: 0.18, to: 45, t });
-    if (i % 4 === 2) tone(220, 0.05, { type: 'square', vol: 0.025, t });
-    A.step++; A.next += 0.21;
+    const t = A.next, sd = 60 / (S.bpm * (boss ? 1.1 : 1)) / 2, i = S.step % S.bar, bar = Math.floor(S.step / S.bar) % 2;
+    // the daf
+    const pat = boss ? BOSS_DAF[S.bar] : S.daf, k = pat[i]; if (k !== '.') daf(t, k, S.dv * (boss ? 1.15 : 1));
+    // the tar: the home note on the downbeat, the fifth answering; an ostinato for war and bosses
+    const T = S.tar + (boss ? 1 : 0), home = pitch(S, 0) / 2;
+    if (i === 0) pluck(home, t, { kind: 'tar', vol: 0.3, pan: -0.25 });
+    else if (T >= 2 && i % 2 === 0) pluck(i === S.bar / 2 ? pitch(S, 4) / 2 : home, t, { kind: 'tar', vol: 0.18, pan: -0.25 });
+    else if (i === S.bar / 2) pluck(pitch(S, 4) / 2, t, { kind: 'tar', vol: 0.16, pan: -0.25 });
+    // the santur and, now and then, the ney taking the line
+    const local = S.step % (S.bar * 2);
+    for (const e of S.ev.filter(e => e.at >= local && e.at < local + 1)) {
+      const et = t + (e.at - local) * sd, f = pitch(S, e.deg);
+      if (S.useNey) { ney(f, et, e.d * sd * 0.95, 0.07); continue; }
+      if (e.grace) pluck(pitch(S, e.deg + 1), et - sd * 0.18, { vol: 0.09, pan: 0.2 });
+      pluck(f, et, { vol: 0.2, pan: 0.2 });
+      if (e.riz) for (let r = 1, n = Math.floor(e.d * 4) - 1; r < n; r++) pluck(f, et + r * sd / 4, { vol: 0.13 * (0.55 + 0.45 * Math.sin(Math.PI * r / n)), pan: 0.2 });
+    }
+    S.step++; A.next += sd;
+    if (S.step % (S.bar * 2) === 0) {
+      // the next phrase: the theme returns, the rest is improvised anew, sometimes the ney answers
+      S.ph = (S.ph + 1) % 4; if (S.ph === 0) { S.form[1] = phrase(S, S.R, 'hover'); S.form[3] = phrase(S, S.R, 'forud'); }
+      S.ev = S.form[S.ph]; S.useNey = S.ph === 1 && S.R() < S.ney;
+    }
   }
 }
-// a low drone on D and A under the melody, breathing slowly: the reeds at night
+// under it all a quiet drone on the home note and its fifth, breathing slowly
 function drone(on) {
   const c = A.ctx; if (!c) return;
   if (A.drone) { const d = A.drone; A.drone = null; d.g.gain.setTargetAtTime(0.0001, c.currentTime, 0.4); setTimeout(() => d.o.forEach(o => o.stop()), 1500); }
-  if (!on) return;
-  const g = c.createGain(), lp = c.createBiquadFilter(), lfo = c.createOscillator(), lg = c.createGain();
-  lp.type = 'lowpass'; lp.frequency.value = 420; g.gain.value = 0.0001; g.gain.setTargetAtTime(0.05, c.currentTime, 1.2);
-  lfo.frequency.value = 0.09; lg.gain.value = 0.02; lfo.connect(lg).connect(g.gain);
-  const o = [73.42, 73.9, 110].map((f, i) => { const x = c.createOscillator(); x.type = i === 2 ? 'triangle' : 'sawtooth'; x.frequency.value = f; x.connect(lp); x.start(); return x; });
-  lp.connect(g).connect(A.master); lfo.start(); o.push(lfo); A.drone = { g, o };
+  if (!on || !A.song) return;
+  const S = A.song, g = c.createGain(), lp = c.createBiquadFilter(), lfo = c.createOscillator(), lg = c.createGain();
+  lp.type = 'lowpass'; lp.frequency.value = 600; g.gain.value = 0.0001; g.gain.setTargetAtTime(0.035, c.currentTime, 1.5);
+  lfo.frequency.value = 0.07; lg.gain.value = 0.015; lfo.connect(lg).connect(g.gain);
+  const o = [pitch(S, 0) / 4, pitch(S, 0) / 4 * 1.003, pitch(S, 4) / 4].map(f => { const x = c.createOscillator(); x.type = 'sine'; x.frequency.value = f; x.connect(lp); x.start(); return x; });
+  lp.connect(g).connect(A.music); lfo.start(); o.push(lfo); A.drone = { g, o };
 }
-const music = on => { clearInterval(A.timer); A.timer = null; drone(false); if (on && !A.muted && audio()) { A.next = A.ctx.currentTime + 0.05; A.timer = setInterval(musicTick, 60); drone(true); } };
+const music = on => {
+  clearInterval(A.timer); A.timer = null; drone(false);
+  if (on && !A.muted && audio()) {
+    if (!A.song || A.song.n !== cur) A.song = newSong(cur);
+    A.music.gain.value = 0.5 * (A.song.gain || 1);
+    A.next = A.ctx.currentTime + 0.08; A.timer = setInterval(musicTick, 50); drone(true);
+  }
+};
+const sfx = (k) => { if (!A.ctx || A.muted) return; const t = A.ctx.currentTime, S = A.song || newSong(cur); A.song ||= S; ({
+  jump: () => noise(t, 0.12, { f: 500, to: 1400, q: 2, vol: 0.06 }),
+  coin: () => { pluck(pitch(S, 7), t, { vol: 0.22, out: A.fx }); pluck(pitch(S, 9), t + 0.07, { vol: 0.2, out: A.fx }); },
+  swing: () => noise(t, 0.16, { f: 700, to: 2600, q: 1.2, vol: 0.14 }),
+  hit: () => { daf(t, 'D', 1.5, A.fx); noise(t, 0.05, { f: 2600, q: 0.8, vol: 0.12 }); },
+  hurt: () => { pluck(pitch(S, 2) / 2, t, { kind: 'tar', vol: 0.4, bend: 0.75, out: A.fx }); noise(t, 0.2, { type: 'lowpass', f: 900, vol: 0.15 }); },
+  neigh: () => { tone(520, 0.5, { type: 'triangle', vol: 0.07, to: 880 }); tone(700, 0.35, { type: 'triangle', vol: 0.04, to: 400, t: t + 0.25 }); noise(t, 0.6, { f: 1500, q: 4, vol: 0.04 }); },
+  roar: () => { noise(t, 0.9, { type: 'lowpass', f: 700, to: 160, vol: 0.32 }); tone(85, 0.8, { type: 'sawtooth', vol: 0.06, to: 50 }); daf(t, 'D', 1.2, A.fx); },
+  fire: () => [0, 2, 4, 7].forEach((d, i) => pluck(pitch(S, d + 5), t + i * 0.06, { vol: 0.16, out: A.fx })),
+  win: () => { const W = { ...S, mode: 'mahur' }; [0, 2, 4, 5, 7, 9, 11, 14].forEach((d, i) => pluck(pitch(W, d), t + i * 0.11, { vol: 0.2, out: A.fx })); daf(t, 'D', 1.2, A.fx); daf(t + 0.88, 'D', 1.2, A.fx); }
+})[k]?.(); };
 function setMuted(m) {
-  A.muted = m; store.set('sh-muted', m ? '1' : '0'); if (A.master) A.master.gain.value = m ? 0 : 0.5;
+  A.muted = m; store.set('sh-muted', m ? '1' : '0'); if (A.master) A.master.gain.value = m ? 0 : 0.8;
   $('muteIco').setAttribute('d', m ? 'M4 9v6h4l5 4V5L8 9z M17 9l5 6 M22 9l-5 6' : 'M4 9v6h4l5 4V5L8 9z M16 9a4 4 0 0 1 0 6 M19 6a8 8 0 0 1 0 12');
   music(!m && game && game.scene.isActive('play') && playing);
 }
@@ -1507,15 +1641,20 @@ const BLURB = ['', 'Among the reeds a great lion stirs in the dark.', 'A waterle
   'Night, a cave mouth, and a dragon that only Rakhsh can see.', 'A feast in a garden, and a beautiful hostess who is not what she seems.',
   'A green land guarded by the warden Olad and his men.', 'The war camp of the Div chieftain Arzhang.', 'Seven mountains, a cave as dark as night, and the White Div.'];
 let pick = cur, mapFrom = null;
+// where each labour sits on the painted map (percent of its width and height): reeds, desert, dark hills, garden, castle, camp, cave
+const MAP_AT = [null, [11.7, 64], [27, 27], [40, 38], [40, 74], [55, 48], [84, 85], [93, 62]];
+const bestOf = n => +(store.get(n === 1 ? 'sh-best' : 'sh-best-' + n) || 0);
 function renderMap() {
   const u = unlocked();
-  $('road').innerHTML = NAMES.slice(1).map(([name, fa], i) => {
-    const n = i + 1, open = n <= u && LEVELS[n], done = n < u, best = +(store.get(n === 1 ? 'sh-best' : 'sh-best-' + n) || 0);
-    return `<li><button data-n="${n}" class="${n === pick ? 'sel' : ''} ${done ? 'done' : ''}" ${open ? '' : 'disabled'} aria-label="Labour ${n}: ${name}${open ? '' : ' (locked)'}">${ROMAN[n]}</button><span class="pf">${fa}</span><span>${name}${best ? '<br>' + Math.floor(best / 60) + ':' + String(best % 60).padStart(2, '0') : ''}</span></li>`;
-  }).join('');
+  const path = MAP_AT.slice(1).map(([x, y]) => `${x},${y}`).join(' ');
+  $('road').innerHTML = `<svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><polyline points="${path}" fill="none" stroke="#9a2a1c" stroke-width="2.5" stroke-dasharray="1 5" stroke-linecap="round" vector-effect="non-scaling-stroke"/></svg>` +
+    NAMES.slice(1).map(([name], i) => {
+      const n = i + 1, open = n <= u && LEVELS[n], done = n < u, [x, y] = MAP_AT[n];
+      return `<li style="left:${x}%;top:${y}%"><button data-n="${n}" class="${n === pick ? 'sel' : ''} ${done ? 'done' : ''}" ${open ? '' : 'disabled'} aria-label="Labour ${n}: ${name}${open ? '' : ' (locked)'}">${ROMAN[n]}</button></li>`;
+    }).join('');
   $('road').querySelectorAll('button').forEach(b => b.onclick = () => { pick = +b.dataset.n; renderMap(); });
-  const ready = !!LEVELS[pick] && pick <= u;
-  $('mapInfo').innerHTML = `<em>Khan ${ROMAN[pick]}: ${NAMES[pick][0]}.</em> ${BLURB[pick]}${LEVELS[pick] ? '' : ' <br>This part of the road is still being built.'}`;
+  const ready = !!LEVELS[pick] && pick <= u, best = bestOf(pick);
+  $('mapInfo').innerHTML = `<span class="pf">${NAMES[pick][1]}</span><em>Khan ${ROMAN[pick]}: ${NAMES[pick][0]}.</em> ${BLURB[pick]}${best ? ` <em>Best time ${Math.floor(best / 60)}:${String(best % 60).padStart(2, '0')}.</em>` : ''}${LEVELS[pick] ? '' : ' <br>This part of the road is still being built.'}`;
   $('rideBtn').disabled = !ready; $('mapTale').disabled = !document.getElementById('tale-' + pick);
 }
 function openMap() {
@@ -1576,5 +1715,5 @@ game = new Phaser.Game({
 $('playBtn').onclick = () => (unlocked() > 1 ? openMap() : begin(1)); $('againBtn').onclick = () => begin(); $('retryBtn').onclick = () => begin();
 $('muteBtn').onclick = () => { audio(); setMuted(!A.muted); };
 setMuted(A.muted);
-if (location.hash === '#debug') window.__sh = { game, scene: () => game.scene.getScene('play'), keys, pressed, setPaused, openStory, begin, openMap, LEVELS, FOES };
+if (location.hash === '#debug') window.__sh = { game, scene: () => game.scene.getScene('play'), keys, pressed, setPaused, openStory, begin, openMap, LEVELS, FOES, snd: { A, audio, newSong, musicTick, sfx } };
 })();
