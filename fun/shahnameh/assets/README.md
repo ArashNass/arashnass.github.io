@@ -24,3 +24,15 @@ Div's head, black beard, red trousers, ox-head mace.
 To use a file, put it in this folder and set its name in `ART` at the top of
 `../game.js`, e.g. `'rostam-run': 'rostam-run.png'`. Anything not set keeps
 the built-in placeholder art.
+
+## Other art (all made with PixelLab)
+
+| Path | What |
+|---|---|
+| bg/far.png | Moonlit sky with Mount Damavand (Pixen), the far backdrop |
+| bg/ruins.png | Ruined fire temple and columns (Pixen); crossfades in near the lion's lair |
+| food.png | Pickups, 27px cells: roast lamb (restores a heart), pomegranate, naan, grapes (Pixen) |
+| altar.png, feather.png, ui/heart*.png | Fire altar, Simurgh feather and HUD hearts, drawn with the PixelLab pixel workbench |
+| ui/pomegranate.png | HUD provisions icon (cut from food.png) |
+| tiles.png | 16px tiles: grass top, soil, tiled ledge, thorns |
+| fx/*.png | PixelLab VFX strips (hit, swing, dust, pickup, poof, heal, stun, fire, fireflies, glow); frame sizes in `FX` at the top of game.js |
