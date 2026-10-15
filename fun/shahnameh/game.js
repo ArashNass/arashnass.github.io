@@ -20,7 +20,7 @@ const FPS = { 'rostam-idle': 5, 'rostam-run': 12, 'rostam-jump': 6, 'rostam-atta
 // on-screen frame height in game pixels; equal to the PixelLab frame size so sprites draw 1:1
 const SIZE = { rostam: 80, lion: 100, jackal: 58, div: 64 };
 const BODY = { rostam: [0.2, 0.55], lion: [0.48, 0.3], jackal: [0.48, 0.31], div: [0.34, 0.52] };
-const V = 4;   // bump to bust caches when assets change
+const V = 5;   // bump to bust caches when assets change
 
 // PixelLab VFX strips in ./assets/fx: frame size, frame count, fps, and the effect's origin as a fraction of the frame
 const FX = {
@@ -388,6 +388,7 @@ class Play extends Phaser.Scene {
     this.cam.setBounds(0, 0, this.levelW, ROWS * TS);
     this.cam.startFollow(this.player, true, 0.12, 0.12);
     this.cam.setRoundPixels(true);
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) { this.cam.shake = () => this.cam; this.cam.flash = () => this.cam; }
     this.hp = 5; this.coinCount = 0; this.kills = 0; this.wasGround = true; this.face = 1; this.inv = 0; this.atk = 0; this.cool = 0; this.coyote = 0; this.buf = 0; this.bossOn = false; this.done = false; this.t0 = this.time.now;
     this.renderHearts(); $('coins').textContent = 0;
     this.parts = this.add.particles(0, 0, 'coin-spin', { frame: 0, speed: { min: 30, max: 90 }, lifespan: 450, scale: { start: 0.8, end: 0 }, gravityY: 120, emitting: false }).setDepth(9);
