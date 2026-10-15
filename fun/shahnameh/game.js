@@ -39,7 +39,7 @@ const FPS = { 'rostam-idle': 5, 'rostam-run': 12, 'rostam-jump': 6, 'rostam-atta
 const SIZE = { rostam: 80, lion: 100, jackal: 58, div: 64, scorpion: 72, vulture: 72, ram: 64, dragon: 136, rakhsh: 104, bat: 72, serpent: 72, hag: 72, beauty: 64, spearman: 80, olad: 72, divwarrior: 104, arzhang: 136, whitediv: 136 };
 const BODY = { rostam: [0.2, 0.55], lion: [0.48, 0.3], jackal: [0.48, 0.31], div: [0.34, 0.52], scorpion: [0.5, 0.28], vulture: [0.42, 0.26], ram: [0.5, 0.5],
   dragon: [0.46, 0.42], rakhsh: [0.5, 0.5], bat: [0.36, 0.22], serpent: [0.4, 0.4], hag: [0.4, 0.62], beauty: [0.34, 0.8], spearman: [0.2, 0.68], olad: [0.26, 0.76], divwarrior: [0.3, 0.62], arzhang: [0.3, 0.7], whitediv: [0.4, 0.58] };
-const V = 15;   // bump to bust caches when assets change
+const V = 16;   // bump to bust caches when assets change
 
 // PixelLab VFX strips in ./assets/fx: frame size, frame count, fps, and the effect's origin as a fraction of the frame
 const FX = {
@@ -563,7 +563,7 @@ const LEVELS = {
       if (s.witch && !s.unmasked && Math.abs(p.x - s.witch.x) < 95 && s.atk > 14) s.unmask();
     },
     win: 'The witch is struck down and her garden withers to thorns. Rostam rides on into the green land of Mazandaran, where the warden Olad keeps watch.',
-    tips: ['At the feast, stand near the lady and strike to speak the name of God.', 'The witch hurls curses. Jump them, and strike when she lands.',
+    tips: ['At the feast, stand near the lady and strike to speak the name of God.', 'Strike the witch\'s curses with your mace to send them back at her.',
       'Serpents sway, then strike. Hit them as they rear.', 'Lanterns and fire altars keep the garden lit.', 'Roast lamb waits on the high balconies.']
   },
   5: {
@@ -953,7 +953,7 @@ class Play extends Phaser.Scene {
   create() {
     // the scene object is reused from labour to labour: forget whatever the last one left behind
     for (const k of ['dark', 'lights', 'lamp', 'wall', 'stars', 'pose', 'swingFx', 'witch', 'unmasked', 'olad', 'rakhsh', 'dragonSeen', 'horde', 'hordeDone',
-      'gates', 'drums', 'whiteDown', 'ended', 'prayed', 'drank', 'toldImmune', 'kavus']) delete this[k];
+      'gates', 'drums', 'whiteDown', 'ended', 'prayed', 'drank', 'toldImmune', 'toldDeflect', 'kavus']) delete this[k];
     // turn loaded strips into square frames; anything missing falls back to placeholder art
     for (const [k, f] of Object.entries(ART)) if (f && this.textures.exists(k)) {
       const t = this.textures.get(k), img = t.getSourceImage(), fh = img.height, n = Math.max(1, Math.round(img.width / fh));
@@ -1025,7 +1025,7 @@ class Play extends Phaser.Scene {
     this.parts = this.add.particles(0, 0, 'coin-spin', { frame: 0, speed: { min: 30, max: 90 }, lifespan: 450, scale: { start: 0.8, end: 0 }, gravityY: 120, emitting: false }).setDepth(9);
     this.shots = this.physics.add.group({ allowGravity: false }); this.hazards = [];
     this.physics.add.collider(this.shots, this.layer, sh => sh.destroy());
-    this.physics.add.overlap(this.player, this.shots, (pl, sh) => { if (!sh.active) return; this.hurt(sh.x); this.fx('hit', sh.x, sh.y, { depth: 10 }); sh.destroy(); });
+    this.physics.add.overlap(this.player, this.shots, (pl, sh) => { if (!sh.active || sh.back) return; this.hurt(sh.x); this.fx('hit', sh.x, sh.y, { depth: 10 }); sh.destroy(); });
     lv.create?.(this);
     if (R) { lv.resume?.(this); toast(R.well ? 'Rostam rises again beside the well.' : 'Rostam rises again beside the sacred fire.'); }
   }
@@ -1211,6 +1211,7 @@ class Play extends Phaser.Scene {
         const box = this.strikeBox();
         const targets = [...this.foes.getChildren(), ...(this.boss && this.boss.active && this.boss.hp > 0 ? [this.boss] : [])];
         for (const f of targets) if (f.body.enable && !this.hitDone.has(f) && Phaser.Geom.Intersects.RectangleToRectangle(box, f.body)) { this.hitDone.add(f); this.damage(f); f.setVelocity(this.face * (f === this.boss ? 60 : 140), f.kind === 'vulture' ? -60 : -120); }
+        for (const sh of this.shots.getChildren()) if (sh.curse && !sh.back && Phaser.Geom.Intersects.RectangleToRectangle(box, sh.getBounds())) this.deflect(sh);
       }
     }
     // thorns and pits
@@ -1239,6 +1240,8 @@ class Play extends Phaser.Scene {
     for (const sh of this.shots.getChildren()) if (time > sh.die) sh.destroy(); else if (sh.spin) sh.angle += sh.spin * k;
     this.hazards = this.hazards.filter(z => { if (z.move) z.r.x += z.move * k; if (Phaser.Geom.Intersects.RectangleToRectangle(b, z.r)) this.hurt(z.r.centerX); return time < z.until; });
     this.drawDark();
+    // a curse turned back strikes the one who cast it
+    for (const sh of this.shots.getChildren()) if (sh.back && this.boss?.active && this.boss.hp > 0 && this.boss.body.enable && Phaser.Geom.Intersects.RectangleToRectangle(sh.getBounds(), this.boss.body)) { sh.destroy(); this.damage(this.boss); }
     // boss
     const B = this.boss;
     if (B && B.active && B.hp > 0) {
@@ -1373,7 +1376,7 @@ class Play extends Phaser.Scene {
       w.setTexture('hag-cast', 0); this.fit(w, 'hag'); w.play('hag-cast'); w.body.setAllowGravity(false); w.setVelocity(0);
       w.baseY = w.y - 20; w.state = 'float'; w.tm = 60; w.tx = w.x; $('bossName').textContent = 'The Witch';
       toast('The beauty withers into a hideous witch! She shrieks a curse.');
-      hint('A witch! <b>Dodge her green curses</b>. She vanishes and reappears: <b>strike her when she is solid</b>.');
+      hint('A witch! <b>Strike her green curses</b> to send them back at her, or jump them. When she is solid, <b>strike her</b>.');
     });
     this.time.delayedCall(1300, () => { this.frozen = false; });
   }
@@ -1392,8 +1395,8 @@ class Play extends Phaser.Scene {
         w.cast = true; const n = hurt ? 3 : 1;
         for (let i = 0; i < n; i++) {
           const a = Math.atan2(p.y - 8 - w.y, p.x - w.x) + (i - (n - 1) / 2) * 0.28;
-          const sh = this.shoot(w.x + toP * 18, w.y - 6, Math.cos(a) * 150, Math.sin(a) * 150, 'fx-orb', { life: 3200 });
-          sh.play('fx-orb'); sh.setRotation(a); this.light(sh, 0.5);
+          const sh = this.shoot(w.x + toP * 18, w.y - 6, Math.cos(a) * 125, Math.sin(a) * 125, 'fx-orb', { life: 3600 });
+          sh.play('fx-orb'); sh.setRotation(a); this.light(sh, 0.5); sh.curse = true;      // a curse: the mace can turn it back
         }
         sfx('swing');
       }
@@ -1609,6 +1612,13 @@ class Play extends Phaser.Scene {
     if (vx > 8) { if (r.anims.currentAnim?.key !== 'ram-walk' || !r.anims.isPlaying) r.play('ram-walk'); r.anims.timeScale = Math.max(0.8, vx / 62); }
     else { r.anims.stop(); r.setFrame(0); }
     r.glow.setPosition(r.x, r.y + 2);
+  }
+  // the mace meets a curse and sends it back where it came from, faster
+  deflect(sh) {
+    const B = this.boss, a = B?.active ? Math.atan2(B.y - 8 - sh.y, B.x - sh.x) : (this.face > 0 ? 0 : Math.PI);
+    sh.back = true; sh.setVelocity(Math.cos(a) * 280, Math.sin(a) * 280); sh.setRotation(a); sh.setTint(0xffe08a); sh.die = this.time.now + 2500;
+    this.fx('hit', sh.x, sh.y, { depth: 10 }); sfx('hit'); this.hitStop(40);
+    if (!this.toldDeflect) { this.toldDeflect = true; toast('Your mace turns the curse back on the witch!'); }
   }
   // foes in a stretch of the level vanish in smoke
   banish(x0, x1) {
