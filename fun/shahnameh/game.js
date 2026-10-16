@@ -40,7 +40,7 @@ const FPS = { 'rostam-idle': 5, 'rostam-run': 14, 'rostam-jump': 6, 'rostam-atta
 const SIZE = { rider: 124, rostam: 112, lion: 148, jackal: 108, div: 108, scorpion: 86, vulture: 92, ram: 86, dragon: 136, rakhsh: 104, bat: 108, serpent: 92, hag: 108, beauty: 108, spearman: 140, olad: 112, divwarrior: 100, arzhang: 136, whitediv: 136 };
 const BODY = { rider: [0.3, 0.5], rostam: [0.143, 0.393], lion: [0.5, 0.36], jackal: [0.3, 0.22], div: [0.22, 0.34], scorpion: [0.4, 0.22], vulture: [0.33, 0.2], ram: [0.4, 0.4],
   dragon: [0.46, 0.42], rakhsh: [0.5, 0.5], bat: [0.32, 0.24], serpent: [0.31, 0.31], hag: [0.27, 0.42], beauty: [0.2, 0.47], spearman: [0.115, 0.386], olad: [0.17, 0.49], divwarrior: [0.31, 0.64], arzhang: [0.3, 0.7], whitediv: [0.4, 0.58] };
-const V = 47;   // bump to bust caches when assets change
+const V = 48;   // bump to bust caches when assets change
 
 // PixelLab VFX strips in ./assets/fx: frame size, frame count, fps, and the effect's origin as a fraction of the frame
 const FX = {
@@ -49,7 +49,6 @@ const FX = {
   poof: { w: 56, h: 45, n: 10, fps: 14, ox: 0.536, oy: 0.6 }, heal: { w: 36, h: 60, n: 12, fps: 14, ox: 0.5, oy: 0.7 },
   stun: { w: 39, h: 23, n: 12, fps: 12, ox: 0.487, oy: 0.652, loop: true }, fire: { w: 27, h: 27, n: 12, fps: 12, ox: 0.481, oy: 0.815, loop: true },
   fireflies: { w: 172, h: 141, n: 16, fps: 8, ox: 0.483, oy: 0.418, loop: true }, glow: { w: 53, h: 79, n: 12, fps: 10, ox: 0.491, oy: 0.506, loop: true },
-  liondust: { w: 79, h: 70, n: 16, fps: 14, ox: 0.43, oy: 0.957 },
   splash: { w: 70, h: 56, n: 10, fps: 14, ox: 0.5, oy: 0.5 }, beam: { w: 72, h: 122, n: 12, fps: 12, ox: 0.5, oy: 0.869 },
   breath: { w: 128, h: 59, n: 8, fps: 12, ox: 0.07, oy: 0.492, loop: true }, orb: { w: 54, h: 25, n: 8, fps: 12, ox: 0.759, oy: 0.48, loop: true },
   bolt: { w: 136, h: 216, n: 9, fps: 14, ox: 0.5, oy: 0.829 }
@@ -312,6 +311,8 @@ function map7() {
 /* ----------------------------- foes ----------------------------- */
 // walking foes turn at walls and at the edge of a drop or thorns
 // another ground foe just ahead in this direction: they keep their distance rather than stand inside each other
+// bosses stand only on solid ground: the jump-through ledges are Rostam's, so a boss never lands on one or catches on its edge
+const onFloor = (b, t) => t.index % 4 !== 2;
 function crowded(s, f, dir) {
   for (const o of s.foes.getChildren()) if (o !== f && o.active && o.body.enable && o.body.allowGravity && Math.sign(o.x - f.x) === dir && Math.abs(o.x - f.x) < 36 && Math.abs(o.y - f.y) < 30) return true;
   return false;
@@ -1061,7 +1062,7 @@ class Play extends Phaser.Scene {
   create() {
     // the scene object is reused from labour to labour: forget whatever the last one left behind
     for (const k of ['dark', 'lights', 'lamp', 'wall', 'wallR', 'stars', 'pose', 'swingFx', 'witch', 'unmasked', 'olad', 'rakhsh', 'dragonSeen', 'horde', 'hordeDone',
-      'gates', 'hordeBat', 'toldRock', 'mark', 'markGlow', 'markOpen', 'bossHeart', 'bossHeartT', 'floorWarn', 'highWarn', 'regrow', 'drums', 'whiteDown', 'ended', 'mounted', 'prayed', 'drank', 'toldImmune', 'toldDeflect', 'kavus', 'stones', 'puzzle', 'springOpen', 'pool']) delete this[k];
+      'gates', 'hordeBat', 'toldRock', 'shards', 'shardG', 'mark', 'markGlow', 'markOpen', 'bossHeart', 'bossHeartT', 'floorWarn', 'highWarn', 'regrow', 'drums', 'whiteDown', 'ended', 'mounted', 'prayed', 'drank', 'toldImmune', 'toldDeflect', 'kavus', 'stones', 'puzzle', 'springOpen', 'pool']) delete this[k];
     // turn loaded strips into square frames; anything missing falls back to placeholder art
     for (const [k, f] of Object.entries(ART)) if (f && this.textures.exists(k)) {
       const t = this.textures.get(k), img = t.getSourceImage(), fh = img.height, n = Math.max(1, Math.round(img.width / fh));
@@ -1223,12 +1224,55 @@ class Play extends Phaser.Scene {
     }
     if (f.hp <= 0) {
       if (f === this.boss) return f.onDown();
-      this.kills++; f.body.enable = false;
-      this.fx('poof', f.x, f.body.bottom - 14, { depth: 10 });
-      this.tweens.add({ targets: f, alpha: 0, y: f.y - 6, duration: 220, onComplete: () => f.destroy() });
+      this.kills++; f.body.enable = false; this.slay(f);
     }
   }
   // a tiny freeze on impact makes blows feel heavy
+  // a slain foe flashes white, then bursts into its own pixels, which fly apart as embers and fade
+  slay(f) {
+    f.setTintFill(0xffffff); this.cam.shake(140, 0.007);
+    this.time.delayedCall(90, () => { if (!f.active) return; this.shatter(f, { step: 2, power: 1 }); this.fx('hit', f.x, f.body.center.y, { depth: 10 }); f.destroy(); sfx('hit'); });
+  }
+  // break a sprite's current frame into pixels, each flying from where it was drawn
+  shatter(o, { step = 2, power = 1 } = {}) {
+    const fr = o.frame, cw = fr.cutWidth, ch = fr.cutHeight, c = document.createElement('canvas'); c.width = cw; c.height = ch;
+    const x = c.getContext('2d'); x.drawImage(fr.source.image, fr.cutX, fr.cutY, cw, ch, 0, 0, cw, ch); const d = x.getImageData(0, 0, cw, ch).data;
+    const sx = o.scaleX, sy = o.scaleY, ox = o.displayOriginX, oy = o.displayOriginY, cx = o.x, cy = o.y - (oy - ch / 2) * sy;
+    this.shards ||= []; this.shardG ||= this.add.graphics().setDepth(9);
+    for (let py = 0; py < ch; py += step) for (let px = 0; px < cw; px += step) {
+      const i = (py * cw + px) * 4; if (d[i + 3] < 128) continue;
+      const wx = o.x + (o.flipX ? -1 : 1) * (px - ox) * sx, wy = o.y + (py - oy) * sy, a = Math.atan2(wy - cy, wx - cx), sp = (40 + Math.random() * 120) * power;
+      this.shards.push({ x: wx, y: wy, vx: Math.cos(a) * sp + (Math.random() - 0.5) * 40, vy: Math.sin(a) * sp - 60 * power - Math.random() * 60,
+        c: (d[i] << 16) | (d[i + 1] << 8) | d[i + 2], s: Math.max(1, step * sx), t: 0, life: 500 + Math.random() * 700 * power, delay: (py / ch) * 160 * power });
+    }
+  }
+  drawShards(delta) {
+    if (!this.shards?.length) return;
+    const g = this.shardG.clear(), dt = delta / 1000;
+    this.shards = this.shards.filter(p => {
+      p.t += delta; if (p.t < p.delay) { g.fillStyle(p.c, 1).fillRect(p.x, p.y, p.s, p.s); return true; }
+      const u = (p.t - p.delay) / p.life; if (u >= 1) return false;
+      p.vy += 260 * dt; p.vx *= 0.985; p.x += p.vx * dt; p.y += p.vy * dt;
+      // the pixels burn as they fly: their own colour, then ember gold, then out
+      const col = u < 0.35 ? p.c : Phaser.Display.Color.GetColor(255, 200 - u * 120, 80 - u * 70);
+      g.fillStyle(col, 1 - u * u).fillRect(p.x, p.y, p.s, p.s); return true;
+    });
+  }
+  // a boss's last moments: it reels under a run of flashes and blasts, then bursts apart in a blaze of light
+  bossDeath(B) {
+    B.body.enable = false; B.anims.stop(); this.hideMark(); this.hitStop(160); sfx('roar');
+    for (let i = 0; i < 6; i++) this.time.delayedCall(i * 140, () => {
+      if (!B.active) return; i % 2 ? B.setTintFill(0xffffff) : B.setTint(0xff6040); B.x += (i % 2 ? 3 : -3);
+      this.fx('hit', B.x + Phaser.Math.Between(-24, 24), B.body.top + Phaser.Math.Between(6, B.body.height - 6), { depth: 10 }); this.cam.shake(120, 0.01); sfx('hit');
+    });
+    this.time.delayedCall(880, () => {
+      if (!B.active) return; this.shatter(B, { step: 2, power: 1.6 }); B.setVisible(false); sfx('win');
+      this.cam.flash(450, 255, 240, 200); this.cam.shake(500, 0.02);
+      const ring = this.add.image(B.x, B.body.center.y, 'glow').setTint(0xffe0a0).setBlendMode(Phaser.BlendModes.ADD).setDepth(10).setScale(0.3);
+      this.tweens.add({ targets: ring, scale: 4, alpha: 0, duration: 900, ease: 'Cubic.easeOut', onComplete: () => ring.destroy() });
+      for (let i = 0; i < 5; i++) this.time.delayedCall(i * 120, () => this.fx('heal', B.x + Phaser.Math.Between(-36, 36), B.body.bottom - Phaser.Math.Between(0, 30), { depth: 10 }));
+    });
+  }
   hitStop(ms) { this.physics.world.pause(); this.anims.pauseAll(); this.time.delayedCall(ms, () => { this.physics.world.resume(); this.anims.resumeAll(); }); }
   roarRings(l) {
     const x = l.x + (l.flipX ? -30 : 30), y = l.y - 4;
@@ -1247,7 +1291,7 @@ class Play extends Phaser.Scene {
     this.fit(l, 'lion'); l.hp = 8; l.max = 8; l.state = 'roar'; l.tm = 70; l.dir = -1; l.setFlipX(true); l.play('lion-roar'); l.setDepth(4);
     this.boss = l; l.onDown = () => this.lionDown(); l.ai = () => this.lionAI();
     l.immune = () => l.state !== 'stun'; l.immuneMsg = 'The lion\'s hide turns your blow. Jump its charge so it runs into the rocks, then strike while it is dazed.';
-    this.physics.add.collider(l, this.layer); this.physics.add.collider(l, [this.wall, this.wallR]);
+    this.physics.add.collider(l, this.layer, null, onFloor); this.physics.add.collider(l, [this.wall, this.wallR]);
     sfx('roar'); this.roarRings(l);
     $('boss').classList.remove('hidden'); this.bossBar(); banner();
     hint('The lion roars, then charges. <b>Jump over the charge</b>: when it runs into the rocks it is dazed. <b>Strike while the gold arrow shows.</b>');
@@ -1257,23 +1301,26 @@ class Play extends Phaser.Scene {
   bossMark(B, time) {
     const open = !this.frozen && (B.open ? B.open() : !B.immune?.());
     // the marker sits above the darkness layer
-    if (!this.mark?.active) { this.mark = this.add.image(0, 0, 'mark-guard').setDepth(12).setScale(1.6); this.markGlow = this.add.image(0, 0, 'glow').setTint(0xffc040).setBlendMode(Phaser.BlendModes.ADD).setDepth(3); }
+    if (!this.mark?.active) { this.mark = this.add.image(0, 0, 'mark-open').setDepth(12).setScale(1.6); this.markGlow = this.add.image(0, 0, 'glow').setTint(0xffc040).setBlendMode(Phaser.BlendModes.ADD).setDepth(3); }
     if (open !== this.markOpen) {
-      this.markOpen = open; this.mark.setTexture(open ? 'mark-open' : 'mark-guard');
+      this.markOpen = open;
       if (open) { this.tweens.add({ targets: this.mark, scale: { from: 3, to: 1.6 }, duration: 300, ease: 'Back.easeOut' }); this.toldImmune = false; }
-      $('boss').classList.toggle('open', open); $('bossState').textContent = open ? 'Strike now!' : 'Guarded';
+      $('boss').classList.toggle('open', open); $('bossState').textContent = open ? 'Strike now!' : '';
     }
     const vis = B.alpha > 0.3 && B.visible && !B.noMark?.();
-    this.mark.setVisible(vis).setAlpha(open ? 1 : 0.8).setPosition(Math.round(B.x), Math.round(B.body.top - 22 + (open ? Math.sin(time / 90) * 4 : 0)));
+    this.mark.setVisible(vis && open).setPosition(Math.round(B.x), Math.round(B.body.top - 22 + (open ? Math.sin(time / 90) * 4 : 0)));
     this.markGlow.setVisible(open && vis).setPosition(B.body.center.x, B.body.center.y).setScale(B.body.width / 40, B.body.height / 40).setAlpha(0.55 + Math.sin(time / 110) * 0.2);
-    // now and then a heart glows in the corner of the arena farthest from the boss
-    this.bossHeartT = (this.bossHeartT ?? 600) - 1;
+    this.cornerHeart(B.x, time);
+  }
+  // now and then a heart glows in the corner of the arena farthest from the danger (a ledge if there is one), for 10 s
+  cornerHeart(fromX, time) {
+    this.bossHeartT = (this.bossHeartT ?? 480) - 1;
     if (this.bossHeart?.active && time > this.bossHeart.dieAt) { this.bossHeart.glow?.destroy(); this.bossHeart.destroy(); }
     if (this.bossHeartT <= 0) {
       this.bossHeartT = 900;
-      if (this.hp < 5 && !this.bossHeart?.active) {
+      if (!this.bossHeart?.active) {
         // the highest standing place near the corner farthest from the boss: a ledge if there is one
-        const cx = this.cam.scrollX, side = B.x > cx + W / 2 ? 1 : -1; let x = side > 0 ? cx + 24 : cx + W - 24, r = this.groundAt(x);
+        const cx = this.cam.scrollX, side = fromX > cx + W / 2 ? 1 : -1; let x = side > 0 ? cx + 24 : cx + W - 24, r = this.groundAt(x);
         for (let i = 0; i < 9; i++) { const xx = x + side * i * TS, rr = this.groundAt(xx); if (rr != null && rr < r) { x = Math.floor(xx / TS) * TS + TS / 2; r = rr; } }
         if (r != null) { const h = this.bossHeart = this.heart(x, r * TS - 12); h.dieAt = time + 10000; this.fx('heal', x, r * TS, { depth: 6 }); toast('A heart glows in the corner. Grab it!'); }
       }
@@ -1294,9 +1341,7 @@ class Play extends Phaser.Scene {
     l.setFlipX(l.dir < 0);
   }
   lionDown() {
-    const l = this.lion; l.body.enable = false; l.anims.stop(); sfx('win'); this.stars?.destroy(); this.stars = null; this.hideMark();
-    // the lion breaks into motes the colour of the Simurgh
-    l.setVisible(false); this.fx('liondust', l.x + (l.flipX ? 6 : -6), l.body.bottom + 1, { flip: l.flipX, depth: 4 }); this.cam.flash(300, 255, 240, 200);
+    const l = this.lion; this.stars?.destroy(); this.stars = null; this.bossDeath(l);
     $('boss').classList.add('hidden'); this.wall.destroy(); this.wallR?.destroy();
     // the Simurgh's feather drifts down where the lion fell
     const fx = Phaser.Math.Clamp(l.x, 88 * TS, this.levelW - 40), fy = this.lionAt.y - 30;
@@ -1326,7 +1371,7 @@ class Play extends Phaser.Scene {
   }
   update(time, delta) {
     const k = delta / 16.67, p = this.player, b = p.body;
-    this.lv.scroll(this, this.cam.scrollX, time);
+    this.lv.scroll(this, this.cam.scrollX, time); this.drawShards(delta);
     if (!playing || this.done) { if (this.done && this.hp <= 0) p.setVelocityX(0); return; }
     this.inv = Math.max(0, this.inv - k); p.setAlpha(this.inv > 0 && Math.floor(this.inv / 5) % 2 ? 0.35 : 1);
     if (this.frozen) { pressed.jump = pressed.attack = false; }
@@ -1455,18 +1500,16 @@ class Play extends Phaser.Scene {
     this.cam.stopFollow(); this.tweens.add({ targets: this.cam, scrollX: Math.min(this.levelW - W, x0), duration: 700, ease: 'Sine.easeInOut' });
     this.arenaWalls(x0);
     boss.hp = boss.max = max; this.boss = boss;
-    this.physics.add.collider(boss, this.layer); this.physics.add.collider(boss, [this.wall, this.wallR]);
+    this.physics.add.collider(boss, this.layer, null, onFloor); this.physics.add.collider(boss, [this.wall, this.wallR]);
     $('boss').classList.remove('hidden'); this.bossBar(); banner();
   }
   // a big boss falls: flash, smoke and light, then the labour is won
   bossFall(B, then) {
     this.drums?.remove();
-    B.body.enable = false; B.anims.stop(); sfx('win'); this.cam.flash(400, 255, 240, 200); this.hitStop(120); this.hideMark();
+    this.bossDeath(B);
     $('boss').classList.add('hidden'); this.wall?.destroy(); this.wallR?.destroy(); this.hazards = []; this.shots.clear(true, true);
-    for (let i = 0; i < 4; i++) this.time.delayedCall(i * 180, () => this.fx('poof', B.x + Phaser.Math.Between(-30, 30), B.body.bottom - Phaser.Math.Between(10, 50), { depth: 10 }));
-    this.tweens.add({ targets: B, alpha: 0, y: B.y + 6, duration: 1400, delay: 400 });
-    this.cam.startFollow(this.player, true, 0.12, 0.12);
-    this.time.delayedCall(1900, () => then ? then() : this.win({ destroy() {} }));
+    this.time.delayedCall(1000, () => this.cam.startFollow(this.player, true, 0.12, 0.12));
+    this.time.delayedCall(2600, () => then ? then() : this.win({ destroy() {} }));
   }
   /* ---- Khan III: Rakhsh and the dragon that hides in the dark ---- */
   startDragon() {
@@ -1476,7 +1519,7 @@ class Play extends Phaser.Scene {
       this.light(r, 1.1);
     }
     sfx('neigh');
-    const d = this.physics.add.sprite(this.dragonAt.x, this.dragonAt.y - 60, 'dragon-move', 0).setDepth(4).setFlipX(true).setAlpha(0.05);
+    const d = this.physics.add.sprite(Math.min(this.dragonAt.x, 134 * TS), this.dragonAt.y - 60, 'dragon-move', 0).setDepth(4).setFlipX(true).setAlpha(0.05);
     this.fit(d, 'dragon'); d.play('dragon-move'); d.state = 'lurk'; d.tm = 170; d.dir = -1;
     this.light(d, 2.4, 0.04);                                         // when it shows itself, it can be seen
     d.immune = () => d.alpha < 0.5; d.immuneMsg = 'Your mace passes through shadow. Wait for Rakhsh to warn you!';
@@ -1492,7 +1535,7 @@ class Play extends Phaser.Scene {
     const seen = d.hp <= d.max / 2;                                   // once wounded, God lets Rostam see it
     if (seen && !this.dragonSeen) { this.dragonSeen = true; this.tweens.killTweensOf(d); d.setAlpha(1); banner('خدا', 'The dragon can hide no more'); hint('The dragon can hide no more. <b>Strike it whenever you can</b>, and jump its fire.'); }
     if (d.state === 'lurk') {
-      d.setVelocityX(toP * (seen ? 45 : 28));
+      d.setVelocityX(Math.abs(p.x - d.x) > 70 ? toP * (seen ? 62 : 46) : 0);   // it stalks Rostam through the dark
       if (d.tm <= 0) {
         // Rakhsh rears and neighs: the dragon is revealed
         if (r) { r.play('rakhsh-rear'); r.once('animationcomplete', () => { r.anims.stop(); r.setFrame(0); }); } else this.rear(); sfx('neigh');
@@ -1666,7 +1709,8 @@ class Play extends Phaser.Scene {
     h.spawning = this.time.now + list.length * 420 + 200;
   }
   hordeTick() {
-    const h = this.horde; if (this.time.now < h.spawning) return;
+    const h = this.horde;
+    if (this.time.now < h.spawning) return;
     if (h.live.every(f => !f.active || !f.body.enable)) {
       if (h.wave < 3) { h.live = []; this.hordeWave(); return; }
       // the last wave is broken: the gates of fire die down
@@ -1698,7 +1742,7 @@ class Play extends Phaser.Scene {
     const up = p.body.bottom < 13 * TS;                                       // Rostam is up on a platform
     if (a.state === 'walk') {
       // he stalks Rostam to axe's reach (never under a platform) and plants his feet there
-      if (this.stalk(a, p, 80, 133, 144, hurt ? 64 : 50, 'arzhang-walk')) a.tm = Math.min(a.tm, hurt ? 14 : 24);
+      if (this.stalk(a, p, 80, 132, 146, hurt ? 64 : 52, 'arzhang-walk')) a.tm = Math.min(a.tm, hurt ? 14 : 24);
       if (a.tm <= 0) {
         // the first blow goes where Rostam is; the second often the other way, so he must switch
         const first = up ? 'sweep' : 'split', other = first === 'sweep' ? 'split' : 'sweep';
@@ -1715,7 +1759,7 @@ class Play extends Phaser.Scene {
       }
     } else if (a.state === 'rest') {
       a.setVelocityX(0); if (this.stars) this.stars.setPosition(Math.round(a.x), Math.round(a.body.top - 4));
-      if (a.tm <= 0) { a.clearTint(); this.stars?.destroy(); this.stars = null; a.state = 'walk'; a.tm = 50 + Math.random() * 30; a.play('arzhang-walk');
+      if (a.tm <= 0) { a.clearTint(); this.stars?.destroy(); this.stars = null; a.state = 'walk'; a.tm = 130 + Math.random() * 40; a.play('arzhang-walk');
         hint('Watch the red glow. <b>Floor glows: leap onto a platform.</b> <b>Platforms glow: drop to the ground.</b>'); }
     }
   }
@@ -1756,7 +1800,7 @@ class Play extends Phaser.Scene {
   }
   groundAt(x) { for (let r = 2; r < ROWS; r++) { const t = this.layer.getTileAtWorldXY(x, r * TS + 2); if (t && t.collides) return r; } return null; }
   startWhiteDiv() {
-    const w = this.physics.add.sprite(this.whiteAt.x, this.whiteAt.y - 60, 'whitediv-walk', 0).setDepth(4).setFlipX(true);
+    const w = this.physics.add.sprite(Math.min(this.whiteAt.x, 166 * TS), this.whiteAt.y - 60, 'whitediv-walk', 0).setDepth(4).setFlipX(true);
     this.fit(w, 'whitediv'); w.play('whitediv-walk'); w.state = 'walk'; w.tm = 120; w.dir = -1; w.throwCd = 90;
     // his hide of snow turns every blow, until his club is caught fast in the ice after a slam
     w.immune = () => w.state !== 'stuck'; w.calm = () => w.state === 'stuck';

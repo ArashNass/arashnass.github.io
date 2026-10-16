@@ -37,7 +37,7 @@ button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
 #boss{position:fixed;left:50%;top:calc(max(10px,env(safe-area-inset-top)) + 46px);transform:translateX(-50%);z-index:5;text-align:center;font:700 12px Cinzel,serif;letter-spacing:.14em;color:var(--gold2);text-shadow:0 2px 0 #000}
 #boss i{display:block;width:180px;height:8px;margin-top:4px;border:1.5px solid var(--gold);border-radius:4px;background:rgba(0,0,0,.5);overflow:hidden}
 #boss b{display:block;height:100%;background:linear-gradient(90deg,#e8434f,#f6a03a);transition:width .2s}
-#boss .st{display:inline-block;margin-top:4px;padding:1px 9px;border-radius:9px;font:700 11px Cinzel,serif;letter-spacing:.12em;text-transform:uppercase;color:#c8cede;background:rgba(20,24,40,.75);border:1px solid #7a8296}
+#boss .st:empty{display:none}#boss .st{display:inline-block;margin-top:4px;padding:1px 9px;border-radius:9px;font:700 11px Cinzel,serif;letter-spacing:.12em;text-transform:uppercase;color:#c8cede;background:rgba(20,24,40,.75);border:1px solid #7a8296}
 #boss.open .st{color:#2a1404;background:linear-gradient(#ffe28a,#f0b43a);border-color:#fff2b8;text-shadow:none;animation:strike .5s ease-in-out infinite alternate}
 #boss.open i{border-color:#ffe28a;box-shadow:0 0 10px rgba(255,210,90,.8)}
 @keyframes strike{to{box-shadow:0 0 12px rgba(255,210,90,.95);transform:scale(1.08)}}
@@ -417,6 +417,6 @@ h2{font-size:clamp(21px,4.6vw,27px);margin:2px 0 8px}
 </template>
 
 <script src="https://cdn.jsdelivr.net/npm/phaser@3.80.1/dist/phaser.min.js"></script>
-<script src="game.js?v=47"></script>
+<script src="game.js?v=48"></script>
 </body>
 </html>
