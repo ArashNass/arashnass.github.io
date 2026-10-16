@@ -62,7 +62,7 @@ h2{font-size:clamp(21px,4.6vw,27px);margin:2px 0 8px}
 .story{font:500 19px/1.5 var(--book);color:var(--inkb);margin:10px auto 16px;max-width:460px}.story b{font-weight:700;color:var(--lapisInk)}
 .story em{color:var(--rubric);font-style:italic}
 /* buttons are gilded cartouches: lapis for the main road, parchment for the side paths */
-.btn{display:inline-flex;align-items:center;justify-content:center;height:42px;padding:0 26px;border:solid transparent;border-width:14px 22px;border-image:url(assets/ui/btn-blue.png) 14 22 fill stretch;image-rendering:pixelated;
+.btn{display:inline-flex;align-items:center;justify-content:center;height:42px;padding:0 26px;white-space:nowrap;border:solid transparent;border-width:14px 22px;border-image:url(assets/ui/btn-blue.png) 14 22 fill stretch;image-rendering:pixelated;
   font:900 17px/1 Cinzel,serif;letter-spacing:.06em;color:var(--gold2);text-shadow:0 2px 0 #0b1546;transition:transform .1s,filter .15s}
 .btn:hover:not(:disabled){filter:brightness(1.15) saturate(1.1)}
 .btn:active{transform:translateY(2px)}
@@ -289,6 +289,64 @@ body:not(.playing) #farrBtn{display:none}
 /* while a boss makes its entrance, the hint and the toast wait their turn */
 body.cine #hint,body.cine #toast{opacity:0!important;transition:opacity .2s}
 @media (max-height:520px){#banner{top:22%}#banner.grand .fa{font-size:46px}#banner.grand h2{font-size:20px}#banner .ep{font-size:14px}}
+/* settings: two columns on a page, sound and comfort on the left, the keys on the right */
+.setPage{width:min(100%,820px);text-align:left;max-height:calc(100dvh - 32px);display:flex;flex-direction:column}.setPage .fa,.setPage h2{text-align:center}
+.setgrid{display:grid;grid-template-columns:1fr 1.15fr;gap:8px 26px;overflow:auto;min-height:0;padding:2px 4px 6px}
+.setgrid h3{font:900 15px Cinzel,serif;letter-spacing:.08em;color:var(--rubric);margin:10px 0 6px;display:flex;align-items:center;justify-content:space-between}
+.slide{display:grid;grid-template-columns:70px 1fr 44px;align-items:center;gap:10px;margin:6px 0;font:600 17px var(--book);color:var(--inkb)}
+.slide output{font:700 14px Cinzel,serif;color:var(--rubric);text-align:right}
+input[type=range]{-webkit-appearance:none;appearance:none;height:8px;border-radius:4px;background:linear-gradient(90deg,#c8902a,#7a4e14);border:1px solid #5a3410;outline:none}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;height:20px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#2a4fc0,#14286b 70%);border:2px solid var(--gold);cursor:pointer;box-shadow:0 2px 4px rgba(0,0,0,.4)}
+input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:#14286b;border:2px solid var(--gold);cursor:pointer}
+input[type=range]:focus-visible{outline:2px solid var(--rubric);outline-offset:4px}
+.sw{display:flex;gap:12px;align-items:center;width:100%;text-align:left;padding:8px 10px;margin:6px 0;border:1px solid rgba(122,78,20,.45);background:rgba(255,246,220,.4);border-radius:6px;transition:background .15s}
+.sw:hover,.sw:focus-visible{background:rgba(255,246,220,.75);outline:2px solid var(--rubric);outline-offset:1px}
+.sw i{flex:none;width:44px;height:24px;border-radius:12px;background:#9a8a6a;position:relative;transition:background .15s;box-shadow:inset 0 1px 3px rgba(0,0,0,.35)}
+.sw i:after{content:"";position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fdf6e3;box-shadow:0 1px 2px rgba(0,0,0,.4);transition:transform .15s}
+.sw[aria-checked=true] i{background:#1f6f75}.sw[aria-checked=true] i:after{transform:translateX(20px)}
+.sw span{font:500 15px/1.3 var(--book);color:#4a2e14}.sw b{display:block;font:700 17px var(--book);color:var(--inkb)}
+.keylist{list-style:none;display:grid;gap:5px}
+.keylist li{display:grid;grid-template-columns:1fr 78px 78px;gap:6px;align-items:center;font:500 16px/1.2 var(--book);color:var(--inkb)}
+.kb{height:30px;border:1px solid #9a7440;border-bottom-width:3px;border-radius:5px;background:rgba(255,248,225,.75);font:700 13px Inter,sans-serif;color:var(--inkb);transition:all .12s}
+.kb:hover,.kb:focus-visible{background:#fff6dc;outline:2px solid var(--rubric);outline-offset:1px}
+.kb.wait{background:#1f3f9a;color:#fff;border-color:#e8c25a;animation:strike .5s ease-in-out infinite alternate}
+.btn2.sm{height:26px;font-size:12px;border-width:7px 12px;padding:0 6px}
+.pad{margin-top:10px;font:500 15px/1.4 var(--book);color:#4a2e14;padding:6px 10px;border-left:3px solid #1f6f75;background:rgba(255,246,220,.35)}
+@media (max-width:700px){.setgrid{grid-template-columns:1fr}.keylist li{grid-template-columns:1fr 66px 66px;font-size:15px}}
+body.calm #banner.on{animation-name:banCalm}@keyframes banCalm{0%{opacity:0}15%,75%{opacity:1}100%{opacity:0}}
+/* the tale told in pictures: each painting drifts slowly behind film bars while the narration types out beneath it */
+.cineOv{padding:0;background:#000;z-index:20;overflow:hidden}
+.cframe{position:absolute;inset:0;overflow:hidden}
+.cimg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;image-rendering:pixelated;opacity:0;transition:opacity 1.2s ease;will-change:transform,opacity}
+.cimg.on{opacity:1;animation:burns var(--d,12s) linear forwards}
+@keyframes burns{from{transform:scale(var(--s0,1.08)) translate(var(--x0,0),var(--y0,0))}to{transform:scale(var(--s1,1.18)) translate(var(--x1,0),var(--y1,0))}}
+.cbar{position:absolute;left:0;right:0;top:0;height:8vh;background:#000;z-index:1}.cbar.bot{top:auto;bottom:0;height:min(30vh,230px);background:linear-gradient(transparent,#000 38%)}
+.cnext{position:absolute;inset:0;z-index:2;cursor:pointer}.cnext:focus-visible{outline:none}
+.ccap{position:absolute;left:50%;bottom:max(18px,env(safe-area-inset-bottom));transform:translateX(-50%);width:min(92vw,900px);z-index:3;text-align:center;pointer-events:none}
+.ccap .fa{font-size:clamp(26px,4.4vh,40px);margin:0;color:#f6dc8c;text-shadow:0 2px 0 #000,0 0 18px rgba(0,0,0,.9)}
+.ccap p{font:500 clamp(17px,2.6vh,24px)/1.45 var(--book);color:#f4ead2;text-shadow:0 2px 3px #000,0 0 12px #000;min-height:3em;margin:2px 0 6px}
+.chint{font:600 12px Inter,sans-serif;letter-spacing:.08em;color:rgba(232,214,174,.55);text-transform:uppercase;opacity:0;transition:opacity .5s}.ccap.done .chint{opacity:1}
+.cdots{position:absolute;top:calc(8vh + 12px);left:50%;transform:translateX(-50%);display:flex;gap:8px;z-index:3}.cdots i{width:8px;height:8px;transform:rotate(45deg);border:1px solid #e8c25a;display:block}.cdots i.on{background:#e8c25a}
+.cskip{position:absolute;top:calc(8vh + 6px);right:max(16px,env(safe-area-inset-right));z-index:4;height:34px;padding:0 16px;border-radius:17px;border:1.5px solid rgba(232,194,90,.7);background:rgba(10,8,4,.55);color:#f6dc8c;font:700 14px Cinzel,serif;letter-spacing:.06em}
+.cskip:hover,.cskip:focus-visible{background:rgba(232,194,90,.25);outline:2px solid #f6dc8c;outline-offset:2px}
+.credits{position:absolute;inset:0;z-index:5;background:radial-gradient(ellipse at center,#120c06,#000 75%);overflow:hidden}
+.roll{position:absolute;left:50%;top:100%;transform:translateX(-50%);width:min(90vw,640px);text-align:center;color:#e9dfc8;animation:roll 34s linear forwards}
+@keyframes roll{to{top:0;transform:translate(-50%,-100%)}}
+.roll .fa{font-size:clamp(44px,8vh,72px);line-height:1.6;color:#f6c95a;margin:0 0 6px}.roll h2{color:#f6dc8c;font-size:clamp(24px,4vh,36px)}.roll h3{font:900 14px Cinzel,serif;letter-spacing:.2em;color:#c8a46a;margin:34px 0 6px;text-transform:uppercase}
+.roll p{font:500 clamp(17px,2.4vh,21px)/1.5 var(--book);margin:0}.roll img{width:min(70vw,360px);image-rendering:pixelated;margin:28px auto 8px;display:block;filter:drop-shadow(0 0 30px rgba(255,180,80,.3))}
+.roll .last{margin-top:60vh;padding-bottom:40vh}
+@media (prefers-reduced-motion:reduce){.cimg.on{animation:none}}
+@media (max-aspect-ratio:4/3){.cimg{object-fit:contain;top:-6vh}.cimg.on{animation-name:burnsTall}@keyframes burnsTall{from{transform:scale(1)}to{transform:scale(1.06)}}}
+.prologue{display:none}#s-map.home .prologue{display:inline-flex;align-items:center;gap:8px;margin:2px auto 0;padding:5px 14px;border-radius:16px;border:1px solid rgba(232,194,90,.55);background:rgba(10,8,4,.45);color:#f6dc8c;font:700 13px Cinzel,serif;letter-spacing:.08em;transition:all .15s}
+#s-map.home .prologue:hover,#s-map.home .prologue:focus-visible{background:rgba(232,194,90,.2);outline:2px solid #f6dc8c;outline-offset:2px}.prologue b{font-size:10px}
+/* touch: the move pad on the left; on the right Strike under the thumb, Jump above it, Dodge beside it, Farr when full */
+#touch .act{display:grid;grid-template-columns:auto auto;grid-template-areas:"farr jump" "dodge strike";gap:10px 12px;align-items:end;justify-items:center;pointer-events:auto}
+#touch .act .farr{grid-area:farr}#touch .act .jump{grid-area:jump}#touch .act .dodge{grid-area:dodge;width:58px;height:58px}#touch .act .strike{grid-area:strike;width:84px;height:84px;background:rgba(120,30,20,.55);border-color:rgba(255,190,90,.85)}
+.tb{position:relative;-webkit-user-select:none;user-select:none;backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px);transition:transform .06s,background .1s}
+.tb.on{transform:scale(.92)}
+.tb small{position:absolute;bottom:-15px;left:50%;transform:translateX(-50%);font:700 9px Inter,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,240,210,.75);text-shadow:0 1px 2px #000;pointer-events:none}
+.tb svg path{fill:#fff}#touch .dodge svg path{fill:none}
+@media (max-height:420px){#touch .act .strike{width:72px;height:72px}.tb{width:58px;height:58px}#touch .act .dodge{width:50px;height:50px}.tb small{display:none}}
 </style>
 </head>
 <body>
@@ -315,10 +373,11 @@ body.cine #hint,body.cine #toast{opacity:0!important;transition:opacity .2s}
     <button class="tb" data-k="left" aria-label="Left"><svg viewBox="0 0 24 24"><path d="M15 5l-8 7 8 7z"/></svg></button>
     <button class="tb" data-k="right" aria-label="Right"><svg viewBox="0 0 24 24"><path d="M9 5l8 7-8 7z"/></svg></button>
   </div>
-  <div class="row">
-    <button class="tb farr hidden" data-k="farr" aria-label="Call on the Simurgh"><svg viewBox="0 0 24 24"><path d="M12 2l2.6 6.4L21 9l-5 4.4L17.4 20 12 16.6 6.6 20 8 13.4 3 9l6.4-.6z"/></svg></button>
-    <button class="tb" data-k="attack" aria-label="Strike"><svg viewBox="0 0 24 24"><path d="M5 19l9-9M12 4l8 8-3 3-8-8z"/></svg></button>
-    <button class="tb" data-k="jump" aria-label="Jump"><svg viewBox="0 0 24 24"><path d="M12 4l8 9h-5v7H9v-7H4z"/></svg></button>
+  <div class="act">
+    <button class="tb farr hidden" data-k="farr" aria-label="Call on the Simurgh"><svg viewBox="0 0 24 24"><path d="M12 2l2.6 6.4L21 9l-5 4.4L17.4 20 12 16.6 6.6 20 8 13.4 3 9l6.4-.6z"/></svg><small>Farr</small></button>
+    <button class="tb jump" data-k="jump" aria-label="Jump"><svg viewBox="0 0 24 24"><path d="M12 4l8 9h-5v7H9v-7H4z"/></svg><small>Jump</small></button>
+    <button class="tb dodge" data-k="dodge" aria-label="Dodge"><svg viewBox="0 0 24 24"><path d="M3 12h10M9 7l5 5-5 5M15 6c3 1 5 3.5 5 6s-2 5-5 6" stroke="#fff" stroke-width="2.2" fill="none" stroke-linecap="round"/></svg><small>Dodge</small></button>
+    <button class="tb strike" data-k="attack" aria-label="Strike (hold for a heavy blow)"><svg viewBox="0 0 24 24"><path d="M5 19l9-9M12 4l8 8-3 3-8-8z"/></svg><small>Strike</small></button>
   </div>
 </div>
 
@@ -364,6 +423,7 @@ body.cine #hint,body.cine #toast{opacity:0!important;transition:opacity .2s}
       <button class="btn2" data-story>Read the tale</button>
       <button class="btn2" data-guide>Book of Foes</button>
       <button class="btn2" data-help>How to play</button>
+      <button class="btn2" data-settings>Settings</button>
       <button class="btn2" id="restartBtn">Restart the labour</button>
       <a class="btn2" href="/fun/">Leave for the Funfair</a>
     </div>
@@ -375,6 +435,35 @@ body.cine #hint,body.cine #toast{opacity:0!important;transition:opacity .2s}
     <button class="x" id="storyClose" aria-label="Close the tale">&times;</button>
     <div class="leaf" id="leaf" tabindex="0"></div>
     <div class="pager"><button class="btn2" id="prevPg">&larr; Back</button><div class="dots" id="dots"></div><button class="btn2" id="nextPg">Next &rarr;</button></div>
+  </div>
+</section>
+<section class="ov hidden cineOv" id="s-cine" aria-label="The tale told in pictures">
+  <div class="cframe"><img class="cimg" alt=""><img class="cimg" alt=""></div>
+  <i class="cbar"></i><i class="cbar bot"></i>
+  <button class="cnext" id="cineNext" aria-label="Next picture"></button>
+  <div class="ccap" aria-live="polite"><div class="fa"></div><p></p><span class="chint">Click, tap or press Space to go on</span></div>
+  <div class="cdots" aria-hidden="true"></div>
+  <button class="cskip" id="cineSkip">Skip &rsaquo;</button>
+  <div class="credits hidden" id="credits"><div class="roll" id="roll"></div></div>
+</section>
+<section class="ov hidden" id="s-set" role="dialog" aria-modal="true" aria-label="Settings">
+  <div class="page setPage">
+    <button class="x" id="setClose" aria-label="Close">&times;</button>
+    <div class="fa">تنظیمات</div><h2>Settings</h2>
+    <div class="setgrid">
+      <section><h3>Sound</h3>
+        <label class="slide"><span>Music</span><input type="range" id="setMusic" min="0" max="100" step="5" aria-label="Music volume"><output id="setMusicV"></output></label>
+        <label class="slide"><span>Effects</span><input type="range" id="setFx" min="0" max="100" step="5" aria-label="Effects volume"><output id="setFxV"></output></label>
+        <h3>Comfort</h3>
+        <button class="sw" id="setShake" role="switch" aria-checked="true"><i></i><span><b>Screen shake</b>The view jolts with heavy blows.</span></button>
+        <button class="sw" id="setFlash" role="switch" aria-checked="false"><i></i><span><b>Reduce flashes</b>No white flashes or lightning glare.</span></button>
+      </section>
+      <section><h3>Keys <button class="btn2 sm" id="keyReset">Reset</button></h3>
+        <ol class="keylist" id="keyList"></ol>
+        <p class="pad" id="padInfo"></p>
+      </section>
+    </div>
+    <div class="btns"><button class="btn" id="setDone">Done</button></div>
   </div>
 </section>
 <section class="ov hidden" id="s-help" role="dialog" aria-modal="true" aria-label="How to play">
@@ -421,10 +510,11 @@ body.cine #hint,body.cine #toast{opacity:0!important;transition:opacity .2s}
     <div class="fa">هفت خوان</div>
     <h2>The Seven Labours of Rostam</h2>
     <p class="kick">The road from Zabulistan to Mazandaran</p>
+    <button class="prologue" id="prologueBtn"><b>&#9654;</b> Watch the prologue</button>
     <p class="story home-only">King Kay Kavus lies captive in Mazandaran, land of the Divs. <em>Rostam</em> rides out on the shortest and most perilous road. <b>Choose a labour on the map, then ride out.</b></p>
     <ol class="road" id="road"></ol>
     <p class="story" id="mapInfo"></p>
-    <div class="btns"><button class="btn" id="rideBtn">Ride out</button><button class="btn2" id="mapTale">Read its tale</button><button class="btn2" data-guide>Book of Foes</button><button class="btn2" data-help>How to play</button></div>
+    <div class="btns"><button class="btn" id="rideBtn">Ride out</button><button class="btn2" id="mapTale">Read its tale</button><button class="btn2" data-guide>Book of Foes</button><button class="btn2" data-help>How to play</button><button class="btn2" data-settings>Settings</button></div>
     <div class="diff" role="group" aria-label="Difficulty">Road <button data-diff="hero" aria-pressed="true">Hero's road</button><button data-diff="gentle" aria-pressed="false">Gentle road</button></div>
     <div class="keys deskonly home-only"><kbd>&larr;</kbd> <kbd>&rarr;</kbd> move &middot; <kbd>&uarr;</kbd>/<kbd>Space</kbd> jump (twice for a super jump) &middot; <kbd>X</kbd> strike &middot; <kbd>Esc</kbd> menu</div>
     <div class="keys touchonly home-only">On-screen buttons to move, jump and strike. Turn your phone sideways for the best view.</div>
@@ -546,6 +636,6 @@ body.cine #hint,body.cine #toast{opacity:0!important;transition:opacity .2s}
 </template>
 
 <script src="https://cdn.jsdelivr.net/npm/phaser@3.80.1/dist/phaser.min.js"></script>
-<script src="game.js?v=60"></script>
+<script src="game.js?v=62"></script>
 </body>
 </html>

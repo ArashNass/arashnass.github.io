@@ -24,7 +24,7 @@ const FED = 8;                                                   // provisions i
    transparent background, character facing RIGHT.
    ------------------------------------------------------------- */
 const ART = {
-  'rostam-idle': 'rostam-idle.png', 'rostam-run': 'rostam-run.png', 'rostam-jump': 'rostam-jump.png', 'rostam-attack': 'rostam-attack.png', 'rostam-hurt': 'rostam-hurt.png',
+  'rostam-idle': 'rostam-idle.png', 'rostam-run': 'rostam-run.png', 'rostam-jump': 'rostam-jump.png', 'rostam-attack': 'rostam-attack.png', 'rostam-hurt': 'rostam-hurt.png', 'rostam-dodge': 'rostam-dodge.png', 'rostam-heavy': 'rostam-heavy.png',
   'lion-walk': 'lion-walk.png', 'lion-run': 'lion-run.png', 'lion-roar': 'lion-roar.png', 'lion-die': 'lion-die.png', 'simurgh-fly': 'simurgh-fly.png',
   'jackal-run': 'jackal-run.png', 'div-hop': 'div-hop.png',
   // Khan II
@@ -42,7 +42,7 @@ const ART = {
   // Khan VII
   'whitediv-walk': 'k7/whitediv-walk.png', 'whitediv-smash': 'k7/whitediv-smash.png', 'whitediv-throw': 'k7/whitediv-throw.png', 'whitediv-die': 'k7/whitediv-die.png', 'kavus-sight': 'k7/kavus-sight.png'
 };
-const FPS = { 'simurgh-fly': 10, 'lion-die': 6, 'dragon-die': 6, 'hag-die': 6, 'rostam-idle': 5, 'rostam-run': 14, 'rostam-jump': 6, 'rostam-attack': 24, 'rostam-hurt': 10, 'lion-walk': 9, 'lion-run': 14, 'lion-roar': 6, 'jackal-run': 12, 'div-hop': 8, 'coin-spin': 8, 'fire-burn': 10,
+const FPS = { 'rostam-dodge': 22, 'rostam-heavy': 14, 'simurgh-fly': 10, 'lion-die': 6, 'dragon-die': 6, 'hag-die': 6, 'rostam-idle': 5, 'rostam-run': 14, 'rostam-jump': 6, 'rostam-attack': 24, 'rostam-hurt': 10, 'lion-walk': 9, 'lion-run': 14, 'lion-roar': 6, 'jackal-run': 12, 'div-hop': 8, 'coin-spin': 8, 'fire-burn': 10,
   'scorpion-crawl': 10, 'vulture-fly': 10, 'ram-walk': 8, 'rostam-drink': 6, 'ride-gallop': 12, 'ride-strike': 18, 'ride-rear': 11,
   'dragon-move': 7, 'dragon-fire': 9, 'rakhsh-gallop': 12, 'rakhsh-rear': 9, 'bat-fly': 14,
   'serpent': 8, 'hag-cast': 10, 'beauty-idle': 4,
@@ -53,7 +53,7 @@ const FPS = { 'simurgh-fly': 10, 'lion-die': 6, 'dragon-die': 6, 'hag-die': 6, '
 const SIZE = { rider: 124, rostam: 112, lion: 148, jackal: 108, div: 108, scorpion: 86, vulture: 92, ram: 86, dragon: 136, rakhsh: 104, bat: 108, serpent: 92, hag: 108, beauty: 108, spearman: 140, olad: 112, divwarrior: 100, arzhang: 136, whitediv: 136, firediv: 104, ghul: 100 };
 const BODY = { rider: [0.3, 0.5], rostam: [0.143, 0.393], lion: [0.5, 0.36], jackal: [0.3, 0.22], div: [0.22, 0.34], scorpion: [0.4, 0.22], vulture: [0.33, 0.2], ram: [0.4, 0.4],
   dragon: [0.46, 0.42], rakhsh: [0.5, 0.5], bat: [0.32, 0.24], serpent: [0.31, 0.31], hag: [0.27, 0.42], beauty: [0.2, 0.47], spearman: [0.115, 0.386], olad: [0.17, 0.49], divwarrior: [0.31, 0.64], arzhang: [0.3, 0.7], whitediv: [0.4, 0.58], firediv: [0.2, 0.6], ghul: [0.5, 0.36] };
-const V = 60;
+const V = 62;
 const ZOOM = 2;                                                   // canvas pixels per world pixel   // bump to bust caches when assets change
 
 // PixelLab VFX strips in ./assets/fx: frame size, frame count, fps, and the effect's origin as a fraction of the frame
@@ -1041,7 +1041,7 @@ function audio() {
     A.master = c.createGain(); A.master.gain.value = A.muted ? 0 : 0.8; A.master.connect(comp);
     A.verb = c.createConvolver(); A.verb.buffer = hall(c, 2.8); const wet = c.createGain(); wet.gain.value = 0.42; A.verb.connect(wet).connect(A.master);
     A.music = c.createGain(); A.music.gain.value = 0.7; A.music.connect(A.master);
-    A.fx = c.createGain(); A.fx.gain.value = 0.85; A.fx.connect(A.master);
+    A.fx = c.createGain(); A.fx.gain.value = 0.85; A.fx.connect(A.master); setTimeout(applySettings);
     setInterval(pickTrack, 300);
     loadSamples();
     const fs = c.createGain(); fs.gain.value = 0.2; A.fx.connect(fs).connect(A.verb);
@@ -1188,10 +1188,22 @@ function setMuted(m) {
 }
 
 /* ---------------------------- input ---------------------------- */
-const keys = { left: false, right: false, jump: false, attack: false, farr: false, offer: false }, pressed = { jump: false, attack: false, farr: false, offer: false };
-const KEYMAP = { ArrowLeft: 'left', a: 'left', A: 'left', ArrowRight: 'right', d: 'right', D: 'right', ArrowUp: 'jump', w: 'jump', W: 'jump', ' ': 'jump', z: 'jump', Z: 'jump', x: 'attack', X: 'attack', j: 'attack', J: 'attack', k: 'attack', K: 'attack', f: 'farr', F: 'farr', ArrowDown: 'offer', s: 'offer', S: 'offer' };
+const keys = { left: false, right: false, jump: false, attack: false, dodge: false, farr: false, offer: false }, pressed = { jump: false, attack: false, dodge: false, farr: false, offer: false };
+// settings, kept in the browser: volumes, screen shake, flashes, and the keys for each action (two per action)
+const KEY_DEF = { left: ['ArrowLeft', 'a'], right: ['ArrowRight', 'd'], jump: ['ArrowUp', ' '], attack: ['x', 'j'], dodge: ['Shift', 'c'], farr: ['f', ''], offer: ['ArrowDown', 's'] };
+const ACTIONS = [['left', 'Move left'], ['right', 'Move right'], ['jump', 'Jump (twice for a super jump)'], ['attack', 'Strike (hold for a heavy blow)'], ['dodge', 'Dodge roll'], ['farr', 'Call the Simurgh (Farr)'], ['offer', 'Offer at a fire']];
+const SET = (() => { let s = {}; try { s = JSON.parse(store.get('sh-set') || '{}'); } catch (e) {} return { music: 70, fx: 85, shake: true, flash: true, ...s, keys: JSON.parse(JSON.stringify({ ...KEY_DEF, ...(s.keys || {}) })) }; })();
+const saveSet = () => store.set('sh-set', JSON.stringify(SET));
+const keyName = k => ({ ' ': 'Space', ArrowLeft: '\u2190', ArrowRight: '\u2192', ArrowUp: '\u2191', ArrowDown: '\u2193', Shift: 'Shift', Control: 'Ctrl', Enter: 'Enter' })[k] || (k.length === 1 ? k.toUpperCase() : k);
+let KEYMAP = {};
+function buildKeys() { KEYMAP = {}; for (const [a, ks] of Object.entries(SET.keys)) for (const k of ks) if (k) KEYMAP[k.length === 1 ? k.toLowerCase() : k] = a; }
+buildKeys();
+const keyOf = e => e.key.length === 1 ? e.key.toLowerCase() : e.key;
 const press = (k, down) => { if (down && !keys[k] && k in pressed) pressed[k] = true; keys[k] = down; };
 addEventListener('keydown', e => {
+  if (rebind) { e.preventDefault(); finishRebind(e.key === 'Escape' ? null : e.key); return; }
+  if (cine) { e.preventDefault(); if (e.key === 'Escape') cineEnd(); else if ([' ', 'Enter', 'ArrowRight', 'x', 'X'].includes(e.key)) cineNext(); return; }
+  if (!$('s-set').classList.contains('hidden')) { if (e.key === 'Escape') closeSettings(); return; }
   if (!$('s-map').classList.contains('hidden')) { if (e.key === 'Escape') closeMap(); return; }
   if (!$('s-help').classList.contains('hidden')) { if (e.key === 'Escape') closeHelp(); return; }
   if (!$('s-temple').classList.contains('hidden')) { if (e.key === 'Escape' || e.key === 'ArrowDown' || e.key === 's' || e.key === 'S') closeTemple(); return; }
@@ -1207,9 +1219,9 @@ addEventListener('keydown', e => {
   if (e.key === 'm' || e.key === 'M') return setMuted(!A.muted);
   if (e.key === 'Escape' || e.key === 'p' || e.key === 'P') { if (playing || paused) setPaused(!paused); return; }
   if (e.key === 'Enter' && !playing && !paused && e.target.tagName !== 'BUTTON') return begin();
-  const k = KEYMAP[e.key]; if (k) press(k, true);
+  const k = KEYMAP[keyOf(e)]; if (k) press(k, true);
 });
-addEventListener('keyup', e => { const k = KEYMAP[e.key]; if (k) press(k, false); });
+addEventListener('keyup', e => { const k = KEYMAP[keyOf(e)]; if (k) press(k, false); });
 document.querySelectorAll('.tb').forEach(b => {
   const k = b.dataset.k;
   b.addEventListener('pointerdown', e => { e.preventDefault(); audio(); b.setPointerCapture?.(e.pointerId); b.classList.add('on'); press(k, true); });
@@ -1237,7 +1249,7 @@ class Play extends Phaser.Scene {
   create() {
     // the scene object is reused from labour to labour: forget whatever the last one left behind
     for (const k of ['dark', 'lights', 'lamp', 'wall', 'wallR', 'stars', 'pose', 'swingFx', 'witch', 'unmasked', 'olad', 'rakhsh', 'dragonSeen', 'horde', 'hordeDone',
-      'gates', 'hordeBat', 'toldRock', 'toldFarr', 'toldOffer', 'atAltar', 'bossT', 'maceHit', 'toldIce', 'chargeWarn', 'toldCharge', 'shards', 'shardG', 'mark', 'markGlow', 'markOpen', 'bossHeart', 'bossHeartT', 'floorWarn', 'highWarn', 'regrow', 'drums', 'sky', 'flashA', 'intro', 'whiteDown', 'ended', 'mounted', 'prayed', 'drank', 'toldImmune', 'toldDeflect', 'kavus', 'stones', 'puzzle', 'springOpen', 'pool']) delete this[k];
+      'gates', 'hordeBat', 'toldRock', 'toldFarr', 'toldOffer', 'atAltar', 'bossT', 'maceHit', 'toldIce', 'chargeWarn', 'toldCharge', 'shards', 'shardG', 'mark', 'markGlow', 'markOpen', 'bossHeart', 'bossHeartT', 'floorWarn', 'highWarn', 'regrow', 'drums', 'sky', 'flashA', 'intro', 'combo', 'comboT', 'heavy', 'heavyGo', 'charge', 'chargeFull', 'chargeGlow', 'dodgeT', 'dodgeCd', 'dodgeDir', 'whiteDown', 'ended', 'mounted', 'prayed', 'drank', 'toldImmune', 'toldDeflect', 'kavus', 'stones', 'puzzle', 'springOpen', 'pool']) delete this[k];
     // turn loaded strips into square frames; anything missing falls back to placeholder art
     for (const [k, f] of Object.entries(ART)) if (f && this.textures.exists(k)) {
       const t = this.textures.get(k), img = t.getSourceImage(), fh = img.height, n = Math.max(1, Math.round(img.width / fh));
@@ -1246,7 +1258,7 @@ class Play extends Phaser.Scene {
     makeTextures(this);
     for (const k of Object.keys(FPS)) {
       const t = this.textures.get(k), n = t.frameTotal - 1;
-      if (!this.anims.exists(k)) this.anims.create({ key: k, frames: this.anims.generateFrameNumbers(k, { start: 0, end: Math.max(0, n - 1) }), frameRate: FPS[k], repeat: /attack|hurt|roar|jump|thrust|slash|kneel|smash|throw|fire|rear|sight|strike|sting|die|leap/.test(k) ? 0 : -1 });
+      if (!this.anims.exists(k)) this.anims.create({ key: k, frames: this.anims.generateFrameNumbers(k, { start: 0, end: Math.max(0, n - 1) }), frameRate: FPS[k], repeat: /attack|hurt|roar|jump|thrust|slash|kneel|smash|throw|fire|rear|sight|strike|sting|die|leap|heavy|dodge/.test(k) ? 0 : -1 });
     }
     const lv = this.lv, map = lv.map(), C = map[0].length;
     $('lbl').innerHTML = lv.hud; $('waterPill').classList.add('hidden'); $('bossName').textContent = lv.bossName || lv.name;
@@ -1297,6 +1309,11 @@ class Play extends Phaser.Scene {
     this.physics.add.overlap(this.player, this.coins, (pl, c) => this.eat(c));
     this.lion = null; this.boss = null; this.frozen = false; this.ram = null;
     this.cam = this.cameras.main;
+    if (!this.cam.rawShake) {                                         // the comfort switches in the settings
+      const cam = this.cam; cam.rawShake = cam.shake; cam.rawFlash = cam.flash;
+      cam.shake = function (d, i, ...a) { return SET.shake ? cam.rawShake(d, i, ...a) : cam; };
+      cam.flash = function (d, r, g, b, ...a) { return SET.flash ? cam.rawFlash(d, r, g, b, ...a) : cam; };
+    }
     // the canvas is drawn at twice the world's resolution so finer sprite art keeps its detail. The camera zooms from its
     // top-left corner, so scrollX stays the left edge of the view and screen-fixed layers keep their places; its follow
     // offset centres Rostam, and the bounds and tile culling are worked out for the zoomed view
@@ -1401,7 +1418,7 @@ class Play extends Phaser.Scene {
     if (!this.toldFarr) { this.toldFarr = true; toast('The Simurgh answers! Golden light strikes every foe around you.'); }
   }
   hurt(fromX, thirst = false) {
-    if ((this.inv > 0 && !thirst) || this.done || this.frozen) return;   // no harm during a cutscene
+    if ((this.inv > 0 && !thirst) || this.done || this.frozen || (this.dodgeT > 0 && !thirst)) return;   // no harm during a cutscene or a dodge
     this.hp--; this.renderHearts(); this.inv = thirst ? 30 : gentle() ? 130 : 90; sfx('hurt'); this.cam.shake(160, 0.008); this.cam.flash(120, 180, 40, 60);
     if (!thirst) this.player.setVelocity((this.player.x < fromX ? -1 : 1) * 160, -220);
     if (this.hp <= 0) {
@@ -1413,7 +1430,20 @@ class Play extends Phaser.Scene {
       setTimeout(() => { if (!playing && this.done) $('s-dead').classList.remove('hidden'); }, 900);
     }
   }
-  strikeBox() { const p = this.player, r = (this.mounted ? 48 : 34) + (upg().reach ? 12 : 0); return new Phaser.Geom.Rectangle(this.face > 0 ? p.body.right - 4 : p.body.left - r + 4, p.body.top - 22, r, p.body.height + 24); }   // the blade arcs over his head too
+  // the charged blow comes down: a long reach, triple force, and the ground itself shakes and throws up dust both ways
+  heavyBlow() {
+    const p = this.player; this.heavyGo = true; this.heavy = 'heavy'; this.pose = 'rostam-heavy';
+    p.anims.stop(); p.play({ key: 'rostam-heavy', startFrame: 3 }); sfx('swing');
+    this.time.delayedCall(150, () => {
+      this.atk = 11; this.hitDone = new Set(); this.cool = 26;
+      const y = p.body.bottom; this.cam.shake(260, 0.014); sfx('hit'); this.hitStop(60);
+      for (const d of [-1, 1]) for (let i = 0; i < 3; i++) this.time.delayedCall(i * 60, () => this.fx('dust', p.x + this.face * 30 + d * (12 + i * 22), y, { flip: d < 0, depth: 8 }));
+      const ring = this.add.ellipse(p.x + this.face * 30, y - 1, 16, 5).setStrokeStyle(1.5, 0xffe28a, 0.9).setDepth(8);
+      this.tweens.add({ targets: ring, scaleX: 7, scaleY: 2.4, alpha: 0, duration: 420, ease: 'Cubic.easeOut', onComplete: () => ring.destroy() });
+    });
+    p.once('animationcomplete', () => { this.heavyGo = false; if (this.pose === 'rostam-heavy') this.pose = null; this.heavy = null; });
+  }
+  strikeBox(extra = 0) { const p = this.player, r = (this.mounted ? 48 : 34) + (upg().reach ? 12 : 0) + extra; return new Phaser.Geom.Rectangle(this.face > 0 ? p.body.right - 4 : p.body.left - r + 4, p.body.top - 22, r, p.body.height + 24); }   // the blade arcs over his head too
   damage(f, n = 1, force = false) {
     if (f.immune?.() && !force) { this.fx('dust', f.x, f.body.center.y, { depth: 10 }); if (!this.toldImmune) { this.toldImmune = true; toast(f.immuneMsg || 'Your blow passes through shadow.'); } return; }
     f.hp -= n; f.setTintFill(0xffffff); this.time.delayedCall(80, () => f.active && f.clearTint());
@@ -1638,10 +1668,14 @@ class Play extends Phaser.Scene {
       }, onComplete: () => {
         if (!f.active) return; f.x = fx; f.angle = 0; sync();
         // a ring of light opens on the ground where it lands, and a beam rises from it
-        const sig = this.add.image(fx, fy + 22, 'rays').setTint(0xffd890).setBlendMode(Phaser.BlendModes.ADD).setDepth(2).setScale(0.35, 0.1).setAlpha(0);
-        const ring = this.add.ellipse(fx, fy + 22, 54, 12).setStrokeStyle(1.5, 0xffe8a0, 0.9).setDepth(2).setAlpha(0);
-        this.tweens.add({ targets: [sig, ring], alpha: 1, duration: 500 }); this.tweens.add({ targets: sig, angle: 360, duration: 9000, repeat: -1 });
-        f.glow = sig; f.ring = ring; this.fx('beam', fx, fy + 22, { depth: 4 }); sfx('coin');
+        // a soft pool of light on the ground, rings of light rippling out from it, and a column of light over it
+        const sig = this.add.image(fx, fy + 21, 'glow').setTint(0xffd890).setBlendMode(Phaser.BlendModes.ADD).setDepth(2).setScale(1.5, 0.32).setAlpha(0);
+        const ring = this.add.ellipse(fx, fy + 21, 30, 7).setStrokeStyle(1, 0xffe8a0, 0.8).setDepth(2).setAlpha(0);
+        this.tweens.add({ targets: sig, alpha: 0.9, duration: 500 });
+        this.tweens.add({ targets: ring, scaleX: 2.2, scaleY: 2.2, alpha: { from: 0.9, to: 0 }, duration: 1600, repeat: -1, ease: 'Sine.easeOut' });
+        const col = this.add.image(fx, fy + 21, 'glow').setOrigin(0.5, 1).setTint(0xfff0c0).setBlendMode(Phaser.BlendModes.ADD).setDepth(2).setScale(0.35, 2.4).setAlpha(0);
+        this.tweens.add({ targets: col, alpha: 0.4, duration: 600, yoyo: true, hold: 300, repeat: -1, repeatDelay: 200 });
+        f.glow = sig; f.ring = ring; f.col = col; this.fx('beam', fx, fy + 22, { depth: 4 }); sfx('coin');
         this.tweens.add({ targets: f, y: fy - 5, yoyo: true, repeat: -1, duration: 900, ease: 'Sine.easeInOut', onUpdate: sync });
         this.physics.add.overlap(this.player, f, () => this.takeFeather(f));
         hint('Victory! <b>Take the Simurgh\'s glowing feather</b> to end the labour.');
@@ -1652,7 +1686,7 @@ class Play extends Phaser.Scene {
   takeFeather(f) {
     if (this.done || f.taken) return; f.taken = true; f.body.enable = false; this.tweens.killTweensOf(f);
     const p = this.player; this.frozen = true; p.setVelocityX(0); sfx('fire');
-    f.spark?.stop(); this.tweens.add({ targets: [f.glow, f.ring].filter(Boolean), alpha: 0, duration: 400 });
+    f.spark?.stop(); this.tweens.killTweensOf([f.ring, f.col].filter(Boolean)); this.tweens.add({ targets: [f.glow, f.ring, f.col].filter(Boolean), alpha: 0, duration: 400 });
     this.tweens.addCounter({ from: 0, to: 1, duration: 900, ease: 'Sine.easeIn', onUpdate: tw => { const v = tw.getValue(); f.x = p.x + Math.cos(v * Math.PI * 4) * 26 * (1 - v); f.y = p.body.center.y - v * 30 + Math.sin(v * Math.PI * 4) * 8; f.angle = v * 540; f.setScale(0.62 * (1 - v * 0.6)); },
       onComplete: () => { this.cam.flash(500, 255, 240, 200); const r = this.add.image(p.x, p.body.center.y, 'rays').setTint(0xffe08a).setBlendMode(Phaser.BlendModes.ADD).setDepth(10).setScale(0.2);
         this.tweens.add({ targets: r, scale: 2.2, alpha: 0, angle: 90, duration: 900, ease: 'Cubic.easeOut', onComplete: () => r.destroy() });
@@ -1660,7 +1694,7 @@ class Play extends Phaser.Scene {
   }
   win(f) {
     if (this.done) return; this.done = true; playing = false; music(false); sfx('fire'); document.body.classList.remove('playing'); hint(null); resumeAt = null;
-    this.tweens.killTweensOf([f, f.glow, f.ring].filter(Boolean)); f.spark?.destroy(); f.glow?.destroy?.(); f.ring?.destroy?.(); f.destroy();
+    this.tweens.killTweensOf([f, f.glow, f.ring, f.col].filter(Boolean)); f.spark?.destroy(); f.glow?.destroy?.(); f.ring?.destroy?.(); f.col?.destroy?.(); f.destroy();
     const s = Math.round((this.time.now - this.t0) / 1000);
     $('winMsg').textContent = this.lv.win;
     $('winKick').textContent = `The ${['', 'first', 'second', 'third', 'fourth', 'fifth', 'sixth', 'seventh'][cur]} labour is done`;
@@ -1694,9 +1728,46 @@ class Play extends Phaser.Scene {
     this.wasGround = ground; this.fallV = b.velocity.y;
     if (!keys.jump && b.velocity.y < -120) p.setVelocityY(b.velocity.y * 0.85);
     this.cool -= k;
-    if (pressed.attack && this.cool <= 0) {
-      this.atk = 16; this.cool = this.mounted ? 26 : 22; sfx('swing'); p.play(this.mounted ? 'ride-strike' : 'rostam-attack', true); this.hitDone = new Set();
+    if (pressed.attack && this.cool <= 0 && !(this.dodgeT > 0)) {
+      // three quick blows make a combo: the third is a hard overhead finisher
+      this.combo = this.comboT > 0 && !this.mounted ? (this.combo || 0) + 1 : 1; this.comboT = 46;
+      this.heavy = this.combo >= 3 ? 'finish' : null; if (this.heavy) this.combo = 0;
+      this.atk = this.heavy ? 18 : 16; this.cool = this.mounted ? 26 : this.heavy ? 30 : 22; sfx('swing'); this.hitDone = new Set();
+      if (this.heavy) { this.pose = 'rostam-heavy'; p.anims.stop(); p.play({ key: 'rostam-heavy', startFrame: 4, frameRate: 26 }); p.once('animationcomplete', () => { if (this.pose === 'rostam-heavy') this.pose = null; }); }
+      else { if (this.pose === 'rostam-heavy') this.pose = null; p.play(this.mounted ? 'ride-strike' : 'rostam-attack', true); }
       this.swingFx = this.fx('swing', p.x + this.face * 6, p.y - 2, { flip: this.face < 0, depth: 6 });
+      this.charge = 0;
+    }
+    this.comboT = (this.comboT || 0) - k;
+    // the heavy blow: keep holding the strike after a swing and the mace gathers light; let go to bring it down
+    if (keys.attack && !this.mounted && ground && this.atk <= 0 && !(this.dodgeT > 0) && !this.frozen && this.anims.exists('rostam-heavy')) {
+      this.charge = (this.charge || 0) + k;
+      if (this.charge > 8 && this.pose !== 'rostam-heavy') { this.pose = 'rostam-heavy'; p.play('rostam-heavy', true); p.anims.pause(); p.setFrame(3); b.velocity.x *= 0.4; }
+      if (this.pose === 'rostam-heavy' && !this.heavyGo) { b.velocity.x *= 0.85; p.setFrame(3); }
+      if (this.charge > 8) {
+        const full = this.charge >= 34; this.chargeGlow ||= this.add.image(0, 0, 'glow').setBlendMode(Phaser.BlendModes.ADD).setDepth(6);
+        this.chargeGlow.setPosition(p.x - this.face * 14, p.y - 30).setScale((full ? 0.9 : 0.3 + this.charge / 60) + Math.sin(time * 0.03) * 0.08).setTint(full ? 0xffe28a : 0xffb060).setAlpha(full ? 1 : 0.7);
+        if (full && !this.chargeFull) { this.chargeFull = true; sfx('coin'); this.fx('pickup', p.x - this.face * 14, p.y - 30, { depth: 7 }); }
+      }
+    } else if (this.charge > 0 && !keys.attack) {
+      if (this.chargeFull && ground && !this.frozen) this.heavyBlow();
+      else if (this.pose === 'rostam-heavy' && !this.heavyGo) this.pose = null;
+      this.charge = 0; this.chargeFull = false; this.chargeGlow?.destroy(); this.chargeGlow = null;
+    }
+    // the dodge: a low, fast dash that no blow can catch, with a short breath after it
+    this.dodgeCd = (this.dodgeCd || 0) - k;
+    if (pressed.dodge) { pressed.dodge = false;
+      if (this.dodgeCd <= 0 && !this.mounted && !this.frozen && this.anims.exists('rostam-dodge')) {
+        this.dodgeT = 15; this.dodgeCd = 38; this.dodgeDir = dirX || this.face; this.face = this.dodgeDir; this.atk = 0; this.charge = 0; this.chargeGlow?.destroy(); this.chargeGlow = null;
+        this.pose = 'rostam-dodge'; p.play('rostam-dodge', true); sfx('jump'); this.fx('dust', p.x - this.dodgeDir * 10, b.bottom, { flip: this.dodgeDir > 0, depth: 6 });
+      } }
+    if (this.dodgeT > 0) {
+      this.dodgeT -= k; b.velocity.x = this.dodgeDir * 330 * Math.max(0.35, this.dodgeT / 15);
+      if (Math.floor(this.dodgeT) % 3 === 0) {                     // ghosts of Rostam left along the dash
+        const g = this.add.image(p.x, p.y, p.texture.key, p.frame.name).setScale(p.scaleX, p.scaleY).setFlipX(p.flipX).setOrigin(p.originX, p.originY).setDepth(4).setTint(0x8fd8ff).setAlpha(0.5).setBlendMode(Phaser.BlendModes.ADD);
+        this.tweens.add({ targets: g, alpha: 0, duration: 260, onComplete: () => g.destroy() });
+      }
+      if (this.dodgeT <= 0 && this.pose === 'rostam-dodge') this.pose = null;
     }
     if (this.swingFx?.active) this.swingFx.setPosition(Math.round(p.x + this.face * 6), Math.round(p.y - 2));
     pressed.attack = false;
@@ -1711,10 +1782,10 @@ class Play extends Phaser.Scene {
     if (this.atk > 0) {
       this.atk -= k;
       if (this.atk < 12 && this.atk > 3) {
-        const box = this.strikeBox();
+        const box = this.strikeBox(this.heavy ? 22 : 0);
         const targets = [...this.foes.getChildren(), ...(this.boss && this.boss.active && this.boss.hp > 0 ? [this.boss] : [])];
         // the Mace of Sam: double against foes, and every other blow on a boss lands twice as hard
-        const mace = upg().mace, hit = f => !mace ? 1 : f !== this.boss ? 2 : (this.maceHit = !this.maceHit) ? 2 : 1;
+        const mace = upg().mace, base = this.heavy === 'heavy' ? 3 : this.heavy ? 2 : 1, hit = f => (!mace ? 1 : f !== this.boss ? 2 : (this.maceHit = !this.maceHit) ? 2 : 1) * base;
         for (const f of targets) if (f.body.enable && !this.hitDone.has(f) && Phaser.Geom.Intersects.RectangleToRectangle(box, f.body)) { this.hitDone.add(f); this.damage(f, hit(f)); if (!f.calm?.()) f.setVelocity(this.face * (f === this.boss ? 60 : 140), f.kind === 'vulture' ? -60 : -120); }
         for (const sh of this.shots.getChildren()) if (sh.curse && !sh.back && Phaser.Geom.Intersects.RectangleToRectangle(box, sh.getBounds())) this.deflect(sh);
         if (this.puzzle) this.stones.forEach((st, i) => { if (!this.hitDone.has(st) && Phaser.Geom.Intersects.RectangleToRectangle(box, st.getBounds())) { this.hitDone.add(st); this.strikeStone(i); } });
@@ -1841,10 +1912,10 @@ class Play extends Phaser.Scene {
       for (const [lw, c, a] of [[w * 3, S.bolt, 0.35], [w, 0xffffff, 1]]) { g.lineStyle(lw, c, a); g.beginPath(); g.moveTo(pts[0][0], pts[0][1]); for (const p of pts) g.lineTo(p[0], p[1]); g.strokePath(); }
     };
     g.clear(); if (!S.cave) fork(x0, -4, y1, 2.2);                    // in the cave the storm is only a cold flash through the ice
-    g.setAlpha(1); sky.flash.setAlpha(0.32 * sky.v); this.flashA = 0.4 * sky.v;
+    g.setAlpha(1); if (SET.flash) { sky.flash.setAlpha(0.32 * sky.v); this.flashA = 0.4 * sky.v; }
     this.tweens.add({ targets: g, alpha: { from: 1, to: 0 }, duration: 380, ease: 'Expo.easeIn' });
     this.tweens.add({ targets: sky.flash, alpha: 0, duration: 260, delay: 60 });
-    this.time.delayedCall(90, () => { if (this.sky) sky.flash.setAlpha(0.18 * sky.v); this.tweens.add({ targets: sky.flash, alpha: 0, duration: 200 }); });   // the second flicker
+    this.time.delayedCall(90, () => { if (this.sky && SET.flash) sky.flash.setAlpha(0.18 * sky.v); this.tweens.add({ targets: sky.flash, alpha: 0, duration: 200 }); });   // the second flicker
     this.time.delayedCall(Phaser.Math.Between(250, 700), () => thunder(0.35));      // thunder rolls in after
   }
   tickSky(k, time) {
@@ -1852,7 +1923,8 @@ class Play extends Phaser.Scene {
     const S = sky.S, v = sky.v, beat = Math.pow(Math.max(0, Math.sin(time * 0.0042)), 12);    // a heartbeat in the vignette
     if (sky.paint) { sky.paint.setAlpha(Math.min(1, v * 1.15)); if (sky.under) sky.paint.x = sky.under.x; }
     sky.veil.setAlpha((sky.paint ? 0.3 : 0.82) * v); sky.horizon.setAlpha((0.32 + Math.sin(time * 0.0017) * 0.06) * v * (S.dim ?? 1)); sky.back.setAlpha(0.9 * v); sky.front.setAlpha(0.75 * v);
-    sky.sun.setAlpha((0.75 + Math.sin(time * 0.002) * 0.15) * v * (S.dim ?? 1)); sky.rays.setAlpha(0.55 * v * (S.dim ?? 1));
+    const burn = sky.calm ? Math.max(0, (v - 0.2) / 0.8) : v;          // the sun and its rays go out as the storm clears
+    sky.sun.setAlpha((0.75 + Math.sin(time * 0.002) * 0.15) * burn * (S.dim ?? 1)); sky.rays.setAlpha(0.55 * burn * (S.dim ?? 1));
     sky.rays.angle += 0.04 * k; sky.rays.setScale(1.45 + Math.sin(time * 0.0013) * 0.08);
     sky.back.tilePositionX += 0.35 * k; sky.front.tilePositionX += 0.8 * k;
     if (S.cave) { sky.rays.setAlpha(0); sky.sun.setAlpha(0); sky.back.setAlpha(0); sky.front.setAlpha(0); }
@@ -2377,7 +2449,7 @@ class Play extends Phaser.Scene {
       banner('کاووس شاه', 'The king sees again');
     });
     this.time.delayedCall(2600, () => toast('"Rostam!" cries Kay Kavus. "My eyes are opened, and Iran is saved."'));
-    this.time.delayedCall(4800, () => this.win({ destroy() {} }));
+    this.time.delayedCall(4800, () => cinema('ending', () => this.win({ destroy() {} })));   // the ending in pictures, the credits, then the win
   }
   /* ---- Khan II: thirst, wells, the ram and the spring ---- */
   renderWater() { const w = Math.round(this.water); $('water').style.width = w + '%'; $('waterPill').classList.toggle('low', w < 25); }
@@ -2646,7 +2718,7 @@ function renderDiff() { document.querySelectorAll('[data-diff]').forEach(b => b.
 document.querySelectorAll('[data-diff]').forEach(b => b.onclick = () => { store.set('sh-diff', b.dataset.diff); renderDiff(); sfx('coin'); });
 function closeMap() { $('s-map').classList.add('hidden'); if (mapFrom) mapFrom.classList.remove('hidden'); else openMap(false); }
 document.querySelectorAll('[data-map]').forEach(b => b.onclick = openMap);
-$('mapClose').onclick = closeMap; $('rideBtn').onclick = () => begin(pick);
+$('mapClose').onclick = closeMap; $('rideBtn').onclick = () => { if (pick === 1 && !store.get('sh-prologue')) { store.set('sh-prologue', '1'); cinema('opening', () => begin(1)); } else begin(pick); };
 $('mapTale').onclick = () => openStory(0, pick);
 // the Fire Temple: provisions offered for lasting gifts. The game waits while Rostam stands at the fire.
 function renderTemple() {
@@ -2669,6 +2741,142 @@ function closeTemple() { $('s-temple').classList.add('hidden'); setPaused(false)
 $('templeDone').onclick = closeTemple; $('templeClose').onclick = closeTemple;
 $('offerBtn').onclick = () => { if (playing) openTemple(); };
 $('farrBtn').onclick = () => { const sc = game.scene.getScene('play'); if (playing && sc?.farr >= 100) sc.farrBlast(); };
+// the tale told in pictures: the prologue before the first labour, and the ending after the last, then the credits
+const CINE = {
+  opening: [
+    ['open1', 'شاهنامه', 'Kay Kavus, King of Iran, was proud and easily flattered. One night a minstrel came to his court and sang of Mazandaran: endless gardens, rose-scented air, treasure without end. The minstrel was a Div in disguise.'],
+    ['open2', 'دیوِ سپید', 'Against the counsel of his wisest men the king marched north. In a single night the White Div raised a storm of sorcery, and when it lifted Kay Kavus and all his army were blind. The Divs led them away in chains.'],
+    ['open3', 'زابلستان', 'One messenger slipped away through the dark and rode without rest to Zabulistan: to old Zal, and to his son Rostam, the mightiest hero Iran had ever known.'],
+    ['open4', 'دو راه', '"There are two roads to Mazandaran," said Zal. "The long road is safe, and takes six months. The short road takes two weeks, but it passes through seven terrors, and no one has ever come back from it."'],
+    ['open5', 'رستم و رخش', 'Rostam chose the short road. He put on his tiger-skin coat, took up his ox-headed mace, and saddled Rakhsh, the fiery horse no other rider could tame.'],
+    ['open6', 'هفت خوان', 'At dawn they rode out together. Seven labours lay between Rostam and his king.']
+  ],
+  ending: [
+    ['end1', 'خونِ دلِ دیو', 'With the blood of the White Div\'s heart Rostam touched the eyes of the king. Light returned to Kay Kavus, and to every one of his warriors.'],
+    ['end2', 'آزادی', 'The army of Iran walked out of the dark into the morning, and Rostam rode at its head. High above them, the Simurgh turned in the sun.'],
+    ['end3', 'جهان‌پهلوان', 'In the hall of kings Kay Kavus honoured Rostam before the whole court, and old Zal wept with pride. The seven labours were done.']
+  ]
+};
+const CREDITS = `<div class="fa">هفت خوانِ رستم</div><h2>The Seven Labours of Rostam</h2><p>After the <em>Shahnameh</em>, the Book of Kings, by Ferdowsi of Tus (c. 1010 CE)</p>
+  <img src="assets/ui/title-rostam.png" alt="">
+  <h3>Made by</h3><p>Arash Nassirpour</p>
+  <h3>Pixel art</h3><p>Painted and animated with PixelLab</p>
+  <h3>Music and sound</h3><p>Recorded tracks and effects from Pixabay, among them<br>"Battle Boss Fight Game Music" by alex-morgan</p>
+  <h3>Built with</h3><p>Phaser 3</p>
+  <h3>With thanks to</h3><p>Ferdowsi, who said: <em>"I have raised from my verse a palace that no wind or rain can harm."</em></p>
+  <p class="last"><b>Thank you for playing.</b><br>The road waits for the next hero.</p>`;
+let cine = null;
+function cinema(name, done) {
+  const P = CINE[name]; if (!P) { done?.(); return; }
+  const ov = $('s-cine'), imgs = ov.querySelectorAll('.cimg');
+  cine = { P, i: -1, done, typing: 0, auto: 0, name, from: document.querySelector('.ov:not(.hidden):not(#s-cine)') };
+  cine.from?.classList.add('hidden'); $('credits').classList.add('hidden');
+  ov.querySelector('.cdots').innerHTML = P.map(() => '<i></i>').join('');
+  imgs.forEach(im => im.classList.remove('on'));
+  ov.classList.remove('hidden'); music(true); cineNext(); $('cineNext').focus();
+}
+function cineShow(i) {
+  const c = cine, [img, fa, text] = c.P[i], ov = $('s-cine'), imgs = ov.querySelectorAll('.cimg'), im = imgs[i % 2], old = imgs[(i + 1) % 2];
+  // each painting drifts its own way: slowly in, across, or out
+  const moves = [['1.06', '1.16', '-1%', '1%', '0', '-1%'], ['1.16', '1.06', '1%', '-1%', '0', '0'], ['1.1', '1.18', '1.5%', '-1.5%', '1%', '0']][i % 3];
+  im.src = `assets/cine/${img}.png?v=${V}`;
+  im.style.cssText = `--s0:${moves[0]};--s1:${moves[1]};--x0:${moves[2]};--x1:${moves[3]};--y0:${moves[4]};--y1:${moves[5]};--d:14s`;
+  im.classList.remove('on'); void im.offsetWidth; im.classList.add('on'); old.classList.remove('on');
+  ov.querySelectorAll('.cdots i').forEach((d, k) => d.classList.toggle('on', k === i));
+  const cap = ov.querySelector('.ccap'); cap.classList.remove('done'); cap.querySelector('.fa').textContent = fa; const p = cap.querySelector('p'); p.textContent = '';
+  // the narration types out, a few letters at a time; the next picture follows on its own after a reading pause
+  clearInterval(c.typing); clearTimeout(c.auto); let n = 0;
+  c.typing = setInterval(() => { n += 2; p.textContent = text.slice(0, n); if (n >= text.length) { clearInterval(c.typing); c.typing = 0; cap.classList.add('done'); c.auto = setTimeout(cineNext, 2600 + text.length * 32); } }, 28);
+}
+function cineNext() {
+  const c = cine; if (!c) return;
+  if (c.typing) { clearInterval(c.typing); c.typing = 0; const cap = $('s-cine').querySelector('.ccap'); cap.querySelector('p').textContent = c.P[c.i][2]; cap.classList.add('done'); clearTimeout(c.auto); c.auto = setTimeout(cineNext, 2600 + c.P[c.i][2].length * 32); return; }
+  if (c.credits) return cineEnd();
+  if (++c.i >= c.P.length) return c.name === 'ending' ? rollCredits() : cineEnd();
+  cineShow(c.i); sfx('swing');
+}
+function rollCredits() {
+  const c = cine; clearTimeout(c.auto); c.credits = true;
+  $('roll').innerHTML = CREDITS; const r = $('roll'); r.style.animation = 'none'; void r.offsetWidth; r.style.animation = '';
+  $('credits').classList.remove('hidden'); c.auto = setTimeout(cineEnd, 34500);
+}
+function cineEnd() {
+  const c = cine; if (!c) return; cine = null; clearInterval(c.typing); clearTimeout(c.auto);
+  $('s-cine').classList.add('hidden'); $('credits').classList.add('hidden');
+  if (c.from && !c.done) c.from.classList.remove('hidden');
+  c.done?.();
+}
+$('cineNext').onclick = cineNext; $('cineSkip').onclick = cineEnd;
+$('prologueBtn').onclick = () => { store.set('sh-prologue', '1'); cinema('opening', () => openMap(false)); };
+// settings: a page of the manuscript with the volumes, the comfort switches and the keys
+let setFrom = null, rebind = null;
+function applySettings() {
+  if (A.music) A.music.gain.value = 0.7 * SET.music / 70; if (A.fx) A.fx.gain.value = 0.85 * SET.fx / 85;
+  document.body.classList.toggle('calm', !SET.flash);
+}
+function renderSettings() {
+  $('setMusic').value = SET.music; $('setFx').value = SET.fx; $('setMusicV').textContent = SET.music + '%'; $('setFxV').textContent = SET.fx + '%';
+  $('setShake').setAttribute('aria-checked', String(SET.shake)); $('setFlash').setAttribute('aria-checked', String(!SET.flash));
+  $('keyList').innerHTML = ACTIONS.map(([a, label]) => `<li><span>${label}</span>${[0, 1].map(i => `<button class="kb${rebind?.a === a && rebind.i === i ? ' wait' : ''}" data-a="${a}" data-i="${i}" aria-label="${label}, key ${i + 1}: ${SET.keys[a][i] ? keyName(SET.keys[a][i]) : 'none'}">${rebind?.a === a && rebind.i === i ? 'Press a key\u2026' : SET.keys[a][i] ? keyName(SET.keys[a][i]) : '\u2014'}</button>`).join('')}</li>`).join('');
+  $('keyList').querySelectorAll('.kb').forEach(b => b.onclick = () => { rebind = { a: b.dataset.a, i: +b.dataset.i }; renderSettings(); $('keyList').querySelector('.kb.wait')?.focus(); });
+  const pad = [...(navigator.getGamepads?.() || [])].find(Boolean);
+  $('padInfo').innerHTML = pad ? `<b>Gamepad connected.</b> Stick or D-pad move &middot; <b>A</b> jump &middot; <b>X</b> strike (hold for heavy) &middot; <b>B</b> dodge &middot; <b>Y</b> Farr &middot; <b>Start</b> menu` : 'Connect a gamepad and press any button: it works in play and in every menu.';
+}
+function finishRebind(k) {
+  const r = rebind; rebind = null; if (!r) return;
+  if (k !== null) {
+    for (const ks of Object.values(SET.keys)) for (let i = 0; i < ks.length; i++) if (ks[i] && ks[i].toLowerCase() === k.toLowerCase()) ks[i] = '';   // a key does one thing only
+    SET.keys[r.a][r.i] = k; saveSet(); buildKeys();
+  }
+  renderSettings(); $('keyList').querySelector(`[data-a="${r.a}"][data-i="${r.i}"]`)?.focus();
+}
+function openSettings() {
+  if (playing) setPaused(true); setFrom = document.querySelector('.ov:not(.hidden):not(#s-set)'); setFrom?.classList.add('hidden');
+  renderSettings(); $('s-set').classList.remove('hidden'); $('setDone').focus();
+}
+function closeSettings() { rebind = null; $('s-set').classList.add('hidden'); if (setFrom) { setFrom.classList.remove('hidden'); setFrom.querySelector('.btn')?.focus(); } else openMap(false); }
+document.querySelectorAll('[data-settings]').forEach(b => b.onclick = openSettings); $('setDone').onclick = closeSettings; $('setClose').onclick = closeSettings;
+$('setMusic').oninput = e => { SET.music = +e.target.value; $('setMusicV').textContent = SET.music + '%'; applySettings(); saveSet(); };
+$('setFx').oninput = e => { SET.fx = +e.target.value; $('setFxV').textContent = SET.fx + '%'; applySettings(); saveSet(); };
+$('setFx').onchange = () => sfx('coin');
+$('setShake').onclick = () => { SET.shake = !SET.shake; saveSet(); renderSettings(); };
+$('setFlash').onclick = () => { SET.flash = !SET.flash; saveSet(); applySettings(); renderSettings(); };
+$('keyReset').onclick = () => { SET.keys = JSON.parse(JSON.stringify(KEY_DEF)); saveSet(); buildKeys(); renderSettings(); };
+applySettings();
+// gamepads: play with the stick or D-pad and the face buttons; in a menu the D-pad moves between buttons, A presses, B goes back
+const PAD = { 0: 'jump', 2: 'attack', 1: 'dodge', 3: 'farr', 13: 'offer' }, padWas = {};
+let padAxis = 0, padNav = 0;
+function padPoll() {
+  const pad = [...(navigator.getGamepads?.() || [])].find(Boolean);
+  if (pad) {
+    const b = i => !!pad.buttons[i]?.pressed, was = i => !!padWas[i], edge = i => b(i) && !was(i);
+    const menu = document.querySelector('.ov:not(.hidden)');
+    if (menu) {
+      // menus: move focus among the visible buttons and controls, press with A, back with B
+      const items = [...menu.querySelectorAll('button:not(:disabled), a.btn2, input[type=range]')].filter(e => e.offsetParent);
+      const i = items.indexOf(document.activeElement), ax = pad.axes[1] || 0, ay = pad.axes[0] || 0;
+      const dir = b(12) || ax < -0.6 || b(14) || ay < -0.6 ? -1 : b(13) || ax > 0.6 || b(15) || ay > 0.6 ? 1 : 0;
+      if (dir && Date.now() > padNav) { padNav = Date.now() + 180; const el = document.activeElement;
+        if (el?.type === 'range' && (b(14) || b(15) || Math.abs(ay) > 0.6)) { el.value = +el.value + dir * 5; el.dispatchEvent(new Event('input')); }
+        else items[(i + dir + items.length) % items.length]?.focus(); }
+      if (!dir) padNav = 0;
+      if (edge(0)) document.activeElement?.click?.();
+      if (edge(1)) dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+      if (edge(9) && playing === false && paused) setPaused(false);
+      for (const a of Object.values(PAD)) if (keys[a]) press(a, false); if (keys.left) press('left', false); if (keys.right) press('right', false);
+    } else {
+      for (const [i, a] of Object.entries(PAD)) if (b(i) !== was(i)) press(a, b(i));
+      const x = (pad.axes[0] || 0), l = b(14) || x < -0.4, r = b(15) || x > 0.4;
+      if (l !== keys.left && (l || padAxis & 1)) press('left', l); if (r !== keys.right && (r || padAxis & 2)) press('right', r);
+      padAxis = (l ? 1 : 0) | (r ? 2 : 0);
+      if (edge(9) && (playing || paused)) setPaused(!paused);
+    }
+    pad.buttons.forEach((x, i) => padWas[i] = x.pressed);
+  }
+  requestAnimationFrame(padPoll);
+}
+addEventListener('gamepadconnected', () => { toast('Gamepad connected. Press Start for the menu.'); if (!$('s-set').classList.contains('hidden')) renderSettings(); });
+requestAnimationFrame(padPoll);
 // how to play: a page of the manuscript, opened from the home map and the menu
 let helpFrom = null;
 function openHelp() { if (playing) setPaused(true); helpFrom = document.querySelector('.ov:not(.hidden):not(#s-help)'); helpFrom?.classList.add('hidden'); $('s-help').classList.remove('hidden'); $('helpDone').focus(); }
@@ -2733,5 +2941,5 @@ $('playBtn').onclick = () => (unlocked() > 1 ? openMap() : begin(1)); $('againBt
 $('muteBtn').onclick = () => { audio(); setMuted(!A.muted); };
 setMuted(A.muted);
 openMap(false);                                                   // the game opens on the road of the seven labours
-if (location.hash === '#debug') window.__sh = { game, scene: () => game.scene.getScene('play'), keys, pressed, setPaused, openStory, begin, openMap, LEVELS, FOES, snd: { A, audio, sfx, pickTrack } };
+if (location.hash === '#debug') window.__sh = { game, scene: () => game.scene.getScene('play'), keys, pressed, setPaused, openStory, begin, openMap, LEVELS, FOES, snd: { A, audio, sfx, pickTrack }, cinema, SET };
 })();
