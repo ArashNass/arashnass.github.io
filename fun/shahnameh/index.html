@@ -206,6 +206,26 @@ body:not(.playing):not(.paused) #hearts,body:not(.playing):not(.paused) #hud [ti
 /* a narrow portrait phone: every row of buttons stacks, all one width */
 @media (max-width:520px){.btns{flex-direction:column;gap:8px}.btns .btn,.btns .btn2{width:250px}
   #s-map.home .story.home-only{font-size:16px;line-height:1.35}.mapPage .fa{font-size:30px}#mapInfo{font-size:16px;line-height:1.35;margin:6px auto 10px}}
+/* the Farr: a golden bar in the HUD that blazes when full */
+.pill.farr{gap:6px;padding:0 10px}.farr .fl{font:900 11px Cinzel,serif;letter-spacing:.08em;color:var(--gold2)}
+.fbar{display:block;width:64px;height:9px;border:1.5px solid #c8902a;background:rgba(0,0,0,.45);overflow:hidden}
+.fbar b{display:block;height:100%;width:0;background:linear-gradient(90deg,#c8902a,#ffe28a);transition:width .3s}
+.pill.farr.full{border-color:#fff2b8;animation:farr .6s ease-in-out infinite alternate;cursor:pointer}.pill.farr.full .fbar b{background:linear-gradient(90deg,#ffe28a,#fff8d8)}
+@keyframes farr{to{box-shadow:0 0 14px rgba(255,214,96,.95)}}
+body:not(.playing) #farrBtn{display:none}
+#offerBtn{color:#ffe28a;border-color:#ff9a40;animation:farr .7s ease-in-out infinite alternate}
+.tb.farr{background:rgba(200,144,42,.6);border-color:#ffe28a}.tb.farr svg{fill:#fff8d8}
+@media (max-width:620px){.pill.farr .fl{display:none}.fbar{width:44px}}
+@media (prefers-reduced-motion:reduce){.pill.farr.full,#offerBtn{animation:none}}
+/* the Fire Temple: a row for each gift, its price and a button to offer for it */
+.templePage{width:min(100%,600px)}
+.purse{font:500 19px var(--book);color:var(--inkb);margin:4px 0 8px;display:flex;align-items:center;justify-content:center;gap:6px}.purse b{font:900 20px Cinzel,serif;color:var(--rubric)}
+.gifts{list-style:none;display:grid;gap:8px;margin:0 auto 12px;text-align:left}
+.gifts li{display:grid;grid-template-columns:1fr auto;gap:2px 12px;align-items:center;padding:8px 12px;border:1px solid rgba(122,78,20,.5);background:rgba(255,246,220,.4)}
+.gifts h3{font:900 16px Cinzel,serif;color:var(--rubric);margin:0}.gifts h3 span{font:700 15px 'Noto Nastaliq Urdu',serif;color:var(--lapisInk);margin-left:8px}
+.gifts p{grid-column:1;font:500 16px/1.3 var(--book);color:var(--inkb);margin:0}
+.gifts .btn2{grid-row:1/3;grid-column:2;min-width:116px}.gifts .btn2:disabled{opacity:.45;filter:grayscale(.7);cursor:default}.gifts .owned{grid-row:1/3;grid-column:2;font:700 14px Cinzel,serif;color:#1f6f75;text-align:center;min-width:116px}
+@media (max-height:520px){.templePage .kick{display:none}.gifts{gap:4px;margin-bottom:6px}.gifts li{padding:4px 10px}.gifts p{font-size:14px}}
 </style>
 </head>
 <body>
@@ -214,7 +234,9 @@ body:not(.playing):not(.paused) #hearts,body:not(.playing):not(.paused) #hud [ti
   <div class="row"><a class="pill back" href="/fun/" aria-label="Back to the Funfair">&larr;<span class="t">&nbsp;Funfair</span></a><span class="pill" id="lbl">Khan I &middot; The Lion</span></div>
   <div class="row">
     <span class="pill hidden" id="waterPill" title="Water"><img class="food" src="assets/ui/waterskin.png" alt="Water"><i class="wbar"><b id="water"></b></i></span>
+    <button class="pill hidden" id="offerBtn" aria-label="Make an offering at the sacred fire">&#128293; Offer</button>
     <span class="pill" title="Provisions gathered"><img class="food" src="assets/ui/pomegranate.png" alt="Provisions"><span id="coins">0</span></span>
+    <button class="pill farr" id="farrBtn" aria-label="Farr: when full, call on the Simurgh"><span class="fl">Farr</span><i class="fbar"><b id="farrFill"></b></i></button>
     <span class="pill" id="hearts" role="img"></span>
     <button class="pill icon" id="muteBtn" aria-label="Toggle sound"><svg viewBox="0 0 24 24"><path id="muteIco" d=""/></svg></button>
     <button class="pill" id="pauseBtn" aria-label="Open the menu"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg>Menu</button>
@@ -230,6 +252,7 @@ body:not(.playing):not(.paused) #hearts,body:not(.playing):not(.paused) #hud [ti
     <button class="tb" data-k="right" aria-label="Right"><svg viewBox="0 0 24 24"><path d="M9 5l8 7-8 7z"/></svg></button>
   </div>
   <div class="row">
+    <button class="tb farr hidden" data-k="farr" aria-label="Call on the Simurgh"><svg viewBox="0 0 24 24"><path d="M12 2l2.6 6.4L21 9l-5 4.4L17.4 20 12 16.6 6.6 20 8 13.4 3 9l6.4-.6z"/></svg></button>
     <button class="tb" data-k="attack" aria-label="Strike"><svg viewBox="0 0 24 24"><path d="M5 19l9-9M12 4l8 8-3 3-8-8z"/></svg></button>
     <button class="tb" data-k="jump" aria-label="Jump"><svg viewBox="0 0 24 24"><path d="M12 4l8 9h-5v7H9v-7H4z"/></svg></button>
   </div>
@@ -287,6 +310,17 @@ body:not(.playing):not(.paused) #hearts,body:not(.playing):not(.paused) #hud [ti
     <button class="x" id="storyClose" aria-label="Close the tale">&times;</button>
     <div class="leaf" id="leaf" tabindex="0"></div>
     <div class="pager"><button class="btn2" id="prevPg">&larr; Back</button><div class="dots" id="dots"></div><button class="btn2" id="nextPg">Next &rarr;</button></div>
+  </div>
+</section>
+<section class="ov hidden" id="s-temple" role="dialog" aria-modal="true" aria-label="The Fire Temple">
+  <div class="page templePage">
+    <button class="x" id="templeClose" aria-label="Leave the fire">&times;</button>
+    <div class="fa">آتشکده</div>
+    <h2>The Fire Temple</h2>
+    <p class="kick">Offer provisions at the sacred fire for lasting gifts</p>
+    <p class="purse"><img class="food" src="assets/ui/pomegranate.png" alt=""> <b id="purseN">0</b> provisions in your purse</p>
+    <ul class="gifts" id="gifts"></ul>
+    <div class="btns"><button class="btn" id="templeDone">Return to the road</button></div>
   </div>
 </section>
 <section class="ov hidden" id="s-guide" role="dialog" aria-modal="true" aria-label="The Book of Foes">
@@ -429,6 +463,6 @@ body:not(.playing):not(.paused) #hearts,body:not(.playing):not(.paused) #hud [ti
 </template>
 
 <script src="https://cdn.jsdelivr.net/npm/phaser@3.80.1/dist/phaser.min.js"></script>
-<script src="game.js?v=51"></script>
+<script src="game.js?v=52"></script>
 </body>
 </html>

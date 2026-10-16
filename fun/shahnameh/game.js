@@ -5,6 +5,18 @@
 'use strict';
 const $ = id => document.getElementById(id);
 const store = { get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }, set(k, v) { try { localStorage.setItem(k, v); } catch (e) {} } };
+// what the provisions are for. Every one goes into Rostam's purse, kept from labour to labour and spent at the fire
+// altars on lasting gifts; every one also feeds his Farr (divine glory), which when full can be unleashed; and eight
+// in one labour feed Rakhsh well enough that he rides into that labour's boss fight
+const UPGRADES = [
+  { id: 'heart', name: 'Heart of Zal', fa: 'دلِ زال', desc: 'One more heart, for good.', costs: [25, 40] },
+  { id: 'wings', name: 'Wings of the Simurgh', fa: 'پرِ سیمرغ', desc: 'A higher super jump.', costs: [15] },
+  { id: 'reach', name: 'Arm of Rostam', fa: 'بازوی رستم', desc: 'The mace reaches further.', costs: [20] },
+  { id: 'mace', name: 'Mace of Sam', fa: 'گرزِ سام', desc: 'A heavier mace: double damage to foes, and more to bosses.', costs: [40] }
+];
+const purse = () => +(store.get('sh-purse') || 0), setPurse = n => store.set('sh-purse', n);
+const upg = () => { try { return JSON.parse(store.get('sh-upg') || '{}'); } catch (e) { return {}; } }, setUpg = u => store.set('sh-upg', JSON.stringify(u));
+const FED = 8;                                                   // provisions in one labour that feed Rakhsh
 
 /* ---------------------------------------------------------------
    ART: set a filename (inside ./assets) to use real sprites.
@@ -40,7 +52,7 @@ const FPS = { 'rostam-idle': 5, 'rostam-run': 14, 'rostam-jump': 6, 'rostam-atta
 const SIZE = { rider: 124, rostam: 112, lion: 148, jackal: 108, div: 108, scorpion: 86, vulture: 92, ram: 86, dragon: 136, rakhsh: 104, bat: 108, serpent: 92, hag: 108, beauty: 108, spearman: 140, olad: 112, divwarrior: 100, arzhang: 136, whitediv: 136 };
 const BODY = { rider: [0.3, 0.5], rostam: [0.143, 0.393], lion: [0.5, 0.36], jackal: [0.3, 0.22], div: [0.22, 0.34], scorpion: [0.4, 0.22], vulture: [0.33, 0.2], ram: [0.4, 0.4],
   dragon: [0.46, 0.42], rakhsh: [0.5, 0.5], bat: [0.32, 0.24], serpent: [0.31, 0.31], hag: [0.27, 0.42], beauty: [0.2, 0.47], spearman: [0.115, 0.386], olad: [0.17, 0.49], divwarrior: [0.31, 0.64], arzhang: [0.3, 0.7], whitediv: [0.4, 0.58] };
-const V = 51;   // bump to bust caches when assets change
+const V = 52;   // bump to bust caches when assets change
 
 // PixelLab VFX strips in ./assets/fx: frame size, frame count, fps, and the effect's origin as a fraction of the frame
 const FX = {
@@ -504,7 +516,10 @@ const LEVELS = {
     win: 'With the lion of the reeds slain, Rostam takes up a feather of the Simurgh. Ahead lies the waterless desert of the second labour.',
     tips: ['The lion\'s hide turns your blows. Leap its charge so it runs into the rocks, then strike while it is dazed and the gold arrow shows.',
       'Land on a foe from above to strike it twice as hard.', 'Roast lamb restores a heart. Look for it on the high ledges.',
-      'Light the fire altars: if Rostam falls, he returns to the last sacred fire.', 'The blue Divs hop toward you. Strike as they land.']
+      'Light the fire altars: if Rostam falls, he returns to the last sacred fire.', 'The blue Divs hop toward you. Strike as they land.',
+      'Every provision fills your golden Farr. When it is full, press F (or tap the Farr) to call on the Simurgh: her light strikes every foe on screen.',
+      'Provisions are kept in your purse from labour to labour. Stand at a lit fire and press Down (or tap Offer) to trade them for lasting gifts.',
+      'Gather eight provisions in one labour and Rakhsh is well fed: he gallops in to kick the boss once.']
   },
   2: {
     hud: 'Khan II &middot; The Desert', winTitle: 'Water in the wilderness', name: 'The Burning Desert', fa: 'بیابانِ بی‌آب', tiles: 'tiles-2', map: map2,
@@ -1052,11 +1067,12 @@ function setMuted(m) {
 }
 
 /* ---------------------------- input ---------------------------- */
-const keys = { left: false, right: false, jump: false, attack: false }, pressed = { jump: false, attack: false };
-const KEYMAP = { ArrowLeft: 'left', a: 'left', A: 'left', ArrowRight: 'right', d: 'right', D: 'right', ArrowUp: 'jump', w: 'jump', W: 'jump', ' ': 'jump', z: 'jump', Z: 'jump', x: 'attack', X: 'attack', j: 'attack', J: 'attack', k: 'attack', K: 'attack' };
+const keys = { left: false, right: false, jump: false, attack: false, farr: false, offer: false }, pressed = { jump: false, attack: false, farr: false, offer: false };
+const KEYMAP = { ArrowLeft: 'left', a: 'left', A: 'left', ArrowRight: 'right', d: 'right', D: 'right', ArrowUp: 'jump', w: 'jump', W: 'jump', ' ': 'jump', z: 'jump', Z: 'jump', x: 'attack', X: 'attack', j: 'attack', J: 'attack', k: 'attack', K: 'attack', f: 'farr', F: 'farr', ArrowDown: 'offer', s: 'offer', S: 'offer' };
 const press = (k, down) => { if (down && !keys[k] && k in pressed) pressed[k] = true; keys[k] = down; };
 addEventListener('keydown', e => {
   if (!$('s-map').classList.contains('hidden')) { if (e.key === 'Escape') closeMap(); return; }
+  if (!$('s-temple').classList.contains('hidden')) { if (e.key === 'Escape' || e.key === 'ArrowDown' || e.key === 's' || e.key === 'S') closeTemple(); return; }
   if (!$('s-guide').classList.contains('hidden')) {             // the Book of Foes: page through it
     if (e.key === 'ArrowRight') showGuide(gpg + 1); else if (e.key === 'ArrowLeft') showGuide(gpg - 1); else if (e.key === 'Escape') closeGuide();
     return;
@@ -1098,7 +1114,7 @@ class Play extends Phaser.Scene {
   create() {
     // the scene object is reused from labour to labour: forget whatever the last one left behind
     for (const k of ['dark', 'lights', 'lamp', 'wall', 'wallR', 'stars', 'pose', 'swingFx', 'witch', 'unmasked', 'olad', 'rakhsh', 'dragonSeen', 'horde', 'hordeDone',
-      'gates', 'hordeBat', 'toldRock', 'toldIce', 'chargeWarn', 'toldCharge', 'shards', 'shardG', 'mark', 'markGlow', 'markOpen', 'bossHeart', 'bossHeartT', 'floorWarn', 'highWarn', 'regrow', 'drums', 'whiteDown', 'ended', 'mounted', 'prayed', 'drank', 'toldImmune', 'toldDeflect', 'kavus', 'stones', 'puzzle', 'springOpen', 'pool']) delete this[k];
+      'gates', 'hordeBat', 'toldRock', 'toldFarr', 'toldOffer', 'atAltar', 'bossT', 'maceHit', 'toldIce', 'chargeWarn', 'toldCharge', 'shards', 'shardG', 'mark', 'markGlow', 'markOpen', 'bossHeart', 'bossHeartT', 'floorWarn', 'highWarn', 'regrow', 'drums', 'whiteDown', 'ended', 'mounted', 'prayed', 'drank', 'toldImmune', 'toldDeflect', 'kavus', 'stones', 'puzzle', 'springOpen', 'pool']) delete this[k];
     // turn loaded strips into square frames; anything missing falls back to placeholder art
     for (const [k, f] of Object.entries(ART)) if (f && this.textures.exists(k)) {
       const t = this.textures.get(k), img = t.getSourceImage(), fh = img.height, n = Math.max(1, Math.round(img.width / fh));
@@ -1162,14 +1178,15 @@ class Play extends Phaser.Scene {
     this.cam.startFollow(this.player, true, 0.12, 0.12);
     this.cam.setRoundPixels(true);
     if (matchMedia('(prefers-reduced-motion: reduce)').matches) { this.cam.shake = () => this.cam; this.cam.flash = () => this.cam; }
-    this.hp = 5; this.coinCount = 0; this.kills = 0; this.wasGround = true; this.face = 1; this.inv = 0; this.atk = 0; this.cool = 0; this.coyote = 0; this.buf = 0; this.bossOn = false; this.done = false; this.t0 = this.time.now;
+    this.maxHp = 5 + (upg().heart || 0); this.hp = this.maxHp; this.farr = +(store.get('sh-farr') || 0); this.rakhshFed = false; this.rakhshRode = false; this.coinCount = 0; this.kills = 0; this.wasGround = true; this.face = 1; this.inv = 0; this.atk = 0; this.cool = 0; this.coyote = 0; this.buf = 0; this.bossOn = false; this.done = false; this.t0 = this.time.now;
     if (R) {
       this.coinCount = R.coins || 0; this.kills = R.kills || 0; this.t0 -= R.t || 0;
       for (const c of this.coins.getChildren().slice()) if (c.x < this.start.x) { c.glow?.destroy(); c.destroy(); }
       for (const f of this.foes.getChildren().slice()) if (Math.abs(f.x - this.start.x) < 8 * TS) f.destroy();   // a safe place to rise
       this.inv = 120;
     }
-    this.renderHearts(); $('coins').textContent = this.coinCount; hint(null);
+    if (this.coinCount >= FED && cur !== 3) this.rakhshFed = true;
+    this.renderHearts(); $('coins').textContent = purse(); this.renderFarr(); hint(null);
     this.parts = this.add.particles(0, 0, 'coin-spin', { frame: 0, speed: { min: 30, max: 90 }, lifespan: 450, scale: { start: 0.8, end: 0 }, gravityY: 120, emitting: false }).setDepth(9);
     this.shots = this.physics.add.group({ allowGravity: false }); this.hazards = [];
     this.physics.add.collider(this.shots, this.layer, sh => sh.destroy());
@@ -1223,17 +1240,37 @@ class Play extends Phaser.Scene {
     if (c.kind === 'heart') {
       if (c.regrow) this.regrow.push({ x: c.x, y: c.y, away: 0 });
       c.glow?.destroy(); c.destroy(); this.fx('heal', this.player.x, this.player.body.bottom - 4, { depth: 6 }); sfx('fire');
-      if (this.hp < 5) { this.hp++; this.renderHearts(); toast('A heart! Rostam\'s strength returns.'); } else toast('A heart, but Rostam is already whole.');
+      if (this.hp < this.maxHp) { this.hp++; this.renderHearts(); toast('A heart! Rostam\'s strength returns.'); } else toast('A heart, but Rostam is already whole.');
       return;
     }
-    const heal = c.kind === 'lamb' && this.hp < 5;
+    const heal = c.kind === 'lamb' && this.hp < this.maxHp;
     if (c.kind === 'skin') { c.destroy(); this.water = Math.min(100, this.water + 30); this.renderWater(); sfx('coin'); this.fx('splash', c.x, c.y + 4); toast('A water skin! Rostam drinks.'); return; }
-    c.destroy(); this.coinCount++; $('coins').textContent = this.coinCount; sfx('coin');
+    c.destroy(); this.coinCount++; setPurse(purse() + 1); $('coins').textContent = purse(); sfx('coin');
+    this.gainFarr(c.kind === 'lamb' ? 25 : 12.5);
+    if (this.coinCount === FED && cur !== 3 && !this.rakhshFed) { this.rakhshFed = true; toast('Rakhsh is well fed! He will gallop to your aid when you face the boss.'); }
     this.fx('pickup', c.x, c.y + 6);
     if (c.kind === 'lamb') { if (heal) { this.hp++; this.renderHearts(); } this.fx('heal', this.player.x, this.player.body.bottom - 4, { depth: 6 }); sfx('fire'); }
   }
   sparkle(x, y, tint) { this.parts.setParticleTint(tint); this.parts.explode(8, x, y); }
-  renderHearts() { $('hearts').innerHTML = Array.from({ length: 5 }, (_, i) => `<img src="assets/ui/heart${i < this.hp ? '' : '-off'}.png?v=${V}" alt="">`).join(''); $('hearts').setAttribute('aria-label', this.hp + ' of 5 hearts'); }
+  renderHearts() { $('hearts').innerHTML = Array.from({ length: this.maxHp }, (_, i) => `<img src="assets/ui/heart${i < this.hp ? '' : '-off'}.png?v=${V}" alt="">`).join(''); $('hearts').setAttribute('aria-label', `${this.hp} of ${this.maxHp} hearts`); }
+  // the Farr: a golden bar that fills as Rostam gathers provisions and slays foes
+  gainFarr(n) {
+    const was = this.farr >= 100; this.farr = Math.min(100, this.farr + n); store.set('sh-farr', this.farr); this.renderFarr();
+    if (!was && this.farr >= 100) { sfx('fire'); toast('Your Farr is full! Press F, or tap the golden Farr, to call on the Simurgh.'); }
+  }
+  renderFarr() { $('farrFill').style.width = this.farr + '%'; const full = this.farr >= 100; $('farrBtn').classList.toggle('full', full); document.querySelector('.tb.farr')?.classList.toggle('hidden', !full); }
+  // the Simurgh's blast: a ring of golden light that strikes every foe on screen and wounds a boss through any guard
+  farrBlast() {
+    if (this.farr < 100 || this.frozen || this.done) return;
+    const p = this.player, cx = this.cam.scrollX; this.farr = 0; store.set('sh-farr', 0); this.renderFarr();
+    this.cam.flash(380, 255, 225, 140); this.cam.shake(400, 0.012); sfx('fire'); sfx('roar'); this.hitStop(120);
+    const ring = this.add.image(p.x, p.body.center.y, 'glow').setTint(0xffd060).setBlendMode(Phaser.BlendModes.ADD).setDepth(12).setScale(0.4);
+    this.tweens.add({ targets: ring, scale: 9, alpha: 0, duration: 700, ease: 'Cubic.easeOut', onComplete: () => ring.destroy() });
+    this.sparkle(p.x, p.body.bottom, 0xf6dc8c); this.fx('beam', p.x, p.body.bottom, { depth: 12 });
+    for (const f of this.foes.getChildren()) if (f.active && f.body.enable && f.x > cx - 10 && f.x < cx + W + 10) { this.fx('heal', f.x, f.body.bottom, { depth: 10 }); this.damage(f, 3, true); }
+    const B = this.boss; if (B?.active && B.hp > 0 && B.body.enable) { this.fx('heal', B.x, B.body.bottom, { depth: 10 }); this.damage(B, 2, true); }
+    if (!this.toldFarr) { this.toldFarr = true; toast('The Simurgh answers! Golden light strikes every foe around you.'); }
+  }
   hurt(fromX, thirst = false) {
     if ((this.inv > 0 && !thirst) || this.done || this.frozen) return;   // no harm during a cutscene
     this.hp--; this.renderHearts(); this.inv = thirst ? 30 : 90; sfx('hurt'); this.cam.shake(160, 0.008); this.cam.flash(120, 180, 40, 60);
@@ -1247,20 +1284,20 @@ class Play extends Phaser.Scene {
       setTimeout(() => { if (!playing && this.done) $('s-dead').classList.remove('hidden'); }, 900);
     }
   }
-  strikeBox() { const p = this.player, r = this.mounted ? 48 : 34; return new Phaser.Geom.Rectangle(this.face > 0 ? p.body.right - 4 : p.body.left - r + 4, p.body.top - 22, r, p.body.height + 24); }   // the blade arcs over his head too
-  damage(f, n = 1) {
-    if (f.immune?.()) { this.fx('dust', f.x, f.body.center.y, { depth: 10 }); if (!this.toldImmune) { this.toldImmune = true; toast(f.immuneMsg || 'Your blow passes through shadow.'); } return; }
+  strikeBox() { const p = this.player, r = (this.mounted ? 48 : 34) + (upg().reach ? 12 : 0); return new Phaser.Geom.Rectangle(this.face > 0 ? p.body.right - 4 : p.body.left - r + 4, p.body.top - 22, r, p.body.height + 24); }   // the blade arcs over his head too
+  damage(f, n = 1, force = false) {
+    if (f.immune?.() && !force) { this.fx('dust', f.x, f.body.center.y, { depth: 10 }); if (!this.toldImmune) { this.toldImmune = true; toast(f.immuneMsg || 'Your blow passes through shadow.'); } return; }
     f.hp -= n; f.setTintFill(0xffffff); this.time.delayedCall(80, () => f.active && f.clearTint());
     const hx = Phaser.Math.Clamp(this.face > 0 ? f.body.left + 6 : f.body.right - 6, f.body.left, f.body.right);
     this.fx('hit', hx, f.body.center.y - 4, { depth: 10 }); sfx('hit'); this.cam.shake(80, 0.004);
     this.hitStop(f === this.boss ? 70 : 45);
-    if (f === this.boss && !f.gaveHeart && f.hp > 0 && f.hp <= f.max / 2 && this.hp < 5) {
+    if (f === this.boss && !f.gaveHeart && f.hp > 0 && f.hp <= f.max / 2 && this.hp < this.maxHp) {
       f.gaveHeart = true; const x = this.player.x + (this.player.x < this.cam.scrollX + W / 2 ? 60 : -60), r = this.groundAt(x);
       if (r != null) { this.fx('beam', x, r * TS + 1, { depth: 4 }); this.heart(x, r * TS - 12); toast('A heart shines in the arena. Take it!'); }
     }
     if (f.hp <= 0) {
       if (f === this.boss) return f.onDown();
-      this.kills++; f.body.enable = false; this.slay(f);
+      this.kills++; f.body.enable = false; this.slay(f); this.gainFarr(4);
     }
   }
   // a tiny freeze on impact makes blows feel heavy
@@ -1351,6 +1388,23 @@ class Play extends Phaser.Scene {
     this.mark.setVisible(vis && open).setPosition(Math.round(B.x), Math.round(B.body.top - 22 + (open ? Math.sin(time / 90) * 4 : 0)));
     this.markGlow.setVisible(open && vis).setPosition(B.body.center.x, B.body.center.y).setScale(B.body.width / 40, B.body.height / 40).setAlpha(0.55 + Math.sin(time / 110) * 0.2);
     this.cornerHeart(B.x, time);
+    // a well-fed Rakhsh gallops in once: twelve seconds into the fight, or sooner if Rostam is hard pressed
+    this.bossT = (this.bossT || 0) + 1;
+    if (this.rakhshFed && !this.rakhshRode && !this.mounted && !this.frozen && B.hp > 0 && (this.bossT > 720 || this.hp <= 2)) this.rakhshRides(B);
+  }
+  rakhshRides(B) {
+    this.rakhshRode = true; const y = 14 * TS + 3, x0 = this.cam.scrollX - 50, dir = B.x > this.player.x ? 1 : -1;
+    const r = this.add.sprite(dir > 0 ? x0 : x0 + W + 100, y, 'rakhsh-gallop', 0).setOrigin(0.5, 0.97).setDepth(5).setFlipX(dir < 0).play('rakhsh-gallop');
+    sfx('neigh'); toast('Rakhsh gallops to your aid!'); banner('رخش', 'Rakhsh');
+    const reach = B.x - dir * 50;
+    this.tweens.add({ targets: r, x: reach, duration: Math.abs(reach - r.x) / 0.32, ease: 'Linear', onComplete: () => {
+      if (!B.active) { r.destroy(); return; }
+      // he rears and kicks: the boss staggers, whatever its guard
+      r.play('rakhsh-rear'); sfx('neigh'); this.cam.shake(260, 0.012);
+      this.time.delayedCall(260, () => { if (B.active && B.hp > 0 && B.body.enable) { this.fx('hit', B.x - dir * 20, B.body.center.y, { depth: 10 }); this.damage(B, 2, true); } });
+      r.once('animationcomplete', () => { r.setFlipX(dir > 0).play('rakhsh-gallop');
+        this.tweens.add({ targets: r, x: dir > 0 ? this.cam.scrollX - 80 : this.cam.scrollX + W + 80, duration: 1400, onComplete: () => r.destroy() }); });
+    } });
   }
   // now and then a heart glows in the corner of the arena farthest from the danger (a ledge if there is one), for 10 s
   cornerHeart(fromX, time) {
@@ -1424,7 +1478,7 @@ class Play extends Phaser.Scene {
     if (this.buf-- > 0 && this.coyote > 0) { p.setVelocityY(-335); this.coyote = 0; this.buf = 0; sfx('jump'); this.fx('dust', p.x, b.bottom, { depth: 6 }); }
     // the super jump: once in the air, jump again for a higher leap, in a burst of gold
     else if (this.buf > 0 && this.coyote <= 0 && this.airJumps > 0) {
-      this.airJumps = 0; this.buf = 0; p.setVelocityY(-400); sfx('jump'); sfx('swing');
+      this.airJumps = 0; this.buf = 0; p.setVelocityY(upg().wings ? -460 : -400); sfx('jump'); sfx('swing');
       this.sparkle(p.x, b.bottom, 0xf6dc8c); this.fx('dust', p.x, b.bottom + 2, { depth: 6 });
     }
     if (ground && !this.wasGround && this.fallV > 200) this.fx('dust', p.x, b.bottom, { depth: 6 });
@@ -1437,12 +1491,22 @@ class Play extends Phaser.Scene {
     }
     if (this.swingFx?.active) this.swingFx.setPosition(Math.round(p.x + this.face * 6), Math.round(p.y - 2));
     pressed.attack = false;
+    if (pressed.farr) { pressed.farr = false; this.farrBlast(); }
+    // standing by a lit fire altar, Rostam may make an offering of provisions at the Fire Temple
+    const altar = ground && !this.bossOn ? this.altars.find(a => a.lit && !a.onLight && Math.abs(a.x - p.x) < 30) : null;
+    if (altar !== this.atAltar) {
+      this.atAltar = altar; $('offerBtn').classList.toggle('hidden', !altar);
+      if (altar && !this.toldOffer && purse() >= Math.min(...UPGRADES.map(u => u.costs[upg()[u.id] || 0] ?? Infinity))) { this.toldOffer = true; hint('You stand at a sacred fire. Press <b>↓</b> or tap <b>Offer</b> to trade provisions for lasting gifts.'); }
+    }
+    if (pressed.offer) { pressed.offer = false; if (this.atAltar) openTemple(); }
     if (this.atk > 0) {
       this.atk -= k;
       if (this.atk < 12 && this.atk > 3) {
         const box = this.strikeBox();
         const targets = [...this.foes.getChildren(), ...(this.boss && this.boss.active && this.boss.hp > 0 ? [this.boss] : [])];
-        for (const f of targets) if (f.body.enable && !this.hitDone.has(f) && Phaser.Geom.Intersects.RectangleToRectangle(box, f.body)) { this.hitDone.add(f); this.damage(f); if (!f.calm?.()) f.setVelocity(this.face * (f === this.boss ? 60 : 140), f.kind === 'vulture' ? -60 : -120); }
+        // the Mace of Sam: double against foes, and every other blow on a boss lands twice as hard
+        const mace = upg().mace, hit = f => !mace ? 1 : f !== this.boss ? 2 : (this.maceHit = !this.maceHit) ? 2 : 1;
+        for (const f of targets) if (f.body.enable && !this.hitDone.has(f) && Phaser.Geom.Intersects.RectangleToRectangle(box, f.body)) { this.hitDone.add(f); this.damage(f, hit(f)); if (!f.calm?.()) f.setVelocity(this.face * (f === this.boss ? 60 : 140), f.kind === 'vulture' ? -60 : -120); }
         for (const sh of this.shots.getChildren()) if (sh.curse && !sh.back && Phaser.Geom.Intersects.RectangleToRectangle(box, sh.getBounds())) this.deflect(sh);
         if (this.puzzle) this.stones.forEach((st, i) => { if (!this.hitDone.has(st) && Phaser.Geom.Intersects.RectangleToRectangle(box, st.getBounds())) { this.hitDone.add(st); this.strikeStone(i); } });
       }
@@ -2212,6 +2276,27 @@ function closeMap() { $('s-map').classList.add('hidden'); if (mapFrom) mapFrom.c
 document.querySelectorAll('[data-map]').forEach(b => b.onclick = openMap);
 $('mapClose').onclick = closeMap; $('rideBtn').onclick = () => begin(pick);
 $('mapTale').onclick = () => openStory(0, pick);
+// the Fire Temple: provisions offered for lasting gifts. The game waits while Rostam stands at the fire.
+function renderTemple() {
+  const u = upg(), have = purse(); $('purseN').textContent = have;
+  $('gifts').innerHTML = UPGRADES.map(g => {
+    const lvl = u[g.id] || 0, cost = g.costs[lvl];
+    return `<li><h3>${g.name}<span>${g.fa}</span></h3><p>${g.desc}${g.costs.length > 1 ? ` (${lvl} of ${g.costs.length})` : ''}</p>` +
+      (cost == null ? '<span class="owned">Granted</span>' : `<button class="btn2" data-gift="${g.id}" ${have < cost ? 'disabled' : ''}>Offer ${cost}</button>`) + '</li>';
+  }).join('');
+  $('gifts').querySelectorAll('[data-gift]').forEach(b => b.onclick = () => {
+    const u = upg(), g = UPGRADES.find(x => x.id === b.dataset.gift), lvl = u[g.id] || 0, cost = g.costs[lvl];
+    if (cost == null || purse() < cost) return;
+    setPurse(purse() - cost); u[g.id] = lvl + 1; setUpg(u); sfx('fire'); $('coins').textContent = purse();
+    const sc = game.scene.getScene('play'); if (g.id === 'heart' && sc) { sc.maxHp++; sc.hp++; sc.renderHearts(); }
+    renderTemple(); $('gifts').querySelector(`[data-gift="${g.id}"]`)?.focus();
+  });
+}
+function openTemple() { setPaused(true); $('s-pause').classList.add('hidden'); renderTemple(); $('s-temple').classList.remove('hidden'); $('templeDone').focus(); }
+function closeTemple() { $('s-temple').classList.add('hidden'); setPaused(false); }
+$('templeDone').onclick = closeTemple; $('templeClose').onclick = closeTemple;
+$('offerBtn').onclick = () => { if (playing) openTemple(); };
+$('farrBtn').onclick = () => { const sc = game.scene.getScene('play'); if (playing && sc?.farr >= 100) sc.farrBlast(); };
 document.querySelectorAll('[data-guide]').forEach(b => b.onclick = () => openGuide($('s-map').classList.contains('hidden') ? cur : pick));
 $('gPrev').onclick = () => showGuide(gpg - 1); $('gNext').onclick = () => showGuide(gpg + 1); $('guideClose').onclick = closeGuide;
 $('nextBtn').onclick = () => begin(cur + 1);
