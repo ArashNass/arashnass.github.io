@@ -53,7 +53,7 @@ const FPS = { 'simurgh-fly': 10, 'lion-die': 6, 'dragon-die': 6, 'hag-die': 6, '
 const SIZE = { rider: 124, rostam: 112, lion: 148, jackal: 108, div: 108, scorpion: 86, vulture: 92, ram: 86, dragon: 136, rakhsh: 104, bat: 108, serpent: 92, hag: 108, beauty: 108, spearman: 140, olad: 112, divwarrior: 100, arzhang: 136, whitediv: 136, firediv: 104, ghul: 100 };
 const BODY = { rider: [0.3, 0.5], rostam: [0.143, 0.393], lion: [0.5, 0.36], jackal: [0.3, 0.22], div: [0.22, 0.34], scorpion: [0.4, 0.22], vulture: [0.33, 0.2], ram: [0.4, 0.4],
   dragon: [0.46, 0.42], rakhsh: [0.5, 0.5], bat: [0.32, 0.24], serpent: [0.31, 0.31], hag: [0.27, 0.42], beauty: [0.2, 0.47], spearman: [0.115, 0.386], olad: [0.17, 0.49], divwarrior: [0.31, 0.64], arzhang: [0.3, 0.7], whitediv: [0.4, 0.58], firediv: [0.2, 0.6], ghul: [0.5, 0.36] };
-const V = 59;
+const V = 60;
 const ZOOM = 2;                                                   // canvas pixels per world pixel   // bump to bust caches when assets change
 
 // PixelLab VFX strips in ./assets/fx: frame size, frame count, fps, and the effect's origin as a fraction of the frame
@@ -563,7 +563,7 @@ const LEVELS = {
       hint(`Cross the reeds. <b>Strike</b> with ${touch ? 'the mace button' : '<b>X</b>'}, or land on foes from above. <b>Jump again in mid-air</b> for a higher leap. <b>Walk past a fire altar</b> to light it: you rise there if you fall.`);
     },
     // the storm over each boss fight: veil and cloud colours, the sun or moon behind it, lightning colour and pace, and its weather
-    sky: { veil: 0x3a0a06, cloud: 0xa8401c, glow: 0xff7a2a, sun: [0.76, 0.34], bolt: 0xffd0a0, every: [260, 420], edge: 0x6a1004, fx: 'dust' },
+    sky: { veil: 0x3a0a06, cloud: 0xa8401c, glow: 0xff7a2a, sun: [0.76, 0.34], bolt: 0xffd0a0, every: [260, 420], edge: 0x6a1004, fx: 'dust', paint: 'bg/storm.png' },
     fires: [82], hearts: [80],                       // a last fire and a heart before the lion's den
     update(s, k, time, p) { if (!s.bossOn && p.x > 88 * TS) s.startBoss(); },
     win: 'With the lion of the reeds slain, Rostam takes up a feather of the Simurgh. Ahead lies the waterless desert of the second labour.',
@@ -683,7 +683,7 @@ const LEVELS = {
       toast('Night falls. Rostam rides Rakhsh on into the dark; the light of his torch is all he has.');
       hint('You ride <b>Rakhsh</b> tonight: faster, with a longer reach from the saddle. <b>Ride past fire altars</b> to light them: you rise at the last one if you fall.');
     },
-    sky: { veil: 0x12062a, cloud: 0x5a3090, glow: 0x6aff9a, sun: [0.7, 0.22], bolt: 0xc8a0ff, every: [110, 200], edge: 0x20063a, fx: 'ash' },
+    sky: { veil: 0x12062a, cloud: 0x5a3090, glow: 0x6aff9a, sun: [0.7, 0.22], bolt: 0xc8a0ff, every: [110, 200], edge: 0x20063a, fx: 'ash', paint: 'k3/storm.png' },
     fires: [107], hearts: [105],
     update(s, k, time, p) { if (!s.bossOn && p.x > 113 * TS) s.startDragon(); },
     win: 'With Rakhsh at his side Rostam slays the dragon that ruled the night. At dawn he rides on, and the road leads into a garden where a feast is laid.',
@@ -721,7 +721,7 @@ const LEVELS = {
       [['food', 1, -34], ['food', 2, -14], ['food', 0, 8], ['food', 3, 28], ['props', 1, 44]].forEach(([t, fr, dx]) => s.add.image(f.x + dx, f.y - 4, t, fr).setOrigin(0.5, 1).setDepth(2));
       const glow = s.add.image(f.x, f.y - 20, 'glow').setScale(1.2).setTint(0xffd08a).setBlendMode(Phaser.BlendModes.ADD).setDepth(1); s.light(glow, 1.4, 0.05);
     },
-    sky: { veil: 0x1a0828, cloud: 0x6a3090, glow: 0x9aff60, sun: [0.66, 0.26], bolt: 0xa8ff90, every: [170, 290], edge: 0x1a3a08, fx: 'spores' },
+    sky: { veil: 0x1a0828, cloud: 0x6a3090, glow: 0x9aff60, sun: [0.66, 0.26], bolt: 0xa8ff90, every: [170, 290], edge: 0x1a3a08, fx: 'spores', paint: 'k4/storm.png' },
     fires: [107], hearts: [105],
     update(s, k, time, p) {
       if (!s.bossOn && p.x > 114 * TS) s.startWitch();
@@ -742,7 +742,7 @@ const LEVELS = {
     food: (c, r, n) => (c === 84 && r === 8) || (c === 104 && r === 9) ? 'lamb' : FOOD[1 + (n % 3)],
     parse(s, ch, x, y) { if (ch === 'q') s.spawnFoe('spearman', x, y); else if (ch === 'O') s.oladAt = { x, y }; },
     create(s) { toast('Morning in Mazandaran. The fields are green, and the warden Olad keeps watch with his men.'); hint('Spearmen have a long reach. <b>Close in right after they thrust</b>.'); },
-    sky: { veil: 0x0e161e, cloud: 0x5a6a7c, glow: 0xffe0a0, sun: [0.8, 0.2], bolt: 0xe8f0ff, every: [130, 230], edge: 0x0a1018, fx: 'rain', dim: 0.4 },
+    sky: { veil: 0x0e161e, cloud: 0x5a6a7c, glow: 0xffe0a0, sun: [0.8, 0.2], bolt: 0xe8f0ff, every: [130, 230], edge: 0x0a1018, fx: 'rain', dim: 0.4, paint: 'k5/storm.png' },
     fires: [107], hearts: [105],
     update(s, k, time, p) { if (!s.bossOn && p.x > 114 * TS) s.startOlad(); },
     win: 'Rostam lassos Olad and spares his life. Olad swears to guide him to the camp of Arzhang Div and to the White Div\'s cave, and he is promised the throne of Mazandaran.',
@@ -772,7 +772,7 @@ const LEVELS = {
       toast('Olad leads you by night to the war camp of Arzhang Div. Drums beat among the fires.');
       hint('The Div camp. <b>Jump, then jump again in mid-air</b> to reach high platforms like the one above you. Div warriors\' clubs send <b>shockwaves along the ground: jump them</b>.');
     },
-    sky: { veil: 0x2a0402, cloud: 0x9a200c, glow: 0xff3a0a, sun: [0.72, 0.28], bolt: 0xff7050, every: [140, 250], edge: 0x5a0402, fx: 'embers' },
+    sky: { veil: 0x2a0402, cloud: 0x9a200c, glow: 0xff3a0a, sun: [0.72, 0.28], bolt: 0xff7050, every: [140, 250], edge: 0x5a0402, fx: 'embers', paint: 'k6/storm.png' },
     fires: [118], hearts: [72, 90, 116],             // one on the arena's high platform, one past the gates, one at the last fire
     regrow: [72],                            // the platform hearts come back once Rostam has left the platform for 2 s
     resume(s) { if (s.start.x > s.hordeAt.x) s.hordeDone = true; },   // rising past the horde: it stays beaten
@@ -812,7 +812,7 @@ const LEVELS = {
       s.boltT = 120; toast('Beyond the seven mountains the White Div waits in his cave. A storm breaks over the peaks.');
       hint('Lightning strikes <b>where the ground glows</b>: keep moving.');
     },
-    sky: { veil: 0x061428, cloud: 0x6a9ad8, glow: 0x8ad8ff, sun: [0.7, 0.26], bolt: 0xa8ecff, every: [150, 280], edge: 0x08204a, fx: 'blizzard', cave: true },   // his arena is deep in the cave: no open sky
+    sky: { veil: 0x061428, cloud: 0x6a9ad8, glow: 0x8ad8ff, sun: [0.7, 0.26], bolt: 0xa8ecff, every: [150, 280], edge: 0x08204a, fx: 'blizzard', cave: true, paint: 'k7/storm.png' },   // his arena is deep in the cave: no open sky
     hearts: [100, 140],                              // one after the lightning, one at the cave's last fire
     update(s, k, time, p) {
       // lightning on the mountain path: a glow marks the ground, then the bolt falls
@@ -1168,6 +1168,19 @@ function bell(f) {
     o.connect(g).connect(A.fx); o.start(t); o.stop(t + d + 0.05);
   }
 }
+// thunder: a sharp crack, then a long low roll that dies away; louder the nearer the strike
+function thunder(near = 0.5) {
+  if (!A.ctx || A.muted) return; const t = A.ctx.currentTime;
+  noise(t, 0.16, { type: 'highpass', f: 1800, q: 0.7, vol: 0.06 * near });
+  noise(t + 0.04, 2.6, { type: 'lowpass', f: 480, to: 80, q: 0.8, vol: 0.2 * (0.5 + near) });
+  noise(t + 0.45, 1.9, { type: 'lowpass', f: 220, to: 55, q: 1, vol: 0.13 });
+}
+// the Simurgh's cry: a high, rising call that falls away, with the rush of her wings under it
+function cry() {
+  if (!A.ctx || A.muted) return; const t = A.ctx.currentTime;
+  tone(1180, 0.5, { type: 'sine', vol: 0.05, to: 1580, t }); tone(1585, 0.9, { type: 'sine', vol: 0.04, to: 960, t: t + 0.38 });
+  tone(790, 1.1, { type: 'triangle', vol: 0.02, to: 640, t: t + 0.4 }); noise(t, 1.4, { type: 'bandpass', f: 900, to: 300, q: 0.6, vol: 0.05 });
+}
 function setMuted(m) {
   A.muted = m; store.set('sh-muted', m ? '1' : '0'); if (A.master) A.master.gain.value = m ? 0 : 0.8;
   $('muteIco').setAttribute('d', m ? 'M4 9v6h4l5 4V5L8 9z M17 9l5 6 M22 9l-5 6' : 'M4 9v6h4l5 4V5L8 9z M16 9a4 4 0 0 1 0 6 M19 6a8 8 0 0 1 0 12');
@@ -1219,6 +1232,7 @@ class Play extends Phaser.Scene {
     L.spritesheet('props', 'assets/k2/props.png' + q, { frameWidth: 27, frameHeight: 27 });
     L.image('heart-pick', 'assets/ui/heart.png' + q);
     this.lv = LEVELS[cur]; this.lv.load(L, q);
+    if (this.lv.sky?.paint) L.image('storm-' + cur, 'assets/' + this.lv.sky.paint + q);   // the arena repainted for the boss fight
   }
   create() {
     // the scene object is reused from labour to labour: forget whatever the last one left behind
@@ -1465,7 +1479,7 @@ class Play extends Phaser.Scene {
         for (const [lw, c, al] of [[7, S.bolt ?? 0xfff0c0, 0.35], [2.5, 0xffffff, 1]]) { g.lineStyle(lw, c, al); g.beginPath(); g.moveTo(...pts[0]); pts.forEach(q => g.lineTo(...q)); g.strokePath(); }
         this.tweens.add({ targets: g, alpha: 0, duration: 420, ease: 'Expo.easeIn', onComplete: () => g.destroy() });
       }
-      this.cam.flash(200, 255, 245, 220); this.flashA = 0.5; tone(50, 1.2, { type: 'sawtooth', vol: 0.08, to: 26 });
+      this.cam.flash(200, 255, 245, 220); this.flashA = 0.5; thunder(1);
       const rays = this.add.image(B.x, cy(), 'rays').setTint(glow).setBlendMode(Phaser.BlendModes.ADD).setDepth(3).setScale(0.2).setAlpha(0.95);
       this.tweens.add({ targets: rays, scale: 1.6, angle: 40, duration: 1500, ease: 'Cubic.easeOut' });
       this.tweens.add({ targets: rays, alpha: 0, delay: 1100, duration: 900, onComplete: () => rays.destroy() });
@@ -1609,7 +1623,7 @@ class Play extends Phaser.Scene {
       scale: { start: 1.6, end: 0 }, alpha: { start: 1, end: 0 }, tint: [0xffe08a, 0x7affe0, 0xffb040], blendMode: 'ADD' }).setDepth(2.6);
     this.tweens.add({ targets: bird, x: x1, duration: dur, ease: 'Sine.easeInOut', onUpdate: () => { const t = (bird.x - x0) / (x1 - x0); bird.y = cy + 70 - Math.sin(t * Math.PI) * 26; },
       onComplete: () => { bird.destroy(); trail.stop(); this.time.delayedCall(1500, () => trail.destroy()); } });
-    this.time.delayedCall(400, () => { tone(880, 0.9, { type: 'triangle', vol: 0.05, to: 1320 }); tone(1320, 0.7, { type: 'triangle', vol: 0.03, to: 990, t: A.ctx ? A.ctx.currentTime + 0.5 : 0 }); });
+    this.time.delayedCall(400, cry);
     toast('The Simurgh answers! A feather falls from her wings.');
     // the feather slips free as she passes over the place it will land
     const tDrop = Phaser.Math.Clamp((fx - x0) / (x1 - x0), 0.1, 0.9) * dur;
@@ -1642,7 +1656,7 @@ class Play extends Phaser.Scene {
     this.tweens.addCounter({ from: 0, to: 1, duration: 900, ease: 'Sine.easeIn', onUpdate: tw => { const v = tw.getValue(); f.x = p.x + Math.cos(v * Math.PI * 4) * 26 * (1 - v); f.y = p.body.center.y - v * 30 + Math.sin(v * Math.PI * 4) * 8; f.angle = v * 540; f.setScale(0.62 * (1 - v * 0.6)); },
       onComplete: () => { this.cam.flash(500, 255, 240, 200); const r = this.add.image(p.x, p.body.center.y, 'rays').setTint(0xffe08a).setBlendMode(Phaser.BlendModes.ADD).setDepth(10).setScale(0.2);
         this.tweens.add({ targets: r, scale: 2.2, alpha: 0, angle: 90, duration: 900, ease: 'Cubic.easeOut', onComplete: () => r.destroy() });
-        tone(990, 1, { type: 'triangle', vol: 0.05, to: 1480 }); this.win(f); } });
+        cry(); this.win(f); } });
   }
   win(f) {
     if (this.done) return; this.done = true; playing = false; music(false); sfx('fire'); document.body.classList.remove('playing'); hint(null); resumeAt = null;
@@ -1795,6 +1809,8 @@ class Play extends Phaser.Scene {
     const [sx, sy] = S.sun;
     const sky = this.sky = { S, v: 0, calm: false, boltT: 90, time: 0, mids: list.filter(o => o.type === 'TileSprite' && o.scrollFactorX === 0 && o.depth === 0) };
     for (const m of sky.mids) m.tint0 = m.tintTopLeft;
+    sky.under = at > 0 ? list[at - 1] : null;                                     // the far painting it repaints
+    if (this.textures.exists('storm-' + cur)) sky.paint = put(this.add.image(0, 0, 'storm-' + cur).setOrigin(0).setAlpha(0));
     sky.veil = put(this.add.image(0, 0, 'stormveil').setOrigin(0).setTint(S.veil).setAlpha(0));
     sky.horizon = put(this.add.image(0, 0, 'horizon').setOrigin(0).setTint(S.glow).setBlendMode(Phaser.BlendModes.ADD).setAlpha(0));
     sky.rays = put(this.add.image(W * sx, H * sy, 'rays').setTint(S.glow).setBlendMode(Phaser.BlendModes.ADD).setScale(1.5).setAlpha(0));
@@ -1829,12 +1845,13 @@ class Play extends Phaser.Scene {
     this.tweens.add({ targets: g, alpha: { from: 1, to: 0 }, duration: 380, ease: 'Expo.easeIn' });
     this.tweens.add({ targets: sky.flash, alpha: 0, duration: 260, delay: 60 });
     this.time.delayedCall(90, () => { if (this.sky) sky.flash.setAlpha(0.18 * sky.v); this.tweens.add({ targets: sky.flash, alpha: 0, duration: 200 }); });   // the second flicker
-    this.time.delayedCall(Phaser.Math.Between(250, 700), () => tone(55, 1.1, { type: 'sawtooth', vol: 0.07, to: 28 }));   // thunder rolls in after
+    this.time.delayedCall(Phaser.Math.Between(250, 700), () => thunder(0.35));      // thunder rolls in after
   }
   tickSky(k, time) {
     const sky = this.sky; if (!sky) return;
     const S = sky.S, v = sky.v, beat = Math.pow(Math.max(0, Math.sin(time * 0.0042)), 12);    // a heartbeat in the vignette
-    sky.veil.setAlpha(0.82 * v); sky.horizon.setAlpha((0.32 + Math.sin(time * 0.0017) * 0.06) * v * (S.dim ?? 1)); sky.back.setAlpha(0.9 * v); sky.front.setAlpha(0.75 * v);
+    if (sky.paint) { sky.paint.setAlpha(Math.min(1, v * 1.15)); if (sky.under) sky.paint.x = sky.under.x; }
+    sky.veil.setAlpha((sky.paint ? 0.3 : 0.82) * v); sky.horizon.setAlpha((0.32 + Math.sin(time * 0.0017) * 0.06) * v * (S.dim ?? 1)); sky.back.setAlpha(0.9 * v); sky.front.setAlpha(0.75 * v);
     sky.sun.setAlpha((0.75 + Math.sin(time * 0.002) * 0.15) * v * (S.dim ?? 1)); sky.rays.setAlpha(0.55 * v * (S.dim ?? 1));
     sky.rays.angle += 0.04 * k; sky.rays.setScale(1.45 + Math.sin(time * 0.0013) * 0.08);
     sky.back.tilePositionX += 0.35 * k; sky.front.tilePositionX += 0.8 * k;
@@ -1873,17 +1890,17 @@ class Play extends Phaser.Scene {
     const lv = this.lv;
     if (!lv.epithet || this.resuming) { banner(); return; }
     this.intro = true; this.frozen = true; this.player.setVelocityX(0); B.setVelocityX?.(0);
-    $('cine').classList.add('on');
+    $('cine').classList.add('on'); document.body.classList.add('cine');
     const shade = this.add.renderTexture(0, 0, W, H).setOrigin(0).setScrollFactor(0).setDepth(11.5).setAlpha(0);
     const spot = this.make.image({ key: 'lightmask', add: false }).setScale(2.4);
     const draw = () => { if (!shade.active) return; shade.clear(); shade.fill(0x000000, 0.62); spot.setScale(2.2 + Math.sin(this.time.now * 0.01) * 0.06); shade.erase(spot, Math.round(B.x - this.cam.scrollX), Math.round(B.body.center.y - this.cam.scrollY)); };
-    this.events.on('update', draw); this.events.once('shutdown', () => { this.events.off('update', draw); $('cine').classList.remove('on'); });
+    this.events.on('update', draw); this.events.once('shutdown', () => { this.events.off('update', draw); $('cine').classList.remove('on'); document.body.classList.remove('cine'); });
     this.tweens.add({ targets: shade, alpha: 1, duration: 450 });
     const a0 = B.alpha;                                               // a foe hiding in the dark shows itself for its entrance
     if (a0 < 0.5) { this.tweens.add({ targets: B, alpha: 1, delay: 420, duration: 250 }); this.time.delayedCall(2200, () => B.active && B.state === 'lurk' && this.tweens.add({ targets: B, alpha: a0, duration: 500 })); }
     this.time.delayedCall(500, () => { sfx('roar'); this.cam.shake(520, 0.012); banner(undefined, undefined, lv.epithet); });
     this.time.delayedCall(2500, () => {
-      $('cine').classList.remove('on');
+      $('cine').classList.remove('on'); document.body.classList.remove('cine');
       this.tweens.add({ targets: shade, alpha: 0, duration: 400, onComplete: () => { this.events.off('update', draw); shade.destroy(); } });
       this.intro = false; if (!this.done) this.frozen = false;
     });
@@ -2277,7 +2294,7 @@ class Play extends Phaser.Scene {
     this.time.delayedCall(720, () => {
       mark.destroy(); if (this.done) return;
       this.fx('bolt', x, y + 2, { depth: 10 }); this.hazard(x - 12, y - 64, 24, 64, 220); this.cam.flash(120, 200, 220, 255);
-      tone(110, 0.6, { type: 'sawtooth', vol: 0.12, to: 40 });
+      thunder(0.8);
     });
   }
   groundAt(x) { for (let r = 2; r < ROWS; r++) { const t = this.layer.getTileAtWorldXY(x, r * TS + 2); if (t && t.collides) return r; } return null; }
