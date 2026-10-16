@@ -29,7 +29,7 @@ const ART = {
   'jackal-run': 'jackal-run.png', 'div-hop': 'div-hop.png',
   // Khan II
   'ride-gallop': 'k3/ride-gallop.png', 'ride-strike': 'k3/ride-strike.png', 'ride-rear': 'k3/ride-rear.png',
-  'scorpion-crawl': 'k2/scorpion-crawl.png', 'scorpion-sting': 'k2/scorpion-sting.png', 'vulture-fly': 'k2/vulture-fly.png', 'ram-walk': 'k2/ram-walk.png', 'rostam-drink': 'rostam-drink.png',
+  'queen-walk': 'k2/queen-walk.png', 'queen-sting': 'k2/queen-sting.png', 'queen-spit': 'k2/queen-spit.png', 'queen-die': 'k2/queen-die.png', 'scorpion-crawl': 'k2/scorpion-crawl.png', 'scorpion-sting': 'k2/scorpion-sting.png', 'vulture-fly': 'k2/vulture-fly.png', 'ram-walk': 'k2/ram-walk.png', 'rostam-drink': 'rostam-drink.png',
   // Khan III
   'dragon-move': 'k3/dragon-move.png', 'dragon-fire': 'k3/dragon-fire.png', 'dragon-die': 'k3/dragon-die.png', 'rakhsh-gallop': 'k3/rakhsh-gallop.png', 'rakhsh-rear': 'k3/rakhsh-rear.png', 'bat-fly': 'k3/bat-fly.png',
   // Khan IV
@@ -42,7 +42,7 @@ const ART = {
   // Khan VII
   'whitediv-walk': 'k7/whitediv-walk.png', 'whitediv-smash': 'k7/whitediv-smash.png', 'whitediv-throw': 'k7/whitediv-throw.png', 'whitediv-die': 'k7/whitediv-die.png', 'kavus-sight': 'k7/kavus-sight.png'
 };
-const FPS = { 'rostam-dodge': 22, 'rostam-heavy': 14, 'simurgh-fly': 10, 'lion-die': 6, 'dragon-die': 6, 'hag-die': 6, 'rostam-idle': 5, 'rostam-run': 14, 'rostam-jump': 6, 'rostam-attack': 24, 'rostam-hurt': 10, 'lion-walk': 9, 'lion-run': 14, 'lion-roar': 6, 'jackal-run': 12, 'div-hop': 8, 'coin-spin': 8, 'fire-burn': 10,
+const FPS = { 'queen-walk': 10, 'queen-sting': 14, 'queen-spit': 12, 'queen-die': 7, 'rostam-dodge': 22, 'rostam-heavy': 14, 'simurgh-fly': 10, 'lion-die': 6, 'dragon-die': 6, 'hag-die': 6, 'rostam-idle': 5, 'rostam-run': 14, 'rostam-jump': 6, 'rostam-attack': 24, 'rostam-hurt': 10, 'lion-walk': 9, 'lion-run': 14, 'lion-roar': 6, 'jackal-run': 12, 'div-hop': 8, 'coin-spin': 8, 'fire-burn': 10,
   'scorpion-crawl': 10, 'vulture-fly': 10, 'ram-walk': 8, 'rostam-drink': 6, 'ride-gallop': 12, 'ride-strike': 18, 'ride-rear': 11,
   'dragon-move': 7, 'dragon-fire': 9, 'rakhsh-gallop': 12, 'rakhsh-rear': 9, 'bat-fly': 14,
   'serpent': 8, 'hag-cast': 10, 'beauty-idle': 4,
@@ -50,10 +50,10 @@ const FPS = { 'rostam-dodge': 22, 'rostam-heavy': 14, 'simurgh-fly': 10, 'lion-d
   'divwarrior-walk': 8, 'divwarrior-smash': 13, 'arzhang-walk': 7, 'arzhang-smash': 9,
   'whitediv-walk': 6, 'whitediv-smash': 11, 'whitediv-throw': 10, 'whitediv-die': 7, 'arzhang-die': 7, 'firediv-walk': 9, 'firediv-throw': 14, 'ghul-crawl': 14, 'ghul-leap': 14, 'serpent-strike': 16, 'scorpion-sting': 16, 'kavus-sight': 5 };
 // on-screen frame height in game pixels; equal to the PixelLab frame size so sprites draw 1:1
-const SIZE = { rider: 124, rostam: 112, lion: 148, jackal: 108, div: 108, scorpion: 86, vulture: 92, ram: 86, dragon: 136, rakhsh: 104, bat: 108, serpent: 92, hag: 108, beauty: 108, spearman: 140, olad: 112, divwarrior: 100, arzhang: 136, whitediv: 136, firediv: 104, ghul: 100 };
-const BODY = { rider: [0.3, 0.5], rostam: [0.143, 0.393], lion: [0.5, 0.36], jackal: [0.3, 0.22], div: [0.22, 0.34], scorpion: [0.4, 0.22], vulture: [0.33, 0.2], ram: [0.4, 0.4],
+const SIZE = { queen: 150, rider: 124, rostam: 112, lion: 148, jackal: 108, div: 108, scorpion: 86, vulture: 92, ram: 86, dragon: 136, rakhsh: 104, bat: 108, serpent: 92, hag: 108, beauty: 108, spearman: 140, olad: 112, divwarrior: 100, arzhang: 136, whitediv: 136, firediv: 104, ghul: 100 };
+const BODY = { queen: [0.62, 0.42], rider: [0.3, 0.5], rostam: [0.143, 0.393], lion: [0.5, 0.36], jackal: [0.3, 0.22], div: [0.22, 0.34], scorpion: [0.4, 0.22], vulture: [0.33, 0.2], ram: [0.4, 0.4],
   dragon: [0.46, 0.42], rakhsh: [0.5, 0.5], bat: [0.32, 0.24], serpent: [0.31, 0.31], hag: [0.27, 0.42], beauty: [0.2, 0.47], spearman: [0.115, 0.386], olad: [0.17, 0.49], divwarrior: [0.31, 0.64], arzhang: [0.3, 0.7], whitediv: [0.4, 0.58], firediv: [0.2, 0.6], ghul: [0.5, 0.36] };
-const V = 62;
+const V = 65;
 const ZOOM = 2;                                                   // canvas pixels per world pixel   // bump to bust caches when assets change
 
 // PixelLab VFX strips in ./assets/fx: frame size, frame count, fps, and the effect's origin as a fraction of the frame
@@ -203,6 +203,7 @@ function map2() {
   put(15, 13, 'j'); put(31, 12, 's'); put(48, 13, 's'); put(38, 7, 'v'); put(62, 13, 'j'); put(68, 6, 'v'); put(81, 13, 's');
   put(90, 12, 's'); put(101, 6, 'v'); put(110, 13, 's'); put(125, 12, 's'); put(130, 7, 'v'); put(136, 13, 's'); put(146, 13, 's');
   put(57, 12, 'O'); put(107, 13, 'O');
+  row(138, 143, 10, '=');                                  // the Scorpion Queen's arena (138 to 168): one ledge in the corner (KEEP2)
   put(128, 13, 'R'); put(164, 13, 'S');                    // the ram's four bell towers stand at 146, 150, 154 and 158
   return g;
 }
@@ -302,7 +303,7 @@ const CAVE7 = 120;
 // the bell's scale; and each tower's element, colour and bell note (Hz)
 const TOWER = { scale: 0.8, bell: [0.16, 0.132, 0.125, 0.181], foot: [1, 1, 1, 0.896], bellScale: 0.45 };
 const ELEMENTS = [{ name: 'earth', tint: 0xe8b060, note: 392 }, { name: 'water', tint: 0x6ad8ff, note: 523 }, { name: 'fire', tint: 0xff7a2a, note: 659 }, { name: 'wind', tint: 0xe8f4ff, note: 784 }];
-const KEEP1 = 99, KEEP3 = 126, KEEP5 = 125, KEEP6 = 137, KEEP7 = 159;
+const KEEP2 = 150, KEEP1 = 99, KEEP3 = 126, KEEP5 = 125, KEEP6 = 137, KEEP7 = 159;
 // the row a thing can stand on in a map column (or the nearest column that has ground): for fires and hearts
 function topAt(map, c) {
   const solid = ch => ch === '#' || ch === '=';
@@ -575,7 +576,7 @@ const LEVELS = {
       'Gather eight provisions in one labour and Rakhsh is well fed: he gallops in to kick the boss once.']
   },
   2: {
-    hud: 'Khan II &middot; The Desert', winTitle: 'Water in the wilderness', name: 'The Burning Desert', fa: 'بیابانِ بی‌آب', tiles: 'tiles-2', map: map2,
+    hud: 'Khan II &middot; The Desert', winTitle: 'Water in the wilderness', name: 'The Burning Desert', fa: 'بیابانِ بی‌آب', bossName: 'The Scorpion Queen', bossFa: 'ملکهٔ کژدم', tiles: 'tiles-2', map: map2,
     load(L, q) {
       L.image('tiles-2', 'assets/k2/tiles.png' + q); L.image('k2-far', 'assets/k2/far.png' + q); L.image('k2-oasis', 'assets/k2/oasis.png' + q);
       L.image('well', 'assets/k2/well.png' + q); L.image('bell', 'assets/k2/bell.png' + q);
@@ -605,6 +606,8 @@ const LEVELS = {
     },
     // two roast lambs on the high perches heal; dates and fruit everywhere else
     food: (c, r, n) => (c === 77 && r === 9) || (c === 94 && r === 10) ? 'lamb' : n % 4 === 3 ? 'dates' : FOOD[1 + (n % 3)],
+    epithet: 'She guards the only water in the waste, and nothing that drinks there lives',
+    sky: { veil: 0x3a1806, cloud: 0xc07a34, glow: 0xffb040, sun: [0.74, 0.3], bolt: 0xffe0a0, every: [240, 380], edge: 0x5a2804, fx: 'dust', paint: 'k2/storm.png' },
     hearts: [110, 142],                              // one before the sandstorm, one where the storm parts
     parse(s, ch, x, y) {
       if (ch === 'w') s.pickup(x, y - 6, 'props', 0, 'skin');
@@ -643,7 +646,7 @@ const LEVELS = {
       if (s.stormOn > 0.1 && !s.frozen) b.velocity.x -= 9 * s.stormOn * k;          // the wind pushes back
       if (s.stormOn > 0.3 && !s.prayed) hint('A <b>sandstorm</b>! The wind pushes you back and water drains twice as fast. <b>Keep pressing on</b>.');
       // thirst: water drains in the heat, twice as fast in the storm
-      if (!s.frozen && !s.prayed) s.water = Math.max(0, s.water - k * (0.045 + s.stormOn * 0.045) * (gentle() ? 0.6 : 1));
+      if (!s.frozen && !s.prayed && !s.bossOn) s.water = Math.max(0, s.water - k * (0.045 + s.stormOn * 0.045) * (gentle() ? 0.6 : 1));
       if (s.water <= 0) { s.thirstT += k; if (s.thirstT > 150) { s.thirstT = 0; s.hurt(p.x, true); toast('Rostam is dying of thirst. Find water!'); } }
       s.renderWater();
       if (!s.prayed && s.ramAt && p.x > s.ramAt.x) s.prayForWater();
@@ -1244,13 +1247,15 @@ class Play extends Phaser.Scene {
     L.spritesheet('props', 'assets/k2/props.png' + q, { frameWidth: 27, frameHeight: 27 });
     L.image('heart-pick', 'assets/ui/heart.png' + q);
     this.lv = LEVELS[cur]; this.lv.load(L, q);
-    if (this.lv.sky?.paint) L.image('storm-' + cur, 'assets/' + this.lv.sky.paint + q);   // the arena repainted for the boss fight
+    if (this.lv.sky?.paint) L.image('storm-' + cur, 'assets/' + this.lv.sky.paint + q);
+    L.image('decor-' + cur, `assets/decor/${cur}.png${q}`);                       // the labour's ground litter, 32 px frames in a row   // the arena repainted for the boss fight
   }
   create() {
     // the scene object is reused from labour to labour: forget whatever the last one left behind
     for (const k of ['dark', 'lights', 'lamp', 'wall', 'wallR', 'stars', 'pose', 'swingFx', 'witch', 'unmasked', 'olad', 'rakhsh', 'dragonSeen', 'horde', 'hordeDone',
-      'gates', 'hordeBat', 'toldRock', 'toldFarr', 'toldOffer', 'atAltar', 'bossT', 'maceHit', 'toldIce', 'chargeWarn', 'toldCharge', 'shards', 'shardG', 'mark', 'markGlow', 'markOpen', 'bossHeart', 'bossHeartT', 'floorWarn', 'highWarn', 'regrow', 'drums', 'sky', 'flashA', 'intro', 'combo', 'comboT', 'heavy', 'heavyGo', 'charge', 'chargeFull', 'chargeGlow', 'dodgeT', 'dodgeCd', 'dodgeDir', 'whiteDown', 'ended', 'mounted', 'prayed', 'drank', 'toldImmune', 'toldDeflect', 'kavus', 'stones', 'puzzle', 'springOpen', 'pool']) delete this[k];
+      'gates', 'hordeBat', 'toldRock', 'toldFarr', 'toldOffer', 'atAltar', 'bossT', 'maceHit', 'toldIce', 'chargeWarn', 'toldCharge', 'shards', 'shardG', 'mark', 'markGlow', 'markOpen', 'bossHeart', 'bossHeartT', 'floorWarn', 'highWarn', 'regrow', 'drums', 'sky', 'flashA', 'intro', 'fgReeds', 'mound', 'swirl', 'qx', 'combo', 'comboT', 'heavy', 'heavyGo', 'charge', 'chargeFull', 'chargeGlow', 'dodgeT', 'dodgeCd', 'dodgeDir', 'whiteDown', 'ended', 'mounted', 'prayed', 'drank', 'toldImmune', 'toldDeflect', 'kavus', 'stones', 'puzzle', 'springOpen', 'pool']) delete this[k];
     // turn loaded strips into square frames; anything missing falls back to placeholder art
+    for (const k of ['decor-' + cur]) if (this.textures.exists(k) && this.textures.get(k).frameTotal < 3) { const t = this.textures.get(k), h = t.getSourceImage().height; for (let i = 0; i < Math.round(t.getSourceImage().width / h); i++) t.add(i, 0, i * h, 0, h, h); }
     for (const [k, f] of Object.entries(ART)) if (f && this.textures.exists(k)) {
       const t = this.textures.get(k), img = t.getSourceImage(), fh = img.height, n = Math.max(1, Math.round(img.width / fh));
       for (let i = 0; i < n; i++) t.add(i, 0, i * fh, 0, fh, fh);
@@ -1271,15 +1276,49 @@ class Play extends Phaser.Scene {
     this.layer = tm.createLayer(0, ts, 0, 0);
     this.layer.setCollision([0, 1, 2, 4, 5, 6]);
     this.layer.forEachTile(t => { if (t.index % 4 === 2) t.setCollision(false, false, true, false); });
+    // the ground darkens with depth below its surface, each tile a shade apart, so the earth has body rather than a pattern
+    const rnd = (a, b) => { const v = Math.sin(a * 127.1 + b * 311.7) * 43758.5453; return v - Math.floor(v); };
+    this.layer.forEachTile(t => {
+      if (t.index < 0 || t.index % 4 > 1) return;
+      let d = 0; for (let r = t.y - 1; r >= 0 && map[r][t.x] === '#'; r--) d++;
+      const v = Math.max(0.5, 1 - d * 0.085) * (0.93 + rnd(t.x, t.y) * 0.07), c = Math.round(255 * v);
+      t.tint = (c << 16) | (c << 8) | Math.min(255, Math.round(c * 1.04));
+    });
+    // and its surface is dressed: grasses, stones and the rest of the labour's own litter, a few in front of Rostam's feet
+    if (this.textures.exists('decor-' + cur)) {
+      const dt = this.textures.get('decor-' + cur), n = dt.frameTotal - 1;
+      for (let c = 0; c < map[0].length; c++) for (let r = 1; r < map.length; r++) {
+        if (map[r][c] !== '#' || map[r - 1][c] !== '.' || rnd(c, r) > 0.5) continue;
+        const front = rnd(c + 7, r) < 0.18, d = this.add.image(c * TS + 8 + (rnd(c, r + 3) - 0.5) * 8, r * TS + 1, 'decor-' + cur, Math.floor(rnd(c + 3, r) * n))
+          .setOrigin(0.5, 1).setScale(front ? 0.8 : 0.66 + rnd(c, r + 5) * 0.16).setDepth(front ? 6 : 1).setFlipX(rnd(c, r + 9) < 0.5);
+        if (front) d.setAlpha(0.95);
+      }
+      // the foreground: large dark shapes of the same litter slide past at the bottom of the view, nearer than the road
+      if (!this.fgReeds) for (let x = 60; x < this.levelW * 1.3 + W; x += 120 + rnd(x, 1) * 140) {
+        const f = this.add.image(x, H + 26, 'decor-' + cur, Math.floor(rnd(x, 2) * n)).setOrigin(0.5, 1).setScale(1.6 + rnd(x, 3) * 0.6)
+          .setScrollFactor(1.3, 1).setDepth(12).setTint(0x07060c).setAlpha(0.92).setFlipX(rnd(x, 4) < 0.5);
+      }
+    }
     this.physics.world.setBounds(0, 0, this.levelW, ROWS * TS + 200);
     this.physics.world.checkCollision.down = false;
 
     this.coins = this.physics.add.staticGroup(); this.wisps = [];
     this.foes = this.physics.add.group();
     this.altars = [];
+    // three Simurgh feathers hide in each labour: the highest provision in each third of the road becomes a feather
+    const spots = []; map.forEach((row, r) => row.forEach((ch, c) => { if (ch === 'c' && lv.food(c, r, 0) !== 'lamb') spots.push([c, r]); }));
+    this.featherAt = new Map(); const third = map[0].length / 3;
+    const ledges = []; map.forEach((row, r) => row.forEach((ch, c) => { if (ch === '=' && r > 1 && map[r - 1][c] === '.' && map[r - 1][c - 1] === '.' && map[r - 1][c + 1] === '.') ledges.push([c, r - 1]); }));
+    for (let k = 0; k < 3; k++) {
+      const inK = ([c]) => c >= k * third && c < (k + 1) * third, high = (a, b) => a[1] - b[1] || b[0] - a[0];
+      const pool = spots.filter(inK).sort(high), alt = ledges.filter(inK).sort(high);   // a high provision, or failing that a high ledge
+      const at = pool[0] || alt[0]; if (at) this.featherAt.set(at[0] + ',' + at[1], k);
+    }
+    for (const [key, k] of this.featherAt) { const [c, r] = key.split(',').map(Number); if (map[r][c] !== 'c') this.hiddenFeather(c * TS + TS / 2, r * TS + TS - 10, k); }
     map.forEach((row, r) => row.forEach((ch, c) => {
       const x = c * TS + TS / 2, y = r * TS + TS;
-      if (ch === 'c') {
+      if (ch === 'c' && this.featherAt.has(c + ',' + r)) this.hiddenFeather(x, y - 10, this.featherAt.get(c + ',' + r));
+      else if (ch === 'c') {
         const kind = lv.food(c, r, this.coins.getLength());
         if (kind === 'dates') this.pickup(x, y - 6, 'props', 2, kind); else this.pickup(x, y - 6, 'food', FOOD.indexOf(kind), kind);
       }
@@ -1324,7 +1363,7 @@ class Play extends Phaser.Scene {
     this.cam.startFollow(this.player, true, 0.12, 0.12, W / 2, H / 2);
     this.cam.setRoundPixels(true);
     if (matchMedia('(prefers-reduced-motion: reduce)').matches) { this.cam.shake = () => this.cam; this.cam.flash = () => this.cam; }
-    this.maxHp = 5 + (upg().heart || 0) + (gentle() ? 2 : 0); this.hp = this.maxHp; this.farr = +(store.get('sh-farr') || 0); this.rakhshFed = false; this.rakhshRode = false; this.coinCount = 0; this.kills = 0; this.wasGround = true; this.face = 1; this.inv = 0; this.atk = 0; this.cool = 0; this.coyote = 0; this.buf = 0; this.bossOn = false; this.done = false; this.t0 = this.time.now;
+    this.maxHp = 5 + (upg().heart || 0) + (gentle() ? 2 : 0) + (Object.keys(feathers()).length >= 21 ? 1 : 0); this.hp = this.maxHp; this.farr = +(store.get('sh-farr') || 0); this.rakhshFed = false; this.rakhshRode = false; this.coinCount = 0; this.kills = 0; this.wasGround = true; this.face = 1; this.inv = 0; this.atk = 0; this.cool = 0; this.coyote = 0; this.buf = 0; this.bossOn = false; this.done = false; this.t0 = this.time.now;
     if (R) {
       this.coinCount = R.coins || 0; this.kills = R.kills || 0; this.t0 -= R.t || 0;
       for (const c of this.coins.getChildren().slice()) if (c.x < this.start.x) { c.glow?.destroy(); c.destroy(); }
@@ -1357,6 +1396,17 @@ class Play extends Phaser.Scene {
     sfx('fire'); this.fx('fire', a.x, a.y - 20, { depth: 3 }); this.fx('pickup', a.x, a.y - 18);
     toast('The sacred fire is lit. If Rostam falls, he will rise again here.');
   }
+  // a hidden Simurgh feather: glowing and turning slowly; one already found is only a faint shimmer
+  hiddenFeather(x, y, k) {
+    const id = cur + ':' + k, found = !!feathers()[id];
+    const glow = this.add.image(x, y, 'glow').setTint(0x9affe0).setBlendMode(Phaser.BlendModes.ADD).setScale(0.75).setDepth(2).setAlpha(found ? 0.15 : 0.7);
+    if (found) { const f = this.add.image(x, y, 'feather').setScale(0.36).setAlpha(0.28).setDepth(3); this.tweens.add({ targets: [f, glow], y: y - 3, yoyo: true, repeat: -1, duration: 1100, ease: 'Sine.easeInOut' }); return; }
+    const f = this.coins.create(x, y, 'feather'); f.kind = 'sfeather'; f.fid = id; f.glow = glow; f.setScale(0.36).setDepth(3); f.body.setSize(40, 70);
+    this.tweens.add({ targets: [f, glow], y: y - 4, yoyo: true, repeat: -1, duration: 1100, ease: 'Sine.easeInOut' });
+    this.tweens.add({ targets: f, angle: { from: -10, to: 10 }, yoyo: true, repeat: -1, duration: 1700, ease: 'Sine.easeInOut' });
+    this.tweens.add({ targets: glow, alpha: 0.35, yoyo: true, repeat: -1, duration: 800 });
+    f.spark = this.add.particles(0, 0, 'flake', { x: { min: x - 8, max: x + 8 }, y: { min: y - 14, max: y + 6 }, speedY: { min: -18, max: -6 }, lifespan: 900, frequency: 160, scale: { start: 1.1, end: 0 }, tint: [0x9affe0, 0xffe08a], blendMode: 'ADD' }).setDepth(3);
+  }
   pickup(x, y, tex, frame, kind) {
     const f = this.coins.create(x, y, tex, frame); f.kind = kind; f.body.setSize(16, 16);
     this.tweens.add({ targets: f, y: f.y - 3, yoyo: true, repeat: -1, duration: 900 + (Math.round(x) % 5) * 90, ease: 'Sine.easeInOut' });
@@ -1383,6 +1433,16 @@ class Play extends Phaser.Scene {
   }
   eat(c) {
     if (!c.active) return;
+    if (c.kind === 'sfeather') {
+      const F = feathers(); F[c.fid] = 1; store.set('sh-feathers', JSON.stringify(F));
+      c.spark?.destroy(); this.tweens.killTweensOf([c, c.glow]); c.body.enable = false;
+      this.tweens.add({ targets: [c, c.glow], y: c.y - 30, alpha: 0, scale: 0.8, duration: 700, ease: 'Cubic.easeOut', onComplete: () => { c.glow?.destroy(); c.destroy(); } });
+      this.fx('pickup', c.x, c.y); this.fx('heal', this.player.x, this.player.body.bottom - 4, { depth: 6 }); cry(); this.gainFarr(25);
+      const here = [0, 1, 2].filter(k => F[cur + ':' + k]).length, all = Object.keys(F).length;
+      if (all >= 21) { banner('سیمرغ', 'The Simurgh\'s Blessing'); toast('All twenty-one feathers! The Simurgh blesses Rostam: one more heart, for ever.'); this.maxHp++; this.hp++; this.renderHearts(); }
+      else toast(`A Simurgh feather! ${here} of 3 in this labour, ${all} of 21 in all.`);
+      return;
+    }
     if (c.kind === 'heart') {
       if (c.regrow) this.regrow.push({ x: c.x, y: c.y, away: 0 });
       c.glow?.destroy(); c.destroy(); this.fx('heal', this.player.x, this.player.body.bottom - 4, { depth: 6 }); sfx('fire');
@@ -1533,6 +1593,7 @@ class Play extends Phaser.Scene {
       for (const d of [-1, 1]) for (let i = 0; i < 4; i++) this.time.delayedCall(i * 70, () => this.fx('dust', B.x + d * (18 + i * 30), floor, { flip: d < 0, depth: 8 }));
       const ring = this.add.ellipse(B.x, floor - 2, 20, 6).setStrokeStyle(2, glow, 0.9).setDepth(9);
       this.tweens.add({ targets: ring, scaleX: 16, scaleY: 4, alpha: 0, duration: 800, ease: 'Cubic.easeOut', onComplete: () => ring.destroy() });
+      if (B.texture.key === 'queen-die') this.tweens.add({ targets: B, scaleY: B.scaleY * 0.84, y: B.y + B.displayHeight * 0.08, duration: 420, ease: 'Bounce.easeOut' });   // her legs give way
       if (B.texture.key === 'dragon-die') {                            // the dragon's great body slumps and thunders down
         this.tweens.add({ targets: B, angle: (B.flipX ? 1 : -1) * 14, y: B.y + B.displayHeight * 0.08, duration: 520, ease: 'Bounce.easeOut' });
       }
@@ -2550,14 +2611,98 @@ class Play extends Phaser.Scene {
     this.time.delayedCall(1200, () => this.showStones());
   }
   openSpring() {
-    this.puzzle.done = true; this.springOpen = true; sfx('win');
+    this.puzzle.done = true; this.water = 100; this.renderWater(); sfx('win');
     this.stones.forEach((_, k) => this.time.delayedCall(k * 160, () => this.lightStone(k)));   // all four bells ring together
     const x = this.springAt.x + 26, y = this.springAt.y;
     this.cam.flash(350, 200, 240, 255); this.fx('beam', x, y + 1, { depth: 4 });
     for (let k = 0; k < 4; k++) this.time.delayedCall(k * 220, () => this.fx('splash', x + (k - 1.5) * 14, y + 1, { depth: 6 }));
     this.tweens.add({ targets: this.pool, alpha: 1, duration: 900, onComplete: () => this.tweens.add({ targets: this.pool, alpha: 0.85, yoyo: true, repeat: -1, duration: 900, ease: 'Sine.easeInOut' }) });
     toast('The four bells ring together, and water bursts from the rock!');
-    hint('<b>Walk into the spring</b> to drink.');
+    if (this.textures.exists('queen-walk')) this.time.delayedCall(1800, () => this.startQueen());   // ...and something stirs beneath the sand
+    else { this.springOpen = true; hint('<b>Walk into the spring</b> to drink.'); }
+  }
+  // the Scorpion Queen bursts from the sand to guard the spring. Her hide turns every blow; her sting buries itself in the
+  // sand (the opening); she burrows and erupts under Rostam where the sand swirls; from afar she spits venom
+  startQueen() {
+    const x = 160 * TS, y = 14 * TS;
+    this.cam.shake(900, 0.012); sfx('roar'); for (let i = 0; i < 6; i++) this.time.delayedCall(i * 120, () => this.fx('dust', x + Phaser.Math.Between(-40, 40), y, { depth: 8 }));
+    const q = this.physics.add.sprite(x, y - 60, 'queen-walk', 0).setDepth(4).setFlipX(true);
+    this.fit(q, 'queen'); q.dir = -1; q.keep = KEEP2; q.state = 'emerge'; q.tm = 60;
+    q.body.setAllowGravity(false); q.y = y - q.displayHeight * (0.97 - q.originY); q.groundY = q.y; this.sink(q, false, 900);
+    q.immune = () => q.state !== 'stuck' && q.state !== 'surfaced'; q.calm = () => !q.immune(); q.contact = () => q.state === 'walk';
+    q.immuneMsg = 'Her armour turns the blow. Dodge her sting: when it sticks in the sand, strike!';
+    q.ai = () => this.queenAI(); q.onDown = () => { this.stars?.destroy(); this.stars = null; this.mound?.destroy(); this.swirl?.destroy(); this.bossFall(q, () => this.queenFallen()); };
+    this.arena(138 * TS, q, 12); this.light(q, 1.6);
+    hint('The <b>Scorpion Queen</b>! Her armour turns blows. <b>Dodge her sting</b>: when it <b>sticks in the sand, strike!</b> When she burrows, <b>move away from the swirling sand</b>.');
+  }
+  // the Queen sinks into the sand or rises out of it: the part of her below the ground line is cut away as she moves
+  sink(q, down, ms) {
+    const fh = q.frame.height, sc = q.scaleY, depth = fh * 0.97 * sc;
+    this.tweens.addCounter({ from: down ? 0 : 1, to: down ? 1 : 0, duration: ms, ease: down ? 'Quad.easeIn' : 'Back.easeOut', onUpdate: tw => {
+      const v = Math.max(0, tw.getValue()); q.y = q.groundY + v * depth; q.setCrop(0, 0, q.frame.width, Math.max(0, fh * 0.97 - v * depth / sc));
+    }, onComplete: () => { if (!down) { q.y = q.groundY; q.setCrop(); } } });
+    for (let i = 0; i < 4; i++) this.time.delayedCall(i * (ms / 4), () => this.fx('dust', q.x + Phaser.Math.Between(-40, 40), q.groundY + q.displayHeight * (0.97 - q.originY), { depth: 8 }));
+  }
+  queenAI() {
+    const q = this.boss, p = this.player; q.tm--; const d = p.x - q.x, mad = q.hp <= q.max / 2;
+    if (!['sting', 'stuck', 'under', 'aim'].includes(q.state)) { q.dir = Math.sign(d) || q.dir; q.setFlipX(q.dir < 0); }
+    if (q.state === 'emerge') { q.setVelocityX(0); if (q.tm <= 0) { q.state = 'walk'; q.tm = 60; q.play('queen-walk'); } }
+    else if (q.state === 'walk') {
+      q.setVelocityX(Math.abs(d) > 60 ? q.dir * (mad ? 70 : 52) : 0); if (q.anims.currentAnim?.key !== 'queen-walk') q.play('queen-walk');
+      if (q.tm <= 0) {
+        const far = Math.abs(d) > 150, r = Math.random();
+        if (!far && r < 0.65) { q.state = 'aim'; q.tm = mad ? 30 : 42; q.setVelocityX(0); q.anims.stop(); q.setTexture('queen-sting', 0); sfx('roar'); }
+        else if (far && r < 0.55) { q.state = 'spit'; q.tm = 44; q.setVelocityX(0); q.play('queen-spit'); q.spat = false; }
+        else { q.state = 'dive'; q.tm = 46; q.setVelocityX(0); q.anims.stop(); this.sink(q, true, 700); sfx('hit'); }
+      }
+    } else if (q.state === 'aim') {
+      // the stinger glows green: the strike is coming
+      q.setVelocityX(0); Math.floor(q.tm / 4) % 2 ? q.setTint(0x9aff6a) : q.clearTint();
+      if (q.tm <= 0) { q.clearTint(); q.state = 'sting'; q.tm = 26; q.play('queen-sting'); q.hit = false; }
+    } else if (q.state === 'sting') {
+      q.setVelocityX(0);
+      if (!q.hit && q.tm < 16) { q.hit = true; const hx = q.x + q.dir * 54; this.hazard(hx - 28, q.body.bottom - 46, 56, 46, 180); this.fx('dust', hx, q.body.bottom, { depth: 8 }); this.cam.shake(180, 0.01); sfx('hit'); }
+      if (q.tm <= 0) {   // the stinger is driven into the sand: the opening
+        q.state = 'stuck'; q.tm = mad ? 80 : 100; q.anims.stop(); q.setFrame(5); q.setTint(0xffd0a0);
+        this.stars = this.fx('stun', q.x, q.body.top - 4, { depth: 10, follow: q }); hint('Her sting is <b>stuck in the sand: strike now!</b>');
+      }
+    } else if (q.state === 'stuck') {
+      q.setVelocityX(0); this.stars?.setPosition(Math.round(q.x), Math.round(q.body.top - 4));
+      if (q.tm <= 0) { q.clearTint(); this.stars?.destroy(); this.stars = null; q.state = 'walk'; q.tm = (mad ? 50 : 70) + Math.random() * 30; }
+    } else if (q.state === 'spit') {
+      q.setVelocityX(0);
+      if (!q.spat && q.tm < 26) { q.spat = true; sfx('fire');
+        for (let i = 0; i < (mad ? 3 : 2); i++) { const tx = p.x + (i - 0.5) * 40, t = 0.85 + i * 0.12, vx = (tx - q.x) / t, vy = -(0.5 * 700 * t) + (p.y - q.body.top) / t;
+          const sh = this.shoot(q.x + q.dir * 40, q.body.top + 10, vx, vy, 'glow', { gravity: 700, life: 2600, tint: 0x8aff5a }); sh.setScale(0.35); sh.setBlendMode(Phaser.BlendModes.ADD); } }
+      if (q.tm <= 0) { q.state = 'walk'; q.tm = 60; }
+    } else if (q.state === 'dive') {
+      q.setVelocityX(0);
+      if (q.tm <= 0) {   // under the sand: a mound runs toward Rostam
+        q.state = 'under'; q.tm = mad ? 70 : 90; q.setAlpha(0); q.body.enable = false;
+        this.mound = this.add.particles(0, 0, 'sand', { x: 0, y: 0, speedX: { min: -50, max: 50 }, speedY: { min: -90, max: -30 }, gravityY: 300, lifespan: 600, frequency: 25, scale: { min: 1, max: 2 } }).setDepth(8);
+      }
+    } else if (q.state === 'under') {
+      q.x = Math.max(KEEP2 * TS, q.x + Phaser.Math.Clamp(p.x - q.x, -3.2, 3.2)); this.mound?.setPosition(q.x, 14 * TS);
+      if (Math.round(q.tm) === 24 && !this.swirl?.active) {   // the sand swirls where she will rise
+        this.qx = q.x; this.swirl = this.add.ellipse(q.x, 14 * TS - 2, 70, 12).setStrokeStyle(2, 0xffd890, 1).setDepth(8);
+        this.tweens.add({ targets: this.swirl, scaleX: 0.6, scaleY: 0.6, alpha: 0.4, yoyo: true, repeat: -1, duration: 160 });
+      }
+      if (this.swirl?.active) q.x = this.qx;
+      if (q.tm <= 0) {
+        this.mound?.destroy(); this.swirl?.destroy(); this.swirl = null;
+        q.state = 'surfaced'; q.tm = mad ? 48 : 60; q.setAlpha(1); q.body.enable = true; this.sink(q, false, 260);
+        this.hazard(q.x - 36, 14 * TS - 60, 72, 60, 260); this.cam.shake(420, 0.016); sfx('hit'); sfx('roar');
+        for (let i = 0; i < 6; i++) this.fx('dust', q.x + (i - 2.5) * 16, 14 * TS, { depth: 8 });
+        this.stars = this.fx('stun', q.x, q.body.top - 4, { depth: 10, follow: q });
+      }
+    } else if (q.state === 'surfaced') {
+      q.setVelocityX(0); this.stars?.setPosition(Math.round(q.x), Math.round(q.body.top - 4));
+      if (q.tm <= 0) { this.stars?.destroy(); this.stars = null; q.state = 'walk'; q.tm = 50; q.play('queen-walk'); }
+    }
+  }
+  queenFallen() {
+    this.springOpen = true; this.boss = null;
+    toast('The Scorpion Queen is slain. The spring runs clear.'); hint('<b>Walk into the spring</b> to drink.');
   }
   // foes in a stretch of the level vanish in smoke
   banish(x0, x1) {
@@ -2597,12 +2742,12 @@ let pick = cur, mapFrom = null;
 const GUIDE = [
   { k: 1, fa: 'شیرِ نیستان', name: 'The Lion of the Reeds', art: ['lion-roar', 8, 148],
     tale: 'Rostam lay down to sleep among the reeds while Rakhsh grazed. In the night a great lion crept out of the thicket. In the old tale faithful Rakhsh trampled it; here Rostam must stand against it himself.',
-    how: ['It <b>roars</b>, then <b>charges</b> in a straight line. Its hide turns your blows.', '<b>Jump over the charge</b> so it runs into the rocks: it is <b>dazed</b>, with stars circling its head.', '<b>Strike while the arrow shows</b>, or land on it from above for a double blow.'],
+    how: ['It <b>roars</b>, then <b>charges</b> in a straight line. Its hide turns your blows.', '<b>Jump over the charge</b> so it runs into the rocks: it is <b>dazed</b>, with stars circling its head.', '<b>Strike while it is dazed</b>, or land on it from above for a double blow. Hold Strike for a <b>heavy blow</b>.'],
     more: [['jackal-run', 8, 108, 'Jackal', 'Runs straight at you. One blow.'], ['div-hop', 8, 108, 'Blue Div', 'Hops toward you. Strike as it lands.']] },
-  { k: 2, fa: 'بیابانِ بی‌آب', name: 'The Waterless Desert', art: ['k2/scorpion-crawl', 8, 108],
-    tale: 'Beyond the reeds lay a desert where no bird flew. Rostam and Rakhsh grew faint with thirst, until a ram came walking out of the heat and led them to a hidden spring.',
-    how: ['Your <b>water drains</b> in the heat: skins refill a little, <b>wells refill it all</b>.', '<b>Scorpions</b> scuttle at you when you are close: <b>two blows</b>, or jump on them.', 'At the spring, <b>watch the ram tap the stones</b>, then strike them in the same order.'],
-    more: [['k2/vulture-fly', 8, 108, 'Vulture', 'Circles, then dives. Strike it as it swoops low.'], ['k2/ram-walk', 8, 108, 'The Ram', 'A friend. Follow it to the water.']] },
+  { k: 2, fa: 'ملکهٔ کژدم', name: 'The Scorpion Queen', art: ['k2/queen-sting', 9, 150],
+    tale: 'Beyond the reeds lay a desert where no bird flew. A ram led the dying Rostam to a hidden spring, and when its four bells rang the water burst from the rock; but the Queen of the scorpions had made that water her own.',
+    how: ['Her armour turns every blow. When her <b>stinger glows green</b> she is about to strike: <b>dodge</b> or step back.', 'Her sting <b>sticks in the sand</b>: she is dazed, so <b>strike now</b>.', 'When she <b>burrows</b>, a mound follows you and the <b>sand swirls</b> where she will rise: move away, then strike as she surfaces.', 'From afar she <b>spits venom</b>: keep moving. Your water does not drain while you fight her.'],
+    more: [['k2/scorpion-crawl', 8, 108, 'Scorpion', 'Two blows, or jump on it. Mind the sting.'], ['k2/vulture-fly', 8, 108, 'Vulture', 'Circles, then dives. Strike it as it swoops low.'], ['k2/ram-walk', 8, 108, 'The Ram', 'Follow it to the four bell towers, and ring them in the order it shows you.']] },
   { k: 3, fa: 'اژدها', name: 'The Dragon', art: ['k3/dragon-fire', 8, 136],
     tale: 'A dragon eighty cubits long ruled the night. Twice Rakhsh woke Rostam to warn him, and twice the dragon vanished into the dark. The third time God let Rostam see it, and with Rakhsh biting its neck he struck off its head.',
     how: ['You ride <b>Rakhsh</b>: faster, with a longer reach from the saddle.', 'The dragon <b>hides in the dark</b>; while hidden, blows pass through it.', 'When <b>Rakhsh rears and neighs</b> it is revealed: <b>charge and strike</b>, and <b>jump its fire</b>.'],
@@ -2625,7 +2770,11 @@ const GUIDE = [
   { k: 7, fa: 'دیوِ سپید', name: 'The White Div', art: ['k7/whitediv-smash', 9, 136],
     tale: 'The White Div held King Kay Kavus captive in a cave as dark as night, beyond seven mountains. Only the blood of its heart could give the blinded king back his sight. Rostam fought it until the cave ran with blood and sweat.',
     how: ['When <b>the floor glows blue</b> he raises his club: <b>jump onto the ice ledge</b>.', 'His slam shakes the whole floor, and his <b>club sticks in the ice</b>: <b>drop down and strike!</b>', 'Linger on the ledge and he roars: where <b>a light shines</b>, an <b>icicle falls</b> a second later. Move!', 'If he <b>stamps and flushes red</b>, he will <b>charge</b>: leap onto a ledge. If he hits the wall he is <b>dazed: strike!</b>'],
-    more: [['k6/divwarrior-smash', 8, 148, 'Div warrior', 'Three blows. Strike his back while he turns.'], ['k3/bat-fly', 8, 108, 'Bat', 'Swing up at it as it swoops.']] }
+    more: [['k6/divwarrior-smash', 8, 148, 'Div warrior', 'Three blows. Strike his back while he turns.'], ['k3/bat-fly', 8, 108, 'Bat', 'Swing up at it as it swoops.']] },
+  { k: 0, tab: '\u2726', kick: 'Rostam\'s allies', fa: 'یاران', name: 'Rakhsh and the Simurgh', art: ['simurgh-fly', 6, 150],
+    tale: 'Rostam never rides alone. Rakhsh, the rose-red horse no other rider could tame, carries him and fights beside him; and the Simurgh, the wise great bird who raised his father Zal, answers when a feather of hers is burned.',
+    how: ['Gather <b>eight provisions</b> in a labour and <b>Rakhsh</b> is well fed: he gallops in to kick the boss once.', 'Every provision fills your <b>Farr</b>. When it is full, press <b>F</b> (or tap Farr) and the Simurgh\'s light strikes every foe on screen.', 'Three <b>Simurgh feathers</b> hide in every labour, on its highest perches. Find all twenty-one for <b>the Simurgh\'s blessing</b>: one more heart, for ever.', 'Rostam\'s own arts: <b>dodge</b> (Shift), a <b>heavy blow</b> (hold Strike after a swing), and a <b>three-blow combo</b>.'],
+    more: [['k3/rakhsh-gallop', 8, 104, 'Rakhsh', 'Carries Rostam through the third labour, and rears to warn of the dragon.'], ['simurgh-fly', 6, 150, 'The Simurgh', 'Drops a feather after every victory. Take it to end the labour.']] }
 ];
 let gpg = 0, guideFrom = null;
 const mini = ([src, n, h], size, cls = '') => `<i class="spr ${cls}" style="--n:${n};--s:${size}px;--src:url(assets/${src}.png)" data-n="${n}" data-key="${src.split('/').pop()}"></i>`;
@@ -2651,12 +2800,12 @@ function animateMinis() {
 }
 function showGuide(i) {
   gpg = (i + GUIDE.length) % GUIDE.length; const g = GUIDE[gpg];
-  $('gtabs').innerHTML = GUIDE.map((x, j) => `<button class="${j === gpg ? 'sel' : ''}" data-g="${j}" aria-label="Khan ${ROMAN[x.k]}: ${x.name}">${ROMAN[x.k]}</button>`).join('');
+  $('gtabs').innerHTML = GUIDE.map((x, j) => `<button class="${j === gpg ? 'sel' : ''}" data-g="${j}" aria-label="${x.kick || 'Khan ' + ROMAN[x.k]}: ${x.name}">${x.tab || ROMAN[x.k]}</button>`).join('');
   $('gtabs').querySelectorAll('button').forEach(b => b.onclick = () => showGuide(+b.dataset.g));
   $('gleaf').innerHTML = `<div class="gcard"><div class="gport k${g.k}">${mini(g.art, 180)}</div>
-    <div class="gtext"><div class="fa">${g.fa}</div><h2>${g.name}</h2><p class="kick">Khan ${ROMAN[g.k]} &middot; ${NAMES[g.k][0]}</p><p class="gtale">${g.tale}</p></div></div>
-    <div class="ghow"><h3>How to beat it <span class="gkey"><i class="ka"></i>strike now <i class="ks"></i>guarded</span></h3><ol>${g.how.map(h => `<li>${h}</li>`).join('')}</ol></div>
-    <h3 class="galso">Also on this road</h3><div class="gmore">${g.more.map(([src, n, h, name, tip]) => `<div>${mini([src, n, h], 64)}<p><b>${name}</b>${tip}</p></div>`).join('')}</div>`;
+    <div class="gtext"><div class="fa">${g.fa}</div><h2>${g.name}</h2><p class="kick">${g.kick || `Khan ${ROMAN[g.k]} &middot; ${NAMES[g.k][0]}`}</p><p class="gtale">${g.tale}</p></div></div>
+    <div class="ghow"><h3>${g.k ? 'How to beat it' : 'How they help'} ${g.k ? '<span class="gkey"><i class="kz"></i>stars: dazed, strike now</span>' : ''}</h3><ol>${g.how.map(h => `<li>${h}</li>`).join('')}</ol></div>
+    <h3 class="galso">${g.k ? 'Also on this road' : 'Who they are'}</h3><div class="gmore">${g.more.map(([src, n, h, name, tip]) => `<div>${mini([src, n, h], 64)}<p><b>${name}</b>${tip}</p></div>`).join('')}</div>`;
   $('gleaf').scrollTop = 0; animateMinis();
 }
 function openGuide(n) {
@@ -2669,18 +2818,20 @@ function closeGuide() { $('s-guide').classList.add('hidden'); if (guideFrom) { g
 const MAP_AT = [null, [12.5, 51], [25, 56], [40, 40], [49, 57], [61.5, 42], [76.5, 52], [92.5, 48]];
 // the gentle road: two more hearts, a longer breath after each wound, bosses with less life, and slower thirst
 const gentle = () => store.get('sh-diff') === 'gentle';
+const feathers = () => { try { return JSON.parse(store.get('sh-feathers') || '{}'); } catch (e) { return {}; } };
 const bestOf = n => +(store.get(n === 1 ? 'sh-best' : 'sh-best-' + n) || 0);
 function renderMap() {
-  const u = unlocked();
+  const u = unlocked(), F = feathers();
   const path = MAP_AT.slice(1).map(([x, y]) => `${x},${y}`).join(' ');
   $('road').innerHTML = `<svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><polyline points="${path}" fill="none" stroke="#ffd890" stroke-opacity=".55" stroke-width="2" stroke-dasharray="1 6" stroke-linecap="round" vector-effect="non-scaling-stroke"/></svg>` +
     NAMES.slice(1).map(([name], i) => {
       const n = i + 1, open = n <= u && LEVELS[n], done = n < u, [x, y] = MAP_AT[n];
-      return `<li style="left:${x}%;top:${y}%"><button data-n="${n}" class="${n === pick ? 'sel' : ''} ${done ? 'done' : ''}" ${open ? '' : 'disabled'} aria-label="Labour ${n}: ${name}${open ? '' : ' (locked)'}">${ROMAN[n]}</button></li>`;
+      const fc = [0, 1, 2].filter(k => F[n + ':' + k]).length;
+      return `<li style="left:${x}%;top:${y}%"><button data-n="${n}" class="${n === pick ? 'sel' : ''} ${done ? 'done' : ''}" ${open ? '' : 'disabled'} aria-label="Labour ${n}: ${name}${open ? '' : ' (locked)'}, ${fc} of 3 feathers">${ROMAN[n]}</button>${open ? `<span class="fc${fc === 3 ? ' all' : ''}" aria-hidden="true">${'<i></i>'.repeat(fc)}${'<i class="no"></i>'.repeat(3 - fc)}</span>` : ''}</li>`;
     }).join('');
   $('road').querySelectorAll('button').forEach(b => b.onclick = () => { pick = +b.dataset.n; renderMap(); });
   const ready = !!LEVELS[pick] && pick <= u, best = bestOf(pick);
-  $('mapInfo').innerHTML = `<span class="pf">${NAMES[pick][1]}</span><em>Khan ${ROMAN[pick]}: ${NAMES[pick][0]}.</em> ${BLURB[pick]}${best ? ` <em>Best time ${Math.floor(best / 60)}:${String(best % 60).padStart(2, '0')}.</em>` : ''}${LEVELS[pick] ? '' : ' <br>This part of the road is still being built.'}`;
+  $('mapInfo').innerHTML = `<span class="pf">${NAMES[pick][1]}</span><em>Khan ${ROMAN[pick]}: ${NAMES[pick][0]}.</em> ${BLURB[pick]}${best ? ` <em>Best time ${Math.floor(best / 60)}:${String(best % 60).padStart(2, '0')}.</em>` : ''}${LEVELS[pick] ? '' : ' <br>This part of the road is still being built.'}<span class="ftot"><i></i> Simurgh feathers found: <b>${[0, 1, 2].filter(k => F[pick + ':' + k]).length} of 3</b> here, <b>${Object.keys(F).length} of 21</b> in all${Object.keys(F).length >= 21 ? ' &middot; <em>the Simurgh blesses you</em>' : ''}</span>`;
   $('rideBtn').disabled = !ready; $('mapTale').disabled = !document.getElementById('tale-' + pick);
 }
 function openMap(e) {
@@ -2900,7 +3051,8 @@ let toastT = 0;
 function hint(html) {
   const h = $('hint'); if (!html) { h.classList.add('hidden'); h.dataset.t = ''; return; }
   if (h.dataset.t === html) return; h.dataset.t = html; h.innerHTML = html;
-  h.classList.remove('hidden', 'new'); void h.offsetWidth; h.classList.add('new');
+  h.classList.remove('hidden', 'new', 'dim'); void h.offsetWidth; h.classList.add('new');
+  clearTimeout(hint.t); hint.t = setTimeout(() => h.classList.add('dim'), 7000);
 }
 function toast(msg) { const t = $('toast'); t.textContent = msg; t.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('on'), 3200); }
 function banner(fa, name, ep = '') {

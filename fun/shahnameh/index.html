@@ -224,7 +224,7 @@ body:not(.playing) #farrBtn{display:none}
 @media (max-width:620px){.pill.farr .fl{display:none}.fbar{width:44px}}
 @media (prefers-reduced-motion:reduce){.pill.farr.full,#offerBtn{animation:none}}
 /* the home map's four buttons share one row on a wide screen */
-@media (min-width:521px){.mapPage .btns{flex-wrap:nowrap;gap:8px}.mapPage .btns .btn{padding:0 16px}.mapPage .btns .btn2{padding:0 2px;font-size:14px}}
+@media (min-width:521px){.mapPage .btns{flex-wrap:wrap;gap:8px}.mapPage .btns .btn{padding:0 16px}.mapPage .btns .btn2{padding:0 2px;font-size:14px}}
 /* how to play: six short sections in two columns */
 .helpPage{width:min(100%,780px)}
 .helpGrid{display:grid;grid-template-columns:1fr 1fr;gap:8px 16px;text-align:left;margin:4px 0 12px}
@@ -265,7 +265,7 @@ body:not(.playing) #farrBtn{display:none}
 @media (prefers-reduced-motion:reduce){.homebg i,.heroes img,.heroes figure:before{animation:none}}
 #s-map.home .page{z-index:2;background:none;border:0;filter:none;padding:0;width:min(100%,720px);color:#efe3c6}
 #s-map.home .page:before{content:"";position:absolute;inset:-4% -8%;z-index:-1;background:radial-gradient(ellipse at center,rgba(4,5,11,.72),rgba(4,5,11,.35) 60%,transparent 75%);pointer-events:none}
-#s-map.home .fa{font-size:clamp(38px,6.8vh,70px);line-height:1.45;margin:0 auto;padding:.15em .35em 0;width:max-content;max-width:100%;background:linear-gradient(#fff6d0,#f4c24e 52%,#a35f14);-webkit-background-clip:text;background-clip:text;color:transparent;text-shadow:none;filter:drop-shadow(0 3px 0 #1a0c02) drop-shadow(0 0 22px rgba(255,170,60,.35))}
+#s-map.home .fa{font-size:clamp(38px,6.8vh,70px);line-height:1.45;margin:0 auto -.32em;padding:.15em .35em .38em;width:max-content;max-width:100%;background:linear-gradient(#fff6d0,#f4c24e 52%,#a35f14);-webkit-background-clip:text;background-clip:text;color:transparent;text-shadow:none;filter:drop-shadow(0 3px 0 #1a0c02) drop-shadow(0 0 22px rgba(255,170,60,.35))}
 #s-map.home h2{font-size:clamp(24px,4.4vh,42px);letter-spacing:.07em;margin:0 0 2px;color:#f6dc8c;text-shadow:0 3px 0 #2a1404,0 0 26px rgba(255,180,80,.35)}
 #s-map.home .kick{color:#c8a46a;font-size:clamp(14px,2vh,18px);letter-spacing:.22em}
 #s-map.home .story{color:#e9dfc8;font-size:clamp(16px,2.3vh,20px);text-shadow:0 2px 6px #000;max-width:600px}#s-map.home .story b{color:#f6dc8c}#s-map.home .story em{color:#ff9a6a}
@@ -347,6 +347,24 @@ body.calm #banner.on{animation-name:banCalm}@keyframes banCalm{0%{opacity:0}15%,
 .tb small{position:absolute;bottom:-15px;left:50%;transform:translateX(-50%);font:700 9px Inter,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,240,210,.75);text-shadow:0 1px 2px #000;pointer-events:none}
 .tb svg path{fill:#fff}#touch .dodge svg path{fill:none}
 @media (max-height:420px){#touch .act .strike{width:72px;height:72px}.tb{width:58px;height:58px}#touch .act .dodge{width:50px;height:50px}.tb small{display:none}}
+/* the Simurgh's feathers: three pips under each labour's seal, and the tally under the map */
+.road .fc{position:absolute;left:50%;top:100%;transform:translate(-50%,3px);display:flex;gap:2px;pointer-events:none}
+.road .fc i{width:6px;height:11px;border-radius:50% 50% 50% 50%/70% 70% 30% 30%;background:linear-gradient(#7affe0,#e8c25a);box-shadow:0 0 4px rgba(122,255,224,.8);display:block}
+.road .fc i.no{background:rgba(0,0,0,.45);box-shadow:inset 0 0 0 1px rgba(232,194,90,.45)}.road .fc.all i{box-shadow:0 0 6px #ffe28a}
+.ftot{display:block;margin-top:4px;font:500 15px var(--book);color:#4a2e14}.ftot b{color:var(--rubric)}#s-map.home .ftot{color:#c8b896}#s-map.home .ftot b{color:#7affe0}
+.ftot i{display:inline-block;width:7px;height:12px;margin-right:4px;vertical-align:-1px;border-radius:50%/70% 70% 30% 30%;background:linear-gradient(#7affe0,#e8c25a)}
+.gport.k0{background:radial-gradient(ellipse at 50% 60%,rgba(122,255,224,.35),transparent 60%),linear-gradient(#2a3a6a,#0b1233)}
+.gkey .kz{width:14px;height:10px;margin-left:6px;background:radial-gradient(circle,#ffe28a 0 2px,transparent 3px) 0 0/7px 5px;display:inline-block}
+/* home: Ride out stands alone as the one clear way forward; the other doors sit in a row beneath it */
+#s-map.home .btns{display:grid;grid-template-columns:repeat(4,auto);justify-content:center;gap:8px 10px}
+#s-map.home #rideBtn{grid-column:1/-1;justify-self:center;min-width:260px;height:52px;font-size:21px;letter-spacing:.1em;filter:drop-shadow(0 0 14px rgba(120,160,255,.35))}
+#s-map.home #rideBtn:hover:not(:disabled){filter:brightness(1.18) drop-shadow(0 0 18px rgba(140,180,255,.6))}
+@media (max-width:620px){#s-map.home .btns{grid-template-columns:1fr 1fr}#s-map.home .btns .btn2{width:100%}}
+/* a phone held sideways: the HUD keeps to one line (the labour's name and the Funfair label give way) */
+@media (max-height:440px),(max-width:760px){#lbl,.back .t{display:none!important}#hud .pill{height:32px;padding:0 10px;font-size:13px}#hud .icon{width:32px;padding:0}#hearts img{width:18px;height:15px}.pill.farr .fl{display:none}.fbar{width:44px}#pauseBtn{gap:4px}}
+@media (max-height:440px){#pauseBtn{font-size:0;width:32px;padding:0;justify-content:center}#pauseBtn svg{margin:0}}
+/* the standing hint steps back after a while so it never hides the road; it comes forward again when it changes */
+#hint{transition:opacity .6s}#hint.dim{opacity:.38}
 </style>
 </head>
 <body>
@@ -472,12 +490,14 @@ body.calm #banner.on{animation-name:banCalm}@keyframes banCalm{0%{opacity:0}15%,
     <div class="fa">راهِ پهلوانی</div>
     <h2>How to Play</h2>
     <div class="helpGrid">
-      <section><h3>Moving</h3><p><kbd>&larr;</kbd> <kbd>&rarr;</kbd> run &middot; <kbd>&uarr;</kbd> or <kbd>Space</kbd> jump, and <b>jump again in the air</b> for a super jump &middot; <kbd>X</kbd> strike with the ox-head mace. Land on a foe from above for a double blow.<span class="touch"> On a phone, use the buttons at the bottom of the screen.</span></p></section>
-      <section><h3>Bosses</h3><p>Each great foe has an opening. <b>A gold arrow over its head means strike now</b>; without it your blow will not land. Watch for the warning glow before its big attacks, and use the ledges.</p></section>
-      <section><h3>Hearts</h3><p>You have five hearts. Roast lamb and glowing hearts restore them; in boss fights a heart appears in a corner now and then.</p></section>
-      <section><h3>Sacred fires</h3><p>Walk past a fire altar to light it: if you fall, you rise there. At a lit fire press <kbd>&darr;</kbd> (or tap <b>Offer</b>) to visit the <b>Fire Temple</b>.</p></section>
-      <section><h3>Provisions</h3><p>Pomegranates, bread and lamb fill your purse, kept from labour to labour. Spend them at the Fire Temple on lasting gifts: an extra heart, a higher jump, a longer reach, a heavier mace.</p></section>
-      <section><h3>Farr and Rakhsh</h3><p>Every provision also fills your golden <b>Farr</b>: when full, press <kbd>F</kbd> (or tap it) and the Simurgh strikes every foe on screen. Gather eight provisions in a labour and <b>Rakhsh</b> gallops in to kick the boss.</p></section>
+      <section><h3>Moving</h3><p><kbd>&larr;</kbd> <kbd>&rarr;</kbd> run &middot; <kbd>&uarr;</kbd> or <kbd>Space</kbd> jump, and <b>jump again in the air</b> for a super jump. Land on a foe from above for a double blow.<span class="touch"> On a phone, use the buttons at the bottom of the screen.</span></p></section>
+      <section><h3>Fighting</h3><p><kbd>X</kbd> strike with the ox-head mace. <b>Three quick strikes</b> end in a hard finisher. <b>Keep holding</b> Strike after a swing until the mace glows, then let go for a <b>heavy blow</b>. <kbd>Shift</kbd> or <kbd>C</kbd> <b>dodges</b>: no blow can touch you mid-dash.</p></section>
+      <section><h3>Bosses</h3><p>Each great foe has an opening. <b>When stars circle its head it is dazed: strike now</b>, and the boss bar flashes <b>Strike now!</b> Otherwise your blows glance off. Watch for the warning glow before its big attacks; the corner ledge is a refuge, but you must come down to win.</p></section>
+      <section><h3>Hearts and fires</h3><p>Roast lamb and glowing hearts restore you; in boss fights a heart appears in a corner now and then. Walk past a <b>fire altar</b> to light it: if you fall, you rise there. At a lit fire press <kbd>&darr;</kbd> (or tap <b>Offer</b>) for the <b>Fire Temple</b>.</p></section>
+      <section><h3>Provisions and Farr</h3><p>Provisions fill your purse, to spend at the Fire Temple on lasting gifts, and your golden <b>Farr</b>: when it is full press <kbd>F</kbd> and the Simurgh strikes every foe on screen. Gather eight in a labour and <b>Rakhsh</b> gallops in to kick the boss.</p></section>
+      <section><h3>Simurgh feathers</h3><p>Three feathers glow on the <b>highest perches</b> of every labour. The map shows how many you have found. Find all <b>twenty-one</b> for the Simurgh's blessing: one more heart, for ever.</p></section>
+      <section><h3>Gamepad</h3><p>Stick or D-pad move &middot; <b>A</b> jump &middot; <b>X</b> strike (hold for heavy) &middot; <b>B</b> dodge &middot; <b>Y</b> Farr &middot; <b>Start</b> menu. In menus the D-pad moves, A presses and B goes back.</p></section>
+      <section><h3>Your way</h3><p>Choose the <b>Gentle road</b> on the home screen for more hearts and gentler bosses. In <b>Settings</b> set the volumes, turn off screen shake or flashes, and change any key.</p></section>
     </div>
     <div class="btns"><button class="btn" id="helpDone">To the road</button></div>
   </div>
@@ -636,6 +656,6 @@ body.calm #banner.on{animation-name:banCalm}@keyframes banCalm{0%{opacity:0}15%,
 </template>
 
 <script src="https://cdn.jsdelivr.net/npm/phaser@3.80.1/dist/phaser.min.js"></script>
-<script src="game.js?v=62"></script>
+<script src="game.js?v=65"></script>
 </body>
 </html>
