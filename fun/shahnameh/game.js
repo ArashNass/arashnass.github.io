@@ -40,7 +40,7 @@ const FPS = { 'rostam-idle': 5, 'rostam-run': 14, 'rostam-jump': 6, 'rostam-atta
 const SIZE = { rider: 124, rostam: 112, lion: 148, jackal: 108, div: 108, scorpion: 86, vulture: 92, ram: 86, dragon: 136, rakhsh: 104, bat: 108, serpent: 92, hag: 108, beauty: 108, spearman: 140, olad: 112, divwarrior: 100, arzhang: 136, whitediv: 136 };
 const BODY = { rider: [0.3, 0.5], rostam: [0.143, 0.393], lion: [0.5, 0.36], jackal: [0.3, 0.22], div: [0.22, 0.34], scorpion: [0.4, 0.22], vulture: [0.33, 0.2], ram: [0.4, 0.4],
   dragon: [0.46, 0.42], rakhsh: [0.5, 0.5], bat: [0.32, 0.24], serpent: [0.31, 0.31], hag: [0.27, 0.42], beauty: [0.2, 0.47], spearman: [0.115, 0.386], olad: [0.17, 0.49], divwarrior: [0.31, 0.64], arzhang: [0.3, 0.7], whitediv: [0.4, 0.58] };
-const V = 44;   // bump to bust caches when assets change
+const V = 45;   // bump to bust caches when assets change
 
 // PixelLab VFX strips in ./assets/fx: frame size, frame count, fps, and the effect's origin as a fraction of the frame
 const FX = {
@@ -471,7 +471,7 @@ const LEVELS = {
     fires: [82], hearts: [80],                       // a last fire and a heart before the lion's den
     update(s, k, time, p) { if (!s.bossOn && p.x > 88 * TS) s.startBoss(); },
     win: 'With the lion of the reeds slain, Rostam takes up a feather of the Simurgh. Ahead lies the waterless desert of the second labour.',
-    tips: ['The lion charges in a straight line. Step aside, or leap over it, and strike while it is dazed.',
+    tips: ['The lion\'s hide turns your blows. Leap its charge so it runs into the rocks, then strike while it is dazed and the gold arrow shows.',
       'Land on a foe from above to strike it twice as hard.', 'Roast lamb restores a heart. Look for it on the high ledges.',
       'Light the fire altars: if Rostam falls, he returns to the last sacred fire.', 'The blue Divs hop toward you. Strike as they land.']
   },
@@ -637,7 +637,7 @@ const LEVELS = {
     fires: [107], hearts: [105],
     update(s, k, time, p) { if (!s.bossOn && p.x > 114 * TS) s.startOlad(); },
     win: 'Rostam lassos Olad and spares his life. Olad swears to guide him to the camp of Arzhang Div and to the White Div\'s cave, and he is promised the throne of Mazandaran.',
-    tips: ['Olad catches frontal blows on his shield. When he glows after a swing he is open: strike. Or jump twice to leap over him.', 'Spearmen have a long reach. Close in after their thrust.',
+    tips: ['Olad\'s shield blocks blows from the front. Step back when he flashes, then strike while he glows. His back is always open.', 'In every boss fight, a gold arrow over the foe means strike now; a grey shield means your blow will not land.', 'Spearmen have a long reach. Close in after their thrust.',
       'Land on a foe from above to strike twice as hard.', 'Fire altars mark where you return if you fall.']
   },
   6: {
@@ -830,6 +830,17 @@ function makeTextures(scene) {
     x.fillStyle = '#2a3a5a'; x.beginPath(); x.moveTo(0, 0); x.lineTo(8, 0); x.lineTo(4, 22); x.closePath(); x.fill();
     x.fillStyle = '#bfe0ff'; x.beginPath(); x.moveTo(1, 1); x.lineTo(7, 1); x.lineTo(4, 19); x.closePath(); x.fill();
     x.fillStyle = '#ffffff'; x.fillRect(2, 1, 2, 9);
+  });
+  // over a boss's head: a gold arrow when a blow will land, a grey shield when it will not
+  layer('mark-open', 13, 11, x => {
+    x.fillStyle = '#2a1404'; x.beginPath(); x.moveTo(0, 0); x.lineTo(13, 0); x.lineTo(6.5, 11); x.closePath(); x.fill();
+    x.fillStyle = '#f6c94a'; x.beginPath(); x.moveTo(2, 1.2); x.lineTo(11, 1.2); x.lineTo(6.5, 8.6); x.closePath(); x.fill();
+    x.fillStyle = '#fff6c8'; x.fillRect(3, 1, 4, 1);
+  });
+  layer('mark-guard', 12, 14, x => {
+    x.fillStyle = '#1a1428'; x.beginPath(); x.moveTo(0, 0); x.lineTo(12, 0); x.lineTo(12, 7); x.lineTo(6, 14); x.lineTo(0, 7); x.closePath(); x.fill();
+    x.fillStyle = '#9aa4b8'; x.beginPath(); x.moveTo(1, 1); x.lineTo(11, 1); x.lineTo(11, 7); x.lineTo(6, 12.5); x.lineTo(1, 7); x.closePath(); x.fill();
+    x.fillStyle = '#5a6478'; x.fillRect(5, 1, 2, 11); x.fillStyle = '#d8deea'; x.fillRect(2, 2, 2, 4);
   });
   layer('boulder', 14, 12, x => {
     x.fillStyle = '#1a1428'; x.beginPath(); x.ellipse(7, 6, 7, 6, 0, 0, 7); x.fill();
@@ -1050,7 +1061,7 @@ class Play extends Phaser.Scene {
   create() {
     // the scene object is reused from labour to labour: forget whatever the last one left behind
     for (const k of ['dark', 'lights', 'lamp', 'wall', 'wallR', 'stars', 'pose', 'swingFx', 'witch', 'unmasked', 'olad', 'rakhsh', 'dragonSeen', 'horde', 'hordeDone',
-      'gates', 'hordeBat', 'floorWarn', 'highWarn', 'regrow', 'drums', 'whiteDown', 'ended', 'mounted', 'prayed', 'drank', 'toldImmune', 'toldDeflect', 'kavus', 'stones', 'puzzle', 'springOpen', 'pool']) delete this[k];
+      'gates', 'hordeBat', 'mark', 'markGlow', 'markOpen', 'bossHeart', 'bossHeartT', 'floorWarn', 'highWarn', 'regrow', 'drums', 'whiteDown', 'ended', 'mounted', 'prayed', 'drank', 'toldImmune', 'toldDeflect', 'kavus', 'stones', 'puzzle', 'springOpen', 'pool']) delete this[k];
     // turn loaded strips into square frames; anything missing falls back to placeholder art
     for (const [k, f] of Object.entries(ART)) if (f && this.textures.exists(k)) {
       const t = this.textures.get(k), img = t.getSourceImage(), fh = img.height, n = Math.max(1, Math.round(img.width / fh));
@@ -1235,18 +1246,44 @@ class Play extends Phaser.Scene {
     const l = this.lion = this.physics.add.sprite(this.lionAt.x, this.lionAt.y - 40, 'lion-walk', 0);
     this.fit(l, 'lion'); l.hp = 8; l.max = 8; l.state = 'roar'; l.tm = 70; l.dir = -1; l.setFlipX(true); l.play('lion-roar'); l.setDepth(4);
     this.boss = l; l.onDown = () => this.lionDown(); l.ai = () => this.lionAI();
+    l.immune = () => l.state !== 'stun'; l.immuneMsg = 'The lion\'s hide turns your blow. Jump its charge so it runs into the rocks, then strike while it is dazed.';
     this.physics.add.collider(l, this.layer); this.physics.add.collider(l, [this.wall, this.wallR]);
     sfx('roar'); this.roarRings(l);
     $('boss').classList.remove('hidden'); this.bossBar(); banner();
-    hint('The lion roars, then charges. <b>Jump over the charge</b>: if it runs into the rocks it is dazed, so <b>strike it then</b>.');
+    hint('The lion roars, then charges. <b>Jump over the charge</b>: when it runs into the rocks it is dazed. <b>Strike while the gold arrow shows.</b>');
   }
   bossBar() { $('bossHp').style.width = (this.boss.hp / this.boss.max * 100) + '%'; }
+  // one sign for every boss: a gold arrow and a golden glow when a blow from where Rostam stands will land, a grey shield when it will not
+  bossMark(B, time) {
+    const open = !this.frozen && (B.open ? B.open() : !B.immune?.());
+    // the marker sits above the darkness layer
+    if (!this.mark?.active) { this.mark = this.add.image(0, 0, 'mark-guard').setDepth(12).setScale(1.6); this.markGlow = this.add.image(0, 0, 'glow').setTint(0xffc040).setBlendMode(Phaser.BlendModes.ADD).setDepth(3); }
+    if (open !== this.markOpen) {
+      this.markOpen = open; this.mark.setTexture(open ? 'mark-open' : 'mark-guard');
+      if (open) { this.tweens.add({ targets: this.mark, scale: { from: 3, to: 1.6 }, duration: 300, ease: 'Back.easeOut' }); this.toldImmune = false; }
+      $('boss').classList.toggle('open', open); $('bossState').textContent = open ? 'Strike now!' : 'Guarded';
+    }
+    const vis = B.alpha > 0.3 && B.visible && !B.noMark?.();
+    this.mark.setVisible(vis).setAlpha(open ? 1 : 0.8).setPosition(Math.round(B.x), Math.round(B.body.top - 22 + (open ? Math.sin(time / 90) * 4 : 0)));
+    this.markGlow.setVisible(open && vis).setPosition(B.body.center.x, B.body.center.y).setScale(B.body.width / 40, B.body.height / 40).setAlpha(0.55 + Math.sin(time / 110) * 0.2);
+    // now and then a heart glows in the corner of the arena farthest from the boss
+    this.bossHeartT = (this.bossHeartT ?? 900) - 1;
+    if (this.bossHeart?.active && time > this.bossHeart.dieAt) { this.bossHeart.glow?.destroy(); this.bossHeart.destroy(); }
+    if (this.bossHeartT <= 0) {
+      this.bossHeartT = 1200;
+      if (this.hp < 5 && !this.bossHeart?.active) {
+        const cx = this.cam.scrollX, x = B.x > cx + W / 2 ? cx + 24 : cx + W - 24, r = this.groundAt(x);
+        if (r != null) { const h = this.bossHeart = this.heart(x, r * TS - 12); h.dieAt = time + 10000; this.fx('heal', x, r * TS, { depth: 6 }); toast('A heart glows in the corner. Grab it!'); }
+      }
+    }
+  }
+  hideMark() { this.mark?.destroy(); this.markGlow?.destroy(); this.mark = this.markGlow = null; this.markOpen = undefined; if (this.bossHeart?.active) { this.bossHeart.glow?.destroy(); this.bossHeart.destroy(); } }
   lionAI() {
     const l = this.lion, p = this.player; if (!l || !l.active || l.hp <= 0) return;
     l.tm--; const toP = Math.sign(p.x - l.x) || 1;
     if (l.state === 'prowl') { l.setVelocityX(toP * 45); l.dir = toP; if (l.anims.currentAnim?.key !== 'lion-walk') l.play('lion-walk'); if (l.tm <= 0) { l.state = Math.random() < 0.6 ? 'roar' : 'pounce'; l.tm = 45; l.setVelocityX(0); if (l.state === 'roar') { l.play('lion-roar'); sfx('roar'); this.roarRings(l); } } }
     else if (l.state === 'roar') { l.setVelocityX(0); if (l.tm <= 0) { l.state = 'charge'; l.dir = toP; l.tm = 110; l.play('lion-run'); } }
-    else if (l.state === 'charge') { l.setVelocityX(l.dir * 230); if (l.body.blocked.left || l.body.blocked.right || l.tm <= 0) { l.state = 'stun'; l.tm = 70; l.setVelocityX(0); l.play('lion-walk'); l.anims.pause(); this.cam.shake(200, 0.01);
+    else if (l.state === 'charge') { l.setVelocityX(l.dir * 230); if (l.body.blocked.left || l.body.blocked.right || l.tm <= 0) { l.state = 'stun'; l.tm = 110; l.setVelocityX(0); l.play('lion-walk'); l.anims.pause(); this.cam.shake(200, 0.01);
       this.fx('dust', l.x + l.dir * 30, l.body.bottom, { depth: 8 }); this.stars = this.fx('stun', l.x, l.body.top - 6, { depth: 10, follow: l }); } }
     else if (l.state === 'pounce') { if (l.tm === 44) { l.dir = toP; l.setVelocity(toP * 170, -330); l.play('lion-run'); } if (l.tm < 30 && l.body.blocked.down) { l.state = 'prowl'; l.tm = 70 + Math.random() * 40; l.setVelocityX(0); } }
     else if (l.state === 'stun') { if (this.stars) this.stars.setPosition(Math.round(l.x), Math.round(l.body.top - 6)); if (l.tm <= 0) { l.anims.resume(); l.state = 'prowl'; l.tm = 80; this.stars?.destroy(); this.stars = null; } }
@@ -1255,7 +1292,7 @@ class Play extends Phaser.Scene {
     l.setFlipX(l.dir < 0);
   }
   lionDown() {
-    const l = this.lion; l.body.enable = false; l.anims.stop(); sfx('win'); this.stars?.destroy(); this.stars = null;
+    const l = this.lion; l.body.enable = false; l.anims.stop(); sfx('win'); this.stars?.destroy(); this.stars = null; this.hideMark();
     // the lion breaks into motes the colour of the Simurgh
     l.setVisible(false); this.fx('liondust', l.x + (l.flipX ? 6 : -6), l.body.bottom + 1, { flip: l.flipX, depth: 4 }); this.cam.flash(300, 255, 240, 200);
     $('boss').classList.add('hidden'); this.wall.destroy(); this.wallR?.destroy();
@@ -1362,7 +1399,7 @@ class Play extends Phaser.Scene {
     // boss
     const B = this.boss;
     if (B && B.active && B.hp > 0) {
-      B.ai(); this.bossBar();
+      B.ai(); this.bossBar(); this.bossMark(B, time);
       if (!B.immune?.() && Phaser.Geom.Intersects.RectangleToRectangle(b, B.body)) {
         if (b.velocity.y > 60 && b.bottom - B.body.top < 14) { this.damage(B); p.setVelocityY(-320); }
         else if (!B.calm?.()) this.hurt(B.x);
@@ -1422,7 +1459,7 @@ class Play extends Phaser.Scene {
   // a big boss falls: flash, smoke and light, then the labour is won
   bossFall(B, then) {
     this.drums?.remove();
-    B.body.enable = false; B.anims.stop(); sfx('win'); this.cam.flash(400, 255, 240, 200); this.hitStop(120);
+    B.body.enable = false; B.anims.stop(); sfx('win'); this.cam.flash(400, 255, 240, 200); this.hitStop(120); this.hideMark();
     $('boss').classList.add('hidden'); this.wall?.destroy(); this.wallR?.destroy(); this.hazards = []; this.shots.clear(true, true);
     for (let i = 0; i < 4; i++) this.time.delayedCall(i * 180, () => this.fx('poof', B.x + Phaser.Math.Between(-30, 30), B.body.bottom - Phaser.Math.Between(10, 50), { depth: 10 }));
     this.tweens.add({ targets: B, alpha: 0, y: B.y + 6, duration: 1400, delay: 400 });
@@ -1491,7 +1528,7 @@ class Play extends Phaser.Scene {
   /* ---- Khan IV: the feast, the name of God, and the witch ---- */
   startWitch() {
     const w = this.witch = this.physics.add.sprite(this.witchAt.x, this.witchAt.y - 40, 'beauty-idle', 0).setDepth(4).setFlipX(true);
-    this.fit(w, 'beauty'); w.play('beauty-idle'); w.immune = () => !this.unmasked || w.alpha < 0.5; w.immuneMsg = 'She only smiles. Speak the name of God: stand near her and strike.';
+    this.fit(w, 'beauty'); w.play('beauty-idle'); w.immune = () => !this.unmasked || w.alpha < 0.5; w.noMark = () => !this.unmasked; w.immuneMsg = 'She only smiles. Speak the name of God: stand near her and strike.';
     w.ai = () => this.witchAI(); w.onDown = () => this.bossFall(w);
     this.arena(112 * TS, w, 10); $('bossName').textContent = 'The Lady of the Garden';
     this.light(w, 1.2); banner('ضیافت', 'The Feast');
@@ -1548,32 +1585,39 @@ class Play extends Phaser.Scene {
     const o = this.physics.add.sprite(this.oladAt.x, this.oladAt.y - 40, 'olad-walk', 0).setDepth(4).setFlipX(true);
     this.fit(o, 'olad'); o.play('olad-walk'); o.state = 'walk'; o.tm = 60; o.dir = -1;
     // his shield turns frontal blows while he guards
-    o.immune = () => o.state === 'guard' && Math.sign(this.player.x - o.x) === o.dir && this.player.body.bottom > o.body.top + 12;
-    o.immuneMsg = 'Olad catches your blow on his shield! Strike right after his swing, or leap over him and strike his back.';
+    // his shield turns every blow from the front, except in the moment after his swing when his guard drops; his back is always open
+    o.immune = () => o.state !== 'open' && Math.sign(this.player.x - o.x) === o.dir && this.player.body.bottom > o.body.top + 12;
+    o.calm = () => o.state === 'open';
+    o.immuneMsg = 'Olad catches your blow on his shield! Dodge his swing, then strike while he glows. Or leap over him and strike his back.';
     o.ai = () => this.oladAI(); o.onDown = () => this.oladYields();
     this.arena(112 * TS, o, 9); this.olad = o;
     toast('Olad rides out to meet you, sword drawn: "Who are you, to cross the marches of Mazandaran?"');
-    hint('Olad\'s <b>shield blocks blows from the front</b>. Right after his sword swing he glows and is <b>open: strike then</b>. Or <b>jump twice</b> to leap over him and strike his back.');
+    hint('Olad\'s <b>shield blocks you from the front</b>. When he <b>flashes, step back</b> from his sword; then he glows and lowers his guard: <b>strike!</b> Or <b>jump twice</b> over him and hit his back. Strike when the <b>gold arrow</b> shows.');
   }
   oladAI() {
     const o = this.olad, p = this.player; o.tm--; const d = p.x - o.x;
     if (o.state !== 'slash') { o.dir = Math.sign(d) || -1; o.setFlipX(o.dir < 0); }
     if (o.state === 'walk') {
       o.setVelocityX(o.dir * 70); if (o.anims.currentAnim?.key !== 'olad-walk') o.play('olad-walk');
-      if (Math.abs(d) < 70 || o.tm <= 0) { o.state = 'slash'; o.tm = 30; o.setVelocityX(o.dir * 40); o.play('olad-slash'); sfx('swing'); o.hit = false; }
+      if (Math.abs(d) < 70 || o.tm <= 0) { o.state = 'ready'; o.tm = 26; o.setVelocityX(0); o.anims.stop(); o.setFrame(0); }
+    } else if (o.state === 'ready') {
+      // he draws back his sword, flashing: a moment to step out of reach
+      o.setVelocityX(0); o.setTintFill(Math.floor(o.tm / 4) % 2 ? 0xffffff : 0xffe0a0); if (o.tm % 8 < 4) o.clearTint();
+      if (o.tm <= 0) { o.clearTint(); o.state = 'slash'; o.tm = 30; o.setVelocityX(o.dir * 40); o.play('olad-slash'); sfx('swing'); o.hit = false; }
     } else if (o.state === 'slash') {
       if (!o.hit && o.tm < 20) { o.hit = true; this.hazard(o.dir > 0 ? o.x + 4 : o.x - 46, o.body.top + 4, 42, 30, 140); }
       // after the swing his sword hangs low and he is open for a moment
-      if (o.tm <= 0) { o.state = 'open'; o.tm = 48; o.setVelocityX(0); o.anims.stop(); o.setFrame(0); o.setTint(0xffd0a0); }
+      if (o.tm <= 0) { o.state = 'open'; o.tm = 84; o.setVelocityX(0); o.anims.stop(); o.setFrame(0); o.setTint(0xffd0a0); hint('Olad\'s guard is down: <b>strike now!</b>'); }
     } else if (o.state === 'open') {
-      o.setVelocityX(0); if (o.tm <= 0) { o.clearTint(); o.state = 'guard'; o.tm = 40 + Math.random() * 25; }
+      o.setVelocityX(0); if (o.tm <= 0) { o.clearTint(); o.state = 'guard'; o.tm = 30 + Math.random() * 20;
+        hint('Shield up again. When he <b>flashes, step back</b>, then <b>strike while he glows</b>, or leap over him and hit his back.'); }
     } else if (o.state === 'guard') {
       o.setVelocityX(0); if (o.tm <= 0) { o.state = 'walk'; o.tm = 90; if (Math.random() < 0.4) o.setVelocity(-o.dir * 150, -200); }
     }
   }
   oladYields() {
     // Olad is not slain: he kneels, Rostam's lasso binds him, and he becomes the guide
-    const o = this.olad, p = this.player; o.state = 'down'; o.setVelocity(0); o.body.enable = false; o.play('olad-kneel');
+    const o = this.olad, p = this.player; o.state = 'down'; o.setVelocity(0); o.body.enable = false; o.play('olad-kneel'); this.hideMark();
     $('boss').classList.add('hidden'); this.wall?.destroy(); this.wallR?.destroy(); this.frozen = true; p.setVelocityX(0); sfx('win');
     const rope = this.add.graphics().setDepth(8); let t = 0;
     const draw = () => {
@@ -1915,7 +1959,7 @@ let pick = cur, mapFrom = null;
 const GUIDE = [
   { k: 1, fa: 'شیرِ نیستان', name: 'The Lion of the Reeds', art: ['lion-roar', 8, 148],
     tale: 'Rostam lay down to sleep among the reeds while Rakhsh grazed. In the night a great lion crept out of the thicket. In the old tale faithful Rakhsh trampled it; here Rostam must stand against it himself.',
-    how: ['It <b>roars</b>, then <b>charges</b> in a straight line.', '<b>Jump over the charge</b>. If it runs into the rocks it is <b>dazed</b>.', '<b>Strike while it is dazed</b>, or land on it from above for a double blow.'],
+    how: ['It <b>roars</b>, then <b>charges</b> in a straight line. Its hide turns your blows.', '<b>Jump over the charge</b> so it runs into the rocks: it is <b>dazed</b>, and a <b>gold arrow</b> shows over it.', '<b>Strike while the arrow shows</b>, or land on it from above for a double blow.'],
     more: [['jackal-run', 8, 108, 'Jackal', 'Runs straight at you. One blow.'], ['div-hop', 8, 108, 'Blue Div', 'Hops toward you. Strike as it lands.']] },
   { k: 2, fa: 'بیابانِ بی‌آب', name: 'The Waterless Desert', art: ['k2/scorpion-crawl', 8, 108],
     tale: 'Beyond the reeds lay a desert where no bird flew. Rostam and Rakhsh grew faint with thirst, until a ram came walking out of the heat and led them to a hidden spring.',
@@ -1931,7 +1975,7 @@ const GUIDE = [
     more: [['k4/serpent', 8, 108, 'Serpent', 'Sways, then lunges. Hit it as it rears.'], ['k3/bat-fly', 8, 108, 'Bat', 'Strike it as it swoops.']] },
   { k: 5, fa: 'اولاد', name: 'Olad the Warden', art: ['k5/olad-slash', 6, 112],
     tale: 'In Mazandaran the warden Olad rode out with his men against the stranger. Rostam beat them, caught Olad with his lasso, and spared his life on one condition: that he show him the way to the Divs.',
-    how: ['His <b>shield blocks every blow from the front</b>.', 'Right after his sword swing <b>he glows: he is open, strike then</b>.', 'Or <b>jump twice</b> to leap over him and strike his back.'],
+    how: ['His <b>shield blocks every blow from the front</b> (a grey shield over his head).', 'When he <b>flashes, step back</b> from his sword. Then he <b>glows</b> and the <b>gold arrow</b> shows: <b>strike!</b>', 'Or <b>jump twice</b> over him: <b>his back is always open</b>.'],
     more: [['k5/spearman-thrust', 6, 140, 'Spearman', 'Long reach. Close in right after his thrust.']] },
   { k: 6, fa: 'ارژنگِ دیو', name: 'Arzhang Div', art: ['k6/arzhang-smash', 5, 136],
     tale: 'Arzhang was a chieftain of the Divs, camped with his horde before the mountains. Rostam rode into the camp at dawn with Olad as his guide, roared his name, and struck Arzhang\'s head from his shoulders.',
@@ -1950,7 +1994,7 @@ function showGuide(i) {
   $('gtabs').querySelectorAll('button').forEach(b => b.onclick = () => showGuide(+b.dataset.g));
   $('gleaf').innerHTML = `<div class="gcard"><div class="gport k${g.k}">${mini(g.art, 180)}</div>
     <div class="gtext"><div class="fa">${g.fa}</div><h2>${g.name}</h2><p class="kick">Khan ${ROMAN[g.k]} &middot; ${NAMES[g.k][0]}</p><p class="gtale">${g.tale}</p></div></div>
-    <div class="ghow"><h3>How to beat it</h3><ol>${g.how.map(h => `<li>${h}</li>`).join('')}</ol></div>
+    <div class="ghow"><h3>How to beat it <span class="gkey"><i class="ka"></i>strike now <i class="ks"></i>guarded</span></h3><ol>${g.how.map(h => `<li>${h}</li>`).join('')}</ol></div>
     <h3 class="galso">Also on this road</h3><div class="gmore">${g.more.map(([src, n, h, name, tip]) => `<div>${mini([src, n, h], 64)}<p><b>${name}</b>${tip}</p></div>`).join('')}</div>`;
   $('gleaf').scrollTop = 0;
 }
