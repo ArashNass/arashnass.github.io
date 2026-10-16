@@ -40,7 +40,7 @@ const FPS = { 'rostam-idle': 5, 'rostam-run': 14, 'rostam-jump': 6, 'rostam-atta
 const SIZE = { rider: 124, rostam: 112, lion: 148, jackal: 108, div: 108, scorpion: 86, vulture: 92, ram: 86, dragon: 136, rakhsh: 104, bat: 108, serpent: 92, hag: 108, beauty: 108, spearman: 140, olad: 112, divwarrior: 118, arzhang: 136, whitediv: 136 };
 const BODY = { rider: [0.3, 0.5], rostam: [0.143, 0.393], lion: [0.5, 0.36], jackal: [0.3, 0.22], div: [0.22, 0.34], scorpion: [0.4, 0.22], vulture: [0.33, 0.2], ram: [0.4, 0.4],
   dragon: [0.46, 0.42], rakhsh: [0.5, 0.5], bat: [0.24, 0.15], serpent: [0.31, 0.31], hag: [0.27, 0.42], beauty: [0.2, 0.47], spearman: [0.115, 0.386], olad: [0.17, 0.49], divwarrior: [0.26, 0.54], arzhang: [0.3, 0.7], whitediv: [0.4, 0.58] };
-const V = 29;   // bump to bust caches when assets change
+const V = 31;   // bump to bust caches when assets change
 
 // PixelLab VFX strips in ./assets/fx: frame size, frame count, fps, and the effect's origin as a fraction of the frame
 const FX = {
@@ -825,6 +825,7 @@ function audio() {
     A.music = c.createGain(); A.music.gain.value = 0.7; A.music.connect(A.master);
     A.fx = c.createGain(); A.fx.gain.value = 0.85; A.fx.connect(A.master);
     setInterval(pickTrack, 300);
+    loadSamples();
     const fs = c.createGain(); fs.gain.value = 0.2; A.fx.connect(fs).connect(A.verb);
     A.noise = c.createBuffer(1, c.sampleRate, c.sampleRate); const nd = A.noise.getChannelData(0); for (let i = 0; i < nd.length; i++) nd[i] = Math.random() * 2 - 1;
   }
@@ -909,7 +910,24 @@ function pickTrack() {
   setTrack(boss ? 'boss' : DARK.has(cur) ? 'dark' : 'road');
 }
 const music = on => { A.want = on; if (audio()) { if (on && !A.muted) track('boss'); pickTrack(); } };   // the battle theme loads early, ready for the boss
-const sfx = (k) => { if (!A.ctx || A.muted) return; const t = A.ctx.currentTime, S = KEY; ({
+// recorded effects (Pixabay, free to use, no credit needed), trimmed and levelled; [file, volume]
+const SAMPLE = { swing: ['swing', 0.32], hit: ['hit', 0.4], hurt: ['hurt', 0.45], jump: ['jump', 0.22], coin: ['pickup', 0.32],
+  fire: ['fire', 0.4], roar: ['roar', 0.45], neigh: ['neigh', 0.45], win: ['win', 0.5], drum: ['drum', 0.3] };
+function loadSamples() {
+  A.samples = {}; A.last = {};
+  for (const f of new Set(Object.values(SAMPLE).map(v => v[0])))
+    fetch(`assets/sfx/${f}.m4a?v=${V}`).then(r => r.arrayBuffer()).then(b => A.ctx.decodeAudioData(b)).then(buf => { A.samples[f] = buf; }).catch(() => {});
+}
+// play a recorded effect, a little different each time so repeats never grate; false if it is not loaded yet
+function sample(k) {
+  const [f, vol] = SAMPLE[k] || [], buf = A.samples?.[f]; if (!buf) return false;
+  const now = A.ctx.currentTime; if (now - (A.last[k] || 0) < 0.06) return true; A.last[k] = now;
+  const src = A.ctx.createBufferSource(), g = A.ctx.createGain(); src.buffer = buf;
+  src.playbackRate.value = k === 'win' ? 1 : 0.93 + Math.random() * 0.14;
+  g.gain.value = vol * (0.88 + Math.random() * 0.12); src.connect(g).connect(A.fx); src.start(); return true;
+}
+const sfx = (k) => { if (!A.ctx || A.muted) return; if (sample(k)) return; const t = A.ctx.currentTime, S = KEY; ({
+  drum: () => tone(62, 0.3, { type: 'sine', vol: 0.2, to: 38 }),
   jump: () => noise(t, 0.12, { f: 500, to: 1400, q: 2, vol: 0.06 }),
   coin: () => { pluck(pitch(S, 7), t, { vol: 0.22, out: A.fx }); pluck(pitch(S, 9), t + 0.07, { vol: 0.2, out: A.fx }); },
   swing: () => noise(t, 0.16, { f: 700, to: 2600, q: 1.2, vol: 0.14 }),
@@ -1509,7 +1527,7 @@ class Play extends Phaser.Scene {
       const f = this.fx('fire', gx, 14 * TS, { depth: 6 }); const g = this.add.image(gx, 13 * TS, 'glow').setScale(1.4).setBlendMode(Phaser.BlendModes.ADD).setDepth(5); this.light(g, 1.2, 0.1);
       return { r, f, g };
     });
-    banner('سپاهِ دیوان', 'The Horde of the Divs'); hint('The gates are shut! <b>Survive three waves of Divs</b>. Keep moving, and strike as they land.'); this.drums = this.time.addEvent({ delay: 420, loop: true, callback: () => tone(70, 0.25, { type: 'sine', vol: 0.22, to: 40 }) });
+    banner('سپاهِ دیوان', 'The Horde of the Divs'); hint('The gates are shut! <b>Survive three waves of Divs</b>. Keep moving, and strike as they land.'); this.drums = this.time.addEvent({ delay: 420, loop: true, callback: () => sfx('drum') });
     this.time.delayedCall(900, () => this.hordeWave());
   }
   hordeWave() {
@@ -1537,7 +1555,7 @@ class Play extends Phaser.Scene {
     this.fit(a, 'arzhang'); a.play('arzhang-walk'); a.state = 'walk'; a.tm = 80; a.dir = -1;
     a.ai = () => this.arzhangAI(); a.onDown = () => this.bossFall(a);
     this.arena(124 * TS, a, 14); this.light(a, 2); sfx('roar'); this.cam.shake(500, 0.008);
-    this.drums = this.time.addEvent({ delay: 500, loop: true, callback: () => tone(62, 0.3, { type: 'sine', vol: 0.2, to: 38 }) });
+    this.drums = this.time.addEvent({ delay: 500, loop: true, callback: () => sfx('drum') });
     toast('Arzhang Div rises from his throne of bones: "Who dares walk into my camp?"');
     hint('Arzhang\'s axe <b>splits the ground both ways: jump the wave</b>, then <b>strike him before he lifts it again</b>.');
   }
