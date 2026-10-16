@@ -217,6 +217,17 @@ body:not(.playing) #farrBtn{display:none}
 .tb.farr{background:rgba(200,144,42,.6);border-color:#ffe28a}.tb.farr svg{fill:#fff8d8}
 @media (max-width:620px){.pill.farr .fl{display:none}.fbar{width:44px}}
 @media (prefers-reduced-motion:reduce){.pill.farr.full,#offerBtn{animation:none}}
+/* the home map's four buttons share one row on a wide screen */
+@media (min-width:521px){.mapPage .btns{flex-wrap:nowrap;gap:8px}.mapPage .btns .btn{padding:0 16px}.mapPage .btns .btn2{padding:0 2px;font-size:14px}}
+/* how to play: six short sections in two columns */
+.helpPage{width:min(100%,780px)}
+.helpGrid{display:grid;grid-template-columns:1fr 1fr;gap:8px 16px;text-align:left;margin:4px 0 12px}
+.helpGrid section{padding:6px 10px;border:1px solid rgba(122,78,20,.45);background:rgba(255,246,220,.35)}
+.helpGrid h3{font:900 15px Cinzel,serif;color:var(--rubric);margin:0 0 2px}.helpGrid p{font:500 16px/1.38 var(--book);color:var(--inkb);margin:0}.helpGrid b{color:var(--lapisInk)}
+.helpGrid kbd{display:inline-block;min-width:20px;padding:0 5px;border:1px solid #9a7440;background:rgba(255,248,225,.6);font:600 11px Inter,sans-serif;line-height:18px;color:var(--inkb);text-align:center}
+.helpGrid .touch{display:none}@media (pointer:coarse){.helpGrid .touch{display:inline}}
+@media (max-width:620px){.helpGrid{grid-template-columns:1fr}}
+@media (max-height:520px){.helpPage .fa{display:none}.helpGrid p{font-size:14px;line-height:1.3}.helpGrid{gap:4px 10px;margin-bottom:6px}}
 /* the Fire Temple: a row for each gift, its price and a button to offer for it */
 .templePage{width:min(100%,600px)}
 .purse{font:500 19px var(--book);color:var(--inkb);margin:4px 0 8px;display:flex;align-items:center;justify-content:center;gap:6px}.purse b{font:900 20px Cinzel,serif;color:var(--rubric)}
@@ -299,6 +310,7 @@ body:not(.playing) #farrBtn{display:none}
       <button class="btn2" data-map>The seven labours</button>
       <button class="btn2" data-story>Read the tale</button>
       <button class="btn2" data-guide>Book of Foes</button>
+      <button class="btn2" data-help>How to play</button>
       <button class="btn2" id="restartBtn">Restart the labour</button>
       <a class="btn2" href="/fun/">Leave for the Funfair</a>
     </div>
@@ -310,6 +322,22 @@ body:not(.playing) #farrBtn{display:none}
     <button class="x" id="storyClose" aria-label="Close the tale">&times;</button>
     <div class="leaf" id="leaf" tabindex="0"></div>
     <div class="pager"><button class="btn2" id="prevPg">&larr; Back</button><div class="dots" id="dots"></div><button class="btn2" id="nextPg">Next &rarr;</button></div>
+  </div>
+</section>
+<section class="ov hidden" id="s-help" role="dialog" aria-modal="true" aria-label="How to play">
+  <div class="page helpPage">
+    <button class="x" id="helpClose" aria-label="Close">&times;</button>
+    <div class="fa">راهِ پهلوانی</div>
+    <h2>How to Play</h2>
+    <div class="helpGrid">
+      <section><h3>Moving</h3><p><kbd>&larr;</kbd> <kbd>&rarr;</kbd> run &middot; <kbd>&uarr;</kbd> or <kbd>Space</kbd> jump, and <b>jump again in the air</b> for a super jump &middot; <kbd>X</kbd> strike with the ox-head mace. Land on a foe from above for a double blow.<span class="touch"> On a phone, use the buttons at the bottom of the screen.</span></p></section>
+      <section><h3>Bosses</h3><p>Each great foe has an opening. <b>A gold arrow over its head means strike now</b>; without it your blow will not land. Watch for the warning glow before its big attacks, and use the ledges.</p></section>
+      <section><h3>Hearts</h3><p>You have five hearts. Roast lamb and glowing hearts restore them; in boss fights a heart appears in a corner now and then.</p></section>
+      <section><h3>Sacred fires</h3><p>Walk past a fire altar to light it: if you fall, you rise there. At a lit fire press <kbd>&darr;</kbd> (or tap <b>Offer</b>) to visit the <b>Fire Temple</b>.</p></section>
+      <section><h3>Provisions</h3><p>Pomegranates, bread and lamb fill your purse, kept from labour to labour. Spend them at the Fire Temple on lasting gifts: an extra heart, a higher jump, a longer reach, a heavier mace.</p></section>
+      <section><h3>Farr and Rakhsh</h3><p>Every provision also fills your golden <b>Farr</b>: when full, press <kbd>F</kbd> (or tap it) and the Simurgh strikes every foe on screen. Gather eight provisions in a labour and <b>Rakhsh</b> gallops in to kick the boss.</p></section>
+    </div>
+    <div class="btns"><button class="btn" id="helpDone">To the road</button></div>
   </div>
 </section>
 <section class="ov hidden" id="s-temple" role="dialog" aria-modal="true" aria-label="The Fire Temple">
@@ -342,7 +370,7 @@ body:not(.playing) #farrBtn{display:none}
     <p class="story home-only">King Kay Kavus lies captive in Mazandaran, land of the Divs. <em>Rostam</em> rides out on the shortest and most perilous road. <b>Choose a labour on the map, then ride out.</b></p>
     <ol class="road" id="road"></ol>
     <p class="story" id="mapInfo"></p>
-    <div class="btns"><button class="btn" id="rideBtn">Ride out</button><button class="btn2" id="mapTale">Read its tale</button><button class="btn2" data-guide>Book of Foes</button></div>
+    <div class="btns"><button class="btn" id="rideBtn">Ride out</button><button class="btn2" id="mapTale">Read its tale</button><button class="btn2" data-guide>Book of Foes</button><button class="btn2" data-help>How to play</button></div>
     <div class="keys deskonly home-only"><kbd>&larr;</kbd> <kbd>&rarr;</kbd> move &middot; <kbd>&uarr;</kbd>/<kbd>Space</kbd> jump (twice for a super jump) &middot; <kbd>X</kbd> strike &middot; <kbd>Esc</kbd> menu</div>
     <div class="keys touchonly home-only">On-screen buttons to move, jump and strike. Turn your phone sideways for the best view.</div>
   </div>
@@ -463,6 +491,6 @@ body:not(.playing) #farrBtn{display:none}
 </template>
 
 <script src="https://cdn.jsdelivr.net/npm/phaser@3.80.1/dist/phaser.min.js"></script>
-<script src="game.js?v=53"></script>
+<script src="game.js?v=55"></script>
 </body>
 </html>
