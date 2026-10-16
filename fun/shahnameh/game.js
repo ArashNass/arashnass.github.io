@@ -40,7 +40,7 @@ const FPS = { 'rostam-idle': 5, 'rostam-run': 14, 'rostam-jump': 6, 'rostam-atta
 const SIZE = { rider: 124, rostam: 112, lion: 148, jackal: 108, div: 108, scorpion: 86, vulture: 92, ram: 86, dragon: 136, rakhsh: 104, bat: 108, serpent: 92, hag: 108, beauty: 108, spearman: 140, olad: 112, divwarrior: 100, arzhang: 136, whitediv: 136 };
 const BODY = { rider: [0.3, 0.5], rostam: [0.143, 0.393], lion: [0.5, 0.36], jackal: [0.3, 0.22], div: [0.22, 0.34], scorpion: [0.4, 0.22], vulture: [0.33, 0.2], ram: [0.4, 0.4],
   dragon: [0.46, 0.42], rakhsh: [0.5, 0.5], bat: [0.32, 0.24], serpent: [0.31, 0.31], hag: [0.27, 0.42], beauty: [0.2, 0.47], spearman: [0.115, 0.386], olad: [0.17, 0.49], divwarrior: [0.31, 0.64], arzhang: [0.3, 0.7], whitediv: [0.4, 0.58] };
-const V = 43;   // bump to bust caches when assets change
+const V = 44;   // bump to bust caches when assets change
 
 // PixelLab VFX strips in ./assets/fx: frame size, frame count, fps, and the effect's origin as a fraction of the frame
 const FX = {
@@ -360,6 +360,8 @@ const FOES = {
     tick(s, f, k, p) {
       f.cool = (f.cool || 0) - k;
       if (f.smash) { f.setVelocityX(0); return; }
+      // having given up on a chase he cannot win, he stomps off the other way for a while
+      if (f.bored > 0) { f.bored -= k; f.turnT = undefined; patrol(s, f, 30); return; }
       if (above(f, p)) { f.turnT = undefined; pace(s, f, 26); return; }
       const d = p.x - f.x, want = Math.sign(d) || f.dir;
       // a heavy brute: it takes him a moment to turn about, time enough to strike his back
@@ -375,7 +377,14 @@ const FOES = {
         f.once('animationcomplete', () => { if (!f.active) return; f.smash = false; f.cool = 90; f.play('divwarrior-walk'); });
         return;
       }
-      if (Math.abs(d) < 200 && f.body.blocked.down) f.setVelocityX(crowded(s, f, f.dir) ? 0 : f.dir * 38); else pace(s, f, 26);
+      if (Math.abs(d) < 200 && f.body.blocked.down) {
+        const ahead = s.layer.getTileAtWorldXY(f.x + f.dir * 14, f.body.bottom + 4), edge = !ahead || ahead.index % 4 === 3;
+        const go = !crowded(s, f, f.dir) && !edge; f.setVelocityX(go ? f.dir * 38 : 0);
+        // pressed against a step, a gate or the edge of a drop, or Rostam is out of reach: after a second he turns away
+        const stuck = edge || Math.abs(p.body.bottom - f.body.bottom) > 30 || (go && (f.body.blocked.left || f.body.blocked.right || Math.abs(f.x - (f.lastX ?? 0)) < 0.15));
+        f.stuckT = stuck ? (f.stuckT || 0) + k : 0; f.lastX = f.x;
+        if (f.stuckT > 60) { f.stuckT = 0; f.bored = 90 + Math.random() * 60; f.dir *= -1; f.setFlipX(f.dir < 0); }
+      } else pace(s, f, 26);
     }
   },
   // Olad's spearmen march, and thrust when Rostam comes within reach
@@ -664,7 +673,7 @@ const LEVELS = {
     },
     win: 'Rostam tears Arzhang from the field and the Div host scatters into the night. Now only the White Div remains, in his cave beyond the seven mountains.',
     tips: ['Arzhang\'s red glow shows where his axe will strike: the floor, or the platforms. Be where it is not, then strike him while he rests.', 'When the drums sound, the gates shut. Jump twice to reach the high platforms; Divs cannot follow you up there.', 'A Div warrior turns slowly. Drop behind him and strike his back before he faces you.', 'Hearts wait on the high platforms of the horde\'s arena.', 'Jump over the shockwaves from a Div warrior\'s club.',
-      'Arzhang\'s axe splits the ground both ways. Leap the wave, then strike.', 'Blue Divs hop at you; Div warriors take three blows.']
+      'Blue Divs hop at you; Div warriors take three blows.']
   },
   7: {
     hud: 'Khan VII &middot; The White Div', winTitle: 'The Seven Labours are done', name: 'The White Div', fa: 'دیوِ سپید', tiles: 'tiles-7', map: map7,
@@ -704,7 +713,7 @@ const LEVELS = {
       if (s.whiteDown && !s.ended && p.x > s.kavus.x - 46 && p.body.blocked.down) s.freeKing();
     },
     win: 'The blood of the White Div\'s heart restores the sight of Kay Kavus and all his warriors. The king is free, and Rostam, son of Zal, has completed the Seven Labours.',
-    tips: ['Lightning strikes where the ground glows. Keep moving.', 'Make the White Div slam the ground, jump the wave, and strike while his club is stuck in the ice.', 'The ice ledges are a breather, but stay too long and the roof comes down.', 'Boulders arc through the air. Watch where they will fall.',
+    tips: ['Lightning strikes where the ground glows. Keep moving.', 'When the White Div raises his club, step back and jump the wave, then strike while his club is stuck in the ice.', 'The ice ledges are a breather, but stay too long and the roof comes down.', 'Boulders arc through the air. Watch where they will fall.',
       'Fire altars mark where you return if you fall.', 'Three roast lambs hide on the high ledges.']
   }
 };
@@ -1000,6 +1009,10 @@ const KEYMAP = { ArrowLeft: 'left', a: 'left', A: 'left', ArrowRight: 'right', d
 const press = (k, down) => { if (down && !keys[k] && k in pressed) pressed[k] = true; keys[k] = down; };
 addEventListener('keydown', e => {
   if (!$('s-map').classList.contains('hidden')) { if (e.key === 'Escape') closeMap(); return; }
+  if (!$('s-guide').classList.contains('hidden')) {             // the Book of Foes: page through it
+    if (e.key === 'ArrowRight') showGuide(gpg + 1); else if (e.key === 'ArrowLeft') showGuide(gpg - 1); else if (e.key === 'Escape') closeGuide();
+    return;
+  }
   if (!$('s-story').classList.contains('hidden')) {             // the tale is open: page through it
     if (e.key === 'ArrowRight') turn(1); else if (e.key === 'ArrowLeft') turn(-1); else if (e.key === 'Escape') closeStory();
     return;
@@ -1186,7 +1199,7 @@ class Play extends Phaser.Scene {
       setTimeout(() => { if (!playing && this.done) $('s-dead').classList.remove('hidden'); }, 900);
     }
   }
-  strikeBox() { const p = this.player, r = this.mounted ? 48 : 34; return new Phaser.Geom.Rectangle(this.face > 0 ? p.body.right - 4 : p.body.left - r + 4, p.body.top - 6, r, p.body.height + 8); }
+  strikeBox() { const p = this.player, r = this.mounted ? 48 : 34; return new Phaser.Geom.Rectangle(this.face > 0 ? p.body.right - 4 : p.body.left - r + 4, p.body.top - 22, r, p.body.height + 24); }   // the blade arcs over his head too
   damage(f, n = 1) {
     if (f.immune?.()) { this.fx('dust', f.x, f.body.center.y, { depth: 10 }); if (!this.toldImmune) { this.toldImmune = true; toast(f.immuneMsg || 'Your blow passes through shadow.'); } return; }
     f.hp -= n; f.setTintFill(0xffffff); this.time.delayedCall(80, () => f.active && f.clearTint());
@@ -1620,7 +1633,7 @@ class Play extends Phaser.Scene {
   }
   startArzhang() {
     const a = this.physics.add.sprite(this.arzhangAt.x, this.arzhangAt.y - 60, 'arzhang-walk', 0).setDepth(4).setFlipX(true);
-    this.fit(a, 'arzhang'); a.play('arzhang-walk'); a.state = 'walk'; a.tm = 90; a.dir = -1; a.goal = this.arzhangAt.x;
+    this.fit(a, 'arzhang'); a.play('arzhang-walk'); a.state = 'walk'; a.tm = 90; a.dir = -1;
     // his hide turns every blow until he rests on his axe after his strikes: that is the opening
     a.immune = () => a.state !== 'rest'; a.calm = () => a.state === 'rest';
     a.immuneMsg = 'Arzhang shrugs off the blow. Dodge his two strikes, then hit him while he rests on his axe.';
@@ -1638,9 +1651,8 @@ class Play extends Phaser.Scene {
     const a = this.boss, p = this.player; a.tm--; const hurt = a.hp <= a.max / 2;
     const up = p.body.bottom < 13 * TS;                                       // Rostam is up on a platform
     if (a.state === 'walk') {
-      if (Math.abs(a.goal - a.x) < 10) a.goal = Phaser.Math.Between(134, 143) * TS;        // roam the middle, never under a platform
-      const d = a.goal - a.x; a.dir = Math.sign(p.x - a.x) || a.dir; a.setFlipX(a.dir < 0);
-      a.setVelocityX(Math.abs(d) > 8 ? Math.sign(d) * (hurt ? 60 : 44) : 0); if (a.anims.currentAnim?.key !== 'arzhang-walk') a.play('arzhang-walk');
+      // he stalks Rostam to axe's reach (never under a platform) and plants his feet there
+      if (this.stalk(a, p, 80, 133, 144, hurt ? 64 : 50, 'arzhang-walk')) a.tm = Math.min(a.tm, hurt ? 14 : 24);
       if (a.tm <= 0) {
         // the first blow goes where Rostam is; the second often the other way, so he must switch
         const first = up ? 'sweep' : 'split', other = first === 'sweep' ? 'split' : 'sweep';
@@ -1657,9 +1669,17 @@ class Play extends Phaser.Scene {
       }
     } else if (a.state === 'rest') {
       a.setVelocityX(0); if (this.stars) this.stars.setPosition(Math.round(a.x), Math.round(a.body.top - 4));
-      if (a.tm <= 0) { a.clearTint(); this.stars?.destroy(); this.stars = null; a.state = 'walk'; a.tm = 50 + Math.random() * 30; a.goal = a.x; a.play('arzhang-walk');
+      if (a.tm <= 0) { a.clearTint(); this.stars?.destroy(); this.stars = null; a.state = 'walk'; a.tm = 50 + Math.random() * 30; a.play('arzhang-walk');
         hint('Watch the red glow. <b>Floor glows: leap onto a platform.</b> <b>Platforms glow: drop to the ground.</b>'); }
     }
+  }
+  // a boss closes on Rostam to `reach` px, kept between columns c0..c1, and stands still once there; true when in reach
+  stalk(b, p, reach, c0, c1, speed, walk) {
+    const side = Math.sign(b.x - p.x) || -b.dir, goal = Phaser.Math.Clamp(p.x + side * reach, c0 * TS, c1 * TS), d = goal - b.x;
+    b.dir = Math.sign(p.x - b.x) || b.dir; b.setFlipX(b.dir < 0);
+    if (Math.abs(d) > 10) { b.setVelocityX(Math.sign(d) * speed); if (b.anims.currentAnim?.key !== walk || !b.anims.isPlaying) b.play(walk); }
+    else { b.setVelocityX(0); if (b.anims.isPlaying) { b.anims.stop(); b.setFrame(0); } }
+    return Math.abs(d) <= 10 && Math.abs(p.x - b.x) < reach + 30;
   }
   windUp(a, tm) { a.state = 'raise'; a.tm = tm; a.setVelocityX(0); a.play('arzhang-smash'); a.anims.pause(); a.setFrame(1); sfx('roar'); }
   // the floor split: a shockwave across the whole floor of the arena; only the platforms and the air are safe
@@ -1691,14 +1711,14 @@ class Play extends Phaser.Scene {
   groundAt(x) { for (let r = 2; r < ROWS; r++) { const t = this.layer.getTileAtWorldXY(x, r * TS + 2); if (t && t.collides) return r; } return null; }
   startWhiteDiv() {
     const w = this.physics.add.sprite(this.whiteAt.x, this.whiteAt.y - 60, 'whitediv-walk', 0).setDepth(4).setFlipX(true);
-    this.fit(w, 'whitediv'); w.play('whitediv-walk'); w.state = 'walk'; w.tm = 90; w.dir = -1; w.goal = 160 * TS; w.throws = 0;
+    this.fit(w, 'whitediv'); w.play('whitediv-walk'); w.state = 'walk'; w.tm = 90; w.dir = -1; w.throws = 0;
     // his hide of snow turns every blow, until his club is caught fast in the ice after a slam
     w.immune = () => w.state !== 'stuck'; w.calm = () => w.state === 'stuck';
     w.immuneMsg = 'The blow glances off his hide. Make him slam the ground, jump the shockwave, and strike while his club is stuck.';
     w.ai = () => this.whiteAI(); w.onDown = () => { this.stars?.destroy(); this.stars = null; this.bossFall(w, () => this.whiteFallen()); };
     this.arena(146 * TS, w, 15); this.light(w, 2.4); sfx('roar'); this.cam.shake(700, 0.01); this.ledgeT = 0;
     toast('The White Div rises from the dark like a mountain of snow: "So, the son of Zal comes at last."');
-    hint('Stay on the ground to make him <b>slam his club</b>, <b>jump the shockwave</b>, and <b>strike while the club is stuck in the ice</b>. The ice ledges are a breather, but boulders and icicles find you there.');
+    hint('He comes for you. When he <b>raises his club, step back and jump the shockwave</b>, then <b>strike while the club is stuck in the ice</b>. The ice ledges are only a breather.');
   }
   // he roams the middle of his cave. On the ground Rostam draws his slam (and the opening it leaves);
   // up on a ledge, boulders and then icicles from the roof drive him down again
@@ -1707,20 +1727,21 @@ class Play extends Phaser.Scene {
     if (mad && !w.mad) { w.mad = true; w.setTint(0xffd0d0); sfx('roar'); this.cam.shake(600, 0.012); banner('خشمِ دیو', 'The White Div rages'); }
     const up = p.body.bottom < 13 * TS; this.ledgeT = up ? this.ledgeT + 1 : 0;
     if (w.state === 'walk') {
-      if (Math.abs(w.goal - w.x) < 10) w.goal = Phaser.Math.Between(157, 164) * TS;       // the middle, never under a ledge
-      const d = w.goal - w.x; w.dir = Math.sign(p.x - w.x) || w.dir; w.setFlipX(w.dir < 0);
-      w.setVelocityX(Math.abs(d) > 8 ? Math.sign(d) * (mad ? 50 : 34) : 0); if (w.anims.currentAnim?.key !== 'whitediv-walk') w.play('whitediv-walk');
+      // he stalks Rostam to club's reach (never under a ledge); within reach of a man on the ground, he slams soon
+      const near = this.stalk(w, p, 62, 156, 165, mad ? 62 : 46, 'whitediv-walk') && !up;
+      if (near) w.tm = Math.min(w.tm, mad ? 12 : 22);
       if (w.tm <= 0) {
-        w.setVelocityX(0);
-        if (up && this.ledgeT > 80 && w.throws < 3) { w.state = 'roar'; w.tm = 70; w.throws++; this.icicles(); }
-        else if ((up || Math.random() < 0.35) && w.throws < 2) { w.state = 'throw'; w.tm = 50; w.play('whitediv-throw'); w.hit = false; w.throws++; }
-        else { w.state = 'slam'; w.tm = 52; w.play('whitediv-smash'); w.hit = false; w.throws = 0; }
+        // the slam only when Rostam is within his club's reach; a boulder when he keeps his distance; the roof when he hides on a ledge
+        if (up && this.ledgeT > 80 && w.throws >= 1) { w.setVelocityX(0); w.state = 'roar'; w.tm = 70; w.throws = 0; this.icicles(); }
+        else if (near && (w.throws > 0 || Math.random() < 0.75)) { w.setVelocityX(0); w.state = 'slam'; w.tm = 52; w.play('whitediv-smash'); w.hit = false; w.throws = 0; }
+        else if (w.throws < 2 && (up || near || Math.abs(p.x - w.x) > 130)) { w.setVelocityX(0); w.state = 'throw'; w.tm = 50; w.play('whitediv-throw'); w.hit = false; w.throws++; }
+        else w.tm = 20;                                                        // keep closing in
       }
     } else if (w.state === 'slam') {
       if (!w.hit && w.tm < 12) {
         w.hit = true; const x = w.x + w.dir * 40;
-        this.hazard(w.dir > 0 ? w.x + 10 : w.x - 66, w.body.top + 10, 56, 60, 180); this.shockwave(x, w.body.bottom);
-        if (mad) this.time.delayedCall(380, () => w.active && w.hp > 0 && this.shockwave(x, w.body.bottom));
+        // the club itself reaches just short of where he stood to stalk; past that only the wave, which a jump clears
+        this.hazard(w.dir > 0 ? w.x + 10 : w.x - 56, w.body.top + 10, 46, 60, 180); this.shockwave(x, w.body.bottom);
       }
       if (w.tm <= 0) {
         // the club bites deep into the ice: the opening
@@ -1729,8 +1750,8 @@ class Play extends Phaser.Scene {
       }
     } else if (w.state === 'stuck') {
       if (this.stars) this.stars.setPosition(Math.round(w.x), Math.round(w.body.top - 4));
-      if (w.tm <= 0) { w.mad ? w.setTint(0xffd0d0) : w.clearTint(); this.stars?.destroy(); this.stars = null; w.state = 'walk'; w.tm = 50 + Math.random() * 30; w.goal = w.x;
-        this.fx('dust', w.x + w.dir * 40, w.body.bottom, { depth: 8 }); hint('Stay on the ground to make him <b>slam</b>, <b>jump the shockwave</b>, then <b>strike while his club is stuck</b>.'); }
+      if (w.tm <= 0) { w.mad ? w.setTint(0xffd0d0) : w.clearTint(); this.stars?.destroy(); this.stars = null; w.state = 'walk'; w.tm = 50 + Math.random() * 30;
+        this.fx('dust', w.x + w.dir * 40, w.body.bottom, { depth: 8 }); hint('When he <b>raises his club, step back and jump the shockwave</b>, then <b>strike while his club is stuck</b>.'); }
     } else if (w.state === 'throw') {
       if (!w.hit && w.tm < 24) {
         w.hit = true; const n = mad ? 2 : 1;
@@ -1890,6 +1911,55 @@ const BLURB = ['', 'Among the reeds a great lion stirs in the dark.', 'A waterle
   'Night, a cave mouth, and a dragon that only Rakhsh can see.', 'A feast in a garden, and a beautiful hostess who is not what she seems.',
   'A green land guarded by the warden Olad and his men.', 'The war camp of the Div chieftain Arzhang.', 'Seven mountains, a cave as dark as night, and the White Div.'];
 let pick = cur, mapFrom = null;
+// the Book of Foes: a leaf for each labour, with its great foe (an animated miniature), its tale and how to beat it
+const GUIDE = [
+  { k: 1, fa: 'شیرِ نیستان', name: 'The Lion of the Reeds', art: ['lion-roar', 8, 148],
+    tale: 'Rostam lay down to sleep among the reeds while Rakhsh grazed. In the night a great lion crept out of the thicket. In the old tale faithful Rakhsh trampled it; here Rostam must stand against it himself.',
+    how: ['It <b>roars</b>, then <b>charges</b> in a straight line.', '<b>Jump over the charge</b>. If it runs into the rocks it is <b>dazed</b>.', '<b>Strike while it is dazed</b>, or land on it from above for a double blow.'],
+    more: [['jackal-run', 8, 108, 'Jackal', 'Runs straight at you. One blow.'], ['div-hop', 8, 108, 'Blue Div', 'Hops toward you. Strike as it lands.']] },
+  { k: 2, fa: 'بیابانِ بی‌آب', name: 'The Waterless Desert', art: ['k2/scorpion-crawl', 8, 108],
+    tale: 'Beyond the reeds lay a desert where no bird flew. Rostam and Rakhsh grew faint with thirst, until a ram came walking out of the heat and led them to a hidden spring.',
+    how: ['Your <b>water drains</b> in the heat: skins refill a little, <b>wells refill it all</b>.', '<b>Scorpions</b> scuttle at you when you are close: <b>two blows</b>, or jump on them.', 'At the spring, <b>watch the ram tap the stones</b>, then strike them in the same order.'],
+    more: [['k2/vulture-fly', 8, 108, 'Vulture', 'Circles, then dives. Strike it as it swoops low.'], ['k2/ram-walk', 8, 108, 'The Ram', 'A friend. Follow it to the water.']] },
+  { k: 3, fa: 'اژدها', name: 'The Dragon', art: ['k3/dragon-fire', 8, 136],
+    tale: 'A dragon eighty cubits long ruled the night. Twice Rakhsh woke Rostam to warn him, and twice the dragon vanished into the dark. The third time God let Rostam see it, and with Rakhsh biting its neck he struck off its head.',
+    how: ['You ride <b>Rakhsh</b>: faster, with a longer reach from the saddle.', 'The dragon <b>hides in the dark</b>; while hidden, blows pass through it.', 'When <b>Rakhsh rears and neighs</b> it is revealed: <b>charge and strike</b>, and <b>jump its fire</b>.'],
+    more: [['k3/bat-fly', 8, 108, 'Bat', 'Darts down at you. Swing as it swoops, even over your head.']] },
+  { k: 4, fa: 'زنِ جادو', name: 'The Witch', art: ['k4/hag-cast', 8, 108],
+    tale: 'In a green garden Rostam found wine, a lute and a feast. A beautiful woman came to share it, but when he spoke the name of God her face turned black. She was a witch, and the feast was a trap.',
+    how: ['At the feast, <b>stand by the lady and strike</b> to speak the name of God.', 'Unmasked, she flies and hurls <b>green curses</b>: <b>strike them to send them back</b> at her, or jump them.', '<b>Strike her when she is solid</b>. Hurt, she calls up serpents.'],
+    more: [['k4/serpent', 8, 108, 'Serpent', 'Sways, then lunges. Hit it as it rears.'], ['k3/bat-fly', 8, 108, 'Bat', 'Strike it as it swoops.']] },
+  { k: 5, fa: 'اولاد', name: 'Olad the Warden', art: ['k5/olad-slash', 6, 112],
+    tale: 'In Mazandaran the warden Olad rode out with his men against the stranger. Rostam beat them, caught Olad with his lasso, and spared his life on one condition: that he show him the way to the Divs.',
+    how: ['His <b>shield blocks every blow from the front</b>.', 'Right after his sword swing <b>he glows: he is open, strike then</b>.', 'Or <b>jump twice</b> to leap over him and strike his back.'],
+    more: [['k5/spearman-thrust', 6, 140, 'Spearman', 'Long reach. Close in right after his thrust.']] },
+  { k: 6, fa: 'ارژنگِ دیو', name: 'Arzhang Div', art: ['k6/arzhang-smash', 5, 136],
+    tale: 'Arzhang was a chieftain of the Divs, camped with his horde before the mountains. Rostam rode into the camp at dawn with Olad as his guide, roared his name, and struck Arzhang\'s head from his shoulders.',
+    how: ['He stalks you, then raises his axe for <b>two blows</b>. A <b>red glow</b> shows where each will land.', '<b>Floor glows: leap onto a platform.</b> <b>Platforms glow: drop to the ground.</b>', 'After the second blow <b>he rests on his axe: strike him then</b>.'],
+    more: [['k6/divwarrior-smash', 8, 148, 'Div warrior', 'Turns slowly. Drop behind him and strike his back; jump his shockwave.'], ['k3/bat-fly', 8, 108, 'Bat', 'Pesters you on the high platforms. Swing up at it.']] },
+  { k: 7, fa: 'دیوِ سپید', name: 'The White Div', art: ['k7/whitediv-smash', 9, 136],
+    tale: 'The White Div held King Kay Kavus captive in a cave as dark as night, beyond seven mountains. Only the blood of its heart could give the blinded king back his sight. Rostam fought it until the cave ran with blood and sweat.',
+    how: ['He stalks you to club\'s reach. When he <b>raises his club, step back</b> and <b>jump the shockwave</b>.', 'The slam leaves his <b>club stuck in the ice</b>: that is your moment, <b>strike!</b>', 'The <b>ice ledges</b> are a breather, but he throws boulders, and if you stay too long <b>icicles fall</b>.'],
+    more: [['k6/divwarrior-smash', 8, 148, 'Div warrior', 'Three blows. Strike his back while he turns.'], ['k3/bat-fly', 8, 108, 'Bat', 'Swing up at it as it swoops.']] }
+];
+let gpg = 0, guideFrom = null;
+const mini = ([src, n, h], size, cls = '') => `<i class="spr ${cls}" style="--n:${n};--s:${size}px;--src:url(assets/${src}.png)" data-h="${h}"></i>`;
+function showGuide(i) {
+  gpg = (i + GUIDE.length) % GUIDE.length; const g = GUIDE[gpg];
+  $('gtabs').innerHTML = GUIDE.map((x, j) => `<button class="${j === gpg ? 'sel' : ''}" data-g="${j}" aria-label="Khan ${ROMAN[x.k]}: ${x.name}">${ROMAN[x.k]}</button>`).join('');
+  $('gtabs').querySelectorAll('button').forEach(b => b.onclick = () => showGuide(+b.dataset.g));
+  $('gleaf').innerHTML = `<div class="gcard"><div class="gport k${g.k}">${mini(g.art, 180)}</div>
+    <div class="gtext"><div class="fa">${g.fa}</div><h2>${g.name}</h2><p class="kick">Khan ${ROMAN[g.k]} &middot; ${NAMES[g.k][0]}</p><p class="gtale">${g.tale}</p></div></div>
+    <div class="ghow"><h3>How to beat it</h3><ol>${g.how.map(h => `<li>${h}</li>`).join('')}</ol></div>
+    <h3 class="galso">Also on this road</h3><div class="gmore">${g.more.map(([src, n, h, name, tip]) => `<div>${mini([src, n, h], 64)}<p><b>${name}</b>${tip}</p></div>`).join('')}</div>`;
+  $('gleaf').scrollTop = 0;
+}
+function openGuide(n) {
+  if (playing) setPaused(true);
+  guideFrom = document.querySelector('.ov:not(.hidden):not(#s-guide)'); guideFrom?.classList.add('hidden');
+  $('s-guide').classList.remove('hidden'); showGuide(Math.max(0, GUIDE.findIndex(g => g.k === n))); $('gNext').focus();
+}
+function closeGuide() { $('s-guide').classList.add('hidden'); if (guideFrom) { guideFrom.classList.remove('hidden'); guideFrom.querySelector('.btn')?.focus(); } else openMap(false); }
 // where each labour sits on the painted map (percent of its width and height): reeds, desert, dark hills, garden, castle, camp, cave
 const MAP_AT = [null, [11.7, 64], [27, 27], [40, 38], [40, 74], [55, 48], [84, 85], [93, 62]];
 const bestOf = n => +(store.get(n === 1 ? 'sh-best' : 'sh-best-' + n) || 0);
@@ -1918,6 +1988,8 @@ function closeMap() { $('s-map').classList.add('hidden'); if (mapFrom) mapFrom.c
 document.querySelectorAll('[data-map]').forEach(b => b.onclick = openMap);
 $('mapClose').onclick = closeMap; $('rideBtn').onclick = () => begin(pick);
 $('mapTale').onclick = () => openStory(0, pick);
+document.querySelectorAll('[data-guide]').forEach(b => b.onclick = () => openGuide($('s-map').classList.contains('hidden') ? cur : pick));
+$('gPrev').onclick = () => showGuide(gpg - 1); $('gNext').onclick = () => showGuide(gpg + 1); $('guideClose').onclick = closeGuide;
 $('nextBtn').onclick = () => begin(cur + 1);
 let paused = false;
 function setPaused(on) {

@@ -152,6 +152,42 @@ h2{font-size:clamp(21px,4.6vw,27px);margin:2px 0 8px}
   .ov{padding:10px 16px}.keys{display:none}#s-title .page{padding-top:22px}
   .mapPage .kick,#mapInfo .pf{display:none}.mapPage .fa{font-size:24px;margin-bottom:.2em}.road{width:min(100%,calc((100dvh - 230px) * 2.876));margin-inline:auto}#mapInfo{min-height:0;margin:6px auto 8px}
 }
+/* the Book of Foes: each foe a miniature in a lapis arch, its tale beside it and the way to beat it below */
+.guidePage{width:min(100%,780px);text-align:left;padding:10px 20px 8px;max-height:calc(100dvh - 32px);display:flex;flex-direction:column}
+.gtop{display:flex;align-items:baseline;justify-content:center;gap:14px}.gtop .fa{font-size:clamp(24px,5vw,32px);margin:0}
+.gtabs{display:flex;justify-content:center;gap:8px;margin:2px 0 8px}
+.gtabs button{width:32px;height:32px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#2a4fc0,#14286b 70%);border:2px solid var(--gold);color:var(--gold2);font:900 11px Cinzel,serif;box-shadow:0 0 0 2px #2a1a08;transition:transform .15s}
+.gtabs button.sel,.gtabs button:hover{transform:scale(1.18);box-shadow:0 0 0 2px #2a1a08,0 0 0 4px var(--gold2)}
+.gleaf{overflow:auto;min-height:0;flex:1;padding-right:6px}
+.gcard{display:grid;grid-template-columns:auto 1fr;gap:18px;align-items:center}
+.gport{width:200px;height:220px;display:grid;place-items:end center;padding-bottom:8px;border:3px double #c8902a;border-radius:100px 100px 6px 6px;box-shadow:inset 0 0 0 2px #14286b,inset 0 -30px 40px rgba(0,0,0,.45),0 4px 12px rgba(40,20,0,.4);
+  background:radial-gradient(ellipse at 50% 85%,rgba(255,220,150,.35),transparent 60%),linear-gradient(#1a2a66,#0b1233)}
+.gport.k1{background:radial-gradient(ellipse at 50% 85%,rgba(255,200,120,.4),transparent 60%),linear-gradient(#24365c,#0f1a2c)}
+.gport.k2{background:radial-gradient(ellipse at 50% 85%,rgba(255,230,160,.5),transparent 60%),linear-gradient(#e0a050,#7a3a18)}
+.gport.k3{background:radial-gradient(ellipse at 50% 80%,rgba(255,120,40,.45),transparent 60%),linear-gradient(#1d1730,#08060f)}
+.gport.k4{background:radial-gradient(ellipse at 50% 80%,rgba(120,255,140,.35),transparent 60%),linear-gradient(#1f4a3a,#0a1a14)}
+.gport.k5{background:radial-gradient(ellipse at 50% 85%,rgba(255,240,180,.45),transparent 60%),linear-gradient(#5aa0c8,#2c5a3a)}
+.gport.k6{background:radial-gradient(ellipse at 50% 85%,rgba(255,90,40,.45),transparent 60%),linear-gradient(#3a1410,#100606)}
+.gport.k7{background:radial-gradient(ellipse at 50% 85%,rgba(170,210,255,.45),transparent 60%),linear-gradient(#1c2a4a,#070b18)}
+.spr{display:block;width:var(--s);height:var(--s);background:var(--src) 0 0/calc(var(--n) * 100%) 100% no-repeat;image-rendering:pixelated;animation:spr calc(var(--n) * .12s) steps(var(--n)) infinite;filter:drop-shadow(0 3px 2px rgba(0,0,0,.5))}
+@keyframes spr{to{background-position-x:calc(var(--n) * var(--s) * -1)}}
+@media (prefers-reduced-motion:reduce){.spr{animation:none}}
+.gtext .fa{font-size:clamp(28px,6vw,40px);margin:0 0 .2em;text-align:left}.gtext h2{margin:0}.gtext .kick{margin-bottom:6px}
+.gtale{font:500 18px/1.5 var(--book);color:var(--inkb)}
+.ghow{margin:12px 0 4px;padding:8px 14px 6px;border:1px solid rgba(122,78,20,.55);border-left:4px solid var(--rubric);background:rgba(255,246,220,.4)}
+.ghow h3,.galso{font:900 15px Cinzel,serif;letter-spacing:.06em;color:var(--rubric);margin:0 0 4px}
+.ghow ol{margin:0 0 4px 20px;font:500 18px/1.45 var(--book);color:var(--inkb)}.ghow li{margin-bottom:3px}.ghow b{color:var(--lapisInk)}
+.galso{margin-top:10px}
+.gmore{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:8px;margin-bottom:6px}
+.gmore>div{display:flex;align-items:center;gap:10px;padding:4px 8px;border:1px solid rgba(122,78,20,.4);background:rgba(255,246,220,.3)}
+.gmore .spr{flex:none;background-color:#14286b;border-radius:6px;box-shadow:inset 0 0 0 1px #c8902a}
+.gmore p{font:500 16px/1.35 var(--book);color:var(--inkb)}.gmore p b{display:block;font:700 15px Cinzel,serif;color:var(--rubric)}
+.guidePage .pager{margin-top:4px;padding-top:30px}
+@media (max-width:620px){.gcard{grid-template-columns:1fr;justify-items:center;text-align:center}.gtext .fa{text-align:center}.gport{width:170px;height:180px}.gport .spr{--s:150px!important}.gtabs button{width:26px;height:26px;font-size:9px}.guidePage .pager .kick{display:none}}
+@media (max-height:520px){.guidePage{max-height:calc(100dvh - 20px);padding:4px 10px 4px}.gtop{display:none}.gtabs{margin:0 0 4px}.gtabs button{width:24px;height:24px;font-size:9px}
+  .gcard{grid-template-columns:auto 1fr;justify-items:start;text-align:left;gap:12px}.gtext .fa{font-size:22px;text-align:left}.gtext h2{font-size:18px}.gtext .kick{font-size:13px;margin-bottom:2px}
+  .gport{width:110px;height:120px;padding-bottom:4px}.gport .spr{--s:100px!important}.gtale,.ghow ol{font-size:15px;line-height:1.35}.ghow{margin-top:6px;padding:4px 10px}
+  .gmore p{font-size:14px}.gmore .spr{--s:48px!important}.guidePage .pager{padding-top:4px;margin-top:2px;background:none}.guidePage .pager .kick{display:none}.guidePage .pager .btn2{height:30px}}
 </style>
 </head>
 <body>
@@ -188,7 +224,7 @@ h2{font-size:clamp(21px,4.6vw,27px);margin:2px 0 8px}
     <h1>The Seven Labours of Rostam</h1>
     <p class="kick">Khan I &middot; The Lion of the Reeds</p>
     <p class="story">King Kay Kavus lies captive in Mazandaran, land of the Divs. <em>Rostam</em> sets out on the shortest and most perilous road. On the first night, among the reeds, a great lion stirs&hellip;</p>
-    <div class="btns"><button class="btn" id="playBtn">Begin</button><button class="btn2" data-map>The seven labours</button><button class="btn2" data-story>Read the tale</button></div>
+    <div class="btns"><button class="btn" id="playBtn">Begin</button><button class="btn2" data-map>The seven labours</button><button class="btn2" data-story>Read the tale</button><button class="btn2" data-guide>Book of Foes</button></div>
     <div class="keys deskonly"><kbd>&larr;</kbd> <kbd>&rarr;</kbd> move &middot; <kbd>&uarr;</kbd>/<kbd>Space</kbd> jump (twice for a super jump) &middot; <kbd>X</kbd> strike with the ox-head mace</div>
     <div class="keys touchonly">On-screen buttons to move, jump and strike.<br>Turn your phone sideways for the best view.</div>
   </div>
@@ -209,7 +245,7 @@ h2{font-size:clamp(21px,4.6vw,27px);margin:2px 0 8px}
     <p class="kick">Even heroes fall</p>
     <h2>Rise again, Rostam</h2>
     <p class="story" id="deadTip">The road to Mazandaran is long. Try once more.</p>
-    <div class="btns"><button class="btn" id="retryBtn">Try again</button><button class="btn2 hidden" id="freshBtn">Start the labour again</button><button class="btn2" data-story>Read the tale</button></div>
+    <div class="btns"><button class="btn" id="retryBtn">Try again</button><button class="btn2 hidden" id="freshBtn">Start the labour again</button><button class="btn2" data-story>Read the tale</button><button class="btn2" data-guide>Book of Foes</button></div>
   </div>
 </section>
 
@@ -221,6 +257,7 @@ h2{font-size:clamp(21px,4.6vw,27px);margin:2px 0 8px}
       <button class="btn" id="resumeBtn">Continue</button>
       <button class="btn2" data-map>The seven labours</button>
       <button class="btn2" data-story>Read the tale</button>
+      <button class="btn2" data-guide>Book of Foes</button>
       <button class="btn2" id="restartBtn">Restart the labour</button>
       <a class="btn2" href="/fun/">Leave for the Funfair</a>
     </div>
@@ -234,6 +271,15 @@ h2{font-size:clamp(21px,4.6vw,27px);margin:2px 0 8px}
     <div class="pager"><button class="btn2" id="prevPg">&larr; Back</button><div class="dots" id="dots"></div><button class="btn2" id="nextPg">Next &rarr;</button></div>
   </div>
 </section>
+<section class="ov hidden" id="s-guide" role="dialog" aria-modal="true" aria-label="The Book of Foes">
+  <div class="page guidePage">
+    <button class="x" id="guideClose" aria-label="Close the Book of Foes">&times;</button>
+    <div class="gtop"><span class="fa">دیونامه</span><span class="kick">The Book of Foes</span></div>
+    <nav class="gtabs" id="gtabs" aria-label="Labours"></nav>
+    <div class="gleaf" id="gleaf" tabindex="0"></div>
+    <div class="pager"><button class="btn2" id="gPrev">&larr; Back</button><span class="kick">Seven labours, seven foes</span><button class="btn2" id="gNext">Next &rarr;</button></div>
+  </div>
+</section>
 <section class="ov hidden" id="s-map" role="dialog" aria-modal="true" aria-label="The seven labours">
   <div class="page mapPage">
     <button class="x" id="mapClose" aria-label="Close">&times;</button>
@@ -244,7 +290,7 @@ h2{font-size:clamp(21px,4.6vw,27px);margin:2px 0 8px}
     <p class="story home-only">King Kay Kavus lies captive in Mazandaran, land of the Divs. <em>Rostam</em> rides out on the shortest and most perilous road. <b>Choose a labour on the map, then ride out.</b></p>
     <ol class="road" id="road"></ol>
     <p class="story" id="mapInfo"></p>
-    <div class="btns"><button class="btn" id="rideBtn">Ride out</button><button class="btn2" id="mapTale">Read its tale</button></div>
+    <div class="btns"><button class="btn" id="rideBtn">Ride out</button><button class="btn2" id="mapTale">Read its tale</button><button class="btn2" data-guide>Book of Foes</button></div>
     <div class="keys deskonly home-only"><kbd>&larr;</kbd> <kbd>&rarr;</kbd> move &middot; <kbd>&uarr;</kbd>/<kbd>Space</kbd> jump (twice for a super jump) &middot; <kbd>X</kbd> strike &middot; <kbd>Esc</kbd> menu</div>
     <div class="keys touchonly home-only">On-screen buttons to move, jump and strike. Turn your phone sideways for the best view.</div>
   </div>
@@ -365,6 +411,6 @@ h2{font-size:clamp(21px,4.6vw,27px);margin:2px 0 8px}
 </template>
 
 <script src="https://cdn.jsdelivr.net/npm/phaser@3.80.1/dist/phaser.min.js"></script>
-<script src="game.js?v=43"></script>
+<script src="game.js?v=44"></script>
 </body>
 </html>
