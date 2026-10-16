@@ -40,7 +40,7 @@ const FPS = { 'rostam-idle': 5, 'rostam-run': 14, 'rostam-jump': 6, 'rostam-atta
 const SIZE = { rider: 124, rostam: 112, lion: 148, jackal: 108, div: 108, scorpion: 86, vulture: 92, ram: 86, dragon: 136, rakhsh: 104, bat: 108, serpent: 92, hag: 108, beauty: 108, spearman: 140, olad: 112, divwarrior: 100, arzhang: 136, whitediv: 136 };
 const BODY = { rider: [0.3, 0.5], rostam: [0.143, 0.393], lion: [0.5, 0.36], jackal: [0.3, 0.22], div: [0.22, 0.34], scorpion: [0.4, 0.22], vulture: [0.33, 0.2], ram: [0.4, 0.4],
   dragon: [0.46, 0.42], rakhsh: [0.5, 0.5], bat: [0.32, 0.24], serpent: [0.31, 0.31], hag: [0.27, 0.42], beauty: [0.2, 0.47], spearman: [0.115, 0.386], olad: [0.17, 0.49], divwarrior: [0.31, 0.64], arzhang: [0.3, 0.7], whitediv: [0.4, 0.58] };
-const V = 40;   // bump to bust caches when assets change
+const V = 41;   // bump to bust caches when assets change
 
 // PixelLab VFX strips in ./assets/fx: frame size, frame count, fps, and the effect's origin as a fraction of the frame
 const FX = {
@@ -1619,7 +1619,7 @@ class Play extends Phaser.Scene {
     a.ai = () => this.arzhangAI(); a.onDown = () => { this.floorWarn?.destroy(); this.stars?.destroy(); this.stars = null; this.bossFall(a); };
     this.arena(124 * TS, a, 12); this.light(a, 2); sfx('roar'); this.cam.shake(500, 0.008);
     // the floor of the arena glows red before each blow
-    this.floorWarn = this.add.rectangle(124 * TS, 14 * TS - 8, 30 * TS, 10, 0xff3010, 1).setOrigin(0, 0.5).setBlendMode(Phaser.BlendModes.ADD).setAlpha(0).setDepth(3);
+    this.floorWarn = this.add.rectangle(124 * TS, 14 * TS - 10, 30 * TS, 20, 0xff3010, 1).setOrigin(0, 0.5).setBlendMode(Phaser.BlendModes.ADD).setAlpha(0).setDepth(3);
     this.drums = this.time.addEvent({ delay: 500, loop: true, callback: () => sfx('drum') });
     toast('Arzhang Div rises from his throne of bones: "Who dares walk into my camp?"');
     hint('When Arzhang <b>raises his axe and the floor glows red, leap onto a platform</b>: his blow splits the whole floor. When he <b>rests on his axe</b>, jump down and strike.');
