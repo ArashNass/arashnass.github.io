@@ -40,7 +40,7 @@ const FPS = { 'rostam-idle': 5, 'rostam-run': 14, 'rostam-jump': 6, 'rostam-atta
 const SIZE = { rider: 124, rostam: 112, lion: 148, jackal: 108, div: 108, scorpion: 86, vulture: 92, ram: 86, dragon: 136, rakhsh: 104, bat: 108, serpent: 92, hag: 108, beauty: 108, spearman: 140, olad: 112, divwarrior: 108, arzhang: 136, whitediv: 136 };
 const BODY = { rider: [0.3, 0.5], rostam: [0.143, 0.393], lion: [0.5, 0.36], jackal: [0.3, 0.22], div: [0.22, 0.34], scorpion: [0.4, 0.22], vulture: [0.33, 0.2], ram: [0.4, 0.4],
   dragon: [0.46, 0.42], rakhsh: [0.5, 0.5], bat: [0.24, 0.15], serpent: [0.31, 0.31], hag: [0.27, 0.42], beauty: [0.2, 0.47], spearman: [0.115, 0.386], olad: [0.17, 0.49], divwarrior: [0.287, 0.59], arzhang: [0.3, 0.7], whitediv: [0.4, 0.58] };
-const V = 34;   // bump to bust caches when assets change
+const V = 37;   // bump to bust caches when assets change
 
 // PixelLab VFX strips in ./assets/fx: frame size, frame count, fps, and the effect's origin as a fraction of the frame
 const FX = {
@@ -256,12 +256,14 @@ function map6() {
   const row = (a, b, r, ch) => { for (let c = a; c <= b; c++) g[r][c] = ch; };
   const pit = (a, b) => { ground(a, b, 16); row(a, b, 15, '^'); };
   ground(0, 20, 14); ground(21, 24, 12); ground(25, 36, 14); pit(37, 41); row(38, 40, 10, '='); ground(42, 54, 14);
+  // practice for the arena: a high platform at the very start, reached with the super jump, and a step up to arena height
+  row(7, 11, 9, '='); row(14, 18, 7, '=');
   // the horde's arena (gates at 59 and 85): three high jump-through platforms, above even a Div warrior's head,
   // reached with the super jump; drop behind a Div to strike, then leap back up out of reach
   ground(55, 88, 14); row(61, 65, 7, '='); row(70, 74, 7, '='); row(79, 83, 7, '=');
   ground(89, 92, 12); pit(93, 98); row(94, 95, 10, '='); row(97, 98, 9, '='); ground(99, 159, 14); ground(105, 108, 12);
   put(3, 13, 'P');
-  [[9, 12], [22, 10], [23, 10], [32, 12], [39, 8], [48, 12], [63, 6], [72, 6], [81, 6], [90, 10], [97, 7], [104, 12]].forEach(([c, r]) => put(c, r, 'c'));
+  [[9, 8], [16, 6], [22, 10], [23, 10], [32, 12], [39, 8], [48, 12], [90, 10], [97, 7], [104, 12]].forEach(([c, r]) => put(c, r, 'c'));
   put(15, 13, 'd'); put(30, 13, 'w'); put(46, 13, 'd'); put(52, 13, 'w'); put(102, 13, 'w'); put(110, 13, 'd');
   // war fires, kept well apart from each other and from the altars (44, 100, 118)
   [[12, 13], [28, 13], [67, 13], [134, 13]].forEach(([c, r]) => put(c, r, 'B'));
@@ -300,6 +302,29 @@ function map7() {
 
 /* ----------------------------- foes ----------------------------- */
 // walking foes turn at walls and at the edge of a drop or thorns
+// another ground foe just ahead in this direction: they keep their distance rather than stand inside each other
+function crowded(s, f, dir) {
+  for (const o of s.foes.getChildren()) if (o !== f && o.active && o.body.enable && o.body.allowGravity && Math.sign(o.x - f.x) === dir && Math.abs(o.x - f.x) < 36 && Math.abs(o.y - f.y) < 30) return true;
+  return false;
+}
+// Rostam stands above this foe (up on a platform): out of reach
+const above = (f, p) => p.body.bottom < f.body.top + 6;
+// where a foe keeps watch when Rostam is out of reach: its own post, but never right beneath him
+function postOf(s, f) {
+  const post = f.post ?? f.home.x, px = s.player.x;
+  return Math.abs(post - px) < 3 * TS ? px + (post < px ? -1 : 1) * 3 * TS : post;
+}
+// out of reach, a foe paces its own stretch of ground instead of crowding beneath him
+function pace(s, f, speed, range = 2 * TS) {
+  const post = postOf(s, f);
+  if (Math.abs(f.x - post) > range) f.dir = Math.sign(post - f.x) || f.dir;
+  if (crowded(s, f, f.dir)) {
+    // someone is in the way: step back if there is room behind, otherwise wait
+    if (!crowded(s, f, -f.dir) && !(f.dir > 0 ? f.body.blocked.left : f.body.blocked.right)) f.dir *= -1;
+    else { f.setVelocityX(0); return; }
+  }
+  patrol(s, f, speed);
+}
 function patrol(s, f, speed) {
   const ahead = s.layer.getTileAtWorldXY(f.x + f.dir * 12, f.body.bottom + 4);
   if (f.body.blocked.left || f.body.blocked.right || (f.body.blocked.down && (!ahead || ahead.index % 4 === 3))) f.dir *= -1;
@@ -310,8 +335,10 @@ const FOES = {
   div: {
     tex: 'div-hop', hp: 2,
     tick(s, f, k, p) {
-      f.hopT -= k; f.dir = Math.sign(p.x - f.x) || 1; f.setFlipX(f.dir < 0);
-      if (f.body.blocked.down) { f.setVelocityX(0); if (f.hopT <= 0 && Math.abs(p.x - f.x) < 200) { f.setVelocity(f.dir * 70, -230); f.hopT = 70; } }
+      f.hopT -= k; if (!f.body.blocked.down) return;
+      if (above(f, p)) { f.setVelocityX(0); if (f.hopT <= 0) { const post = postOf(s, f); f.dir = Math.abs(f.x - post) > TS ? Math.sign(post - f.x) : (Math.random() < 0.5 ? -1 : 1); f.setFlipX(f.dir < 0); f.setVelocity(crowded(s, f, f.dir) ? 0 : f.dir * 50, -200); f.hopT = 80 + Math.random() * 40; } return; }
+      f.dir = Math.sign(p.x - f.x) || 1; f.setFlipX(f.dir < 0); f.setVelocityX(0);
+      if (f.hopT <= 0 && Math.abs(p.x - f.x) < 200) { f.setVelocity(crowded(s, f, f.dir) ? 0 : f.dir * 70, -230); f.hopT = 70; }
     }
   },
   // scorpions creep, then scuttle at Rostam when he comes close on the same level
@@ -329,14 +356,22 @@ const FOES = {
     tick(s, f, k, p) {
       f.cool = (f.cool || 0) - k;
       if (f.smash) { f.setVelocityX(0); return; }
-      const d = p.x - f.x;
+      if (above(f, p)) { f.turnT = undefined; pace(s, f, 26); return; }
+      const d = p.x - f.x, want = Math.sign(d) || f.dir;
+      // a heavy brute: it takes him a moment to turn about, time enough to strike his back
+      if (want !== f.dir) {
+        f.setVelocityX(0); f.turnT = (f.turnT ?? 48) - k;
+        if (f.turnT <= 0) { f.dir = want; f.setFlipX(f.dir < 0); f.turnT = undefined; f.cool = Math.max(f.cool, 20); }
+        return;
+      }
+      f.turnT = undefined;
       if (f.cool <= 0 && Math.abs(d) < 90 && Math.abs(p.body.bottom - f.body.bottom) < 30 && f.body.blocked.down) {
-        f.smash = true; f.dir = Math.sign(d) || 1; f.setFlipX(f.dir < 0); f.setVelocityX(0); f.play('divwarrior-smash');
+        f.smash = true; f.setVelocityX(0); f.play('divwarrior-smash');
         s.time.delayedCall(420, () => { if (!f.active || !f.body.enable) return; s.hazard(f.dir > 0 ? f.x + 8 : f.x - 48, f.body.top + 20, 40, 30, 160); s.fx('dust', f.x + f.dir * 30, f.body.bottom, { depth: 8 }); s.cam.shake(120, 0.006); sfx('hit'); });
         f.once('animationcomplete', () => { if (!f.active) return; f.smash = false; f.cool = 90; f.play('divwarrior-walk'); });
         return;
       }
-      if (Math.abs(d) < 200 && f.body.blocked.down) { f.dir = Math.sign(d) || 1; f.setVelocityX(f.dir * 38); f.setFlipX(f.dir < 0); } else patrol(s, f, 26);
+      if (Math.abs(d) < 200 && f.body.blocked.down) f.setVelocityX(crowded(s, f, f.dir) ? 0 : f.dir * 38); else pace(s, f, 26);
     }
   },
   // Olad's spearmen march, and thrust when Rostam comes within reach
@@ -613,9 +648,9 @@ const LEVELS = {
     create(s) {
       s.darkness(0.45, 0x1a0606); for (const w of s.wisps) s.light(w, 1.1, 0.08); for (const a of s.altars) s.light(a, 0.6);
       toast('Olad leads you by night to the war camp of Arzhang Div. Drums beat among the fires.');
-      hint('The Div camp. Div warriors\' clubs send <b>shockwaves along the ground: jump them</b>, then strike.');
+      hint('The Div camp. <b>Jump, then jump again in mid-air</b> to reach high platforms like the one above you. Div warriors\' clubs send <b>shockwaves along the ground: jump them</b>.');
     },
-    fires: [118], hearts: [90, 116],                 // one past the horde's gates, one at the last fire
+    fires: [118], hearts: [63, 72, 81, 90, 116],     // one on each of the arena's high platforms, one past the gates, one at the last fire
     resume(s) { if (s.start.x > s.hordeAt.x) s.hordeDone = true; },   // rising past the horde: it stays beaten
     update(s, k, time, p) {
       if (!s.hordeDone && !s.horde && p.x > s.hordeAt.x - 2 * TS) s.startHorde();
@@ -623,7 +658,7 @@ const LEVELS = {
       if (!s.bossOn && p.x > 124 * TS) s.startArzhang();
     },
     win: 'Rostam tears Arzhang from the field and the Div host scatters into the night. Now only the White Div remains, in his cave beyond the seven mountains.',
-    tips: ['When the drums sound, the horde comes in waves. Keep moving and strike as they land.', 'Jump over the shockwaves from a Div warrior\'s club.',
+    tips: ['When the drums sound, the gates shut. Jump twice to reach the high platforms; Divs cannot follow you up there.', 'A Div warrior turns slowly. Drop behind him and strike his back before he faces you.', 'Hearts wait on the high platforms of the horde\'s arena.', 'Jump over the shockwaves from a Div warrior\'s club.',
       'Arzhang\'s axe splits the ground both ways. Leap the wave, then strike.', 'Blue Divs hop at you; Div warriors take three blows.']
   },
   7: {
@@ -1526,7 +1561,7 @@ class Play extends Phaser.Scene {
     // gates of fire close behind and before Rostam while the Divs come in waves
     this.horde = { wave: 0, live: [] }; const x = this.hordeAt.x;
     this.gates = [x - 13 * TS, x + 13 * TS].map((gx, i) => {
-      const r = this.add.rectangle(gx, 0, 12, ROWS * TS, 0, 0).setOrigin(0.5, 0); this.physics.add.existing(r, true); this.physics.add.collider(this.player, r);
+      const r = this.add.rectangle(gx, 0, 12, ROWS * TS, 0, 0).setOrigin(0.5, 0); this.physics.add.existing(r, true); this.physics.add.collider(this.player, r); this.physics.add.collider(this.foes, r);
       // the gate drops from above and slams into the ground, shaking the camp
       const im = this.add.image(gx, -10, 'gate').setOrigin(0.5, 1).setDepth(6);
       this.tweens.add({ targets: im, y: 14 * TS + 2, duration: 380, delay: i * 160, ease: 'Bounce.easeOut', onStart: () => sfx('swing'),
@@ -1547,7 +1582,9 @@ class Play extends Phaser.Scene {
     list.forEach((k, i) => this.time.delayedCall(i * 420, () => {
       const side = i % 2 ? 1 : -1, sx = x + side * 10 * TS;
       this.fx('poof', sx, 13 * TS + 8, { depth: 10 });
-      h.live.push(this.spawnFoe(k === 'w' ? 'divwarrior' : 'div', sx, 14 * TS));
+      const f = this.spawnFoe(k === 'w' ? 'divwarrior' : 'div', sx, 14 * TS); f.dir = -side; f.setFlipX(f.dir < 0);
+      f.post = x + (i - (list.length - 1) / 2) * 4 * TS;          // spread out across the arena
+      h.live.push(f);
     }));
     h.spawning = this.time.now + list.length * 420 + 200;
   }
