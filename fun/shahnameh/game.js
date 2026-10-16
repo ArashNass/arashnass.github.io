@@ -40,7 +40,7 @@ const FPS = { 'rostam-idle': 5, 'rostam-run': 14, 'rostam-jump': 6, 'rostam-atta
 const SIZE = { rider: 124, rostam: 112, lion: 148, jackal: 108, div: 108, scorpion: 86, vulture: 92, ram: 86, dragon: 136, rakhsh: 104, bat: 108, serpent: 92, hag: 108, beauty: 108, spearman: 140, olad: 112, divwarrior: 100, arzhang: 136, whitediv: 136 };
 const BODY = { rider: [0.3, 0.5], rostam: [0.143, 0.393], lion: [0.5, 0.36], jackal: [0.3, 0.22], div: [0.22, 0.34], scorpion: [0.4, 0.22], vulture: [0.33, 0.2], ram: [0.4, 0.4],
   dragon: [0.46, 0.42], rakhsh: [0.5, 0.5], bat: [0.32, 0.24], serpent: [0.31, 0.31], hag: [0.27, 0.42], beauty: [0.2, 0.47], spearman: [0.115, 0.386], olad: [0.17, 0.49], divwarrior: [0.31, 0.64], arzhang: [0.3, 0.7], whitediv: [0.4, 0.58] };
-const V = 46;   // bump to bust caches when assets change
+const V = 47;   // bump to bust caches when assets change
 
 // PixelLab VFX strips in ./assets/fx: frame size, frame count, fps, and the effect's origin as a fraction of the frame
 const FX = {
@@ -1974,7 +1974,27 @@ const GUIDE = [
     more: [['k6/divwarrior-smash', 8, 148, 'Div warrior', 'Three blows. Strike his back while he turns.'], ['k3/bat-fly', 8, 108, 'Bat', 'Swing up at it as it swoops.']] }
 ];
 let gpg = 0, guideFrom = null;
-const mini = ([src, n, h], size, cls = '') => `<i class="spr ${cls}" style="--n:${n};--s:${size}px;--src:url(assets/${src}.png)" data-h="${h}"></i>`;
+const mini = ([src, n, h], size, cls = '') => `<i class="spr ${cls}" style="--n:${n};--s:${size}px;--src:url(assets/${src}.png)" data-n="${n}" data-key="${src.split('/').pop()}"></i>`;
+// the miniatures move at their in-game speed: walkers and fliers loop, attacks play once and then the foe waits a few seconds
+let sprTimer = 0;
+function animateMinis() {
+  clearInterval(sprTimer);
+  const els = [...$('gleaf').querySelectorAll('.spr')].map((el, i) => {
+    const key = el.dataset.key, n = +el.dataset.n;
+    return { el, n, fps: FPS[key] || 10, attack: /smash|slash|thrust|fire|cast|roar/.test(key), t0: performance.now() - i * 700, last: -1 };
+  });
+  const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const tick = () => {
+    if ($('s-guide').classList.contains('hidden')) return clearInterval(sprTimer);
+    const now = performance.now();
+    for (const a of els) {
+      const play = a.n / a.fps * 1000, cycle = a.attack ? play + 2600 : play, t = (now - a.t0) % cycle;
+      const f = still || t >= play ? 0 : Math.floor(t / 1000 * a.fps) % a.n;
+      if (f !== a.last) { a.last = f; a.el.style.backgroundPositionX = `calc(var(--s) * ${-f})`; }
+    }
+  };
+  tick(); sprTimer = setInterval(tick, 25);
+}
 function showGuide(i) {
   gpg = (i + GUIDE.length) % GUIDE.length; const g = GUIDE[gpg];
   $('gtabs').innerHTML = GUIDE.map((x, j) => `<button class="${j === gpg ? 'sel' : ''}" data-g="${j}" aria-label="Khan ${ROMAN[x.k]}: ${x.name}">${ROMAN[x.k]}</button>`).join('');
@@ -1983,7 +2003,7 @@ function showGuide(i) {
     <div class="gtext"><div class="fa">${g.fa}</div><h2>${g.name}</h2><p class="kick">Khan ${ROMAN[g.k]} &middot; ${NAMES[g.k][0]}</p><p class="gtale">${g.tale}</p></div></div>
     <div class="ghow"><h3>How to beat it <span class="gkey"><i class="ka"></i>strike now <i class="ks"></i>guarded</span></h3><ol>${g.how.map(h => `<li>${h}</li>`).join('')}</ol></div>
     <h3 class="galso">Also on this road</h3><div class="gmore">${g.more.map(([src, n, h, name, tip]) => `<div>${mini([src, n, h], 64)}<p><b>${name}</b>${tip}</p></div>`).join('')}</div>`;
-  $('gleaf').scrollTop = 0;
+  $('gleaf').scrollTop = 0; animateMinis();
 }
 function openGuide(n) {
   if (playing) setPaused(true);
