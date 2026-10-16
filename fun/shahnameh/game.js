@@ -37,10 +37,10 @@ const FPS = { 'rostam-idle': 5, 'rostam-run': 14, 'rostam-jump': 6, 'rostam-atta
   'divwarrior-walk': 8, 'divwarrior-smash': 13, 'arzhang-walk': 7, 'arzhang-smash': 9,
   'whitediv-walk': 6, 'whitediv-smash': 11, 'whitediv-throw': 10, 'kavus-sight': 5 };
 // on-screen frame height in game pixels; equal to the PixelLab frame size so sprites draw 1:1
-const SIZE = { rider: 124, rostam: 112, lion: 148, jackal: 108, div: 108, scorpion: 86, vulture: 92, ram: 86, dragon: 136, rakhsh: 104, bat: 108, serpent: 92, hag: 108, beauty: 108, spearman: 140, olad: 112, divwarrior: 118, arzhang: 136, whitediv: 136 };
+const SIZE = { rider: 124, rostam: 112, lion: 148, jackal: 108, div: 108, scorpion: 86, vulture: 92, ram: 86, dragon: 136, rakhsh: 104, bat: 108, serpent: 92, hag: 108, beauty: 108, spearman: 140, olad: 112, divwarrior: 108, arzhang: 136, whitediv: 136 };
 const BODY = { rider: [0.3, 0.5], rostam: [0.143, 0.393], lion: [0.5, 0.36], jackal: [0.3, 0.22], div: [0.22, 0.34], scorpion: [0.4, 0.22], vulture: [0.33, 0.2], ram: [0.4, 0.4],
-  dragon: [0.46, 0.42], rakhsh: [0.5, 0.5], bat: [0.24, 0.15], serpent: [0.31, 0.31], hag: [0.27, 0.42], beauty: [0.2, 0.47], spearman: [0.115, 0.386], olad: [0.17, 0.49], divwarrior: [0.26, 0.54], arzhang: [0.3, 0.7], whitediv: [0.4, 0.58] };
-const V = 31;   // bump to bust caches when assets change
+  dragon: [0.46, 0.42], rakhsh: [0.5, 0.5], bat: [0.24, 0.15], serpent: [0.31, 0.31], hag: [0.27, 0.42], beauty: [0.2, 0.47], spearman: [0.115, 0.386], olad: [0.17, 0.49], divwarrior: [0.287, 0.59], arzhang: [0.3, 0.7], whitediv: [0.4, 0.58] };
+const V = 34;   // bump to bust caches when assets change
 
 // PixelLab VFX strips in ./assets/fx: frame size, frame count, fps, and the effect's origin as a fraction of the frame
 const FX = {
@@ -256,12 +256,15 @@ function map6() {
   const row = (a, b, r, ch) => { for (let c = a; c <= b; c++) g[r][c] = ch; };
   const pit = (a, b) => { ground(a, b, 16); row(a, b, 15, '^'); };
   ground(0, 20, 14); ground(21, 24, 12); ground(25, 36, 14); pit(37, 41); row(38, 40, 10, '='); ground(42, 54, 14);
-  ground(55, 88, 14); row(62, 66, 10, '='); row(76, 80, 10, '=');
+  // the horde's arena (gates at 59 and 85): three high jump-through platforms, above even a Div warrior's head,
+  // reached with the super jump; drop behind a Div to strike, then leap back up out of reach
+  ground(55, 88, 14); row(61, 65, 7, '='); row(70, 74, 7, '='); row(79, 83, 7, '=');
   ground(89, 92, 12); pit(93, 98); row(94, 95, 10, '='); row(97, 98, 9, '='); ground(99, 159, 14); ground(105, 108, 12);
   put(3, 13, 'P');
-  [[9, 12], [22, 10], [23, 10], [32, 12], [39, 8], [48, 12], [64, 9], [78, 9], [90, 10], [97, 7], [104, 12]].forEach(([c, r]) => put(c, r, 'c'));
-  put(15, 13, 'd'); put(30, 13, 'w'); put(46, 13, 'd'); put(52, 13, 'w'); put(96, 6, 'b'); put(102, 13, 'w'); put(110, 13, 'd');
-  [[6, 13], [27, 13], [50, 13], [58, 13], [86, 13], [101, 13], [118, 13], [140, 13]].forEach(([c, r]) => put(c, r, 'B'));
+  [[9, 12], [22, 10], [23, 10], [32, 12], [39, 8], [48, 12], [63, 6], [72, 6], [81, 6], [90, 10], [97, 7], [104, 12]].forEach(([c, r]) => put(c, r, 'c'));
+  put(15, 13, 'd'); put(30, 13, 'w'); put(46, 13, 'd'); put(52, 13, 'w'); put(102, 13, 'w'); put(110, 13, 'd');
+  // war fires, kept well apart from each other and from the altars (44, 100, 118)
+  [[12, 13], [28, 13], [67, 13], [134, 13]].forEach(([c, r]) => put(c, r, 'B'));
   put(44, 13, 'F'); put(100, 13, 'F');
   put(72, 13, 'h'); put(140, 13, 'A');
   return g;
@@ -591,7 +594,7 @@ const LEVELS = {
   },
   6: {
     hud: 'Khan VI &middot; Arzhang Div', winTitle: 'Arzhang has fallen', name: 'The Camp of the Divs', fa: 'اَرژنگِ دیو', bossName: 'Arzhang Div', tiles: 'tiles-6', map: map6,
-    load(L, q) { L.image('tiles-6', 'assets/k6/tiles.png' + q); L.image('k6-far', 'assets/k6/far.png' + q); L.image('altar', 'assets/altar.png' + q); },
+    load(L, q) { L.image('tiles-6', 'assets/k6/tiles.png' + q); L.image('k6-far', 'assets/k6/far.png' + q); L.image('altar', 'assets/altar.png' + q); L.image('gate', 'assets/k6/gate.png' + q); },
     backdrop(s) {
       s.add.image(0, 0, 'k6-far').setOrigin(0).setScrollFactor(0);
       s.smoke = s.add.tileSprite(0, 0, W, H, 'bg-mist').setOrigin(0).setScrollFactor(0).setTint(0x6a3020);
@@ -989,7 +992,7 @@ class Play extends Phaser.Scene {
   create() {
     // the scene object is reused from labour to labour: forget whatever the last one left behind
     for (const k of ['dark', 'lights', 'lamp', 'wall', 'wallR', 'stars', 'pose', 'swingFx', 'witch', 'unmasked', 'olad', 'rakhsh', 'dragonSeen', 'horde', 'hordeDone',
-      'gates', 'drums', 'whiteDown', 'ended', 'mounted', 'prayed', 'drank', 'toldImmune', 'toldDeflect', 'kavus', 'stones', 'puzzle', 'springOpen', 'pool']) delete this[k];
+      'gates', 'hordeBat', 'drums', 'whiteDown', 'ended', 'mounted', 'prayed', 'drank', 'toldImmune', 'toldDeflect', 'kavus', 'stones', 'puzzle', 'springOpen', 'pool']) delete this[k];
     // turn loaded strips into square frames; anything missing falls back to placeholder art
     for (const [k, f] of Object.entries(ART)) if (f && this.textures.exists(k)) {
       const t = this.textures.get(k), img = t.getSourceImage(), fh = img.height, n = Math.max(1, Math.round(img.width / fh));
@@ -1522,12 +1525,20 @@ class Play extends Phaser.Scene {
   startHorde() {
     // gates of fire close behind and before Rostam while the Divs come in waves
     this.horde = { wave: 0, live: [] }; const x = this.hordeAt.x;
-    this.gates = [x - 13 * TS, x + 13 * TS].map(gx => {
-      const r = this.add.rectangle(gx, 0, 10, ROWS * TS, 0, 0).setOrigin(0.5, 0); this.physics.add.existing(r, true); this.physics.add.collider(this.player, r);
-      const f = this.fx('fire', gx, 14 * TS, { depth: 6 }); const g = this.add.image(gx, 13 * TS, 'glow').setScale(1.4).setBlendMode(Phaser.BlendModes.ADD).setDepth(5); this.light(g, 1.2, 0.1);
-      return { r, f, g };
+    this.gates = [x - 13 * TS, x + 13 * TS].map((gx, i) => {
+      const r = this.add.rectangle(gx, 0, 12, ROWS * TS, 0, 0).setOrigin(0.5, 0); this.physics.add.existing(r, true); this.physics.add.collider(this.player, r);
+      // the gate drops from above and slams into the ground, shaking the camp
+      const im = this.add.image(gx, -10, 'gate').setOrigin(0.5, 1).setDepth(6);
+      this.tweens.add({ targets: im, y: 14 * TS + 2, duration: 380, delay: i * 160, ease: 'Bounce.easeOut', onStart: () => sfx('swing'),
+        onComplete: () => { sfx('drum'); this.cam.shake(220, 0.01); this.fx('dust', gx - 10, 14 * TS, { flip: true, depth: 8 }); this.fx('dust', gx + 10, 14 * TS, { depth: 8 }); } });
+      const g = this.add.image(gx, 13 * TS, 'glow').setScale(1.2).setTint(0xff8040).setBlendMode(Phaser.BlendModes.ADD).setDepth(5); this.light(g, 1.1, 0.1);
+      return { r, im, g };
     });
-    banner('سپاهِ دیوان', 'The Horde of the Divs'); hint('The gates are shut! <b>Survive three waves of Divs</b>. Keep moving, and strike as they land.'); this.drums = this.time.addEvent({ delay: 420, loop: true, callback: () => sfx('drum') });
+    // the camera settles on the arena, so both gates are in view while it lasts
+    this.cam.stopFollow(); this.tweens.add({ targets: this.cam, scrollX: Phaser.Math.Clamp(x - W / 2, 0, this.levelW - W), duration: 600, ease: 'Sine.easeInOut' });
+    // one bat circles high over the platforms, to harry Rostam up there
+    this.hordeBat = this.spawnFoe('bat', x, 4 * TS);
+    banner('سپاهِ دیوان', 'The Horde of the Divs'); hint('The gates are shut! <b>Survive three waves of Divs</b>. <b>Jump twice</b> to reach the high platforms, drop behind a Div to strike, then leap back up.'); this.drums = this.time.addEvent({ delay: 420, loop: true, callback: () => sfx('drum') });
     this.time.delayedCall(900, () => this.hordeWave());
   }
   hordeWave() {
@@ -1546,7 +1557,9 @@ class Play extends Phaser.Scene {
       if (h.wave < 3) { h.live = []; this.hordeWave(); return; }
       // the last wave is broken: the gates of fire die down
       this.horde = null; this.hordeDone = true; this.drums.remove(); sfx('win'); hint('The gates open. <b>Arzhang waits ahead</b>: light the last fire before you face him.');
-      for (const g of this.gates) { g.r.destroy(); g.f.destroy(); this.tweens.add({ targets: g.g, alpha: 0, duration: 600 }); }
+      for (const g of this.gates) { g.r.destroy(); this.tweens.add({ targets: g.im, y: -20, duration: 900, ease: 'Sine.easeIn' }); this.tweens.add({ targets: g.g, alpha: 0, duration: 600 }); }
+      if (this.hordeBat?.active && this.hordeBat.body.enable) this.banish(this.hordeBat.x - 4, this.hordeBat.x + 4);
+      this.cam.startFollow(this.player, true, 0.12, 0.12);
       toast('The horde is broken! The way to Arzhang lies open.');
     }
   }
