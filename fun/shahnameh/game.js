@@ -25,15 +25,15 @@ const FED = 8;                                                   // provisions i
    ------------------------------------------------------------- */
 const ART = {
   'rostam-idle': 'rostam-idle.png', 'rostam-run': 'rostam-run.png', 'rostam-jump': 'rostam-jump.png', 'rostam-attack': 'rostam-attack.png', 'rostam-hurt': 'rostam-hurt.png',
-  'lion-walk': 'lion-walk.png', 'lion-run': 'lion-run.png', 'lion-roar': 'lion-roar.png',
+  'lion-walk': 'lion-walk.png', 'lion-run': 'lion-run.png', 'lion-roar': 'lion-roar.png', 'lion-die': 'lion-die.png', 'simurgh-fly': 'simurgh-fly.png',
   'jackal-run': 'jackal-run.png', 'div-hop': 'div-hop.png',
   // Khan II
   'ride-gallop': 'k3/ride-gallop.png', 'ride-strike': 'k3/ride-strike.png', 'ride-rear': 'k3/ride-rear.png',
   'scorpion-crawl': 'k2/scorpion-crawl.png', 'scorpion-sting': 'k2/scorpion-sting.png', 'vulture-fly': 'k2/vulture-fly.png', 'ram-walk': 'k2/ram-walk.png', 'rostam-drink': 'rostam-drink.png',
   // Khan III
-  'dragon-move': 'k3/dragon-move.png', 'dragon-fire': 'k3/dragon-fire.png', 'rakhsh-gallop': 'k3/rakhsh-gallop.png', 'rakhsh-rear': 'k3/rakhsh-rear.png', 'bat-fly': 'k3/bat-fly.png',
+  'dragon-move': 'k3/dragon-move.png', 'dragon-fire': 'k3/dragon-fire.png', 'dragon-die': 'k3/dragon-die.png', 'rakhsh-gallop': 'k3/rakhsh-gallop.png', 'rakhsh-rear': 'k3/rakhsh-rear.png', 'bat-fly': 'k3/bat-fly.png',
   // Khan IV
-  'serpent': 'k4/serpent.png', 'serpent-strike': 'k4/serpent-strike.png', 'hag-cast': 'k4/hag-cast.png', 'beauty-idle': 'k4/beauty-idle.png',
+  'serpent': 'k4/serpent.png', 'serpent-strike': 'k4/serpent-strike.png', 'hag-cast': 'k4/hag-cast.png', 'hag-die': 'k4/hag-die.png', 'beauty-idle': 'k4/beauty-idle.png',
   // Khan V
   'spearman-walk': 'k5/spearman-walk.png', 'spearman-thrust': 'k5/spearman-thrust.png', 'olad-walk': 'k5/olad-walk.png', 'olad-slash': 'k5/olad-slash.png', 'olad-kneel': 'k5/olad-kneel.png',
   // Khan VI
@@ -42,7 +42,7 @@ const ART = {
   // Khan VII
   'whitediv-walk': 'k7/whitediv-walk.png', 'whitediv-smash': 'k7/whitediv-smash.png', 'whitediv-throw': 'k7/whitediv-throw.png', 'whitediv-die': 'k7/whitediv-die.png', 'kavus-sight': 'k7/kavus-sight.png'
 };
-const FPS = { 'rostam-idle': 5, 'rostam-run': 14, 'rostam-jump': 6, 'rostam-attack': 24, 'rostam-hurt': 10, 'lion-walk': 9, 'lion-run': 14, 'lion-roar': 6, 'jackal-run': 12, 'div-hop': 8, 'coin-spin': 8, 'fire-burn': 10,
+const FPS = { 'simurgh-fly': 10, 'lion-die': 6, 'dragon-die': 6, 'hag-die': 6, 'rostam-idle': 5, 'rostam-run': 14, 'rostam-jump': 6, 'rostam-attack': 24, 'rostam-hurt': 10, 'lion-walk': 9, 'lion-run': 14, 'lion-roar': 6, 'jackal-run': 12, 'div-hop': 8, 'coin-spin': 8, 'fire-burn': 10,
   'scorpion-crawl': 10, 'vulture-fly': 10, 'ram-walk': 8, 'rostam-drink': 6, 'ride-gallop': 12, 'ride-strike': 18, 'ride-rear': 11,
   'dragon-move': 7, 'dragon-fire': 9, 'rakhsh-gallop': 12, 'rakhsh-rear': 9, 'bat-fly': 14,
   'serpent': 8, 'hag-cast': 10, 'beauty-idle': 4,
@@ -53,7 +53,7 @@ const FPS = { 'rostam-idle': 5, 'rostam-run': 14, 'rostam-jump': 6, 'rostam-atta
 const SIZE = { rider: 124, rostam: 112, lion: 148, jackal: 108, div: 108, scorpion: 86, vulture: 92, ram: 86, dragon: 136, rakhsh: 104, bat: 108, serpent: 92, hag: 108, beauty: 108, spearman: 140, olad: 112, divwarrior: 100, arzhang: 136, whitediv: 136, firediv: 104, ghul: 100 };
 const BODY = { rider: [0.3, 0.5], rostam: [0.143, 0.393], lion: [0.5, 0.36], jackal: [0.3, 0.22], div: [0.22, 0.34], scorpion: [0.4, 0.22], vulture: [0.33, 0.2], ram: [0.4, 0.4],
   dragon: [0.46, 0.42], rakhsh: [0.5, 0.5], bat: [0.32, 0.24], serpent: [0.31, 0.31], hag: [0.27, 0.42], beauty: [0.2, 0.47], spearman: [0.115, 0.386], olad: [0.17, 0.49], divwarrior: [0.31, 0.64], arzhang: [0.3, 0.7], whitediv: [0.4, 0.58], firediv: [0.2, 0.6], ghul: [0.5, 0.36] };
-const V = 58;
+const V = 59;
 const ZOOM = 2;                                                   // canvas pixels per world pixel   // bump to bust caches when assets change
 
 // PixelLab VFX strips in ./assets/fx: frame size, frame count, fps, and the effect's origin as a fraction of the frame
@@ -180,8 +180,9 @@ function buildMap() {
   [[8, 12], [10, 11], [12, 12], [22, 11], [23, 10], [24, 11], [43, 9], [44, 8], [45, 9], [62, 9], [67, 8], [75, 8], [76, 8], [80, 5], [81, 5]].forEach(([c, r]) => put(c, r, 'c'));
   put(16, 13, 'j'); put(30, 13, 'j'); put(45, 11, 'd'); put(55, 13, 'j'); put(72, 13, 'd'); put(80, 13, 'j');
   put(52, 13, 'F'); put(110, 12, 'L');
-  // the lion's arena (86 to 116): a ledge at each side to leap onto from its charge
-  row(88, 92, 11, '='); row(101, 105, 11, '=');
+  // the lion's arena (86 to 116): one ledge, in the left corner, to leap onto from its charge. The lion keeps out of
+  // mace reach of it (KEEP1): a charge that reaches that line stops there as if at a wall
+  row(86, 92, 11, '=');
   return g;
 }
 
@@ -202,7 +203,7 @@ function map2() {
   put(15, 13, 'j'); put(31, 12, 's'); put(48, 13, 's'); put(38, 7, 'v'); put(62, 13, 'j'); put(68, 6, 'v'); put(81, 13, 's');
   put(90, 12, 's'); put(101, 6, 'v'); put(110, 13, 's'); put(125, 12, 's'); put(130, 7, 'v'); put(136, 13, 's'); put(146, 13, 's');
   put(57, 12, 'O'); put(107, 13, 'O');
-  put(128, 13, 'R'); put(158, 13, 'S');
+  put(128, 13, 'R'); put(164, 13, 'S');                    // the ram's four bell towers stand at 146, 150, 154 and 158
   return g;
 }
 
@@ -223,7 +224,7 @@ function map3() {
   [[11, 11], [26, 10], [58, 8], [70, 10]].forEach(([c, r]) => put(c, r, 'm'));          // marsh lights, never beside an altar
   put(42, 13, 'F'); put(84, 13, 'F');
   put(117, 13, 'K'); put(146, 13, 'D');
-  row(114, 118, 11, '='); row(136, 140, 11, '=');          // the dragon's arena (112 to 142): a ledge at each side
+  row(112, 118, 11, '=');                                  // the dragon's arena (112 to 142): one ledge in the left corner (KEEP3)
   return g;
 }
 
@@ -262,7 +263,7 @@ function map5() {
   put(14, 13, 'q'); put(36, 13, 'q'); put(42, 13, 'j'); put(60, 13, 'q'); put(71, 13, 'q'); put(76, 13, 'j'); put(88, 13, 'q'); put(97, 13, 'q'); put(108, 13, 'q');
   put(52, 13, 'F');
   put(130, 13, 'O');
-  row(114, 118, 11, '='); row(136, 140, 11, '=');          // Olad's arena (112 to 142): a ledge at each side, to leap over him from
+  row(112, 118, 11, '=');                                  // Olad's arena (112 to 142): one ledge in the left corner (KEEP5)
   return g;
 }
 
@@ -297,7 +298,11 @@ function map6() {
 // 'k' Kay Kavus in chains  'X' the White Div
 const CAVE7 = 120;
 // the column a great Div's feet never pass toward his arena's corner platform: six tiles beyond its edge, well out of reach of the mace
-const KEEP6 = 137, KEEP7 = 159;
+// the ram's four bell towers: the drawn tower's scale, where its arch's beam sits (fraction of its height from the top),
+// the bell's scale; and each tower's element, colour and bell note (Hz)
+const TOWER = { scale: 0.8, bell: [0.16, 0.132, 0.125, 0.181], foot: [1, 1, 1, 0.896], bellScale: 0.45 };
+const ELEMENTS = [{ name: 'earth', tint: 0xe8b060, note: 392 }, { name: 'water', tint: 0x6ad8ff, note: 523 }, { name: 'fire', tint: 0xff7a2a, note: 659 }, { name: 'wind', tint: 0xe8f4ff, note: 784 }];
+const KEEP1 = 99, KEEP3 = 126, KEEP5 = 125, KEEP6 = 137, KEEP7 = 159;
 // the row a thing can stand on in a map column (or the nearest column that has ground): for fires and hearts
 function topAt(map, c) {
   const solid = ch => ch === '#' || ch === '=';
@@ -528,7 +533,7 @@ function flyer(tex, { range, dive, rest, offY, speed = 0.012 }) {
 // characters, and hooks that run on create and every frame. Shared systems live in the scene.
 const LEVELS = {
   1: {
-    hud: 'Khan I &middot; The Lion', winTitle: 'The lion is slain', name: 'The Lion of the Reeds', fa: 'شیرِ نیستان', tiles: 'tiles-1', map: buildMap,
+    epithet: 'It hunts the reeds by night, and nothing that comes there leaves', hud: 'Khan I &middot; The Lion', winTitle: 'The lion is slain', name: 'The Lion of the Reeds', fa: 'شیرِ نیستان', tiles: 'tiles-1', map: buildMap,
     load(L, q) {
       L.image('tiles-1', 'assets/tiles.png' + q);
       L.image('bg-far', 'assets/bg/far.png' + q); L.image('bg-ruins', 'assets/bg/ruins.png' + q);
@@ -573,7 +578,8 @@ const LEVELS = {
     hud: 'Khan II &middot; The Desert', winTitle: 'Water in the wilderness', name: 'The Burning Desert', fa: 'بیابانِ بی‌آب', tiles: 'tiles-2', map: map2,
     load(L, q) {
       L.image('tiles-2', 'assets/k2/tiles.png' + q); L.image('k2-far', 'assets/k2/far.png' + q); L.image('k2-oasis', 'assets/k2/oasis.png' + q);
-      L.image('well', 'assets/k2/well.png' + q);
+      L.image('well', 'assets/k2/well.png' + q); L.image('bell', 'assets/k2/bell.png' + q);
+      for (let i = 0; i < 4; i++) L.image('tower-' + i, `assets/k2/tower-${i}.png${q}`);
     },
     backdrop(s) {
       // the far desert is drawn in 2px bands so each band can waver: heat shimmer above the dunes
@@ -614,10 +620,16 @@ const LEVELS = {
     create(s) {
       s.water = 100; s.thirstT = 0; s.stormOn = 0; s.prayed = false;
       $('waterPill').classList.remove('hidden'); s.renderWater();
-      s.stones = [147, 150, 153, 156].map((c, i) => {
-        const x = c * TS + TS / 2, r = s.groundAt(x), st = s.add.image(x, r * TS, 'stone-' + i).setOrigin(0.5, 1).setDepth(2);
-        st.glow = s.add.image(x, r * TS - 13, 'glow').setScale(0.9).setBlendMode(Phaser.BlendModes.ADD).setDepth(3).setAlpha(0);
-        return st;
+      // the ram's riddle: four towers of the elements, earth, water, fire and wind, each with a bell in its arch
+      s.ramStand = 161 * TS;
+      s.stones = [146, 150, 154, 158].map((c, i) => {
+        const x = c * TS + TS / 2, r = s.groundAt(x), tall = s.textures.exists('tower-' + i);
+        const st = s.add.image(x, r * TS + 2, tall ? 'tower-' + i : 'stone-' + i).setOrigin(0.5, tall ? TOWER.foot[i] : 1).setDepth(2).setScale(tall ? TOWER.scale : 1);
+        const top = st.y - st.displayHeight * st.originY, by = tall ? top + st.displayHeight * TOWER.bell[i] : top - 4;
+        st.bell = s.add.image(x, by, 'bell').setOrigin(0.5, 0.06).setDepth(2.1).setScale(TOWER.bellScale);
+        st.glow = s.add.image(x, by + 8, 'glow').setScale(1.2).setBlendMode(Phaser.BlendModes.ADD).setDepth(3).setAlpha(0);
+        st.aura = s.add.image(x, st.y - st.displayHeight * 0.45, 'glow').setScale(1.4, 2.6).setBlendMode(Phaser.BlendModes.ADD).setDepth(1.9).setAlpha(0).setTint(ELEMENTS[i].tint);
+        st.el = i; return st;
       });
       hint('Your <b>water</b> (blue bar, top right) drains in the heat. <b>Walk past a well</b> to drink your fill; water skins give a sip. If it runs dry you lose hearts.');
     },
@@ -631,12 +643,12 @@ const LEVELS = {
       if (s.stormOn > 0.1 && !s.frozen) b.velocity.x -= 9 * s.stormOn * k;          // the wind pushes back
       if (s.stormOn > 0.3 && !s.prayed) hint('A <b>sandstorm</b>! The wind pushes you back and water drains twice as fast. <b>Keep pressing on</b>.');
       // thirst: water drains in the heat, twice as fast in the storm
-      if (!s.frozen && !s.prayed) s.water = Math.max(0, s.water - k * (0.045 + s.stormOn * 0.045));
+      if (!s.frozen && !s.prayed) s.water = Math.max(0, s.water - k * (0.045 + s.stormOn * 0.045) * (gentle() ? 0.6 : 1));
       if (s.water <= 0) { s.thirstT += k; if (s.thirstT > 150) { s.thirstT = 0; s.hurt(p.x, true); toast('Rostam is dying of thirst. Find water!'); } }
       s.renderWater();
       if (!s.prayed && s.ramAt && p.x > s.ramAt.x) s.prayForWater();
       if (s.ram) s.ramGuide(k);
-      if (s.ram && !s.puzzle && p.x > 144 * TS) s.startStones();
+      if (s.ram && !s.puzzle && p.x > 143 * TS && s.ram.x >= s.ramStand - 10) s.startStones();
       if (s.springOpen && !s.drank && p.x > s.springAt.x - 6 && b.blocked.down) s.reachSpring();
     },
     win: 'Rostam drinks from the spring the ram revealed and gives thanks. Refreshed, he rides on toward the dragon of the third labour.',
@@ -644,7 +656,7 @@ const LEVELS = {
       'Scorpions take two blows, and lash out with their sting up close. Jump on them, or strike twice and step back.', 'In the sandstorm the wind pushes you back. Keep moving forward.', 'At the dry rock, watch the order the ram taps the stones, then strike them in that order.', 'If your water runs dry you lose a heart every few seconds.']
   },
   3: {
-    hud: 'Khan III &middot; The Dragon', winTitle: 'The dragon is slain', name: 'The Dragon of the Night', fa: 'اژدها', bossName: 'The Dragon', tiles: 'tiles-3', map: map3, mounted: true,
+    epithet: 'No lion or elephant dares cross the plain where it sleeps', hud: 'Khan III &middot; The Dragon', winTitle: 'The dragon is slain', name: 'The Dragon of the Night', fa: 'اژدها', bossName: 'The Dragon', tiles: 'tiles-3', map: map3, mounted: true,
     load(L, q) { L.image('tiles-3', 'assets/k3/tiles.png' + q); L.image('k3-far', 'assets/k3/far.png' + q); L.image('altar', 'assets/altar.png' + q); },
     backdrop(s) {
       s.add.image(0, 0, 'k3-far').setOrigin(0).setScrollFactor(0);
@@ -720,7 +732,7 @@ const LEVELS = {
       'Serpents rear back, then lunge. Strike them as they rear, or step back from the lunge.', 'Lanterns and fire altars keep the garden lit.', 'Roast lamb waits on the high balconies.']
   },
   5: {
-    hud: 'Khan V &middot; Olad', winTitle: 'Olad yields', name: 'The Green Land', fa: 'اولاد', bossName: 'Olad, Warden of the Marches', bossFa: 'اولاد', tiles: 'tiles-5', map: map5,
+    epithet: 'Young lord of the green marches, and their sword', hud: 'Khan V &middot; Olad', winTitle: 'Olad yields', name: 'The Green Land', fa: 'اولاد', bossName: 'Olad, Warden of the Marches', bossFa: 'اولاد', tiles: 'tiles-5', map: map5,
     load(L, q) { L.image('tiles-5', 'assets/k5/tiles.png' + q); L.image('k5-far', 'assets/k5/far.png' + q); L.image('altar', 'assets/altar.png' + q); },
     backdrop(s) {
       s.add.image(0, 0, 'k5-far').setOrigin(0).setScrollFactor(0);
@@ -738,7 +750,7 @@ const LEVELS = {
       'Land on a foe from above to strike twice as hard.', 'Fire altars mark where you return if you fall.']
   },
   6: {
-    hud: 'Khan VI &middot; Arzhang Div', winTitle: 'Arzhang has fallen', name: 'The Camp of the Divs', fa: 'اَرژنگِ دیو', bossName: 'Arzhang Div', tiles: 'tiles-6', map: map6,
+    epithet: 'Chieftain of the Div host, who breaks men with his axe', hud: 'Khan VI &middot; Arzhang Div', winTitle: 'Arzhang has fallen', name: 'The Camp of the Divs', fa: 'اَرژنگِ دیو', bossName: 'Arzhang Div', tiles: 'tiles-6', map: map6,
     load(L, q) { L.image('tiles-6', 'assets/k6/tiles.png' + q); L.image('k6-far', 'assets/k6/far.png' + q); L.image('altar', 'assets/altar.png' + q); L.image('gate', 'assets/k6/gate.png' + q); },
     backdrop(s) {
       s.add.image(0, 0, 'k6-far').setOrigin(0).setScrollFactor(0);
@@ -774,7 +786,7 @@ const LEVELS = {
       'Blue Divs hop at you; Div warriors take three blows.']
   },
   7: {
-    hud: 'Khan VII &middot; The White Div', winTitle: 'The Seven Labours are done', name: 'The White Div', fa: 'دیوِ سپید', tiles: 'tiles-7', map: map7,
+    epithet: 'Master of Mazandaran, who blinded a king and all his army', hud: 'Khan VII &middot; The White Div', winTitle: 'The Seven Labours are done', name: 'The White Div', fa: 'دیوِ سپید', tiles: 'tiles-7', map: map7,
     tileShift: c => c >= CAVE7 ? 4 : 0,
     load(L, q) { L.image('tiles-7', 'assets/k7/tiles.png' + q); L.image('k7-far', 'assets/k7/far.png' + q); L.image('k7-cave', 'assets/k7/cave.png' + q); L.image('altar', 'assets/altar.png' + q); },
     backdrop(s) {
@@ -1147,6 +1159,15 @@ const sfx = (k) => { if (!A.ctx || A.muted) return; if (sample(k)) return; const
   stone2: () => pluck(pitch(S, 11), t, { vol: 0.25, out: A.fx }), stone3: () => pluck(pitch(S, 14), t, { vol: 0.25, out: A.fx }),
   win: () => { const W = { ...S, mode: 'mahur' }; [0, 2, 4, 5, 7, 9, 11, 14].forEach((d, i) => pluck(pitch(W, d), t + i * 0.11, { vol: 0.2, out: A.fx })); daf(t, 'D', 1.2, A.fx); daf(t + 0.88, 'D', 1.2, A.fx); }
 })[k]?.(); };
+// a struck bronze bell: a stack of inharmonic partials, each fading at its own pace, with a bright strike on top
+function bell(f) {
+  if (!A.ctx || A.muted) return; const t = A.ctx.currentTime;
+  for (const [m, v, d] of [[0.5, 0.05, 3.2], [1, 0.1, 2.6], [1.19, 0.05, 1.8], [1.56, 0.04, 1.4], [2, 0.05, 1.6], [2.74, 0.025, 0.9], [3.76, 0.015, 0.6]]) {
+    const o = A.ctx.createOscillator(), g = A.ctx.createGain(); o.type = 'sine'; o.frequency.value = f * m;
+    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(v, t + 0.005); g.gain.exponentialRampToValueAtTime(0.0001, t + d);
+    o.connect(g).connect(A.fx); o.start(t); o.stop(t + d + 0.05);
+  }
+}
 function setMuted(m) {
   A.muted = m; store.set('sh-muted', m ? '1' : '0'); if (A.master) A.master.gain.value = m ? 0 : 0.8;
   $('muteIco').setAttribute('d', m ? 'M4 9v6h4l5 4V5L8 9z M17 9l5 6 M22 9l-5 6' : 'M4 9v6h4l5 4V5L8 9z M16 9a4 4 0 0 1 0 6 M19 6a8 8 0 0 1 0 12');
@@ -1202,7 +1223,7 @@ class Play extends Phaser.Scene {
   create() {
     // the scene object is reused from labour to labour: forget whatever the last one left behind
     for (const k of ['dark', 'lights', 'lamp', 'wall', 'wallR', 'stars', 'pose', 'swingFx', 'witch', 'unmasked', 'olad', 'rakhsh', 'dragonSeen', 'horde', 'hordeDone',
-      'gates', 'hordeBat', 'toldRock', 'toldFarr', 'toldOffer', 'atAltar', 'bossT', 'maceHit', 'toldIce', 'chargeWarn', 'toldCharge', 'shards', 'shardG', 'mark', 'markGlow', 'markOpen', 'bossHeart', 'bossHeartT', 'floorWarn', 'highWarn', 'regrow', 'drums', 'sky', 'flashA', 'whiteDown', 'ended', 'mounted', 'prayed', 'drank', 'toldImmune', 'toldDeflect', 'kavus', 'stones', 'puzzle', 'springOpen', 'pool']) delete this[k];
+      'gates', 'hordeBat', 'toldRock', 'toldFarr', 'toldOffer', 'atAltar', 'bossT', 'maceHit', 'toldIce', 'chargeWarn', 'toldCharge', 'shards', 'shardG', 'mark', 'markGlow', 'markOpen', 'bossHeart', 'bossHeartT', 'floorWarn', 'highWarn', 'regrow', 'drums', 'sky', 'flashA', 'intro', 'whiteDown', 'ended', 'mounted', 'prayed', 'drank', 'toldImmune', 'toldDeflect', 'kavus', 'stones', 'puzzle', 'springOpen', 'pool']) delete this[k];
     // turn loaded strips into square frames; anything missing falls back to placeholder art
     for (const [k, f] of Object.entries(ART)) if (f && this.textures.exists(k)) {
       const t = this.textures.get(k), img = t.getSourceImage(), fh = img.height, n = Math.max(1, Math.round(img.width / fh));
@@ -1272,7 +1293,7 @@ class Play extends Phaser.Scene {
     this.cam.startFollow(this.player, true, 0.12, 0.12, W / 2, H / 2);
     this.cam.setRoundPixels(true);
     if (matchMedia('(prefers-reduced-motion: reduce)').matches) { this.cam.shake = () => this.cam; this.cam.flash = () => this.cam; }
-    this.maxHp = 5 + (upg().heart || 0); this.hp = this.maxHp; this.farr = +(store.get('sh-farr') || 0); this.rakhshFed = false; this.rakhshRode = false; this.coinCount = 0; this.kills = 0; this.wasGround = true; this.face = 1; this.inv = 0; this.atk = 0; this.cool = 0; this.coyote = 0; this.buf = 0; this.bossOn = false; this.done = false; this.t0 = this.time.now;
+    this.maxHp = 5 + (upg().heart || 0) + (gentle() ? 2 : 0); this.hp = this.maxHp; this.farr = +(store.get('sh-farr') || 0); this.rakhshFed = false; this.rakhshRode = false; this.coinCount = 0; this.kills = 0; this.wasGround = true; this.face = 1; this.inv = 0; this.atk = 0; this.cool = 0; this.coyote = 0; this.buf = 0; this.bossOn = false; this.done = false; this.t0 = this.time.now;
     if (R) {
       this.coinCount = R.coins || 0; this.kills = R.kills || 0; this.t0 -= R.t || 0;
       for (const c of this.coins.getChildren().slice()) if (c.x < this.start.x) { c.glow?.destroy(); c.destroy(); }
@@ -1367,7 +1388,7 @@ class Play extends Phaser.Scene {
   }
   hurt(fromX, thirst = false) {
     if ((this.inv > 0 && !thirst) || this.done || this.frozen) return;   // no harm during a cutscene
-    this.hp--; this.renderHearts(); this.inv = thirst ? 30 : 90; sfx('hurt'); this.cam.shake(160, 0.008); this.cam.flash(120, 180, 40, 60);
+    this.hp--; this.renderHearts(); this.inv = thirst ? 30 : gentle() ? 130 : 90; sfx('hurt'); this.cam.shake(160, 0.008); this.cam.flash(120, 180, 40, 60);
     if (!thirst) this.player.setVelocity((this.player.x < fromX ? -1 : 1) * 160, -220);
     if (this.hp <= 0) {
       this.done = true; playing = false; music(false); document.body.classList.remove('playing'); this.player.setTint(0x777777); hint(null);
@@ -1426,40 +1447,67 @@ class Play extends Phaser.Scene {
     });
   }
   // a boss's last moments: it reels under a run of flashes and blasts, then bursts apart in a blaze of light
+  // a boss's death, in four beats: the killing blow freezes the world in a white flash; the storm's own lightning strikes
+  // the boss (a cold flash in the White Div's cave) and light cracks out of it; it plays its death, slowed, and crashes
+  // down with a shockwave of dust; then it lies where it fell, dark and smoking, while the sky clears. Returns the ms
+  // until it is down.
   bossDeath(B) {
-    this.calmSky();
-    B.body.enable = false; B.anims.stop(); this.hideMark(); this.hitStop(160); sfx('roar');
-    // a Div with a death of its own staggers and falls before it breaks apart; the rest reel under flashes
-    const die = B.texture.key.split('-')[0] + '-die', fall = this.anims.exists(die);
-    const blow = () => { this.fx('hit', B.x + Phaser.Math.Between(-24, 24), B.body.top + Phaser.Math.Between(6, B.body.height - 6), { depth: 10 }); this.cam.shake(120, 0.01); sfx('hit'); };
-    if (fall) { B.clearTint(); B.play(die); B.setTint(0xffb0a0); for (let i = 0; i < 4; i++) this.time.delayedCall(i * 260, () => B.active && blow()); }
-    else for (let i = 0; i < 6; i++) this.time.delayedCall(i * 140, () => { if (!B.active) return; i % 2 ? B.setTintFill(0xffffff) : B.setTint(0xff6040); B.x += (i % 2 ? 3 : -3); blow(); });
-    const at = fall ? 1650 : 880;
-    this.time.delayedCall(at, () => {
-      if (!B.active) return; sfx('win');
-      this.cam.flash(450, 255, 240, 200); this.cam.shake(500, 0.02);
-      // the fallen stays where it fell until the labour ends: a Div lies on its last frame, the others topple and darken;
-      // embers drift up from the body a while, so it is plain the foe is beaten
-      this.slain(B, fall);
-      const ring = this.add.image(B.x, B.body.center.y, 'glow').setTint(0xffe0a0).setBlendMode(Phaser.BlendModes.ADD).setDepth(10).setScale(0.3);
-      this.tweens.add({ targets: ring, scale: 4, alpha: 0, duration: 900, ease: 'Cubic.easeOut', onComplete: () => ring.destroy() });
-      B.clearTint();
-      for (let i = 0; i < 5; i++) this.time.delayedCall(i * 120, () => this.fx('heal', B.x + Phaser.Math.Between(-36, 36), B.body.bottom - Phaser.Math.Between(0, 30), { depth: 10 }));
+    B.body.enable = false; B.anims.stop(); this.hideMark(); this.chargeWarn?.destroy(); this.stars?.destroy(); this.stars = null;
+    B.clearTint(); B.setAlpha(1); this.tweens.killTweensOf(B);
+    this.hitStop(320); this.cam.flash(260, 255, 255, 255); this.cam.shake(260, 0.02); sfx('hit'); sfx('roar');
+    const S = this.lv.sky || {}, glow = S.glow ?? 0xffd890, cy = () => B.body.center.y;
+    // the killing light: a bolt from the storm, or a burst of cold light under the cave's roof
+    this.time.delayedCall(330, () => {
+      if (!B.active) return;
+      if (!S.cave) {
+        const g = this.add.graphics().setDepth(10).setBlendMode(Phaser.BlendModes.ADD); let x = B.x + Phaser.Math.Between(-20, 20), y = this.cam.scrollY - 8;
+        const pts = [[x, y]]; while (y < cy()) { x += Phaser.Math.Between(-10, 10); y += Phaser.Math.Between(8, 16); pts.push([x, Math.min(y, cy())]); }
+        for (const [lw, c, al] of [[7, S.bolt ?? 0xfff0c0, 0.35], [2.5, 0xffffff, 1]]) { g.lineStyle(lw, c, al); g.beginPath(); g.moveTo(...pts[0]); pts.forEach(q => g.lineTo(...q)); g.strokePath(); }
+        this.tweens.add({ targets: g, alpha: 0, duration: 420, ease: 'Expo.easeIn', onComplete: () => g.destroy() });
+      }
+      this.cam.flash(200, 255, 245, 220); this.flashA = 0.5; tone(50, 1.2, { type: 'sawtooth', vol: 0.08, to: 26 });
+      const rays = this.add.image(B.x, cy(), 'rays').setTint(glow).setBlendMode(Phaser.BlendModes.ADD).setDepth(3).setScale(0.2).setAlpha(0.95);
+      this.tweens.add({ targets: rays, scale: 1.6, angle: 40, duration: 1500, ease: 'Cubic.easeOut' });
+      this.tweens.add({ targets: rays, alpha: 0, delay: 1100, duration: 900, onComplete: () => rays.destroy() });
+      for (let i = 0; i < 8; i++) this.time.delayedCall(i * 110, () => B.active && this.fx('hit', B.x + Phaser.Math.Between(-30, 30), B.body.top + Phaser.Math.Between(4, B.body.height - 4), { depth: 10 }));
     });
-    return at;
+    // the death itself: its own animation, played slow, or a stagger for a foe without one
+    const die = B.texture.key.split('-')[0] + '-die', has = this.anims.exists(die);
+    const fall = 600 + (has ? 1500 : 700);
+    this.time.delayedCall(600, () => {
+      if (!B.active) return;
+      if (has) { B.play({ key: die, frameRate: 6 }); B.setTint(0xffd0c0); }
+      if (!B.body.allowGravity) {               // a flier sinks to the ground as she dies
+        const floor = (this.groundAt(B.x) ?? 14) * TS; this.tweens.add({ targets: B, y: floor - B.displayHeight * (0.97 - B.originY), duration: 1300, ease: 'Quad.easeIn' });
+      }
+    });
+    this.time.delayedCall(fall, () => {
+      if (!B.active) return; this.calmSky(); sfx('win'); sfx('drum');
+      const floor = (this.groundAt(B.x) ?? 14) * TS;
+      this.cam.shake(600, 0.024); this.cam.flash(380, 255, 236, 190);
+      // the crash: a ring of dust and a shockwave of light along the ground
+      for (const d of [-1, 1]) for (let i = 0; i < 4; i++) this.time.delayedCall(i * 70, () => this.fx('dust', B.x + d * (18 + i * 30), floor, { flip: d < 0, depth: 8 }));
+      const ring = this.add.ellipse(B.x, floor - 2, 20, 6).setStrokeStyle(2, glow, 0.9).setDepth(9);
+      this.tweens.add({ targets: ring, scaleX: 16, scaleY: 4, alpha: 0, duration: 800, ease: 'Cubic.easeOut', onComplete: () => ring.destroy() });
+      if (B.texture.key === 'dragon-die') {                            // the dragon's great body slumps and thunders down
+        this.tweens.add({ targets: B, angle: (B.flipX ? 1 : -1) * 14, y: B.y + B.displayHeight * 0.08, duration: 520, ease: 'Bounce.easeOut' });
+      }
+      this.slain(B, has);
+    });
+    return fall;
   }
   slain(B, fell) {
     B.setDepth(3);
     const floor = (this.groundAt(B.x) ?? 14) * TS, dir = B.flipX ? -1 : 1;
     if (!fell) {
-      // fliers fall to the ground; the rest roll onto their side
+      // a foe with no death of its own falls to the ground and stays there
       const lie = floor - B.displayHeight * 0.18;
       this.tweens.add({ targets: B, angle: -dir * 82, y: lie, duration: 700, ease: 'Bounce.easeOut', onComplete: () => { this.cam.shake(200, 0.01); this.fx('dust', B.x, floor, { depth: 8 }); } });
     }
-    this.tweens.addCounter({ from: 0, to: 1, duration: 900, onUpdate: tw => { const v = tw.getValue(); B.setTint(Phaser.Display.Color.GetColor(255 - v * 110, 255 - v * 130, 255 - v * 120)); } });
-    const smoke = this.add.particles(0, 0, 'flake', { x: { min: B.x - 26, max: B.x + 26 }, y: { min: floor - 30, max: floor - 6 }, speedY: { min: -40, max: -15 }, speedX: { min: -8, max: 8 },
-      lifespan: 1400, frequency: 90, scale: { start: 1.4, end: 0 }, alpha: { start: 0.8, end: 0 }, tint: [0xffb060, 0xff7030, 0x806050] }).setDepth(4);
-    this.time.delayedCall(4500, () => { smoke.stop(); this.time.delayedCall(1500, () => smoke.destroy()); });
+    this.tweens.addCounter({ from: 0, to: 1, duration: 1400, onUpdate: tw => { const v = tw.getValue(); B.setTint(Phaser.Display.Color.GetColor(255 - v * 120, 255 - v * 140, 255 - v * 130)); } });
+    const smoke = this.add.particles(0, 0, 'flake', { x: { min: B.x - 30, max: B.x + 30 }, y: { min: floor - 34, max: floor - 6 }, speedY: { min: -40, max: -12 }, speedX: { min: -8, max: 8 },
+      lifespan: 1600, frequency: 70, scale: { start: 1.5, end: 0 }, alpha: { start: 0.85, end: 0 }, tint: [0xffb060, 0xff7030, 0x806050], blendMode: 'ADD' }).setDepth(4);
+    this.time.delayedCall(6000, () => { smoke.stop(); this.time.delayedCall(1600, () => smoke.destroy()); });
   }
   hitStop(ms) { this.physics.world.pause(); this.anims.pauseAll(); this.time.delayedCall(ms, () => { this.physics.world.resume(); this.anims.resumeAll(); }); }
   roarRings(l) {
@@ -1476,12 +1524,12 @@ class Play extends Phaser.Scene {
     this.cam.stopFollow(); this.tweens.add({ targets: this.cam, scrollX: Math.min(this.levelW - W, x0), duration: 700, ease: 'Sine.easeInOut' });
     this.arenaWalls(x0);
     const l = this.lion = this.physics.add.sprite(this.lionAt.x, this.lionAt.y - 40, 'lion-walk', 0);
-    this.fit(l, 'lion'); l.hp = 8; l.max = 8; l.state = 'roar'; l.tm = 70; l.dir = -1; l.setFlipX(true); l.play('lion-roar'); l.setDepth(4);
-    this.boss = l; l.onDown = () => this.lionDown(); l.ai = () => this.lionAI();
+    this.fit(l, 'lion'); l.hp = l.max = gentle() ? 6 : 8; l.state = 'roar'; l.tm = 70; l.dir = -1; l.setFlipX(true); l.play('lion-roar'); l.setDepth(4);
+    this.boss = l; l.keep = KEEP1; l.onDown = () => this.lionDown(); l.ai = () => this.lionAI();
     l.immune = () => l.state !== 'stun'; l.immuneMsg = 'The lion\'s hide turns your blow. Jump its charge so it runs into the rocks, then strike while it is dazed.';
     this.physics.add.collider(l, this.layer, null, onFloor); this.physics.add.collider(l, [this.wall, this.wallR]);
     sfx('roar'); this.roarRings(l);
-    $('boss').classList.remove('hidden'); this.bossBar(); banner();
+    $('boss').classList.remove('hidden'); this.bossBar(); this.bossIntro(l);
     hint('The lion roars, then charges. <b>Jump over the charge</b>: when it runs into the rocks it is dazed. <b>Strike while the stars circle its head.</b>');
   }
   bossBar() { $('bossHp').style.width = (this.boss.hp / this.boss.max * 100) + '%'; }
@@ -1532,7 +1580,7 @@ class Play extends Phaser.Scene {
     l.tm--; const toP = Math.sign(p.x - l.x) || 1;
     if (l.state === 'prowl') { l.setVelocityX(toP * 45); l.dir = toP; if (l.anims.currentAnim?.key !== 'lion-walk') l.play('lion-walk'); if (l.tm <= 0) { l.state = Math.random() < 0.6 ? 'roar' : 'pounce'; l.tm = 45; l.setVelocityX(0); if (l.state === 'roar') { l.play('lion-roar'); sfx('roar'); this.roarRings(l); } } }
     else if (l.state === 'roar') { l.setVelocityX(0); if (l.tm <= 0) { l.state = 'charge'; l.dir = toP; l.tm = 110; l.play('lion-run'); } }
-    else if (l.state === 'charge') { l.setVelocityX(l.dir * 230); if (l.body.blocked.left || l.body.blocked.right || l.tm <= 0) { l.state = 'stun'; l.tm = 110; l.setVelocityX(0); l.play('lion-walk'); l.anims.pause(); this.cam.shake(200, 0.01);
+    else if (l.state === 'charge') { l.setVelocityX(l.dir * 230); if (l.body.blocked.left || l.body.blocked.right || l.hitKeep || l.tm <= 0) { l.state = 'stun'; l.tm = 110; l.setVelocityX(0); l.play('lion-walk'); l.anims.pause(); this.cam.shake(200, 0.01);
       this.fx('dust', l.x + l.dir * 30, l.body.bottom, { depth: 8 }); this.stars = this.fx('stun', l.x, l.body.top - 6, { depth: 10, follow: l }); } }
     else if (l.state === 'pounce') { if (l.tm === 44) { l.dir = toP; l.setVelocity(toP * 170, -330); l.play('lion-run'); } if (l.tm < 30 && l.body.blocked.down) { l.state = 'prowl'; l.tm = 70 + Math.random() * 40; l.setVelocityX(0); } }
     else if (l.state === 'stun') { if (this.stars) this.stars.setPosition(Math.round(l.x), Math.round(l.body.top - 6)); if (l.tm <= 0) { l.anims.resume(); l.state = 'prowl'; l.tm = 80; this.stars?.destroy(); this.stars = null; } }
@@ -1541,29 +1589,64 @@ class Play extends Phaser.Scene {
     l.setFlipX(l.dir < 0);
   }
   lionDown() {
-    const l = this.lion; this.stars?.destroy(); this.stars = null; this.bossDeath(l);
+    const l = this.lion; this.stars?.destroy(); this.stars = null; const at = this.bossDeath(l);
     $('boss').classList.add('hidden'); this.wall.destroy(); this.wallR?.destroy();
-    this.time.delayedCall(900, () => this.reward(l.x));
+    this.time.delayedCall(at + 900, () => this.reward(l.x));
     this.cam.startFollow(this.player, true, 0.12, 0.12, W / 2, H / 2);
   }
   // the end of every boss fight: the foe lies where it fell, and the Simurgh's feather drifts down beside it;
   // Rostam walks to it to end the labour
   reward(nearX) {
-    const cx = this.cam.scrollX, away = this.player.x < nearX ? 1 : -1;   // beyond the fallen foe, so Rostam walks past it to the feather
-    let fx = nearX + away * 50; if (fx < cx + 30 || fx > cx + W - 30) fx = nearX - away * 70; fx = Phaser.Math.Clamp(fx, cx + 30, cx + W - 30); const fy = (this.groundAt(fx) ?? 14) * TS - 16;
-    const glow = this.add.sprite(fx, fy - 60, 'fx-glow').play('fx-glow').setDepth(5);
-    const f = this.physics.add.staticImage(fx, fy - 60, 'feather').setDepth(6); this.light(f, 1, 0.1);
-    const sync = () => f.body && f.refreshBody();
-    this.tweens.add({ targets: [f, glow], y: fy, duration: 1600, ease: 'Sine.easeOut', onUpdate: sync, onComplete: () => {
-      if (f.active) this.tweens.add({ targets: [f, glow], y: fy - 5, yoyo: true, repeat: -1, duration: 900, ease: 'Sine.easeInOut', onUpdate: sync });
-    } });
-    f.glow = glow; this.fx('beam', fx, fy + 16, { depth: 4 });
-    this.physics.add.overlap(this.player, f, () => this.win(f));
-    hint('Victory! <b>Take the Simurgh\'s glowing feather</b> to end the labour.');
+    // the Simurgh answers: she sweeps across the clearing sky, a feather slips from her tail, and it drifts down, swaying,
+    // onto a ring of light beyond the fallen foe. Rostam walks to it to end the labour.
+    const cx = this.cam.scrollX, cy = this.cam.scrollY, away = this.player.x < nearX ? 1 : -1;
+    let fx = nearX + away * 50; if (fx < cx + 30 || fx > cx + W - 30) fx = nearX - away * 70; fx = Phaser.Math.Clamp(fx, cx + 30, cx + W - 30);
+    const fy = (this.groundAt(fx) ?? 14) * TS - 22, from = away > 0 ? -1 : 1;           // she flies in from behind Rostam
+    const x0 = from < 0 ? cx - 180 : cx + W + 180, x1 = from < 0 ? cx + W + 180 : cx - 180, dur = 3600;
+    const bird = this.add.sprite(x0, cy + 70, this.textures.exists('simurgh-fly') ? 'simurgh-fly' : 'feather', 0).setDepth(2.5).setScale(0.62).setFlipX(from > 0);
+    if (this.anims.exists('simurgh-fly')) bird.play({ key: 'simurgh-fly', repeat: -1 });
+    const trail = this.add.particles(0, 0, 'flake', { follow: bird, followOffset: { x: -from * 50, y: 10 }, speedX: { min: -20, max: 20 }, speedY: { min: 10, max: 40 }, lifespan: 1400, frequency: 25,
+      scale: { start: 1.6, end: 0 }, alpha: { start: 1, end: 0 }, tint: [0xffe08a, 0x7affe0, 0xffb040], blendMode: 'ADD' }).setDepth(2.6);
+    this.tweens.add({ targets: bird, x: x1, duration: dur, ease: 'Sine.easeInOut', onUpdate: () => { const t = (bird.x - x0) / (x1 - x0); bird.y = cy + 70 - Math.sin(t * Math.PI) * 26; },
+      onComplete: () => { bird.destroy(); trail.stop(); this.time.delayedCall(1500, () => trail.destroy()); } });
+    this.time.delayedCall(400, () => { tone(880, 0.9, { type: 'triangle', vol: 0.05, to: 1320 }); tone(1320, 0.7, { type: 'triangle', vol: 0.03, to: 990, t: A.ctx ? A.ctx.currentTime + 0.5 : 0 }); });
+    toast('The Simurgh answers! A feather falls from her wings.');
+    // the feather slips free as she passes over the place it will land
+    const tDrop = Phaser.Math.Clamp((fx - x0) / (x1 - x0), 0.1, 0.9) * dur;
+    this.time.delayedCall(tDrop, () => {
+      if (this.done) return;
+      const f = this.physics.add.staticImage(fx, cy + 70, 'feather').setDepth(6).setScale(0.62); this.light(f, 1.1, 0.1);
+      const spark = this.add.particles(0, 0, 'flake', { follow: f, speedY: { min: -14, max: 14 }, speedX: { min: -14, max: 14 }, lifespan: 900, frequency: 45, scale: { start: 1.3, end: 0 }, alpha: { start: 1, end: 0 }, tint: [0xffe08a, 0x7affe0], blendMode: 'ADD' }).setDepth(5);
+      f.spark = spark; const sync = () => f.body && f.refreshBody();
+      // it falls like a leaf: swaying side to side, tilting with each swing
+      this.tweens.addCounter({ from: 0, to: 1, duration: 2600, ease: 'Sine.easeIn', onUpdate: tw => {
+        const v = tw.getValue(); if (!f.active) return; f.y = Phaser.Math.Linear(cy + 70, fy, v); f.x = fx + Math.sin(v * Math.PI * 3) * 22 * (1 - v); f.angle = Math.cos(v * Math.PI * 3) * 28 * (1 - v); sync();
+      }, onComplete: () => {
+        if (!f.active) return; f.x = fx; f.angle = 0; sync();
+        // a ring of light opens on the ground where it lands, and a beam rises from it
+        const sig = this.add.image(fx, fy + 22, 'rays').setTint(0xffd890).setBlendMode(Phaser.BlendModes.ADD).setDepth(2).setScale(0.35, 0.1).setAlpha(0);
+        const ring = this.add.ellipse(fx, fy + 22, 54, 12).setStrokeStyle(1.5, 0xffe8a0, 0.9).setDepth(2).setAlpha(0);
+        this.tweens.add({ targets: [sig, ring], alpha: 1, duration: 500 }); this.tweens.add({ targets: sig, angle: 360, duration: 9000, repeat: -1 });
+        f.glow = sig; f.ring = ring; this.fx('beam', fx, fy + 22, { depth: 4 }); sfx('coin');
+        this.tweens.add({ targets: f, y: fy - 5, yoyo: true, repeat: -1, duration: 900, ease: 'Sine.easeInOut', onUpdate: sync });
+        this.physics.add.overlap(this.player, f, () => this.takeFeather(f));
+        hint('Victory! <b>Take the Simurgh\'s glowing feather</b> to end the labour.');
+      } });
+    });
+  }
+  // the feather spirals up around Rostam in a ring of light, and the labour is done
+  takeFeather(f) {
+    if (this.done || f.taken) return; f.taken = true; f.body.enable = false; this.tweens.killTweensOf(f);
+    const p = this.player; this.frozen = true; p.setVelocityX(0); sfx('fire');
+    f.spark?.stop(); this.tweens.add({ targets: [f.glow, f.ring].filter(Boolean), alpha: 0, duration: 400 });
+    this.tweens.addCounter({ from: 0, to: 1, duration: 900, ease: 'Sine.easeIn', onUpdate: tw => { const v = tw.getValue(); f.x = p.x + Math.cos(v * Math.PI * 4) * 26 * (1 - v); f.y = p.body.center.y - v * 30 + Math.sin(v * Math.PI * 4) * 8; f.angle = v * 540; f.setScale(0.62 * (1 - v * 0.6)); },
+      onComplete: () => { this.cam.flash(500, 255, 240, 200); const r = this.add.image(p.x, p.body.center.y, 'rays').setTint(0xffe08a).setBlendMode(Phaser.BlendModes.ADD).setDepth(10).setScale(0.2);
+        this.tweens.add({ targets: r, scale: 2.2, alpha: 0, angle: 90, duration: 900, ease: 'Cubic.easeOut', onComplete: () => r.destroy() });
+        tone(990, 1, { type: 'triangle', vol: 0.05, to: 1480 }); this.win(f); } });
   }
   win(f) {
     if (this.done) return; this.done = true; playing = false; music(false); sfx('fire'); document.body.classList.remove('playing'); hint(null); resumeAt = null;
-    this.tweens.killTweensOf([f, f.glow].filter(Boolean)); f.destroy();
+    this.tweens.killTweensOf([f, f.glow, f.ring].filter(Boolean)); f.spark?.destroy(); f.glow?.destroy?.(); f.ring?.destroy?.(); f.destroy();
     const s = Math.round((this.time.now - this.t0) / 1000);
     $('winMsg').textContent = this.lv.win;
     $('winKick').textContent = `The ${['', 'first', 'second', 'third', 'fourth', 'fifth', 'sixth', 'seventh'][cur]} labour is done`;
@@ -1668,7 +1751,11 @@ class Play extends Phaser.Scene {
     // boss
     const B = this.boss;
     if (B && B.active && B.hp > 0) {
-      B.ai(); this.bossBar(); this.bossMark(B, time);
+      if (this.intro) { B.setVelocityX?.(0); if (B.anims?.isPlaying && B.anims.currentAnim?.key?.endsWith('walk')) { B.anims.stop(); B.setFrame(0); } } else B.ai();
+      this.bossBar(); this.bossMark(B, time);
+      // a boss never comes within mace reach of its arena's corner ledge: that ledge is a refuge, not a perch to strike from
+      B.hitKeep = false;
+      if (B.keep && B.body.enable && B.x < B.keep * TS) { B.x = B.keep * TS; if (B.body.velocity.x < 0) B.setVelocityX(0); B.hitKeep = true; }
       // as a boss recovers from an opening it shrugs Rostam off for a moment rather than hurting him where he stands
       const calm = !!B.calm?.(); if (B.wasCalm && !calm) B.grace = 45; B.wasCalm = calm; B.grace = (B.grace || 0) - 1;
       // touching a boss hurts unless it is reeling (or still hidden, or not yet unmasked); landing on an open one is a blow
@@ -1780,6 +1867,27 @@ class Play extends Phaser.Scene {
     }
     this.cam.shake(260, 0.012); sfx('hit');
   }
+  // a boss's entrance: the film bars close in, the world darkens but for a light on the boss, it roars, and its name is
+  // written large. Rostam and the boss hold still for those two seconds. (The witch hides her face until unmasked.)
+  bossIntro(B) {
+    const lv = this.lv;
+    if (!lv.epithet || this.resuming) { banner(); return; }
+    this.intro = true; this.frozen = true; this.player.setVelocityX(0); B.setVelocityX?.(0);
+    $('cine').classList.add('on');
+    const shade = this.add.renderTexture(0, 0, W, H).setOrigin(0).setScrollFactor(0).setDepth(11.5).setAlpha(0);
+    const spot = this.make.image({ key: 'lightmask', add: false }).setScale(2.4);
+    const draw = () => { if (!shade.active) return; shade.clear(); shade.fill(0x000000, 0.62); spot.setScale(2.2 + Math.sin(this.time.now * 0.01) * 0.06); shade.erase(spot, Math.round(B.x - this.cam.scrollX), Math.round(B.body.center.y - this.cam.scrollY)); };
+    this.events.on('update', draw); this.events.once('shutdown', () => { this.events.off('update', draw); $('cine').classList.remove('on'); });
+    this.tweens.add({ targets: shade, alpha: 1, duration: 450 });
+    const a0 = B.alpha;                                               // a foe hiding in the dark shows itself for its entrance
+    if (a0 < 0.5) { this.tweens.add({ targets: B, alpha: 1, delay: 420, duration: 250 }); this.time.delayedCall(2200, () => B.active && B.state === 'lurk' && this.tweens.add({ targets: B, alpha: a0, duration: 500 })); }
+    this.time.delayedCall(500, () => { sfx('roar'); this.cam.shake(520, 0.012); banner(undefined, undefined, lv.epithet); });
+    this.time.delayedCall(2500, () => {
+      $('cine').classList.remove('on');
+      this.tweens.add({ targets: shade, alpha: 0, duration: 400, onComplete: () => { this.events.off('update', draw); shade.destroy(); } });
+      this.intro = false; if (!this.done) this.frozen = false;
+    });
+  }
   // invisible walls at both edges of the locked screen, so Rostam and the boss stay in view
   arenaWalls(x0) {
     const left = Math.min(this.levelW - W, x0), wall = x => { const w = this.add.rectangle(x, 0, 8, ROWS * TS, 0, 0).setOrigin(0.5, 0); this.physics.add.existing(w, true); this.physics.add.collider(this.player, w); return w; };
@@ -1790,9 +1898,9 @@ class Play extends Phaser.Scene {
     this.bossOn = true;
     this.cam.stopFollow(); this.tweens.add({ targets: this.cam, scrollX: Math.min(this.levelW - W, x0), duration: 700, ease: 'Sine.easeInOut' });
     this.arenaWalls(x0);
-    boss.hp = boss.max = max; this.boss = boss;
+    boss.hp = boss.max = gentle() ? Math.ceil(max * 0.7) : max; this.boss = boss;
     this.physics.add.collider(boss, this.layer, null, onFloor); this.physics.add.collider(boss, [this.wall, this.wallR]);
-    $('boss').classList.remove('hidden'); this.bossBar(); banner(); this.stormSky();
+    $('boss').classList.remove('hidden'); this.bossBar(); this.stormSky(); this.bossIntro(boss);
   }
   // a big boss falls: flash, smoke and light, then the labour is won
   bossFall(B, then) {
@@ -1814,7 +1922,7 @@ class Play extends Phaser.Scene {
     this.fit(d, 'dragon'); d.play('dragon-move'); d.state = 'lurk'; d.tm = 170; d.dir = -1;
     this.light(d, 2.4, 0.04);                                         // when it shows itself, it can be seen
     d.immune = () => d.alpha < 0.5; d.immuneMsg = 'Your mace passes through shadow. Wait for Rakhsh to warn you!';
-    d.ai = () => this.dragonAI(); d.onDown = () => this.bossFall(d);
+    d.keep = KEEP3; d.ai = () => this.dragonAI(); d.onDown = () => this.bossFall(d);
     this.arena(112 * TS, d, 12);
     toast(this.mounted ? 'Rakhsh snorts and tosses his head beneath you. Something vast stirs in the dark...' : 'Rakhsh gallops up beside you, snorting. Something vast stirs in the dark...');
     hint('Rakhsh can sense the dragon. <b>When he rears and neighs, the dragon shows itself: strike it then.</b> While it hides, your blows pass through. Jump its fire.');
@@ -1848,7 +1956,7 @@ class Play extends Phaser.Scene {
       }
       if (d.tm <= 0) { d.play('dragon-move'); d.state = 'exposed'; d.tm = seen ? 50 : 85; }
     } else if (d.state === 'lunge') {
-      if (d.tm <= 0 || d.body.blocked.left || d.body.blocked.right) { d.setVelocityX(0); d.state = 'exposed'; d.tm = seen ? 50 : 85; this.cam.shake(200, 0.01); }
+      if (d.tm <= 0 || d.body.blocked.left || d.body.blocked.right || d.hitKeep) { d.setVelocityX(0); d.state = 'exposed'; d.tm = seen ? 50 : 85; this.cam.shake(200, 0.01); }
     } else if (d.state === 'exposed') {
       d.setVelocityX(0);
       if (d.tm <= 0) { d.state = 'lurk'; d.tm = (seen ? 80 : 150) + Math.random() * 60; if (!seen) this.tweens.add({ targets: d, alpha: 0.05, duration: 600 }); }
@@ -1925,7 +2033,7 @@ class Play extends Phaser.Scene {
     o.immune = () => o.state !== 'open' && Math.sign(this.player.x - o.x) === o.dir && this.player.body.bottom > o.body.top + 12;
     o.calm = () => o.state === 'open';
     o.immuneMsg = 'Olad catches your blow on his shield! Dodge his swing, then strike while he glows. Or leap over him and strike his back.';
-    o.ai = () => this.oladAI(); o.onDown = () => this.oladYields();
+    o.keep = KEEP5; o.ai = () => this.oladAI(); o.onDown = () => this.oladYields();
     this.arena(112 * TS, o, 9); this.olad = o;
     toast('Olad rides out to meet you, sword drawn: "Who are you, to cross the marches of Mazandaran?"');
     hint('Olad\'s <b>shield blocks you from the front</b>. When he <b>flashes, step back</b> from his sword; then he glows and lowers his guard: <b>strike!</b> Or <b>jump twice</b> over him and hit his back. Strike when the <b>gold arrow</b> shows.');
@@ -2281,10 +2389,11 @@ class Play extends Phaser.Scene {
     });
   }
   ramGuide(k) {
-    const r = this.ram, p = this.player, d = r.x - p.x, end = this.springAt.x + 4 * TS;
+    const r = this.ram, p = this.player, d = r.x - p.x, end = this.ramStand;   // past the four towers, where it can watch them
     // it keeps a little ahead of Rostam, hurrying if he presses on, and turns to wait if he falls far behind
-    const vx = r.x >= end || d > 150 ? 0 : Phaser.Math.Clamp((p.x + 70 - r.x) * 2.2, 0, 150);
-    r.setVelocityX(vx); r.setFlipX(d > 150);
+    // once it reaches the towers it walks steadily past them to its post on their far side, Rostam or no
+    const vx = r.x >= end ? 0 : r.x > 138 * TS ? 66 : d > 150 ? 0 : Phaser.Math.Clamp((p.x + 70 - r.x) * 2.2, 0, 150);
+    r.setVelocityX(vx); r.setFlipX(d > 150 || r.x >= end - 6);                     // at its post it turns to face the towers
     if (vx > 8 && r.body.blocked.right && r.body.blocked.down) r.setVelocityY(-260);   // hop up the dune steps
     if (vx > 8) { if (r.anims.currentAnim?.key !== 'ram-walk' || !r.anims.isPlaying) r.play('ram-walk'); r.anims.timeScale = Math.max(0.8, vx / 62); }
     else { r.anims.stop(); r.setFrame(0); }
@@ -2300,38 +2409,65 @@ class Play extends Phaser.Scene {
   // the ram's riddle: it taps the standing stones in an order; strike them in the same order and the rock gives water
   startStones() {
     this.puzzle = { seq: [2, 0, 3, 1], at: 0, showing: false, done: false };
-    toast('The ram stops at a dry rock and stamps. Four old stones stand in the sand...');
-    hint('The ram will tap the <b>four stones</b> in an order. <b>Watch closely.</b>');
+    toast('The ram stops beside four old towers of the elements, earth, water, fire and wind, and stamps...');
+    hint('The ram will ring the <b>four bells</b> in an order. <b>Watch and listen.</b>'); this.ram?.setFlipX(true);
     this.time.delayedCall(1000, () => this.showStones());
   }
   showStones() {
     const P = this.puzzle; if (!P || P.done) return;
     P.showing = true; P.at = 0; this.frozen = true; this.player.setVelocityX(0);
-    P.seq.forEach((i, k) => this.time.delayedCall(k * 800, () => { this.lightStone(i); if (this.ram) this.ram.setFlipX(this.stones[i].x < this.ram.x); }));
-    this.time.delayedCall(P.seq.length * 800 + 300, () => {
-      P.showing = false; this.frozen = false;
-      hint('Now <b>strike the stones in the same order</b> the ram showed you: sun, moon, star or water.');
+    // the camera draws back to frame all four towers and the ram watching them
+    this.cam.stopFollow(); this.tweens.add({ targets: this.cam, scrollX: Math.min(this.levelW - W, 152 * TS - W / 2 + 56), duration: 700, ease: 'Sine.easeInOut' });
+    // the ram stamps, and a bell answers
+    P.seq.forEach((i, k) => this.time.delayedCall(k * 1100, () => {
+      if (this.ram) { this.ram.setFlipX(true); this.tweens.add({ targets: this.ram, y: this.ram.y - 7, yoyo: true, duration: 110 }); this.fx('dust', this.ram.x - 8, this.ram.body.bottom, { depth: 6 }); }
+      this.time.delayedCall(220, () => this.lightStone(i));
+    }));
+    this.time.delayedCall(P.seq.length * 1100 + 500, () => {
+      P.showing = false; this.frozen = false; this.cam.startFollow(this.player, true, 0.12, 0.12, W / 2, H / 2);
+      hint('Now <b>strike the towers in the same order</b> the ram rang them: earth, water, fire or wind.');
     });
   }
+  // a bell rings: it swings on its beam and slowly settles, its tower trembles and glows, a ring of sound spreads from the
+  // arch, and the tower's element bursts out: dust and pebbles, a fountain, a burst of flame, or a whirl of wind.
+  // A wrong blow only clanks: a short dull swing and a red flash.
   lightStone(i, tint = 0x8fe0ff) {
-    const st = this.stones[i]; this.tweens.killTweensOf(st.glow);
-    st.glow.setTint(tint).setAlpha(1); this.tweens.add({ targets: st.glow, alpha: 0, delay: 300, duration: 400 });
-    if (tint === 0x8fe0ff) sfx('stone' + i);
+    const st = this.stones[i], E = ELEMENTS[i], ok = tint === 0x8fe0ff, b = st.bell;
+    this.tweens.killTweensOf([st.glow, st.aura, b]);
+    const amp = ok ? 34 : 9, dur = ok ? 2400 : 600;
+    this.tweens.addCounter({ from: 0, to: 1, duration: dur, onUpdate: tw => { const v = tw.getValue(); b.angle = amp * Math.sin(v * Math.PI * (ok ? 7 : 3)) * Math.pow(1 - v, 1.6); } });
+    this.tweens.add({ targets: st, x: st.x + 1, yoyo: true, repeat: 3, duration: 40 });
+    st.glow.setTint(ok ? E.tint : 0xff4a3a).setAlpha(1); this.tweens.add({ targets: st.glow, alpha: 0, delay: 250, duration: 900 });
+    if (!ok) { tone(150, 0.25, { type: 'square', vol: 0.05, to: 110 }); return; }
+    st.aura.setAlpha(0.45); this.tweens.add({ targets: st.aura, alpha: 0, delay: 300, duration: 1400 });
+    bell(E.note); sfx('stone' + i);
+    for (let k = 0; k < 2; k++) {
+      const ring = this.add.ellipse(b.x, b.y + 10, 14, 14).setStrokeStyle(1.5, E.tint, 0.9).setDepth(9);
+      this.tweens.add({ targets: ring, scale: 5, alpha: 0, delay: k * 220, duration: 1000, ease: 'Cubic.easeOut', onComplete: () => ring.destroy() });
+    }
+    const base = st.y - 4, P = {
+      earth: { key: 'sand', x: { min: st.x - 18, max: st.x + 18 }, y: base, speedY: { min: -150, max: -60 }, speedX: { min: -70, max: 70 }, gravityY: 400, lifespan: 1100, quantity: 22, scale: { min: 1, max: 2 }, tint: [0xa86a3a, 0xd8a060, 0x7a5a2a] },
+      water: { key: 'flake', x: { min: st.x - 6, max: st.x + 6 }, y: base - 6, speedY: { min: -230, max: -150 }, speedX: { min: -40, max: 40 }, gravityY: 520, lifespan: 1100, quantity: 26, scale: { min: 1, max: 1.8 }, tint: [0x8fe0ff, 0x2fa8b5, 0xffffff] },
+      fire: { key: 'sand', x: { min: st.x - 10, max: st.x + 10 }, y: base - 4, speedY: { min: -150, max: -70 }, speedX: { min: -24, max: 24 }, lifespan: 1300, quantity: 26, scale: { start: 2, end: 0 }, tint: [0xff8a2a, 0xffd060, 0xff3a10], blendMode: 'ADD' },
+      wind: { key: 'streak', x: { min: st.x - 30, max: st.x - 10 }, y: { min: st.y - st.displayHeight * 0.8, max: st.y - 8 }, speedX: { min: 160, max: 260 }, speedY: { min: -30, max: 30 }, rotate: 90, lifespan: 700, quantity: 18, alpha: { start: 0.9, end: 0 }, tint: [0xe8f4ff, 0xbfe0ff] }
+    }[E.name];
+    const em = this.add.particles(0, 0, P.key, { ...P, key: undefined, emitting: false }).setDepth(8); em.explode(P.quantity); this.time.delayedCall(1600, () => em.destroy());
   }
   strikeStone(i) {
     const P = this.puzzle; if (!P || P.done || P.showing) return;
     if (P.seq[P.at] === i) { this.lightStone(i); if (++P.at === P.seq.length) this.openSpring(); return; }
     P.at = 0; this.stones.forEach((_, k) => this.lightStone(k, 0xff5a5a)); sfx('hit'); this.cam.shake(150, 0.006);
-    toast('The stones grow dark. The ram stamps again: watch closely.');
+    toast('The bells fall silent. The ram stamps again: watch and listen.');
     this.time.delayedCall(1200, () => this.showStones());
   }
   openSpring() {
     this.puzzle.done = true; this.springOpen = true; sfx('win');
+    this.stones.forEach((_, k) => this.time.delayedCall(k * 160, () => this.lightStone(k)));   // all four bells ring together
     const x = this.springAt.x + 26, y = this.springAt.y;
     this.cam.flash(350, 200, 240, 255); this.fx('beam', x, y + 1, { depth: 4 });
     for (let k = 0; k < 4; k++) this.time.delayedCall(k * 220, () => this.fx('splash', x + (k - 1.5) * 14, y + 1, { depth: 6 }));
     this.tweens.add({ targets: this.pool, alpha: 1, duration: 900, onComplete: () => this.tweens.add({ targets: this.pool, alpha: 0.85, yoyo: true, repeat: -1, duration: 900, ease: 'Sine.easeInOut' }) });
-    toast('The stones ring together, and water bursts from the rock!');
+    toast('The four bells ring together, and water bursts from the rock!');
     hint('<b>Walk into the spring</b> to drink.');
   }
   // foes in a stretch of the level vanish in smoke
@@ -2440,13 +2576,15 @@ function openGuide(n) {
   $('s-guide').classList.remove('hidden'); showGuide(Math.max(0, GUIDE.findIndex(g => g.k === n))); $('gNext').focus();
 }
 function closeGuide() { $('s-guide').classList.add('hidden'); if (guideFrom) { guideFrom.classList.remove('hidden'); guideFrom.querySelector('.btn')?.focus(); } else openMap(false); }
-// where each labour sits on the painted map (percent of its width and height): reeds, desert, dark hills, garden, castle, camp, cave
-const MAP_AT = [null, [11.7, 64], [27, 27], [40, 38], [40, 74], [55, 48], [84, 85], [93, 62]];
+// where each labour sits on the night map (percent of its width and height): river reeds, desert, the dragon's hills, garden, castle, Div camp, cave
+const MAP_AT = [null, [12.5, 51], [25, 56], [40, 40], [49, 57], [61.5, 42], [76.5, 52], [92.5, 48]];
+// the gentle road: two more hearts, a longer breath after each wound, bosses with less life, and slower thirst
+const gentle = () => store.get('sh-diff') === 'gentle';
 const bestOf = n => +(store.get(n === 1 ? 'sh-best' : 'sh-best-' + n) || 0);
 function renderMap() {
   const u = unlocked();
   const path = MAP_AT.slice(1).map(([x, y]) => `${x},${y}`).join(' ');
-  $('road').innerHTML = `<svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><polyline points="${path}" fill="none" stroke="#9a2a1c" stroke-width="2.5" stroke-dasharray="1 5" stroke-linecap="round" vector-effect="non-scaling-stroke"/></svg>` +
+  $('road').innerHTML = `<svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><polyline points="${path}" fill="none" stroke="#ffd890" stroke-opacity=".55" stroke-width="2" stroke-dasharray="1 6" stroke-linecap="round" vector-effect="non-scaling-stroke"/></svg>` +
     NAMES.slice(1).map(([name], i) => {
       const n = i + 1, open = n <= u && LEVELS[n], done = n < u, [x, y] = MAP_AT[n];
       return `<li style="left:${x}%;top:${y}%"><button data-n="${n}" class="${n === pick ? 'sel' : ''} ${done ? 'done' : ''}" ${open ? '' : 'disabled'} aria-label="Labour ${n}: ${name}${open ? '' : ' (locked)'}">${ROMAN[n]}</button></li>`;
@@ -2462,8 +2600,33 @@ function openMap(e) {
   mapFrom = document.querySelector('.ov:not(.hidden):not(#s-map)'); mapFrom?.classList.add('hidden');
   $('s-map').classList.toggle('home', !mapFrom); $('mapClose').classList.toggle('hidden', !mapFrom);   // the map is also the home screen
   pick = Math.min(unlocked(), LABOURS); if (!LEVELS[pick]) pick = cur;
-  renderMap(); $('s-map').classList.remove('hidden'); $('rideBtn').focus();
+  renderMap(); renderDiff(); $('s-map').classList.remove('hidden'); $('rideBtn').focus(); if (!mapFrom) embers();
 }
+// embers and sparks rising over the home screen's panorama; the loop runs only while the home map is on screen
+let embRun = false;
+function embers() {
+  if (embRun) return; const c = $('emb'), x = c.getContext('2d'); embRun = true; const P = [];
+  const fit = () => { c.width = innerWidth; c.height = innerHeight; };
+  fit(); addEventListener('resize', fit);
+  const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const step = () => {
+    const m = $('s-map'); if (m.classList.contains('hidden') || !m.classList.contains('home')) { embRun = false; removeEventListener('resize', fit); return; }
+    x.clearRect(0, 0, c.width, c.height);
+    if (!still && P.length < 90 && Math.random() < 0.5) P.push({ x: Math.random() * c.width, y: c.height + 8, v: 0.4 + Math.random() * 1.1, w: Math.random() * 6.28, s: 1 + Math.random() * 2.2, h: Math.random() < 0.8 ? 30 : 48, life: 1 });
+    for (let i = P.length - 1; i >= 0; i--) {
+      const p = P[i]; p.y -= p.v; p.w += 0.03; p.x += Math.sin(p.w) * 0.45; p.life -= 0.0022;
+      if (p.y < -10 || p.life <= 0) { P.splice(i, 1); continue; }
+      const a = Math.min(1, p.life * 1.6) * (0.55 + Math.sin(p.w * 3) * 0.25);
+      x.fillStyle = `hsla(${p.h},100%,${60 + p.s * 6}%,${a})`; x.fillRect(Math.round(p.x), Math.round(p.y), Math.ceil(p.s), Math.ceil(p.s));
+      x.fillStyle = `hsla(${p.h},100%,60%,${a * 0.18})`; x.fillRect(Math.round(p.x) - 2, Math.round(p.y) - 2, Math.ceil(p.s) + 4, Math.ceil(p.s) + 4);
+    }
+    requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
+}
+// the road's difficulty, chosen on the home map: the gentle road (more hearts, weaker bosses) or the hero's road
+function renderDiff() { document.querySelectorAll('[data-diff]').forEach(b => b.setAttribute('aria-pressed', String((b.dataset.diff === 'gentle') === gentle()))); }
+document.querySelectorAll('[data-diff]').forEach(b => b.onclick = () => { store.set('sh-diff', b.dataset.diff); renderDiff(); sfx('coin'); });
 function closeMap() { $('s-map').classList.add('hidden'); if (mapFrom) mapFrom.classList.remove('hidden'); else openMap(false); }
 document.querySelectorAll('[data-map]').forEach(b => b.onclick = openMap);
 $('mapClose').onclick = closeMap; $('rideBtn').onclick = () => begin(pick);
@@ -2515,9 +2678,10 @@ function hint(html) {
   h.classList.remove('hidden', 'new'); void h.offsetWidth; h.classList.add('new');
 }
 function toast(msg) { const t = $('toast'); t.textContent = msg; t.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('on'), 3200); }
-function banner(fa, name) {
+function banner(fa, name, ep = '') {
   const lv = LEVELS[cur], b = $('banner');
   b.querySelector('.fa').textContent = fa || lv.bossFa || lv.fa; b.querySelector('h2').textContent = name || lv.bossName || lv.name;
+  b.querySelector('.ep').textContent = ep; b.classList.toggle('grand', !!ep);
   b.classList.remove('on'); void b.offsetWidth; b.classList.add('on');
 }
 // the tale, paged like a manuscript
