@@ -53,7 +53,7 @@ const FPS = { 'rostam-idle': 5, 'rostam-run': 14, 'rostam-jump': 6, 'rostam-atta
 const SIZE = { rider: 124, rostam: 112, lion: 148, jackal: 108, div: 108, scorpion: 86, vulture: 92, ram: 86, dragon: 136, rakhsh: 104, bat: 108, serpent: 92, hag: 108, beauty: 108, spearman: 140, olad: 112, divwarrior: 100, arzhang: 136, whitediv: 136, firediv: 104, ghul: 100 };
 const BODY = { rider: [0.3, 0.5], rostam: [0.143, 0.393], lion: [0.5, 0.36], jackal: [0.3, 0.22], div: [0.22, 0.34], scorpion: [0.4, 0.22], vulture: [0.33, 0.2], ram: [0.4, 0.4],
   dragon: [0.46, 0.42], rakhsh: [0.5, 0.5], bat: [0.32, 0.24], serpent: [0.31, 0.31], hag: [0.27, 0.42], beauty: [0.2, 0.47], spearman: [0.115, 0.386], olad: [0.17, 0.49], divwarrior: [0.31, 0.64], arzhang: [0.3, 0.7], whitediv: [0.4, 0.58], firediv: [0.2, 0.6], ghul: [0.5, 0.36] };
-const V = 57;
+const V = 58;
 const ZOOM = 2;                                                   // canvas pixels per world pixel   // bump to bust caches when assets change
 
 // PixelLab VFX strips in ./assets/fx: frame size, frame count, fps, and the effect's origin as a fraction of the frame
@@ -280,8 +280,9 @@ function map6() {
   // reached with the super jump; drop behind a Div to strike, then leap back up out of reach
   ground(55, 88, 14); row(68, 76, 9, '=');
   ground(89, 92, 12); pit(93, 98); row(94, 95, 10, '='); row(97, 98, 9, '='); ground(99, 159, 14); ground(105, 108, 12);
-  // Arzhang's arena (124 to 154): one platform in the middle to leap onto when his axe splits the whole floor
-  row(135, 143, 11, '=');
+  // Arzhang's arena (124 to 154): one platform, in the left corner, to leap onto when his axe splits the whole floor.
+  // He keeps out of mace reach of it (KEEP6), so it is a refuge, never a perch to strike him from
+  row(124, 130, 11, '=');
   put(3, 13, 'P');
   [[9, 8], [16, 7], [22, 10], [23, 10], [32, 12], [39, 8], [48, 12], [90, 10], [97, 7], [104, 12]].forEach(([c, r]) => put(c, r, 'c'));
   put(15, 13, 'd'); put(30, 13, 'w'); put(46, 13, 'd'); put(52, 13, 'w'); put(102, 13, 'w'); put(110, 13, 'd');
@@ -295,6 +296,8 @@ function map6() {
 // Khan VII: the seven mountains and the White Div's cave. Columns from CAVE7 on are inside the cave.
 // 'k' Kay Kavus in chains  'X' the White Div
 const CAVE7 = 120;
+// the column a great Div's feet never pass toward his arena's corner platform: six tiles beyond its edge, well out of reach of the mace
+const KEEP6 = 137, KEEP7 = 159;
 // the row a thing can stand on in a map column (or the nearest column that has ground): for fires and hearts
 function topAt(map, c) {
   const solid = ch => ch === '#' || ch === '=';
@@ -311,8 +314,9 @@ function map7() {
   ground(41, 52, 13); ground(53, 56, 11); ground(57, 66, 14); pit(67, 71); row(68, 70, 11, '='); ground(72, 84, 13); ground(85, 88, 11);
   ground(89, 98, 14); pit(99, 104); row(100, 101, 10, '='); row(103, 104, 9, '='); ground(105, 199, 14); ground(110, 113, 12);
   ground(126, 129, 12); pit(133, 136); row(134, 135, 11, '=');
-  // the White Div's arena (146 to 176): one ice ledge in the middle, safe from his slam; one jump up
-  row(157, 165, 11, '=');
+  // the White Div's arena (146 to 176): one ice ledge in the left corner, safe from his slam; one jump up. He keeps
+  // out of mace reach of it (KEEP7)
+  row(146, 152, 11, '=');
   put(3, 13, 'P');
   [[10, 12], [24, 8], [25, 8], [31, 11], [38, 8], [47, 11], [55, 9], [62, 12], [69, 9], [79, 11], [87, 9], [94, 12], [102, 7], [116, 12], [128, 10], [140, 12]].forEach(([c, r]) => put(c, r, 'c'));
   put(14, 13, 'd'); put(30, 12, 'w'); put(37, 7, 'b'); put(48, 12, 'd'); put(61, 13, 'w'); put(70, 7, 'b'); put(78, 12, 'w'); put(92, 13, 'd'); put(101, 6, 'b');
@@ -558,7 +562,7 @@ const LEVELS = {
     fires: [82], hearts: [80],                       // a last fire and a heart before the lion's den
     update(s, k, time, p) { if (!s.bossOn && p.x > 88 * TS) s.startBoss(); },
     win: 'With the lion of the reeds slain, Rostam takes up a feather of the Simurgh. Ahead lies the waterless desert of the second labour.',
-    tips: ['The lion\'s hide turns your blows. Leap its charge so it runs into the rocks, then strike while it is dazed and the gold arrow shows.',
+    tips: ['The lion\'s hide turns your blows. Leap its charge so it runs into the rocks, then strike while it is dazed and the stars circle its head.',
       'Land on a foe from above to strike it twice as hard.', 'Roast lamb restores a heart. Look for it on the high ledges.',
       'Light the fire altars: if Rostam falls, he returns to the last sacred fire.', 'The blue Divs hop toward you. Strike as they land.',
       'Every provision fills your golden Farr. When it is full, press F (or tap the Farr) to call on the Simurgh: her light strikes every foe on screen.',
@@ -730,7 +734,7 @@ const LEVELS = {
     fires: [107], hearts: [105],
     update(s, k, time, p) { if (!s.bossOn && p.x > 114 * TS) s.startOlad(); },
     win: 'Rostam lassos Olad and spares his life. Olad swears to guide him to the camp of Arzhang Div and to the White Div\'s cave, and he is promised the throne of Mazandaran.',
-    tips: ['Olad\'s shield blocks blows from the front. Step back when he flashes, then strike while he glows. His back is always open.', 'In every boss fight, a gold arrow over the foe means strike now; a grey shield means your blow will not land.', 'Spearmen have a long reach. Close in after their thrust.',
+    tips: ['Olad\'s shield blocks blows from the front. Step back when he flashes, then strike while he glows. His back is always open.', 'In every boss fight, the boss bar flashes Strike now! when your blow will land.', 'Spearmen have a long reach. Close in after their thrust.',
       'Land on a foe from above to strike twice as hard.', 'Fire altars mark where you return if you fall.']
   },
   6: {
@@ -808,7 +812,7 @@ const LEVELS = {
       if (s.whiteDown && !s.ended && p.x > s.kavus.x - 46 && p.body.blocked.down) s.freeKing();
     },
     win: 'The blood of the White Div\'s heart restores the sight of Kay Kavus and all his warriors. The king is free, and Rostam, son of Zal, has completed the Seven Labours.',
-    tips: ['Lightning strikes where the ground glows. Keep moving.', 'When the floor glows blue, the White Div is about to slam: jump onto the ice ledge.', 'After his slam his club is stuck in the ice. Drop down and strike him then.', 'Stay on the ledge too long and he roars: where a light shines on the ice, an icicle falls a second later. Move!', 'When a great Div stamps and flushes red, he charges along the red streak. Leap onto a ledge; if he hits the wall, strike him while he is dazed.',
+    tips: ['Lightning strikes where the ground glows. Keep moving.', 'When the floor glows blue, the White Div is about to slam: jump onto the ice ledge in the corner.', 'After his slam his club is stuck in the ice. Drop down and strike him then.', 'Stay on the ledge too long and he roars: where a light shines on the ice, an icicle falls a second later. Move!', 'When a great Div stamps and flushes red, he charges along the red streak. Leap onto a ledge; if he hits the wall, strike him while he is dazed.',
       'Fire altars mark where you return if you fall.', 'Three roast lambs hide on the high ledges.']
   }
 };
@@ -1478,22 +1482,17 @@ class Play extends Phaser.Scene {
     this.physics.add.collider(l, this.layer, null, onFloor); this.physics.add.collider(l, [this.wall, this.wallR]);
     sfx('roar'); this.roarRings(l);
     $('boss').classList.remove('hidden'); this.bossBar(); banner();
-    hint('The lion roars, then charges. <b>Jump over the charge</b>: when it runs into the rocks it is dazed. <b>Strike while the gold arrow shows.</b>');
+    hint('The lion roars, then charges. <b>Jump over the charge</b>: when it runs into the rocks it is dazed. <b>Strike while the stars circle its head.</b>');
   }
   bossBar() { $('bossHp').style.width = (this.boss.hp / this.boss.max * 100) + '%'; }
-  // one sign for every boss: a gold arrow and a golden glow when a blow from where Rostam stands will land, a grey shield when it will not
+  // when a blow will land the boss bar says so; over the boss itself only the dazed stars show
   bossMark(B, time) {
     const open = !this.frozen && (B.open ? B.open() : !B.immune?.());
-    // the marker sits above the darkness layer
-    if (!this.mark?.active) { this.mark = this.add.image(0, 0, 'mark-open').setDepth(12).setScale(1.6); this.markGlow = this.add.image(0, 0, 'glow').setTint(0xffc040).setBlendMode(Phaser.BlendModes.ADD).setDepth(3); }
     if (open !== this.markOpen) {
       this.markOpen = open;
-      if (open) { this.tweens.add({ targets: this.mark, scale: { from: 3, to: 1.6 }, duration: 300, ease: 'Back.easeOut' }); this.toldImmune = false; }
+      if (open) this.toldImmune = false;
       $('boss').classList.toggle('open', open); $('bossState').textContent = open ? 'Strike now!' : '';
     }
-    const vis = B.alpha > 0.3 && B.visible && !B.noMark?.();
-    this.mark.setVisible(vis && open).setPosition(Math.round(B.x), Math.round(B.body.top - 22 + (open ? Math.sin(time / 90) * 4 : 0)));
-    this.markGlow.setVisible(open && vis).setPosition(B.body.center.x, B.body.center.y).setScale(B.body.width / 40, B.body.height / 40).setAlpha(0.55 + Math.sin(time / 110) * 0.2);
     this.cornerHeart(B.x, time);
     // a well-fed Rakhsh gallops in once: twelve seconds into the fight, or sooner if Rostam is hard pressed
     this.bossT = (this.bossT || 0) + 1;
@@ -2017,7 +2016,7 @@ class Play extends Phaser.Scene {
   }
   startArzhang() {
     const a = this.physics.add.sprite(this.arzhangAt.x, this.arzhangAt.y - 60, 'arzhang-walk', 0).setDepth(4).setFlipX(true);
-    this.fit(a, 'arzhang'); a.play('arzhang-walk'); a.state = 'walk'; a.tm = 90; a.dir = -1;
+    this.fit(a, 'arzhang'); a.play('arzhang-walk'); a.state = 'walk'; a.tm = 90; a.dir = -1; a.keep = KEEP6;
     // his hide turns every blow until he rests on his axe after his strikes: that is the opening
     a.immune = () => a.state !== 'rest' && a.state !== 'dazed'; a.calm = () => !a.immune(); a.contact = () => a.state === 'charge';
     a.immuneMsg = 'Arzhang shrugs off the blow. Dodge his two strikes, then hit him while he rests on his axe.';
@@ -2037,19 +2036,19 @@ class Play extends Phaser.Scene {
     if (this.charge(a, 'arzhang-walk')) return;
     if (a.state === 'walk') {
       if (a.tm > 20 && this.tryCharge(a)) return;
-      // he stalks Rostam to axe's reach (never under a platform) and plants his feet there
-      if (this.stalk(a, p, 80, 127, 151, hurt ? 64 : 52, 'arzhang-walk', [133.5, 144.5])) a.tm = Math.min(a.tm, hurt ? 14 : 24);
+      // he stalks Rostam to axe's reach (never near the platform) and plants his feet there
+      if (this.stalk(a, p, 80, KEEP6, 151, hurt ? 64 : 52, 'arzhang-walk')) a.tm = Math.min(a.tm, hurt ? 14 : 24);
       if (a.tm <= 0) {
         // the first blow goes where Rostam is; the second often the other way, so he must switch
         const first = up ? 'sweep' : 'split', other = first === 'sweep' ? 'split' : 'sweep';
-        a.combo = [first, Math.random() < (hurt ? 0.75 : 0.6) ? other : first]; this.windUp(a, first === 'split' ? Math.max(hurt ? 70 : 80, this.reachT(135, 144)) : hurt ? 70 : 80);   // time to reach the platform
+        a.combo = [first, Math.random() < (hurt ? 0.75 : 0.6) ? other : first]; this.windUp(a, first === 'split' ? Math.max(hurt ? 70 : 80, this.reachT(124, 131)) : hurt ? 70 : 80);   // time to reach the platform
       }
     } else if (a.state === 'raise') {
       const w = a.combo[0] === 'split' ? this.floorWarn : this.highWarn; w.setAlpha(0.18 + 0.32 * Math.abs(Math.sin(a.tm * 0.25)));
       if (a.tm <= 0) { a.state = 'smash'; a.tm = 30; a.combo[0] === 'split' ? this.splitFloor(a) : this.sweepHigh(a); a.combo.shift(); }
     } else if (a.state === 'smash') {
       if (a.tm <= 0) {
-        if (a.combo.length) this.windUp(a, a.combo[0] === 'split' ? Math.max(hurt ? 52 : 60, this.reachT(135, 144)) : hurt ? 52 : 60);   // the second blow comes quicker
+        if (a.combo.length) this.windUp(a, a.combo[0] === 'split' ? Math.max(hurt ? 52 : 60, this.reachT(124, 131)) : hurt ? 52 : 60);   // the second blow comes quicker
         else { a.state = 'rest'; a.tm = hurt ? 120 : 140; a.anims.stop(); a.setFrame(4); a.setTint(0xffc0a0); a.setVelocityX(0);
           this.stars = this.fx('stun', a.x, a.body.top - 4, { depth: 10, follow: a }); hint('Arzhang <b>rests on his axe: strike him now!</b>'); }
       }
@@ -2071,6 +2070,11 @@ class Play extends Phaser.Scene {
     }
     if (b.state === 'charge') {
       b.setVelocityX(b.dir * 270); if (b.tm % 6 === 0) this.fx('dust', b.x - b.dir * 20, b.body.bottom, { flip: b.dir < 0, depth: 8 });
+      // toward the corner platform he digs in his heels short of it: no daze there, and he turns on Rostam at once
+      if (b.keep && b.dir < 0 && b.x <= b.keep * TS) {
+        b.x = b.keep * TS; b.setVelocityX(0); b.anims.timeScale = 1; b.state = 'walk'; b.tm = 12; b.chargeCd = 300; b.throwCd = 0; this.ledgeT = 80;
+        this.fx('dust', b.x - 24, b.body.bottom, { flip: true, depth: 8 }); this.cam.shake(160, 0.006); return true;
+      }
       if (b.body.blocked.left || b.body.blocked.right) {
         // into the wall: the cave shakes and he reels
         b.setVelocityX(0); b.anims.timeScale = 1; b.anims.stop(); b.setFrame(0); b.state = 'dazed'; b.tm = 110; b.setTint(0xffe0a0);
@@ -2171,7 +2175,7 @@ class Play extends Phaser.Scene {
   groundAt(x) { for (let r = 2; r < ROWS; r++) { const t = this.layer.getTileAtWorldXY(x, r * TS + 2); if (t && t.collides) return r; } return null; }
   startWhiteDiv() {
     const w = this.physics.add.sprite(Math.min(this.whiteAt.x, 171 * TS), this.whiteAt.y - 60, 'whitediv-walk', 0).setDepth(4).setFlipX(true);
-    this.fit(w, 'whitediv'); w.play('whitediv-walk'); w.state = 'walk'; w.tm = 120; w.dir = -1; w.throwCd = 90;
+    this.fit(w, 'whitediv'); w.play('whitediv-walk'); w.state = 'walk'; w.tm = 120; w.dir = -1; w.throwCd = 90; w.keep = KEEP7;
     // his hide of snow turns every blow, until his club is caught fast in the ice after a slam
     w.immune = () => w.state !== 'stuck' && w.state !== 'dazed'; w.calm = () => !w.immune(); w.contact = () => w.state === 'charge';   // his blows hurt, not his hide
     w.immuneMsg = 'The blow glances off his hide of snow. Strike while his club is stuck in the ice, or when he is dazed after a charge.';
@@ -2180,7 +2184,7 @@ class Play extends Phaser.Scene {
     // a blue glow along the floor warns of the slam
     this.floorWarn = this.add.rectangle(146 * TS, 14 * TS - 10, 30 * TS, 20, 0x80c8ff, 1).setOrigin(0, 0.5).setBlendMode(Phaser.BlendModes.ADD).setAlpha(0).setDepth(3);
     toast('The White Div rises from the dark like a mountain of snow: "So, the son of Zal comes at last."');
-    hint('When <b>the floor glows blue</b> he is about to slam: <b>jump onto the ice ledge</b>. Then his club is <b>stuck in the ice: drop down and strike!</b>');
+    hint('When <b>the floor glows blue</b> he is about to slam: <b>jump onto the ice ledge in the corner</b>. Then his club is <b>stuck in the ice: drop down and strike!</b>');
   }
   // one clear loop: he stalks Rostam, raises his club (the floor glows), slams the whole floor of the cave, and his club
   // sticks in the ice: the opening. The ledges are safe from the slam, but stay on one too long and he hurls a boulder
@@ -2190,15 +2194,15 @@ class Play extends Phaser.Scene {
     const up = p.body.bottom < 13 * TS && p.body.blocked.down; this.ledgeT = up ? this.ledgeT + 1 : 0;
     if (this.charge(w, 'whitediv-walk')) return;
     if (w.state === 'walk') {
-      this.stalk(w, p, 62, 149, 173, mad ? 62 : 46, 'whitediv-walk', [155.5, 166.5]); w.throwCd--;
+      this.stalk(w, p, 62, KEEP7, 173, mad ? 62 : 46, 'whitediv-walk'); w.throwCd--;
       if (w.tm > 20 && this.tryCharge(w)) return;
       if (up && this.ledgeT > 80 && w.throwCd <= 0) {
         // he roars at the roof and the ice comes down on the ledge: two marks, a moment apart
         w.setVelocityX(0); w.state = 'roar'; w.tm = 60; w.throwCd = mad ? 120 : 170; sfx('roar'); this.cam.shake(300, 0.008);
-        this.iceStrike(p.x); this.time.delayedCall(450, () => this.iceStrike(p.x + (p.x < 161 * TS ? 40 : -40)));
+        this.iceStrike(p.x); this.time.delayedCall(450, () => this.iceStrike(p.x + (p.x < 149.5 * TS ? 40 : -40)));
         if (!this.toldIce) { this.toldIce = true; toast('He roars at the roof! Where the light shines, ice will fall. Move!'); }
       } else if (!up && w.throwCd <= 0 && Math.abs(p.x - w.x) > 150) { w.setVelocityX(0); w.state = 'throw'; w.tm = 50; w.play('whitediv-throw'); w.hit = false; }
-      else if (w.tm <= 0) { w.state = 'raise'; w.tm = Math.max(mad ? 50 : 64, this.reachT(157, 166)); w.setVelocityX(0); w.play('whitediv-smash'); w.anims.pause(); w.setFrame(5); sfx('roar'); }   // the club swung back over his shoulder
+      else if (w.tm <= 0) { w.state = 'raise'; w.tm = Math.max(mad ? 50 : 64, this.reachT(146, 153)); w.setVelocityX(0); w.play('whitediv-smash'); w.anims.pause(); w.setFrame(5); sfx('roar'); }   // the club swung back over his shoulder
     } else if (w.state === 'raise') {
       w.setVelocityX(0); this.floorWarn.setAlpha(0.15 + 0.35 * Math.abs(Math.sin(w.tm * 0.25)));
       if (w.tm <= 0) { w.state = 'slam'; w.tm = 34; w.anims.resume(); w.hit = false; }
@@ -2368,7 +2372,7 @@ let pick = cur, mapFrom = null;
 const GUIDE = [
   { k: 1, fa: 'شیرِ نیستان', name: 'The Lion of the Reeds', art: ['lion-roar', 8, 148],
     tale: 'Rostam lay down to sleep among the reeds while Rakhsh grazed. In the night a great lion crept out of the thicket. In the old tale faithful Rakhsh trampled it; here Rostam must stand against it himself.',
-    how: ['It <b>roars</b>, then <b>charges</b> in a straight line. Its hide turns your blows.', '<b>Jump over the charge</b> so it runs into the rocks: it is <b>dazed</b>, and a <b>gold arrow</b> shows over it.', '<b>Strike while the arrow shows</b>, or land on it from above for a double blow.'],
+    how: ['It <b>roars</b>, then <b>charges</b> in a straight line. Its hide turns your blows.', '<b>Jump over the charge</b> so it runs into the rocks: it is <b>dazed</b>, with stars circling its head.', '<b>Strike while the arrow shows</b>, or land on it from above for a double blow.'],
     more: [['jackal-run', 8, 108, 'Jackal', 'Runs straight at you. One blow.'], ['div-hop', 8, 108, 'Blue Div', 'Hops toward you. Strike as it lands.']] },
   { k: 2, fa: 'بیابانِ بی‌آب', name: 'The Waterless Desert', art: ['k2/scorpion-crawl', 8, 108],
     tale: 'Beyond the reeds lay a desert where no bird flew. Rostam and Rakhsh grew faint with thirst, until a ram came walking out of the heat and led them to a hidden spring.',
@@ -2384,7 +2388,7 @@ const GUIDE = [
     more: [['k4/serpent', 8, 108, 'Serpent', 'Sways, then lunges. Hit it as it rears.'], ['k3/bat-fly', 8, 108, 'Bat', 'Strike it as it swoops.']] },
   { k: 5, fa: 'اولاد', name: 'Olad the Warden', art: ['k5/olad-slash', 6, 112],
     tale: 'In Mazandaran the warden Olad rode out with his men against the stranger. Rostam beat them, caught Olad with his lasso, and spared his life on one condition: that he show him the way to the Divs.',
-    how: ['His <b>shield blocks every blow from the front</b> (a grey shield over his head).', 'When he <b>flashes, step back</b> from his sword. Then he <b>glows</b> and the <b>gold arrow</b> shows: <b>strike!</b>', 'Or <b>jump twice</b> over him: <b>his back is always open</b>.'],
+    how: ['His <b>shield blocks every blow from the front</b>.', 'When he <b>flashes, step back</b> from his sword. Then he <b>glows</b>: <b>strike!</b>', 'Or <b>jump twice</b> over him: <b>his back is always open</b>.'],
     more: [['k5/spearman-thrust', 6, 140, 'Spearman', 'Long reach. Close in right after his thrust.']] },
   { k: 6, fa: 'ارژنگِ دیو', name: 'Arzhang Div', art: ['k6/arzhang-smash', 5, 136],
     tale: 'Arzhang was a chieftain of the Divs, camped with his horde before the mountains. Rostam rode into the camp at dawn with Olad as his guide, roared his name, and struck Arzhang\'s head from his shoulders.',
