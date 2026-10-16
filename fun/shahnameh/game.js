@@ -17,17 +17,17 @@ const ART = {
   'jackal-run': 'jackal-run.png', 'div-hop': 'div-hop.png',
   // Khan II
   'ride-gallop': 'k3/ride-gallop.png', 'ride-strike': 'k3/ride-strike.png', 'ride-rear': 'k3/ride-rear.png',
-  'scorpion-crawl': 'k2/scorpion-crawl.png', 'vulture-fly': 'k2/vulture-fly.png', 'ram-walk': 'k2/ram-walk.png', 'rostam-drink': 'rostam-drink.png',
+  'scorpion-crawl': 'k2/scorpion-crawl.png', 'scorpion-sting': 'k2/scorpion-sting.png', 'vulture-fly': 'k2/vulture-fly.png', 'ram-walk': 'k2/ram-walk.png', 'rostam-drink': 'rostam-drink.png',
   // Khan III
   'dragon-move': 'k3/dragon-move.png', 'dragon-fire': 'k3/dragon-fire.png', 'rakhsh-gallop': 'k3/rakhsh-gallop.png', 'rakhsh-rear': 'k3/rakhsh-rear.png', 'bat-fly': 'k3/bat-fly.png',
   // Khan IV
-  'serpent': 'k4/serpent.png', 'hag-cast': 'k4/hag-cast.png', 'beauty-idle': 'k4/beauty-idle.png',
+  'serpent': 'k4/serpent.png', 'serpent-strike': 'k4/serpent-strike.png', 'hag-cast': 'k4/hag-cast.png', 'beauty-idle': 'k4/beauty-idle.png',
   // Khan V
   'spearman-walk': 'k5/spearman-walk.png', 'spearman-thrust': 'k5/spearman-thrust.png', 'olad-walk': 'k5/olad-walk.png', 'olad-slash': 'k5/olad-slash.png', 'olad-kneel': 'k5/olad-kneel.png',
   // Khan VI
-  'divwarrior-walk': 'k6/divwarrior-walk.png', 'divwarrior-smash': 'k6/divwarrior-smash.png', 'arzhang-walk': 'k6/arzhang-walk.png', 'arzhang-smash': 'k6/arzhang-smash.png',
+  'divwarrior-walk': 'k6/divwarrior-walk.png', 'divwarrior-smash': 'k6/divwarrior-smash.png', 'arzhang-walk': 'k6/arzhang-walk.png', 'arzhang-smash': 'k6/arzhang-smash.png', 'arzhang-die': 'k6/arzhang-die.png',
   // Khan VII
-  'whitediv-walk': 'k7/whitediv-walk.png', 'whitediv-smash': 'k7/whitediv-smash.png', 'whitediv-throw': 'k7/whitediv-throw.png', 'kavus-sight': 'k7/kavus-sight.png'
+  'whitediv-walk': 'k7/whitediv-walk.png', 'whitediv-smash': 'k7/whitediv-smash.png', 'whitediv-throw': 'k7/whitediv-throw.png', 'whitediv-die': 'k7/whitediv-die.png', 'kavus-sight': 'k7/kavus-sight.png'
 };
 const FPS = { 'rostam-idle': 5, 'rostam-run': 14, 'rostam-jump': 6, 'rostam-attack': 24, 'rostam-hurt': 10, 'lion-walk': 9, 'lion-run': 14, 'lion-roar': 6, 'jackal-run': 12, 'div-hop': 8, 'coin-spin': 8, 'fire-burn': 10,
   'scorpion-crawl': 10, 'vulture-fly': 10, 'ram-walk': 8, 'rostam-drink': 6, 'ride-gallop': 12, 'ride-strike': 18, 'ride-rear': 11,
@@ -35,12 +35,12 @@ const FPS = { 'rostam-idle': 5, 'rostam-run': 14, 'rostam-jump': 6, 'rostam-atta
   'serpent': 8, 'hag-cast': 10, 'beauty-idle': 4,
   'spearman-walk': 10, 'spearman-thrust': 12, 'olad-walk': 10, 'olad-slash': 14, 'olad-kneel': 8,
   'divwarrior-walk': 8, 'divwarrior-smash': 13, 'arzhang-walk': 7, 'arzhang-smash': 9,
-  'whitediv-walk': 6, 'whitediv-smash': 11, 'whitediv-throw': 10, 'kavus-sight': 5 };
+  'whitediv-walk': 6, 'whitediv-smash': 11, 'whitediv-throw': 10, 'whitediv-die': 7, 'arzhang-die': 7, 'serpent-strike': 16, 'scorpion-sting': 16, 'kavus-sight': 5 };
 // on-screen frame height in game pixels; equal to the PixelLab frame size so sprites draw 1:1
 const SIZE = { rider: 124, rostam: 112, lion: 148, jackal: 108, div: 108, scorpion: 86, vulture: 92, ram: 86, dragon: 136, rakhsh: 104, bat: 108, serpent: 92, hag: 108, beauty: 108, spearman: 140, olad: 112, divwarrior: 100, arzhang: 136, whitediv: 136 };
 const BODY = { rider: [0.3, 0.5], rostam: [0.143, 0.393], lion: [0.5, 0.36], jackal: [0.3, 0.22], div: [0.22, 0.34], scorpion: [0.4, 0.22], vulture: [0.33, 0.2], ram: [0.4, 0.4],
   dragon: [0.46, 0.42], rakhsh: [0.5, 0.5], bat: [0.32, 0.24], serpent: [0.31, 0.31], hag: [0.27, 0.42], beauty: [0.2, 0.47], spearman: [0.115, 0.386], olad: [0.17, 0.49], divwarrior: [0.31, 0.64], arzhang: [0.3, 0.7], whitediv: [0.4, 0.58] };
-const V = 48;   // bump to bust caches when assets change
+const V = 49;   // bump to bust caches when assets change
 
 // PixelLab VFX strips in ./assets/fx: frame size, frame count, fps, and the effect's origin as a fraction of the frame
 const FX = {
@@ -351,10 +351,19 @@ const FOES = {
       if (f.hopT <= 0 && Math.abs(p.x - f.x) < 200) { f.setVelocity(crowded(s, f, f.dir) ? 0 : f.dir * 70, -230); f.hopT = 70; }
     }
   },
-  // scorpions creep, then scuttle at Rostam when he comes close on the same level
+  // scorpions creep, then scuttle at Rostam when he comes close on the same level, and lash out with the sting
   scorpion: {
     tex: 'scorpion-crawl', hp: 2,
     tick(s, f, k, p) {
+      f.cool = (f.cool || 0) - k;
+      if (f.sting) { f.setVelocityX(0); return; }
+      const dx = p.x - f.x;
+      if (f.cool <= 0 && Math.abs(dx) < 46 && Math.abs(p.body.bottom - f.body.bottom) < 24 && f.body.blocked.down) {
+        f.sting = true; f.cool = 80; f.dir = Math.sign(dx) || 1; f.setFlipX(f.dir < 0); f.setVelocityX(0); f.anims.timeScale = 1; f.play('scorpion-sting');
+        s.time.delayedCall(250, () => { if (f.active && f.body.enable) { s.hazard(f.dir > 0 ? f.body.right - 4 : f.body.left - 26, f.body.top - 14, 30, f.body.height + 14, 140); sfx('swing'); } });
+        f.once('animationcomplete', () => { if (f.active) { f.sting = false; f.play('scorpion-crawl'); } });
+        return;
+      }
       const near = Math.abs(p.x - f.x) < 130 && Math.abs(p.body.bottom - f.body.bottom) < 24;
       if (near && f.body.blocked.down) { const d = Math.sign(p.x - f.x) || 1; const ahead = s.layer.getTileAtWorldXY(f.x + d * 12, f.body.bottom + 4); if (ahead && ahead.index % 4 !== 3) { f.dir = d; f.setVelocityX(d * 78); f.setFlipX(d < 0); f.anims.timeScale = 1.8; return; } }
       f.anims.timeScale = 1; patrol(s, f, 28);
@@ -413,8 +422,12 @@ const FOES = {
     tex: 'serpent', hp: 2,
     tick(s, f, k, p) {
       const d = p.x - f.x; f.setFlipX(d < 0); f.cool = (f.cool || 0) - k;
-      if (f.cool <= 0 && Math.abs(d) < 70 && Math.abs(p.body.bottom - f.body.bottom) < 30 && f.body.blocked.down) { f.setVelocity(Math.sign(d) * 150, -120); f.cool = 90; sfx('swing'); }
-      else if (f.body.blocked.down) f.setVelocityX(0);
+      if (f.cool <= 0 && Math.abs(d) < 80 && Math.abs(p.body.bottom - f.body.bottom) < 30 && f.body.blocked.down) {
+        // it rears back, then lunges with its jaws wide
+        const dir = Math.sign(d) || 1; f.cool = 100; f.setVelocityX(0); f.play('serpent-strike');
+        s.time.delayedCall(230, () => { if (f.active && f.body.enable) { f.setVelocity(dir * 160, -110); sfx('swing'); } });
+        f.once('animationcomplete', () => f.active && f.play('serpent'));
+      } else if (f.body.blocked.down) f.setVelocityX(0);
     }
   },
   // vultures circle over their patch of sky, then fold their wings and dive at Rostam; bats do the same, faster
@@ -553,7 +566,7 @@ const LEVELS = {
     },
     win: 'Rostam drinks from the spring the ram revealed and gives thanks. Refreshed, he rides on toward the dragon of the third labour.',
     tips: ['Water drains in the heat. Water skins refill a little; the wells refill it all.', 'Vultures circle, then dive. Strike them as they swoop low.',
-      'Scorpions take two blows. Jump on them, or strike twice.', 'In the sandstorm the wind pushes you back. Keep moving forward.', 'At the dry rock, watch the order the ram taps the stones, then strike them in that order.', 'If your water runs dry you lose a heart every few seconds.']
+      'Scorpions take two blows, and lash out with their sting up close. Jump on them, or strike twice and step back.', 'In the sandstorm the wind pushes you back. Keep moving forward.', 'At the dry rock, watch the order the ram taps the stones, then strike them in that order.', 'If your water runs dry you lose a heart every few seconds.']
   },
   3: {
     hud: 'Khan III &middot; The Dragon', winTitle: 'The dragon is slain', name: 'The Dragon of the Night', fa: 'اژدها', bossName: 'The Dragon', tiles: 'tiles-3', map: map3, mounted: true,
@@ -627,7 +640,7 @@ const LEVELS = {
     },
     win: 'The witch is struck down and her garden withers to thorns. Rostam rides on into the green land of Mazandaran, where the warden Olad keeps watch.',
     tips: ['At the feast, stand near the lady and strike to speak the name of God.', 'Strike the witch\'s curses with your mace to send them back at her.',
-      'Serpents sway, then strike. Hit them as they rear.', 'Lanterns and fire altars keep the garden lit.', 'Roast lamb waits on the high balconies.']
+      'Serpents rear back, then lunge. Strike them as they rear, or step back from the lunge.', 'Lanterns and fire altars keep the garden lit.', 'Roast lamb waits on the high balconies.']
   },
   5: {
     hud: 'Khan V &middot; Olad', winTitle: 'Olad yields', name: 'The Green Land', fa: 'اولاد', bossName: 'Olad, Warden of the Marches', bossFa: 'اولاد', tiles: 'tiles-5', map: map5,
@@ -678,7 +691,7 @@ const LEVELS = {
       if (!s.bossOn && p.x > 124 * TS) s.startArzhang();
     },
     win: 'Rostam tears Arzhang from the field and the Div host scatters into the night. Now only the White Div remains, in his cave beyond the seven mountains.',
-    tips: ['Arzhang\'s red glow shows where his axe will strike: the floor, or the platforms. Be where it is not, then strike him while he rests.', 'When the drums sound, the gates shut. Jump twice to reach the high platforms; Divs cannot follow you up there.', 'A Div warrior turns slowly. Drop behind him and strike his back before he faces you.', 'Hearts wait on the high platforms of the horde\'s arena.', 'Jump over the shockwaves from a Div warrior\'s club.',
+    tips: ['When Arzhang stamps and flushes red, he charges. Leap onto a platform; if he hits the wall, strike him while he is dazed.', 'Arzhang\'s red glow shows where his axe will strike: the floor, or the platforms. Be where it is not, then strike him while he rests.', 'When the drums sound, the gates shut. Jump twice to reach the high platforms; Divs cannot follow you up there.', 'A Div warrior turns slowly. Drop behind him and strike his back before he faces you.', 'Hearts wait on the high platforms of the horde\'s arena.', 'Jump over the shockwaves from a Div warrior\'s club.',
       'Blue Divs hop at you; Div warriors take three blows.']
   },
   7: {
@@ -719,7 +732,7 @@ const LEVELS = {
       if (s.whiteDown && !s.ended && p.x > s.kavus.x - 46 && p.body.blocked.down) s.freeKing();
     },
     win: 'The blood of the White Div\'s heart restores the sight of Kay Kavus and all his warriors. The king is free, and Rostam, son of Zal, has completed the Seven Labours.',
-    tips: ['Lightning strikes where the ground glows. Keep moving.', 'When the floor glows blue, the White Div is about to slam: jump onto an ice ledge.', 'After his slam his club is stuck in the ice. Drop down and strike him then.', 'Stay on a ledge too long and he hurls a boulder at it. Jump clear.',
+    tips: ['Lightning strikes where the ground glows. Keep moving.', 'When the floor glows blue, the White Div is about to slam: jump onto an ice ledge.', 'After his slam his club is stuck in the ice. Drop down and strike him then.', 'Stay on a ledge too long and he hurls a boulder at it. Jump clear.', 'When a great Div stamps and flushes red, he charges along the red streak. Leap onto a ledge; if he hits the wall, strike him while he is dazed.',
       'Fire altars mark where you return if you fall.', 'Three roast lambs hide on the high ledges.']
   }
 };
@@ -1062,7 +1075,7 @@ class Play extends Phaser.Scene {
   create() {
     // the scene object is reused from labour to labour: forget whatever the last one left behind
     for (const k of ['dark', 'lights', 'lamp', 'wall', 'wallR', 'stars', 'pose', 'swingFx', 'witch', 'unmasked', 'olad', 'rakhsh', 'dragonSeen', 'horde', 'hordeDone',
-      'gates', 'hordeBat', 'toldRock', 'shards', 'shardG', 'mark', 'markGlow', 'markOpen', 'bossHeart', 'bossHeartT', 'floorWarn', 'highWarn', 'regrow', 'drums', 'whiteDown', 'ended', 'mounted', 'prayed', 'drank', 'toldImmune', 'toldDeflect', 'kavus', 'stones', 'puzzle', 'springOpen', 'pool']) delete this[k];
+      'gates', 'hordeBat', 'toldRock', 'chargeWarn', 'toldCharge', 'shards', 'shardG', 'mark', 'markGlow', 'markOpen', 'bossHeart', 'bossHeartT', 'floorWarn', 'highWarn', 'regrow', 'drums', 'whiteDown', 'ended', 'mounted', 'prayed', 'drank', 'toldImmune', 'toldDeflect', 'kavus', 'stones', 'puzzle', 'springOpen', 'pool']) delete this[k];
     // turn loaded strips into square frames; anything missing falls back to placeholder art
     for (const [k, f] of Object.entries(ART)) if (f && this.textures.exists(k)) {
       const t = this.textures.get(k), img = t.getSourceImage(), fh = img.height, n = Math.max(1, Math.round(img.width / fh));
@@ -1071,7 +1084,7 @@ class Play extends Phaser.Scene {
     makeTextures(this);
     for (const k of Object.keys(FPS)) {
       const t = this.textures.get(k), n = t.frameTotal - 1;
-      if (!this.anims.exists(k)) this.anims.create({ key: k, frames: this.anims.generateFrameNumbers(k, { start: 0, end: Math.max(0, n - 1) }), frameRate: FPS[k], repeat: /attack|hurt|roar|jump|thrust|slash|kneel|smash|throw|fire|rear|sight|strike/.test(k) ? 0 : -1 });
+      if (!this.anims.exists(k)) this.anims.create({ key: k, frames: this.anims.generateFrameNumbers(k, { start: 0, end: Math.max(0, n - 1) }), frameRate: FPS[k], repeat: /attack|hurt|roar|jump|thrust|slash|kneel|smash|throw|fire|rear|sight|strike|sting|die/.test(k) ? 0 : -1 });
     }
     const lv = this.lv, map = lv.map(), C = map[0].length;
     $('lbl').innerHTML = lv.hud; $('waterPill').classList.add('hidden'); $('bossName').textContent = lv.bossName || lv.name;
@@ -1261,17 +1274,21 @@ class Play extends Phaser.Scene {
   // a boss's last moments: it reels under a run of flashes and blasts, then bursts apart in a blaze of light
   bossDeath(B) {
     B.body.enable = false; B.anims.stop(); this.hideMark(); this.hitStop(160); sfx('roar');
-    for (let i = 0; i < 6; i++) this.time.delayedCall(i * 140, () => {
-      if (!B.active) return; i % 2 ? B.setTintFill(0xffffff) : B.setTint(0xff6040); B.x += (i % 2 ? 3 : -3);
-      this.fx('hit', B.x + Phaser.Math.Between(-24, 24), B.body.top + Phaser.Math.Between(6, B.body.height - 6), { depth: 10 }); this.cam.shake(120, 0.01); sfx('hit');
-    });
-    this.time.delayedCall(880, () => {
+    // a Div with a death of its own staggers and falls before it breaks apart; the rest reel under flashes
+    const die = B.texture.key.split('-')[0] + '-die', fall = this.anims.exists(die);
+    const blow = () => { this.fx('hit', B.x + Phaser.Math.Between(-24, 24), B.body.top + Phaser.Math.Between(6, B.body.height - 6), { depth: 10 }); this.cam.shake(120, 0.01); sfx('hit'); };
+    if (fall) { B.clearTint(); B.play(die); B.setTint(0xffb0a0); for (let i = 0; i < 4; i++) this.time.delayedCall(i * 260, () => B.active && blow()); }
+    else for (let i = 0; i < 6; i++) this.time.delayedCall(i * 140, () => { if (!B.active) return; i % 2 ? B.setTintFill(0xffffff) : B.setTint(0xff6040); B.x += (i % 2 ? 3 : -3); blow(); });
+    const at = fall ? 1650 : 880;
+    this.time.delayedCall(at, () => {
       if (!B.active) return; this.shatter(B, { step: 2, power: 1.6 }); B.setVisible(false); sfx('win');
       this.cam.flash(450, 255, 240, 200); this.cam.shake(500, 0.02);
       const ring = this.add.image(B.x, B.body.center.y, 'glow').setTint(0xffe0a0).setBlendMode(Phaser.BlendModes.ADD).setDepth(10).setScale(0.3);
       this.tweens.add({ targets: ring, scale: 4, alpha: 0, duration: 900, ease: 'Cubic.easeOut', onComplete: () => ring.destroy() });
+      B.clearTint();
       for (let i = 0; i < 5; i++) this.time.delayedCall(i * 120, () => this.fx('heal', B.x + Phaser.Math.Between(-36, 36), B.body.bottom - Phaser.Math.Between(0, 30), { depth: 10 }));
     });
+    return at;
   }
   hitStop(ms) { this.physics.world.pause(); this.anims.pauseAll(); this.time.delayedCall(ms, () => { this.physics.world.resume(); this.anims.resumeAll(); }); }
   roarRings(l) {
@@ -1447,9 +1464,12 @@ class Play extends Phaser.Scene {
     const B = this.boss;
     if (B && B.active && B.hp > 0) {
       B.ai(); this.bossBar(); this.bossMark(B, time);
-      if (!B.immune?.() && Phaser.Geom.Intersects.RectangleToRectangle(b, B.body)) {
-        if (b.velocity.y > 60 && b.bottom - B.body.top < 14) { this.damage(B); p.setVelocityY(-320); }
-        else if (!B.calm?.()) this.hurt(B.x);
+      // as a boss recovers from an opening it shrugs Rostam off for a moment rather than hurting him where he stands
+      const calm = !!B.calm?.(); if (B.wasCalm && !calm) B.grace = 45; B.wasCalm = calm; B.grace = (B.grace || 0) - 1;
+      // touching a boss hurts unless it is reeling (or still hidden, or not yet unmasked); landing on an open one is a blow
+      if (B.alpha > 0.5 && !B.noMark?.() && Phaser.Geom.Intersects.RectangleToRectangle(b, B.body)) {
+        if (!B.immune?.() && b.velocity.y > 60 && b.bottom - B.body.top < 14) { this.damage(B); p.setVelocityY(-320); }
+        else if (!B.calm?.() && B.grace <= 0 && !(b.blocked.down && b.bottom < 13 * TS)) this.hurt(B.x);   // up on a ledge, he passes beneath
       }
     }
   }
@@ -1506,10 +1526,10 @@ class Play extends Phaser.Scene {
   // a big boss falls: flash, smoke and light, then the labour is won
   bossFall(B, then) {
     this.drums?.remove();
-    this.bossDeath(B);
+    const at = this.bossDeath(B); this.chargeWarn?.destroy(); this.stars?.destroy(); this.stars = null;
     $('boss').classList.add('hidden'); this.wall?.destroy(); this.wallR?.destroy(); this.hazards = []; this.shots.clear(true, true);
-    this.time.delayedCall(1000, () => this.cam.startFollow(this.player, true, 0.12, 0.12));
-    this.time.delayedCall(2600, () => then ? then() : this.win({ destroy() {} }));
+    this.time.delayedCall(at + 200, () => this.cam.startFollow(this.player, true, 0.12, 0.12));
+    this.time.delayedCall(at + 1700, () => then ? then() : this.win({ destroy() {} }));
   }
   /* ---- Khan III: Rakhsh and the dragon that hides in the dark ---- */
   startDragon() {
@@ -1725,9 +1745,9 @@ class Play extends Phaser.Scene {
     const a = this.physics.add.sprite(this.arzhangAt.x, this.arzhangAt.y - 60, 'arzhang-walk', 0).setDepth(4).setFlipX(true);
     this.fit(a, 'arzhang'); a.play('arzhang-walk'); a.state = 'walk'; a.tm = 90; a.dir = -1;
     // his hide turns every blow until he rests on his axe after his strikes: that is the opening
-    a.immune = () => a.state !== 'rest'; a.calm = () => a.state === 'rest';
+    a.immune = () => a.state !== 'rest' && a.state !== 'dazed'; a.calm = () => !a.immune();
     a.immuneMsg = 'Arzhang shrugs off the blow. Dodge his two strikes, then hit him while he rests on his axe.';
-    a.ai = () => this.arzhangAI(); a.onDown = () => { this.floorWarn?.destroy(); this.highWarn?.destroy(); this.stars?.destroy(); this.stars = null; this.bossFall(a); };
+    a.ai = () => this.arzhangAI(); a.onDown = () => { this.floorWarn?.destroy(); this.highWarn?.destroy(); this.chargeWarn?.destroy(); this.stars?.destroy(); this.stars = null; this.bossFall(a); };
     this.arena(124 * TS, a, 12); this.light(a, 2); sfx('roar'); this.cam.shake(500, 0.008);
     // red glows warn where the axe will fall: along the floor, or across the platforms
     const glow = (y, h) => this.add.rectangle(124 * TS, y, 30 * TS, h, 0xff3010, 1).setOrigin(0, 0.5).setBlendMode(Phaser.BlendModes.ADD).setAlpha(0).setDepth(3);
@@ -1740,7 +1760,9 @@ class Play extends Phaser.Scene {
   arzhangAI() {
     const a = this.boss, p = this.player; a.tm--; const hurt = a.hp <= a.max / 2;
     const up = p.body.bottom < 13 * TS;                                       // Rostam is up on a platform
+    if (this.charge(a, 'arzhang-walk')) return;
     if (a.state === 'walk') {
+      if (a.tm > 20 && this.tryCharge(a)) return;
       // he stalks Rostam to axe's reach (never under a platform) and plants his feet there
       if (this.stalk(a, p, 80, 132, 146, hurt ? 64 : 52, 'arzhang-walk')) a.tm = Math.min(a.tm, hurt ? 14 : 24);
       if (a.tm <= 0) {
@@ -1762,6 +1784,43 @@ class Play extends Phaser.Scene {
       if (a.tm <= 0) { a.clearTint(); this.stars?.destroy(); this.stars = null; a.state = 'walk'; a.tm = 130 + Math.random() * 40; a.play('arzhang-walk');
         hint('Watch the red glow. <b>Floor glows: leap onto a platform.</b> <b>Platforms glow: drop to the ground.</b>'); }
     }
+  }
+  // the charge, shared by the great Divs: he plants his feet and flushes red while a red streak marks his path, then
+  // rushes. If he runs into the arena wall he is dazed: the opening. Returns true while the charge owns the boss.
+  charge(b, walk) {
+    const p = this.player;
+    if (b.state === 'brace') {
+      b.setVelocityX(0); Math.floor(b.tm / 5) % 2 ? b.setTint(0xff7060) : b.clearTint(); b.x += Math.floor(b.tm / 3) % 2 ? 1 : -1;
+      this.chargeWarn?.setAlpha(0.2 + 0.35 * Math.abs(Math.sin(b.tm * 0.3)));
+      if (b.tm <= 0) { b.clearTint(); b.state = 'charge'; b.tm = 90; b.play(walk); b.anims.timeScale = 2.6; this.chargeWarn?.destroy(); this.chargeWarn = null; sfx('roar'); this.cam.shake(200, 0.006); }
+      return true;
+    }
+    if (b.state === 'charge') {
+      b.setVelocityX(b.dir * 270); if (b.tm % 6 === 0) this.fx('dust', b.x - b.dir * 20, b.body.bottom, { flip: b.dir < 0, depth: 8 });
+      if (b.body.blocked.left || b.body.blocked.right) {
+        // into the wall: the cave shakes and he reels
+        b.setVelocityX(0); b.anims.timeScale = 1; b.anims.stop(); b.setFrame(0); b.state = 'dazed'; b.tm = 110; b.setTint(0xffe0a0);
+        this.cam.shake(450, 0.018); sfx('hit'); sfx('drum'); this.fx('dust', b.x + b.dir * 30, b.body.bottom, { depth: 8 });
+        this.stars = this.fx('stun', b.x, b.body.top - 4, { depth: 10, follow: b }); hint('He crashed into the wall and is <b>dazed: strike him now!</b>');
+      } else if (b.tm <= 0) { b.anims.timeScale = 1; b.state = 'walk'; b.tm = 70; b.chargeCd = 360; }
+      return true;
+    }
+    if (b.state === 'dazed') {
+      b.setVelocityX(0); if (this.stars) this.stars.setPosition(Math.round(b.x), Math.round(b.body.top - 4));
+      if (b.tm <= 0) { b.mad ? b.setTint(0xffd0d0) : b.clearTint(); this.stars?.destroy(); this.stars = null; b.state = 'walk'; b.tm = 90; b.chargeCd = 420; b.play(walk); }
+      return true;
+    }
+    return false;
+  }
+  // he may charge when Rostam stands on the floor at a distance and the cave lies open between them
+  tryCharge(b) {
+    const p = this.player, d = p.x - b.x; b.chargeCd = (b.chargeCd ?? 240) - 1;
+    if (b.chargeCd > 0 || Math.abs(d) < 100 || p.body.bottom < 13 * TS) return false;
+    b.state = 'brace'; b.tm = 46; b.dir = Math.sign(d); b.setFlipX(b.dir < 0); b.anims.stop(); b.setFrame(0); sfx('roar');
+    const x0 = b.x + b.dir * 30, x1 = b.dir > 0 ? this.cam.scrollX + W : this.cam.scrollX;
+    this.chargeWarn = this.add.rectangle(Math.min(x0, x1), 14 * TS - 14, Math.abs(x1 - x0), 28, 0xff3010, 1).setOrigin(0, 0.5).setBlendMode(Phaser.BlendModes.ADD).setAlpha(0).setDepth(3);
+    if (!this.toldCharge) { this.toldCharge = true; hint('He is about to <b>charge</b> along the red streak: <b>leap onto a ledge</b> and let him pass beneath. If he hits the wall he is dazed: <b>strike!</b>'); }
+    return true;
   }
   // a boss closes on Rostam to `reach` px, kept between columns c0..c1, and stands still once there; true when in reach
   stalk(b, p, reach, c0, c1, speed, walk) {
@@ -1803,9 +1862,9 @@ class Play extends Phaser.Scene {
     const w = this.physics.add.sprite(Math.min(this.whiteAt.x, 166 * TS), this.whiteAt.y - 60, 'whitediv-walk', 0).setDepth(4).setFlipX(true);
     this.fit(w, 'whitediv'); w.play('whitediv-walk'); w.state = 'walk'; w.tm = 120; w.dir = -1; w.throwCd = 90;
     // his hide of snow turns every blow, until his club is caught fast in the ice after a slam
-    w.immune = () => w.state !== 'stuck'; w.calm = () => w.state === 'stuck';
-    w.immuneMsg = 'The blow glances off his hide of snow. Wait for his slam, then strike while his club is stuck in the ice.';
-    w.ai = () => this.whiteAI(); w.onDown = () => { this.floorWarn?.destroy(); this.stars?.destroy(); this.stars = null; this.bossFall(w, () => this.whiteFallen()); };
+    w.immune = () => w.state !== 'stuck' && w.state !== 'dazed'; w.calm = () => !w.immune();
+    w.immuneMsg = 'The blow glances off his hide of snow. Strike while his club is stuck in the ice, or when he is dazed after a charge.';
+    w.ai = () => this.whiteAI(); w.onDown = () => { this.floorWarn?.destroy(); this.chargeWarn?.destroy(); this.stars?.destroy(); this.stars = null; this.bossFall(w, () => this.whiteFallen()); };
     this.arena(146 * TS, w, 12); this.light(w, 2.4); sfx('roar'); this.cam.shake(700, 0.01); this.ledgeT = 0;
     // a blue glow along the floor warns of the slam
     this.floorWarn = this.add.rectangle(146 * TS, 14 * TS - 10, 30 * TS, 20, 0x80c8ff, 1).setOrigin(0, 0.5).setBlendMode(Phaser.BlendModes.ADD).setAlpha(0).setDepth(3);
@@ -1818,8 +1877,10 @@ class Play extends Phaser.Scene {
     const w = this.boss, p = this.player; w.tm--; const mad = w.hp <= w.max / 2;
     if (mad && !w.mad) { w.mad = true; w.setTint(0xffd0d0); sfx('roar'); this.cam.shake(600, 0.012); banner('خشمِ دیو', 'The White Div rages'); }
     const up = p.body.bottom < 13 * TS && p.body.blocked.down; this.ledgeT = up ? this.ledgeT + 1 : 0;
+    if (this.charge(w, 'whitediv-walk')) return;
     if (w.state === 'walk') {
       this.stalk(w, p, 62, 156, 165, mad ? 62 : 46, 'whitediv-walk'); w.throwCd--;
+      if (w.tm > 20 && this.tryCharge(w)) return;
       if (up && this.ledgeT > 90 && w.throwCd <= 0) { w.setVelocityX(0); w.state = 'throw'; w.tm = 50; w.play('whitediv-throw'); w.hit = false; }
       else if (w.tm <= 0) { w.state = 'raise'; w.tm = mad ? 50 : 64; w.setVelocityX(0); w.play('whitediv-smash'); w.anims.pause(); w.setFrame(5); sfx('roar'); }   // the club swung back over his shoulder
     } else if (w.state === 'raise') {
@@ -2010,11 +2071,11 @@ const GUIDE = [
     more: [['k5/spearman-thrust', 6, 140, 'Spearman', 'Long reach. Close in right after his thrust.']] },
   { k: 6, fa: 'ارژنگِ دیو', name: 'Arzhang Div', art: ['k6/arzhang-smash', 5, 136],
     tale: 'Arzhang was a chieftain of the Divs, camped with his horde before the mountains. Rostam rode into the camp at dawn with Olad as his guide, roared his name, and struck Arzhang\'s head from his shoulders.',
-    how: ['He stalks you, then raises his axe for <b>two blows</b>. A <b>red glow</b> shows where each will land.', '<b>Floor glows: leap onto a platform.</b> <b>Platforms glow: drop to the ground.</b>', 'After the second blow <b>he rests on his axe: strike him then</b>.'],
+    how: ['He stalks you, then raises his axe for <b>two blows</b>. A <b>red glow</b> shows where each will land.', '<b>Floor glows: leap onto a platform.</b> <b>Platforms glow: drop to the ground.</b>', 'After the second blow <b>he rests on his axe: strike him then</b>.', 'If he <b>stamps and flushes red</b>, he will <b>charge</b>: leap onto a ledge. If he hits the wall he is <b>dazed: strike!</b>'],
     more: [['k6/divwarrior-smash', 8, 148, 'Div warrior', 'Turns slowly. Drop behind him and strike his back; jump his shockwave.'], ['k3/bat-fly', 8, 108, 'Bat', 'Pesters you on the high platforms. Swing up at it.']] },
   { k: 7, fa: 'دیوِ سپید', name: 'The White Div', art: ['k7/whitediv-smash', 9, 136],
     tale: 'The White Div held King Kay Kavus captive in a cave as dark as night, beyond seven mountains. Only the blood of its heart could give the blinded king back his sight. Rostam fought it until the cave ran with blood and sweat.',
-    how: ['When <b>the floor glows blue</b> he raises his club: <b>jump onto an ice ledge</b>.', 'His slam shakes the whole floor, and his <b>club sticks in the ice</b>: <b>drop down and strike!</b>', 'Linger on a ledge and he <b>hurls a boulder</b> at it. Jump clear.'],
+    how: ['When <b>the floor glows blue</b> he raises his club: <b>jump onto an ice ledge</b>.', 'His slam shakes the whole floor, and his <b>club sticks in the ice</b>: <b>drop down and strike!</b>', 'Linger on a ledge and he <b>hurls a boulder</b> at it. Jump clear.', 'If he <b>stamps and flushes red</b>, he will <b>charge</b>: leap onto a ledge. If he hits the wall he is <b>dazed: strike!</b>'],
     more: [['k6/divwarrior-smash', 8, 148, 'Div warrior', 'Three blows. Strike his back while he turns.'], ['k3/bat-fly', 8, 108, 'Bat', 'Swing up at it as it swoops.']] }
 ];
 let gpg = 0, guideFrom = null;
