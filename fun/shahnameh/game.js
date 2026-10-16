@@ -40,7 +40,7 @@ const FPS = { 'rostam-idle': 5, 'rostam-run': 14, 'rostam-jump': 6, 'rostam-atta
 const SIZE = { rider: 124, rostam: 112, lion: 148, jackal: 108, div: 108, scorpion: 86, vulture: 92, ram: 86, dragon: 136, rakhsh: 104, bat: 108, serpent: 92, hag: 108, beauty: 108, spearman: 140, olad: 112, divwarrior: 100, arzhang: 136, whitediv: 136 };
 const BODY = { rider: [0.3, 0.5], rostam: [0.143, 0.393], lion: [0.5, 0.36], jackal: [0.3, 0.22], div: [0.22, 0.34], scorpion: [0.4, 0.22], vulture: [0.33, 0.2], ram: [0.4, 0.4],
   dragon: [0.46, 0.42], rakhsh: [0.5, 0.5], bat: [0.32, 0.24], serpent: [0.31, 0.31], hag: [0.27, 0.42], beauty: [0.2, 0.47], spearman: [0.115, 0.386], olad: [0.17, 0.49], divwarrior: [0.31, 0.64], arzhang: [0.3, 0.7], whitediv: [0.4, 0.58] };
-const V = 45;   // bump to bust caches when assets change
+const V = 46;   // bump to bust caches when assets change
 
 // PixelLab VFX strips in ./assets/fx: frame size, frame count, fps, and the effect's origin as a fraction of the frame
 const FX = {
@@ -167,6 +167,8 @@ function buildMap() {
   [[8, 12], [10, 11], [12, 12], [22, 11], [23, 10], [24, 11], [43, 9], [44, 8], [45, 9], [62, 9], [67, 8], [75, 8], [76, 8], [80, 5], [81, 5]].forEach(([c, r]) => put(c, r, 'c'));
   put(16, 13, 'j'); put(30, 13, 'j'); put(45, 11, 'd'); put(55, 13, 'j'); put(72, 13, 'd'); put(80, 13, 'j');
   put(52, 13, 'F'); put(110, 12, 'L');
+  // the lion's arena (86 to 116): a ledge at each side to leap onto from its charge
+  row(88, 92, 11, '='); row(101, 105, 11, '=');
   return g;
 }
 
@@ -208,6 +210,7 @@ function map3() {
   [[11, 11], [33, 10], [52, 9], [66, 10], [88, 9], [109, 10]].forEach(([c, r]) => put(c, r, 'm'));
   put(42, 13, 'F'); put(84, 13, 'F');
   put(117, 13, 'K'); put(146, 13, 'D');
+  row(114, 118, 11, '='); row(136, 140, 11, '=');          // the dragon's arena (112 to 142): a ledge at each side
   return g;
 }
 
@@ -227,6 +230,7 @@ function map4() {
   [[6, 11], [18, 11], [31, 11], [43, 11], [60, 11], [76, 11], [92, 11], [108, 11], [116, 11], [132, 11], [146, 11]].forEach(([c, r]) => put(c, r, 'l'));
   put(48, 13, 'F'); put(92, 13, 'F');
   put(120, 13, 'T'); put(128, 13, 'W');
+  row(113, 116, 11, '='); row(137, 141, 11, '=');          // the garden arena (112 to 142): a balcony at each side
   return g;
 }
 
@@ -245,6 +249,7 @@ function map5() {
   put(14, 13, 'q'); put(36, 13, 'q'); put(42, 13, 'j'); put(60, 13, 'q'); put(71, 13, 'q'); put(76, 13, 'j'); put(88, 13, 'q'); put(97, 13, 'q'); put(108, 13, 'q');
   put(52, 13, 'F'); put(100, 13, 'F');
   put(130, 13, 'O');
+  row(114, 118, 11, '='); row(136, 140, 11, '=');          // Olad's arena (112 to 142): a ledge at each side, to leap over him from
   return g;
 }
 
@@ -293,8 +298,8 @@ function map7() {
   ground(41, 52, 13); ground(53, 56, 11); ground(57, 66, 14); pit(67, 71); row(68, 70, 11, '='); ground(72, 84, 13); ground(85, 88, 11);
   ground(89, 98, 14); pit(99, 104); row(100, 101, 10, '='); row(103, 104, 9, '='); ground(105, 199, 14); ground(110, 113, 12);
   ground(126, 129, 12); pit(133, 136); row(134, 135, 11, '=');
-  // the White Div's arena (from 146): an ice ledge at each side, a breather above his shockwaves
-  row(148, 152, 10, '='); row(169, 173, 10, '=');
+  // the White Div's arena (from 146): an ice ledge at each side, safe from his slam; one jump up
+  row(148, 152, 11, '='); row(169, 173, 11, '=');
   put(3, 13, 'P');
   [[10, 12], [24, 8], [25, 8], [31, 11], [38, 8], [47, 11], [55, 9], [62, 12], [69, 9], [79, 11], [87, 9], [94, 12], [102, 7], [116, 12], [128, 10], [140, 12]].forEach(([c, r]) => put(c, r, 'c'));
   put(14, 13, 'd'); put(30, 12, 'w'); put(37, 7, 'b'); put(48, 12, 'd'); put(61, 13, 'w'); put(70, 7, 'b'); put(78, 12, 'w'); put(92, 13, 'd'); put(101, 6, 'b');
@@ -713,7 +718,7 @@ const LEVELS = {
       if (s.whiteDown && !s.ended && p.x > s.kavus.x - 46 && p.body.blocked.down) s.freeKing();
     },
     win: 'The blood of the White Div\'s heart restores the sight of Kay Kavus and all his warriors. The king is free, and Rostam, son of Zal, has completed the Seven Labours.',
-    tips: ['Lightning strikes where the ground glows. Keep moving.', 'When the White Div raises his club, step back and jump the wave, then strike while his club is stuck in the ice.', 'The ice ledges are a breather, but stay too long and the roof comes down.', 'Boulders arc through the air. Watch where they will fall.',
+    tips: ['Lightning strikes where the ground glows. Keep moving.', 'When the floor glows blue, the White Div is about to slam: jump onto an ice ledge.', 'After his slam his club is stuck in the ice. Drop down and strike him then.', 'Stay on a ledge too long and he hurls a boulder at it. Jump clear.',
       'Fire altars mark where you return if you fall.', 'Three roast lambs hide on the high ledges.']
   }
 };
@@ -825,11 +830,6 @@ function makeTextures(scene) {
   layer('lightmask', 128, 128, x => {                      // a soft round hole cut in the darkness
     const g = x.createRadialGradient(64, 64, 0, 64, 64, 64); g.addColorStop(0, 'rgba(255,255,255,1)'); g.addColorStop(0.55, 'rgba(255,255,255,0.85)'); g.addColorStop(1, 'rgba(255,255,255,0)');
     x.fillStyle = g; x.fillRect(0, 0, 128, 128);
-  });
-  layer('icicle', 8, 22, x => {                            // a spear of ice from the cave roof
-    x.fillStyle = '#2a3a5a'; x.beginPath(); x.moveTo(0, 0); x.lineTo(8, 0); x.lineTo(4, 22); x.closePath(); x.fill();
-    x.fillStyle = '#bfe0ff'; x.beginPath(); x.moveTo(1, 1); x.lineTo(7, 1); x.lineTo(4, 19); x.closePath(); x.fill();
-    x.fillStyle = '#ffffff'; x.fillRect(2, 1, 2, 9);
   });
   // over a boss's head: a gold arrow when a blow will land, a grey shield when it will not
   layer('mark-open', 13, 11, x => {
@@ -1061,7 +1061,7 @@ class Play extends Phaser.Scene {
   create() {
     // the scene object is reused from labour to labour: forget whatever the last one left behind
     for (const k of ['dark', 'lights', 'lamp', 'wall', 'wallR', 'stars', 'pose', 'swingFx', 'witch', 'unmasked', 'olad', 'rakhsh', 'dragonSeen', 'horde', 'hordeDone',
-      'gates', 'hordeBat', 'mark', 'markGlow', 'markOpen', 'bossHeart', 'bossHeartT', 'floorWarn', 'highWarn', 'regrow', 'drums', 'whiteDown', 'ended', 'mounted', 'prayed', 'drank', 'toldImmune', 'toldDeflect', 'kavus', 'stones', 'puzzle', 'springOpen', 'pool']) delete this[k];
+      'gates', 'hordeBat', 'toldRock', 'mark', 'markGlow', 'markOpen', 'bossHeart', 'bossHeartT', 'floorWarn', 'highWarn', 'regrow', 'drums', 'whiteDown', 'ended', 'mounted', 'prayed', 'drank', 'toldImmune', 'toldDeflect', 'kavus', 'stones', 'puzzle', 'springOpen', 'pool']) delete this[k];
     // turn loaded strips into square frames; anything missing falls back to placeholder art
     for (const [k, f] of Object.entries(ART)) if (f && this.textures.exists(k)) {
       const t = this.textures.get(k), img = t.getSourceImage(), fh = img.height, n = Math.max(1, Math.round(img.width / fh));
@@ -1267,12 +1267,14 @@ class Play extends Phaser.Scene {
     this.mark.setVisible(vis).setAlpha(open ? 1 : 0.8).setPosition(Math.round(B.x), Math.round(B.body.top - 22 + (open ? Math.sin(time / 90) * 4 : 0)));
     this.markGlow.setVisible(open && vis).setPosition(B.body.center.x, B.body.center.y).setScale(B.body.width / 40, B.body.height / 40).setAlpha(0.55 + Math.sin(time / 110) * 0.2);
     // now and then a heart glows in the corner of the arena farthest from the boss
-    this.bossHeartT = (this.bossHeartT ?? 900) - 1;
+    this.bossHeartT = (this.bossHeartT ?? 600) - 1;
     if (this.bossHeart?.active && time > this.bossHeart.dieAt) { this.bossHeart.glow?.destroy(); this.bossHeart.destroy(); }
     if (this.bossHeartT <= 0) {
-      this.bossHeartT = 1200;
+      this.bossHeartT = 900;
       if (this.hp < 5 && !this.bossHeart?.active) {
-        const cx = this.cam.scrollX, x = B.x > cx + W / 2 ? cx + 24 : cx + W - 24, r = this.groundAt(x);
+        // the highest standing place near the corner farthest from the boss: a ledge if there is one
+        const cx = this.cam.scrollX, side = B.x > cx + W / 2 ? 1 : -1; let x = side > 0 ? cx + 24 : cx + W - 24, r = this.groundAt(x);
+        for (let i = 0; i < 9; i++) { const xx = x + side * i * TS, rr = this.groundAt(xx); if (rr != null && rr < r) { x = Math.floor(xx / TS) * TS + TS / 2; r = rr; } }
         if (r != null) { const h = this.bossHeart = this.heart(x, r * TS - 12); h.dieAt = time + 10000; this.fx('heal', x, r * TS, { depth: 6 }); toast('A heart glows in the corner. Grab it!'); }
       }
     }
@@ -1355,7 +1357,7 @@ class Play extends Phaser.Scene {
       if (this.atk < 12 && this.atk > 3) {
         const box = this.strikeBox();
         const targets = [...this.foes.getChildren(), ...(this.boss && this.boss.active && this.boss.hp > 0 ? [this.boss] : [])];
-        for (const f of targets) if (f.body.enable && !this.hitDone.has(f) && Phaser.Geom.Intersects.RectangleToRectangle(box, f.body)) { this.hitDone.add(f); this.damage(f); f.setVelocity(this.face * (f === this.boss ? 60 : 140), f.kind === 'vulture' ? -60 : -120); }
+        for (const f of targets) if (f.body.enable && !this.hitDone.has(f) && Phaser.Geom.Intersects.RectangleToRectangle(box, f.body)) { this.hitDone.add(f); this.damage(f); if (!f.calm?.()) f.setVelocity(this.face * (f === this.boss ? 60 : 140), f.kind === 'vulture' ? -60 : -120); }
         for (const sh of this.shots.getChildren()) if (sh.curse && !sh.back && Phaser.Geom.Intersects.RectangleToRectangle(box, sh.getBounds())) this.deflect(sh);
         if (this.puzzle) this.stones.forEach((st, i) => { if (!this.hitDone.has(st) && Phaser.Geom.Intersects.RectangleToRectangle(box, st.getBounds())) { this.hitDone.add(st); this.strikeStone(i); } });
       }
@@ -1755,73 +1757,58 @@ class Play extends Phaser.Scene {
   groundAt(x) { for (let r = 2; r < ROWS; r++) { const t = this.layer.getTileAtWorldXY(x, r * TS + 2); if (t && t.collides) return r; } return null; }
   startWhiteDiv() {
     const w = this.physics.add.sprite(this.whiteAt.x, this.whiteAt.y - 60, 'whitediv-walk', 0).setDepth(4).setFlipX(true);
-    this.fit(w, 'whitediv'); w.play('whitediv-walk'); w.state = 'walk'; w.tm = 90; w.dir = -1; w.throws = 0;
+    this.fit(w, 'whitediv'); w.play('whitediv-walk'); w.state = 'walk'; w.tm = 120; w.dir = -1; w.throwCd = 90;
     // his hide of snow turns every blow, until his club is caught fast in the ice after a slam
     w.immune = () => w.state !== 'stuck'; w.calm = () => w.state === 'stuck';
-    w.immuneMsg = 'The blow glances off his hide. Make him slam the ground, jump the shockwave, and strike while his club is stuck.';
-    w.ai = () => this.whiteAI(); w.onDown = () => { this.stars?.destroy(); this.stars = null; this.bossFall(w, () => this.whiteFallen()); };
-    this.arena(146 * TS, w, 15); this.light(w, 2.4); sfx('roar'); this.cam.shake(700, 0.01); this.ledgeT = 0;
+    w.immuneMsg = 'The blow glances off his hide of snow. Wait for his slam, then strike while his club is stuck in the ice.';
+    w.ai = () => this.whiteAI(); w.onDown = () => { this.floorWarn?.destroy(); this.stars?.destroy(); this.stars = null; this.bossFall(w, () => this.whiteFallen()); };
+    this.arena(146 * TS, w, 12); this.light(w, 2.4); sfx('roar'); this.cam.shake(700, 0.01); this.ledgeT = 0;
+    // a blue glow along the floor warns of the slam
+    this.floorWarn = this.add.rectangle(146 * TS, 14 * TS - 10, 30 * TS, 20, 0x80c8ff, 1).setOrigin(0, 0.5).setBlendMode(Phaser.BlendModes.ADD).setAlpha(0).setDepth(3);
     toast('The White Div rises from the dark like a mountain of snow: "So, the son of Zal comes at last."');
-    hint('He comes for you. When he <b>raises his club, step back and jump the shockwave</b>, then <b>strike while the club is stuck in the ice</b>. The ice ledges are only a breather.');
+    hint('When <b>the floor glows blue</b> he is about to slam: <b>jump onto an ice ledge</b>. Then his club is <b>stuck in the ice: drop down and strike!</b>');
   }
-  // he roams the middle of his cave. On the ground Rostam draws his slam (and the opening it leaves);
-  // up on a ledge, boulders and then icicles from the roof drive him down again
+  // one clear loop: he stalks Rostam, raises his club (the floor glows), slams the whole floor of the cave, and his club
+  // sticks in the ice: the opening. The ledges are safe from the slam, but stay on one too long and he hurls a boulder
   whiteAI() {
     const w = this.boss, p = this.player; w.tm--; const mad = w.hp <= w.max / 2;
     if (mad && !w.mad) { w.mad = true; w.setTint(0xffd0d0); sfx('roar'); this.cam.shake(600, 0.012); banner('خشمِ دیو', 'The White Div rages'); }
-    const up = p.body.bottom < 13 * TS; this.ledgeT = up ? this.ledgeT + 1 : 0;
+    const up = p.body.bottom < 13 * TS && p.body.blocked.down; this.ledgeT = up ? this.ledgeT + 1 : 0;
     if (w.state === 'walk') {
-      // he stalks Rostam to club's reach (never under a ledge); within reach of a man on the ground, he slams soon
-      const near = this.stalk(w, p, 62, 156, 165, mad ? 62 : 46, 'whitediv-walk') && !up;
-      if (near) w.tm = Math.min(w.tm, mad ? 12 : 22);
-      if (w.tm <= 0) {
-        // the slam only when Rostam is within his club's reach; a boulder when he keeps his distance; the roof when he hides on a ledge
-        if (up && this.ledgeT > 80 && w.throws >= 1) { w.setVelocityX(0); w.state = 'roar'; w.tm = 70; w.throws = 0; this.icicles(); }
-        else if (near && (w.throws > 0 || Math.random() < 0.75)) { w.setVelocityX(0); w.state = 'slam'; w.tm = 52; w.play('whitediv-smash'); w.hit = false; w.throws = 0; }
-        else if (w.throws < 2 && (up || near || Math.abs(p.x - w.x) > 130)) { w.setVelocityX(0); w.state = 'throw'; w.tm = 50; w.play('whitediv-throw'); w.hit = false; w.throws++; }
-        else w.tm = 20;                                                        // keep closing in
-      }
+      this.stalk(w, p, 62, 156, 165, mad ? 62 : 46, 'whitediv-walk'); w.throwCd--;
+      if (up && this.ledgeT > 90 && w.throwCd <= 0) { w.setVelocityX(0); w.state = 'throw'; w.tm = 50; w.play('whitediv-throw'); w.hit = false; }
+      else if (w.tm <= 0) { w.state = 'raise'; w.tm = mad ? 50 : 64; w.setVelocityX(0); w.play('whitediv-smash'); w.anims.pause(); w.setFrame(5); sfx('roar'); }   // the club swung back over his shoulder
+    } else if (w.state === 'raise') {
+      w.setVelocityX(0); this.floorWarn.setAlpha(0.15 + 0.35 * Math.abs(Math.sin(w.tm * 0.25)));
+      if (w.tm <= 0) { w.state = 'slam'; w.tm = 34; w.anims.resume(); w.hit = false; }
     } else if (w.state === 'slam') {
-      if (!w.hit && w.tm < 12) {
-        w.hit = true; const x = w.x + w.dir * 40;
-        // the club itself reaches just short of where he stood to stalk; past that only the wave, which a jump clears
-        this.hazard(w.dir > 0 ? w.x + 10 : w.x - 56, w.body.top + 10, 46, 60, 180); this.shockwave(x, w.body.bottom);
+      if (!w.hit && w.tm < 24) {
+        // the whole floor of the cave shakes: only the ledges and the air are safe
+        w.hit = true; const y = 14 * TS; this.floorWarn.setAlpha(0.9); this.tweens.add({ targets: this.floorWarn, alpha: 0, duration: 400 });
+        this.hazard(146 * TS, y - 22, 30 * TS, 22, 260);
+        for (let c = 147; c < 176; c += 3) this.time.delayedCall(Math.abs(c * TS - w.x) * 0.6, () => this.fx('dust', c * TS, y, { flip: c * TS < w.x, depth: 8 }));
+        this.cam.shake(380, 0.016); sfx('hit');
       }
       if (w.tm <= 0) {
         // the club bites deep into the ice: the opening
-        w.state = 'stuck'; w.tm = mad ? 100 : 130; w.anims.stop(); w.setFrame(7); w.setTint(0xbfe0ff);
-        this.stars = this.fx('stun', w.x, w.body.top - 4, { depth: 10, follow: w }); hint('His club is <b>stuck in the ice: strike him now!</b>');
+        w.state = 'stuck'; w.tm = mad ? 120 : 150; w.anims.stop(); w.setFrame(7); w.setTint(0xbfe0ff);
+        this.stars = this.fx('stun', w.x, w.body.top - 4, { depth: 10, follow: w }); hint('His club is <b>stuck in the ice: drop down and strike him now!</b>');
       }
     } else if (w.state === 'stuck') {
       if (this.stars) this.stars.setPosition(Math.round(w.x), Math.round(w.body.top - 4));
-      if (w.tm <= 0) { w.mad ? w.setTint(0xffd0d0) : w.clearTint(); this.stars?.destroy(); this.stars = null; w.state = 'walk'; w.tm = 50 + Math.random() * 30;
-        this.fx('dust', w.x + w.dir * 40, w.body.bottom, { depth: 8 }); hint('When he <b>raises his club, step back and jump the shockwave</b>, then <b>strike while his club is stuck</b>.'); }
+      if (w.tm <= 0) { w.mad ? w.setTint(0xffd0d0) : w.clearTint(); this.stars?.destroy(); this.stars = null; w.state = 'walk'; w.tm = (mad ? 100 : 140) + Math.random() * 40;
+        this.fx('dust', w.x + w.dir * 40, w.body.bottom, { depth: 8 }); hint('He pulls his club free. When <b>the floor glows blue</b>, get onto an <b>ice ledge</b>.'); }
     } else if (w.state === 'throw') {
+      w.setVelocityX(0);
       if (!w.hit && w.tm < 24) {
         w.hit = true; const n = mad ? 2 : 1;
         for (let i = 0; i < n; i++) {
-          const tx = p.x + (i ? 50 * -w.dir : 0), t = 0.9 + i * 0.15, vx = (tx - w.x) / t, vy = -(0.5 * 700 * t) + (p.y - w.body.top) / t;
+          const tx = p.x + (i ? 40 * -w.dir : 0), t = 0.9 + i * 0.15, vx = (tx - w.x) / t, vy = -(0.5 * 700 * t) + (p.y - w.body.top) / t;
           this.shoot(w.x + w.dir * 30, w.body.top + 10, vx, vy, 'boulder', { gravity: 700, spin: 8, life: 2500 });
         }
-        sfx('swing');
+        sfx('swing'); if (!this.toldRock) { this.toldRock = true; toast('He hurls a boulder at your ledge. Jump clear!'); }
       }
-      if (w.tm <= 0) { w.state = 'walk'; w.tm = mad ? 40 : 60; }
-    } else if (w.state === 'roar') {
-      w.setVelocityX(0); if (w.tm <= 0) { w.state = 'walk'; w.tm = mad ? 40 : 60; }
-    }
-  }
-  // he roars and the cave roof cracks: icicles fall where the ground glows, along the ledge Rostam stands on
-  icicles() {
-    const p = this.player; sfx('roar'); this.cam.shake(500, 0.012);
-    toast('The White Div roars, and the cave roof cracks!');
-    for (const dx of [-36, 0, 36]) {
-      const x = p.x + dx, r = this.groundAt(x); if (r == null) continue;
-      const mark = this.add.image(x, r * TS - 2, 'glow').setScale(0.5, 0.2).setTint(0xbfe0ff).setBlendMode(Phaser.BlendModes.ADD).setDepth(5);
-      this.tweens.add({ targets: mark, alpha: 0.3, yoyo: true, repeat: 3, duration: 110 });
-      this.time.delayedCall(750 + (dx + 36) * 3, () => {
-        mark.destroy(); if (this.done) return;
-        this.shoot(x, this.cam.scrollY + 4, 0, 120, 'icicle', { gravity: 1100, life: 1400 }); sfx('swing');
-      });
+      if (w.tm <= 0) { w.state = 'walk'; w.throwCd = mad ? 110 : 160; }
     }
   }
   whiteFallen() {
@@ -1983,7 +1970,7 @@ const GUIDE = [
     more: [['k6/divwarrior-smash', 8, 148, 'Div warrior', 'Turns slowly. Drop behind him and strike his back; jump his shockwave.'], ['k3/bat-fly', 8, 108, 'Bat', 'Pesters you on the high platforms. Swing up at it.']] },
   { k: 7, fa: 'دیوِ سپید', name: 'The White Div', art: ['k7/whitediv-smash', 9, 136],
     tale: 'The White Div held King Kay Kavus captive in a cave as dark as night, beyond seven mountains. Only the blood of its heart could give the blinded king back his sight. Rostam fought it until the cave ran with blood and sweat.',
-    how: ['He stalks you to club\'s reach. When he <b>raises his club, step back</b> and <b>jump the shockwave</b>.', 'The slam leaves his <b>club stuck in the ice</b>: that is your moment, <b>strike!</b>', 'The <b>ice ledges</b> are a breather, but he throws boulders, and if you stay too long <b>icicles fall</b>.'],
+    how: ['When <b>the floor glows blue</b> he raises his club: <b>jump onto an ice ledge</b>.', 'His slam shakes the whole floor, and his <b>club sticks in the ice</b>: <b>drop down and strike!</b>', 'Linger on a ledge and he <b>hurls a boulder</b> at it. Jump clear.'],
     more: [['k6/divwarrior-smash', 8, 148, 'Div warrior', 'Three blows. Strike his back while he turns.'], ['k3/bat-fly', 8, 108, 'Bat', 'Swing up at it as it swoops.']] }
 ];
 let gpg = 0, guideFrom = null;
