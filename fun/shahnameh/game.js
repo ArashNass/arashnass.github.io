@@ -52,7 +52,8 @@ const FPS = { 'rostam-idle': 5, 'rostam-run': 14, 'rostam-jump': 6, 'rostam-atta
 const SIZE = { rider: 124, rostam: 112, lion: 148, jackal: 108, div: 108, scorpion: 86, vulture: 92, ram: 86, dragon: 136, rakhsh: 104, bat: 108, serpent: 92, hag: 108, beauty: 108, spearman: 140, olad: 112, divwarrior: 100, arzhang: 136, whitediv: 136 };
 const BODY = { rider: [0.3, 0.5], rostam: [0.143, 0.393], lion: [0.5, 0.36], jackal: [0.3, 0.22], div: [0.22, 0.34], scorpion: [0.4, 0.22], vulture: [0.33, 0.2], ram: [0.4, 0.4],
   dragon: [0.46, 0.42], rakhsh: [0.5, 0.5], bat: [0.32, 0.24], serpent: [0.31, 0.31], hag: [0.27, 0.42], beauty: [0.2, 0.47], spearman: [0.115, 0.386], olad: [0.17, 0.49], divwarrior: [0.31, 0.64], arzhang: [0.3, 0.7], whitediv: [0.4, 0.58] };
-const V = 52;   // bump to bust caches when assets change
+const V = 53;
+const ZOOM = 2;                                                   // canvas pixels per world pixel   // bump to bust caches when assets change
 
 // PixelLab VFX strips in ./assets/fx: frame size, frame count, fps, and the effect's origin as a fraction of the frame
 const FX = {
@@ -1174,8 +1175,14 @@ class Play extends Phaser.Scene {
     this.physics.add.overlap(this.player, this.coins, (pl, c) => this.eat(c));
     this.lion = null; this.boss = null; this.frozen = false; this.ram = null;
     this.cam = this.cameras.main;
+    // the canvas is drawn at twice the world's resolution so finer sprite art keeps its detail. The camera zooms from its
+    // top-left corner, so scrollX stays the left edge of the view and screen-fixed layers keep their places; its follow
+    // offset centres Rostam, and the bounds and tile culling are worked out for the zoomed view
+    this.cam.setZoom(ZOOM).setOrigin(0, 0);
+    this.cam.clampX = x => Phaser.Math.Clamp(x, 0, Math.max(0, this.levelW - W)); this.cam.clampY = y => Phaser.Math.Clamp(y, 0, Math.max(0, ROWS * TS - H));
+    this.layer.setCullPadding(W / TS, H / TS);
     this.cam.setBounds(0, 0, this.levelW, ROWS * TS);
-    this.cam.startFollow(this.player, true, 0.12, 0.12);
+    this.cam.startFollow(this.player, true, 0.12, 0.12, W / 2, H / 2);
     this.cam.setRoundPixels(true);
     if (matchMedia('(prefers-reduced-motion: reduce)').matches) { this.cam.shake = () => this.cam; this.cam.flash = () => this.cam; }
     this.maxHp = 5 + (upg().heart || 0); this.hp = this.maxHp; this.farr = +(store.get('sh-farr') || 0); this.rakhshFed = false; this.rakhshRode = false; this.coinCount = 0; this.kills = 0; this.wasGround = true; this.face = 1; this.inv = 0; this.atk = 0; this.cool = 0; this.coyote = 0; this.buf = 0; this.bossOn = false; this.done = false; this.t0 = this.time.now;
@@ -1447,7 +1454,7 @@ class Play extends Phaser.Scene {
     } });
     f.glow = glow;
     this.physics.add.overlap(this.player, f, () => this.win(f));
-    this.cam.startFollow(this.player, true, 0.12, 0.12);
+    this.cam.startFollow(this.player, true, 0.12, 0.12, W / 2, H / 2);
   }
   win(f) {
     if (this.done) return; this.done = true; playing = false; music(false); sfx('fire'); document.body.classList.remove('playing'); hint(null); resumeAt = null;
@@ -1522,7 +1529,7 @@ class Play extends Phaser.Scene {
     if (anim === 'ride-gallop') { if (ground && Math.abs(b.velocity.x) > 15) p.anims.resume(); else { p.anims.pause(); if (!ground) p.setFrame(2); } }
     if (anim === 'rostam-jump') p.setFrame(b.velocity.y < 0 ? 0 : 1);
     p.setFlipX(this.face < 0);
-    this.cam.setFollowOffset(-this.face * 30, 0);
+    this.cam.setFollowOffset(W / 2 - this.face * 30, H / 2);
     // foes
     for (const f of this.foes.getChildren()) {
       if (!f.body.enable) continue;
@@ -1616,7 +1623,7 @@ class Play extends Phaser.Scene {
     this.drums?.remove();
     const at = this.bossDeath(B); this.chargeWarn?.destroy(); this.stars?.destroy(); this.stars = null;
     $('boss').classList.add('hidden'); this.wall?.destroy(); this.wallR?.destroy(); this.hazards = []; this.shots.clear(true, true);
-    this.time.delayedCall(at + 200, () => this.cam.startFollow(this.player, true, 0.12, 0.12));
+    this.time.delayedCall(at + 200, () => this.cam.startFollow(this.player, true, 0.12, 0.12, W / 2, H / 2));
     this.time.delayedCall(at + 1700, () => then ? then() : this.win({ destroy() {} }));
   }
   /* ---- Khan III: Rakhsh and the dragon that hides in the dark ---- */
@@ -1826,7 +1833,7 @@ class Play extends Phaser.Scene {
       // only the way on opens: the gate behind stays shut
       { const g = this.gates[1]; g.r.destroy(); this.tweens.add({ targets: g.im, y: -20, duration: 900, ease: 'Sine.easeIn' }); this.tweens.add({ targets: g.g, alpha: 0, duration: 600 }); }
       if (this.hordeBat?.active && this.hordeBat.body.enable) this.banish(this.hordeBat.x - 4, this.hordeBat.x + 4);
-      this.cam.startFollow(this.player, true, 0.12, 0.12);
+      this.cam.startFollow(this.player, true, 0.12, 0.12, W / 2, H / 2);
       toast('The horde is broken! The way to Arzhang lies open.');
     }
   }
@@ -2346,7 +2353,7 @@ $('pauseBtn').onclick = () => setPaused(true); $('resumeBtn').onclick = () => se
 $('restartBtn').onclick = () => { const sc = game.scene.getScene('play'); sc.done = true; begin(); };
 addEventListener('blur', () => { if (playing) setPaused(true); });
 game = new Phaser.Game({
-  type: Phaser.AUTO, parent: 'game', width: W, height: H, pixelArt: true, backgroundColor: '#06060c',
+  type: Phaser.AUTO, parent: 'game', width: W * ZOOM, height: H * ZOOM, pixelArt: true, backgroundColor: '#06060c',
   scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH },
   physics: { default: 'arcade', arcade: { gravity: { y: 900 }, debug: location.hash === '#physics' } },
   scene: [Play]
