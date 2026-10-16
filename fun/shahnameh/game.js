@@ -53,7 +53,7 @@ const FPS = { 'rostam-idle': 5, 'rostam-run': 14, 'rostam-jump': 6, 'rostam-atta
 const SIZE = { rider: 124, rostam: 112, lion: 148, jackal: 108, div: 108, scorpion: 86, vulture: 92, ram: 86, dragon: 136, rakhsh: 104, bat: 108, serpent: 92, hag: 108, beauty: 108, spearman: 140, olad: 112, divwarrior: 100, arzhang: 136, whitediv: 136, firediv: 104, ghul: 100 };
 const BODY = { rider: [0.3, 0.5], rostam: [0.143, 0.393], lion: [0.5, 0.36], jackal: [0.3, 0.22], div: [0.22, 0.34], scorpion: [0.4, 0.22], vulture: [0.33, 0.2], ram: [0.4, 0.4],
   dragon: [0.46, 0.42], rakhsh: [0.5, 0.5], bat: [0.32, 0.24], serpent: [0.31, 0.31], hag: [0.27, 0.42], beauty: [0.2, 0.47], spearman: [0.115, 0.386], olad: [0.17, 0.49], divwarrior: [0.31, 0.64], arzhang: [0.3, 0.7], whitediv: [0.4, 0.58], firediv: [0.2, 0.6], ghul: [0.5, 0.36] };
-const V = 56;
+const V = 57;
 const ZOOM = 2;                                                   // canvas pixels per world pixel   // bump to bust caches when assets change
 
 // PixelLab VFX strips in ./assets/fx: frame size, frame count, fps, and the effect's origin as a fraction of the frame
@@ -553,6 +553,8 @@ const LEVELS = {
       for (const fx of [14, 37, 58, 76, 98, 118]) s.add.sprite(fx * TS, 160, 'fx-fireflies').play({ key: 'fx-fireflies', startFrame: fx % 16 }).setDepth(11).setAlpha(0.9);
       hint(`Cross the reeds. <b>Strike</b> with ${touch ? 'the mace button' : '<b>X</b>'}, or land on foes from above. <b>Jump again in mid-air</b> for a higher leap. <b>Walk past a fire altar</b> to light it: you rise there if you fall.`);
     },
+    // the storm over each boss fight: veil and cloud colours, the sun or moon behind it, lightning colour and pace, and its weather
+    sky: { veil: 0x3a0a06, cloud: 0xa8401c, glow: 0xff7a2a, sun: [0.76, 0.34], bolt: 0xffd0a0, every: [260, 420], edge: 0x6a1004, fx: 'dust' },
     fires: [82], hearts: [80],                       // a last fire and a heart before the lion's den
     update(s, k, time, p) { if (!s.bossOn && p.x > 88 * TS) s.startBoss(); },
     win: 'With the lion of the reeds slain, Rostam takes up a feather of the Simurgh. Ahead lies the waterless desert of the second labour.',
@@ -665,6 +667,7 @@ const LEVELS = {
       toast('Night falls. Rostam rides Rakhsh on into the dark; the light of his torch is all he has.');
       hint('You ride <b>Rakhsh</b> tonight: faster, with a longer reach from the saddle. <b>Ride past fire altars</b> to light them: you rise at the last one if you fall.');
     },
+    sky: { veil: 0x12062a, cloud: 0x5a3090, glow: 0x6aff9a, sun: [0.7, 0.22], bolt: 0xc8a0ff, every: [110, 200], edge: 0x20063a, fx: 'ash' },
     fires: [107], hearts: [105],
     update(s, k, time, p) { if (!s.bossOn && p.x > 113 * TS) s.startDragon(); },
     win: 'With Rakhsh at his side Rostam slays the dragon that ruled the night. At dawn he rides on, and the road leads into a garden where a feast is laid.',
@@ -702,6 +705,7 @@ const LEVELS = {
       [['food', 1, -34], ['food', 2, -14], ['food', 0, 8], ['food', 3, 28], ['props', 1, 44]].forEach(([t, fr, dx]) => s.add.image(f.x + dx, f.y - 4, t, fr).setOrigin(0.5, 1).setDepth(2));
       const glow = s.add.image(f.x, f.y - 20, 'glow').setScale(1.2).setTint(0xffd08a).setBlendMode(Phaser.BlendModes.ADD).setDepth(1); s.light(glow, 1.4, 0.05);
     },
+    sky: { veil: 0x1a0828, cloud: 0x6a3090, glow: 0x9aff60, sun: [0.66, 0.26], bolt: 0xa8ff90, every: [170, 290], edge: 0x1a3a08, fx: 'spores' },
     fires: [107], hearts: [105],
     update(s, k, time, p) {
       if (!s.bossOn && p.x > 114 * TS) s.startWitch();
@@ -722,6 +726,7 @@ const LEVELS = {
     food: (c, r, n) => (c === 84 && r === 8) || (c === 104 && r === 9) ? 'lamb' : FOOD[1 + (n % 3)],
     parse(s, ch, x, y) { if (ch === 'q') s.spawnFoe('spearman', x, y); else if (ch === 'O') s.oladAt = { x, y }; },
     create(s) { toast('Morning in Mazandaran. The fields are green, and the warden Olad keeps watch with his men.'); hint('Spearmen have a long reach. <b>Close in right after they thrust</b>.'); },
+    sky: { veil: 0x0e161e, cloud: 0x5a6a7c, glow: 0xffe0a0, sun: [0.8, 0.2], bolt: 0xe8f0ff, every: [130, 230], edge: 0x0a1018, fx: 'rain', dim: 0.4 },
     fires: [107], hearts: [105],
     update(s, k, time, p) { if (!s.bossOn && p.x > 114 * TS) s.startOlad(); },
     win: 'Rostam lassos Olad and spares his life. Olad swears to guide him to the camp of Arzhang Div and to the White Div\'s cave, and he is promised the throne of Mazandaran.',
@@ -751,6 +756,7 @@ const LEVELS = {
       toast('Olad leads you by night to the war camp of Arzhang Div. Drums beat among the fires.');
       hint('The Div camp. <b>Jump, then jump again in mid-air</b> to reach high platforms like the one above you. Div warriors\' clubs send <b>shockwaves along the ground: jump them</b>.');
     },
+    sky: { veil: 0x2a0402, cloud: 0x9a200c, glow: 0xff3a0a, sun: [0.72, 0.28], bolt: 0xff7050, every: [140, 250], edge: 0x5a0402, fx: 'embers' },
     fires: [118], hearts: [72, 90, 116],             // one on the arena's high platform, one past the gates, one at the last fire
     regrow: [72],                            // the platform hearts come back once Rostam has left the platform for 2 s
     resume(s) { if (s.start.x > s.hordeAt.x) s.hordeDone = true; },   // rising past the horde: it stays beaten
@@ -790,6 +796,7 @@ const LEVELS = {
       s.boltT = 120; toast('Beyond the seven mountains the White Div waits in his cave. A storm breaks over the peaks.');
       hint('Lightning strikes <b>where the ground glows</b>: keep moving.');
     },
+    sky: { veil: 0x061428, cloud: 0x6a9ad8, glow: 0x8ad8ff, sun: [0.7, 0.26], bolt: 0xa8ecff, every: [150, 280], edge: 0x08204a, fx: 'blizzard', cave: true },   // his arena is deep in the cave: no open sky
     hearts: [100, 140],                              // one after the lightning, one at the cave's last fire
     update(s, k, time, p) {
       // lightning on the mountain path: a glow marks the ground, then the bolt falls
@@ -963,6 +970,36 @@ function makeTextures(scene) {
   });
   layer('flake', 2, 2, x => { x.fillStyle = '#ffffff'; x.fillRect(0, 0, 2, 2); x.fillStyle = '#c8d8ff'; x.fillRect(1, 1, 1, 1); });
   layer('sand', 4, 2, x => { x.fillStyle = '#f0c27a'; x.fillRect(0, 0, 4, 1); x.fillStyle = '#c88a48'; x.fillRect(1, 1, 2, 1); });
+  // the boss storm: a rolling bank of cloud (white, tinted per labour), a sunburst of rays, a rain streak, a white vignette to tint
+  layer('stormcloud', 512, 150, (x, w) => {
+    const puff = (px, py, r, col) => wrap(w, o => { x.fillStyle = col; x.beginPath(); x.arc(px + o, py, r, 0, 7); x.fill(); });
+    x.filter = 'blur(5px)';                                 // soft billows, not discs (ignored where canvas filters are missing)
+    for (let i = 0; i < 160; i++) puff(hash(i) * w, 22 + hash(i + 170) * 70, 12 + hash(i + 340) * 24, `rgba(120,120,128,${0.14 + hash(i + 510) * 0.16})`);
+    for (let i = 0; i < 46; i++) puff(hash(i + 300) * w, 18 + hash(i + 370) * 58, 6 + hash(i + 440) * 14, 'rgba(255,255,255,0.22)');   // lit crowns of the billows
+    x.filter = 'none'; x.globalCompositeOperation = 'destination-in';
+    const g = x.createLinearGradient(0, 0, 0, 150); g.addColorStop(0, 'rgba(0,0,0,1)'); g.addColorStop(0.6, 'rgba(0,0,0,0.9)'); g.addColorStop(1, 'rgba(0,0,0,0)');
+    x.fillStyle = g; x.fillRect(0, 0, w, 150); x.globalCompositeOperation = 'source-over';
+  });
+  layer('rays', 256, 256, x => {
+    x.fillStyle = 'rgba(255,255,255,0.55)';
+    for (let i = 0; i < 18; i++) { const a = i / 18 * Math.PI * 2, d = 0.05 + hash(i + 900) * 0.07; x.beginPath(); x.moveTo(128, 128); x.lineTo(128 + Math.cos(a - d) * 140, 128 + Math.sin(a - d) * 140); x.lineTo(128 + Math.cos(a + d) * 140, 128 + Math.sin(a + d) * 140); x.closePath(); x.fill(); }
+    x.globalCompositeOperation = 'destination-in';
+    const g = x.createRadialGradient(128, 128, 8, 128, 128, 128); g.addColorStop(0, 'rgba(0,0,0,1)'); g.addColorStop(1, 'rgba(0,0,0,0)');
+    x.fillStyle = g; x.fillRect(0, 0, 256, 256); x.globalCompositeOperation = 'source-over';
+  });
+  layer('stormveil', W, H, x => {                         // the storm sky: deep at the zenith, thinning toward the horizon
+    const g = x.createLinearGradient(0, 0, 0, H); g.addColorStop(0, 'rgba(255,255,255,1)'); g.addColorStop(0.55, 'rgba(255,255,255,0.6)'); g.addColorStop(1, 'rgba(255,255,255,0.25)');
+    x.fillStyle = g; x.fillRect(0, 0, W, H);
+  });
+  layer('horizon', W, H, x => {                           // a burning band low in the sky, under the clouds
+    const g = x.createLinearGradient(0, 0, 0, H); g.addColorStop(0.3, 'rgba(255,255,255,0)'); g.addColorStop(0.66, 'rgba(255,255,255,1)'); g.addColorStop(0.9, 'rgba(255,255,255,0)');
+    x.fillStyle = g; x.fillRect(0, 0, W, H);
+  });
+  layer('streak', 1, 7, x => { x.fillStyle = 'rgba(220,232,255,0.9)'; x.fillRect(0, 0, 1, 7); });
+  layer('vignette-white', W, H, x => {
+    const g = x.createRadialGradient(W / 2, H * 0.5, H * 0.3, W / 2, H * 0.5, W * 0.6);
+    g.addColorStop(0, 'rgba(255,255,255,0)'); g.addColorStop(1, 'rgba(255,255,255,0.75)'); x.fillStyle = g; x.fillRect(0, 0, W, H);
+  });
   layer('sand-veil', 512, H, (x, w) => {                    // streaks of blown sand for the storm
     for (let i = 0; i < 520; i++) {
       const y = Math.round(hash(i * 1.7) * H), len = 14 + Math.round(hash(i * 2.3) * 60), a = 0.18 + hash(i * 3.1) * 0.4;
@@ -1161,7 +1198,7 @@ class Play extends Phaser.Scene {
   create() {
     // the scene object is reused from labour to labour: forget whatever the last one left behind
     for (const k of ['dark', 'lights', 'lamp', 'wall', 'wallR', 'stars', 'pose', 'swingFx', 'witch', 'unmasked', 'olad', 'rakhsh', 'dragonSeen', 'horde', 'hordeDone',
-      'gates', 'hordeBat', 'toldRock', 'toldFarr', 'toldOffer', 'atAltar', 'bossT', 'maceHit', 'toldIce', 'chargeWarn', 'toldCharge', 'shards', 'shardG', 'mark', 'markGlow', 'markOpen', 'bossHeart', 'bossHeartT', 'floorWarn', 'highWarn', 'regrow', 'drums', 'whiteDown', 'ended', 'mounted', 'prayed', 'drank', 'toldImmune', 'toldDeflect', 'kavus', 'stones', 'puzzle', 'springOpen', 'pool']) delete this[k];
+      'gates', 'hordeBat', 'toldRock', 'toldFarr', 'toldOffer', 'atAltar', 'bossT', 'maceHit', 'toldIce', 'chargeWarn', 'toldCharge', 'shards', 'shardG', 'mark', 'markGlow', 'markOpen', 'bossHeart', 'bossHeartT', 'floorWarn', 'highWarn', 'regrow', 'drums', 'sky', 'flashA', 'whiteDown', 'ended', 'mounted', 'prayed', 'drank', 'toldImmune', 'toldDeflect', 'kavus', 'stones', 'puzzle', 'springOpen', 'pool']) delete this[k];
     // turn loaded strips into square frames; anything missing falls back to placeholder art
     for (const [k, f] of Object.entries(ART)) if (f && this.textures.exists(k)) {
       const t = this.textures.get(k), img = t.getSourceImage(), fh = img.height, n = Math.max(1, Math.round(img.width / fh));
@@ -1386,6 +1423,7 @@ class Play extends Phaser.Scene {
   }
   // a boss's last moments: it reels under a run of flashes and blasts, then bursts apart in a blaze of light
   bossDeath(B) {
+    this.calmSky();
     B.body.enable = false; B.anims.stop(); this.hideMark(); this.hitStop(160); sfx('roar');
     // a Div with a death of its own staggers and falls before it breaks apart; the rest reel under flashes
     const die = B.texture.key.split('-')[0] + '-die', fall = this.anims.exists(die);
@@ -1429,7 +1467,7 @@ class Play extends Phaser.Scene {
     this.cam.shake(400, 0.006);
   }
   startBoss() {
-    this.bossOn = true;
+    this.bossOn = true; this.stormSky();
     const x0 = 86 * TS;
     this.cam.stopFollow(); this.tweens.add({ targets: this.cam, scrollX: Math.min(this.levelW - W, x0), duration: 700, ease: 'Sine.easeInOut' });
     this.arenaWalls(x0);
@@ -1540,7 +1578,7 @@ class Play extends Phaser.Scene {
   }
   update(time, delta) {
     const k = delta / 16.67, p = this.player, b = p.body;
-    this.lv.scroll(this, this.cam.scrollX, time); this.drawShards(delta);
+    this.lv.scroll(this, this.cam.scrollX, time); this.drawShards(delta); this.tickSky(delta / 16.67, time);
     if (!playing || this.done) { if (this.done && this.hp <= 0) p.setVelocityX(0); return; }
     this.inv = Math.max(0, this.inv - k); p.setAlpha(this.inv > 0 && Math.floor(this.inv / 5) % 2 ? 0.35 : 1);
     if (this.frozen) { pressed.jump = pressed.attack = false; }
@@ -1652,13 +1690,79 @@ class Play extends Phaser.Scene {
   light(obj, scale = 1, flicker = 0) { (this.lights ||= []).push({ obj, scale, flicker }); }
   drawDark() {
     const d = this.dark; if (!d) return;
-    d.clear(); d.fill(this.darkTint, this.darkA);
+    d.clear(); d.fill(this.darkTint, Math.max(0, this.darkA - (this.flashA || 0)));   // a flash of lightning lifts the dark a moment
     const t = this.time.now;
     for (const l of this.lights) {
       if (!l.obj.active || !l.obj.visible || l.obj.alpha < 0.25) continue;          // a lamp that has faded gives no light
       const s = l.scale * Math.min(1, l.obj.alpha * 1.3) * (1 + (l.flicker ? Math.sin(t * 0.013 + l.obj.x) * l.flicker : 0));
       this.lamp.setScale(s); d.erase(this.lamp, Math.round(l.obj.x - this.cam.scrollX), Math.round(l.obj.y - this.cam.scrollY));
     }
+  }
+  // the boss storm: when a boss appears the sky over the arena turns. A veil and a rolling cloud bank darken the far painting,
+  // a sun or moon burns through behind them, lightning forks across the sky (and lifts the dark), the weather thickens and the
+  // edges of the screen pulse like a heartbeat. All of it sits behind the world, just above the far painting.
+  stormSky() {
+    const S = this.lv.sky; if (!S || this.sky) return;
+    const list = this.children.list;
+    let at = 0; list.forEach((o, i) => { if (o.type === 'Image' && o.scrollFactorX === 0 && o.depth === 0 && o.width >= W) at = i + 1; });
+    const put = o => { o.setScrollFactor(0); this.children.moveTo(o, Math.min(at++, list.length - 1)); return o; };
+    const [sx, sy] = S.sun;
+    const sky = this.sky = { S, v: 0, calm: false, boltT: 90, time: 0, mids: list.filter(o => o.type === 'TileSprite' && o.scrollFactorX === 0 && o.depth === 0) };
+    for (const m of sky.mids) m.tint0 = m.tintTopLeft;
+    sky.veil = put(this.add.image(0, 0, 'stormveil').setOrigin(0).setTint(S.veil).setAlpha(0));
+    sky.horizon = put(this.add.image(0, 0, 'horizon').setOrigin(0).setTint(S.glow).setBlendMode(Phaser.BlendModes.ADD).setAlpha(0));
+    sky.rays = put(this.add.image(W * sx, H * sy, 'rays').setTint(S.glow).setBlendMode(Phaser.BlendModes.ADD).setScale(1.5).setAlpha(0));
+    sky.sun = put(this.add.image(W * sx, H * sy, 'glow').setTint(S.glow).setBlendMode(Phaser.BlendModes.ADD).setScale(2.2).setAlpha(0));
+    sky.back = put(this.add.tileSprite(0, -18, W, 150, 'stormcloud').setOrigin(0).setTint(S.cloud).setAlpha(0));
+    sky.bolts = put(this.add.graphics().setBlendMode(Phaser.BlendModes.ADD));
+    sky.front = put(this.add.tileSprite(0, -34, W, 150, 'stormcloud').setOrigin(0).setTint(S.cloud).setAlpha(0).setFlipX(true));
+    sky.flash = put(this.add.rectangle(0, 0, W, H, S.bolt).setOrigin(0).setBlendMode(Phaser.BlendModes.ADD).setAlpha(0));
+    sky.edge = this.add.image(0, 0, 'vignette-white').setOrigin(0).setScrollFactor(0).setDepth(13).setTint(S.edge).setAlpha(0);
+    const P = {
+      dust: ['sand', { x: { min: W, max: W + 30 }, y: { min: H * 0.3, max: H }, speedX: { min: -260, max: -140 }, speedY: { min: -30, max: 10 }, lifespan: 2600, frequency: 22, scale: { min: 1, max: 2.5 }, alpha: { start: 0.7, end: 0 }, tint: [0xd8a060, 0xa86a3a] }],
+      ash: ['flake', { x: { min: -20, max: W + 60 }, y: -4, speedY: { min: 20, max: 55 }, speedX: { min: -40, max: -10 }, lifespan: 6000, frequency: 45, alpha: { start: 0.8, end: 0.2 }, tint: [0x8a8098, 0x5a5068, 0xb07aff] }],
+      spores: ['flake', { x: { min: 0, max: W }, y: H + 4, speedY: { min: -45, max: -15 }, speedX: { min: -14, max: 14 }, lifespan: 6500, frequency: 70, scale: { min: 0.8, max: 1.8 }, alpha: { start: 1, end: 0 }, tint: [0xa0ff70, 0xd8a0ff, 0x70ffc0], blendMode: 'ADD' }],
+      rain: ['streak', { x: { min: -40, max: W + 120 }, y: -8, speedY: { min: 520, max: 640 }, speedX: { min: -150, max: -110 }, rotate: 14, lifespan: 650, frequency: 6, quantity: 2, alpha: { start: 0.55, end: 0.3 } }],
+      embers: ['sand', { x: { min: 0, max: W }, y: H + 4, speedY: { min: -120, max: -50 }, speedX: { min: -30, max: 30 }, lifespan: 3600, frequency: 30, scale: { min: 0.8, max: 1.6 }, alpha: { start: 1, end: 0 }, tint: [0xff8a2a, 0xffd060, 0xff3a10], blendMode: 'ADD' }],
+      blizzard: ['flake', { x: { min: W - 40, max: W + 80 }, y: { min: -20, max: H }, speedX: { min: -300, max: -170 }, speedY: { min: 30, max: 110 }, lifespan: 3200, frequency: 10, scale: { min: 0.8, max: 1.8 }, alpha: { start: 0.95, end: 0.3 } }]
+    }[S.fx];
+    if (P) sky.weather = this.add.particles(0, 0, P[0], P[1]).setScrollFactor(0).setDepth(11);
+    this.tweens.add({ targets: sky, v: 1, duration: 1800, ease: 'Sine.easeInOut' });
+    this.time.delayedCall(500, () => this.skyBolt());                 // the storm breaks with the boss
+  }
+  skyBolt() {
+    const sky = this.sky; if (!sky || this.done) return;
+    const S = sky.S, g = sky.bolts, x0 = Phaser.Math.Between(W * 0.12, W * 0.88), y1 = H * Phaser.Math.FloatBetween(0.38, 0.62);
+    const fork = (x, y, len, w) => {
+      const pts = [[x, y]];
+      while (y < len) { x += Phaser.Math.Between(-11, 11); y += Phaser.Math.Between(7, 15); pts.push([x, y]); if (w > 1.5 && Math.random() < 0.14) fork(x, y, y + Phaser.Math.Between(20, 50), w * 0.5); }
+      for (const [lw, c, a] of [[w * 3, S.bolt, 0.35], [w, 0xffffff, 1]]) { g.lineStyle(lw, c, a); g.beginPath(); g.moveTo(pts[0][0], pts[0][1]); for (const p of pts) g.lineTo(p[0], p[1]); g.strokePath(); }
+    };
+    g.clear(); if (!S.cave) fork(x0, -4, y1, 2.2);                    // in the cave the storm is only a cold flash through the ice
+    g.setAlpha(1); sky.flash.setAlpha(0.32 * sky.v); this.flashA = 0.4 * sky.v;
+    this.tweens.add({ targets: g, alpha: { from: 1, to: 0 }, duration: 380, ease: 'Expo.easeIn' });
+    this.tweens.add({ targets: sky.flash, alpha: 0, duration: 260, delay: 60 });
+    this.time.delayedCall(90, () => { if (this.sky) sky.flash.setAlpha(0.18 * sky.v); this.tweens.add({ targets: sky.flash, alpha: 0, duration: 200 }); });   // the second flicker
+    this.time.delayedCall(Phaser.Math.Between(250, 700), () => tone(55, 1.1, { type: 'sawtooth', vol: 0.07, to: 28 }));   // thunder rolls in after
+  }
+  tickSky(k, time) {
+    const sky = this.sky; if (!sky) return;
+    const S = sky.S, v = sky.v, beat = Math.pow(Math.max(0, Math.sin(time * 0.0042)), 12);    // a heartbeat in the vignette
+    sky.veil.setAlpha(0.82 * v); sky.horizon.setAlpha((0.32 + Math.sin(time * 0.0017) * 0.06) * v * (S.dim ?? 1)); sky.back.setAlpha(0.9 * v); sky.front.setAlpha(0.75 * v);
+    sky.sun.setAlpha((0.75 + Math.sin(time * 0.002) * 0.15) * v * (S.dim ?? 1)); sky.rays.setAlpha(0.55 * v * (S.dim ?? 1));
+    sky.rays.angle += 0.04 * k; sky.rays.setScale(1.45 + Math.sin(time * 0.0013) * 0.08);
+    sky.back.tilePositionX += 0.35 * k; sky.front.tilePositionX += 0.8 * k;
+    if (S.cave) { sky.rays.setAlpha(0); sky.sun.setAlpha(0); sky.back.setAlpha(0); sky.front.setAlpha(0); }
+    sky.edge.setAlpha((0.45 + beat * 0.35) * v);
+    const dim = 1 - 0.32 * v; for (const m of sky.mids) m.setTint(Phaser.Display.Color.GetColor(((m.tint0 >> 16) & 255) * dim, ((m.tint0 >> 8) & 255) * dim, (m.tint0 & 255) * dim));
+    if (this.flashA) this.flashA = Math.max(0, this.flashA - 0.03 * k);
+    if (!sky.calm && !this.frozen && (sky.boltT -= k) <= 0) { sky.boltT = Phaser.Math.Between(...S.every); this.skyBolt(); }
+  }
+  // the boss is beaten: the storm breaks up and the sky clears, leaving a little of its colour
+  calmSky() {
+    const sky = this.sky; if (!sky || sky.calm) return;
+    sky.calm = true; sky.weather?.stop();
+    this.tweens.add({ targets: sky, v: 0.2, duration: 4500, ease: 'Sine.easeInOut' });
   }
   shoot(x, y, vx, vy, key, { frame, gravity = 0, life = 3000, spin = 0, tint } = {}) {
     const sh = this.shots.create(x, y, key, frame).setDepth(9);
@@ -1689,7 +1793,7 @@ class Play extends Phaser.Scene {
     this.arenaWalls(x0);
     boss.hp = boss.max = max; this.boss = boss;
     this.physics.add.collider(boss, this.layer, null, onFloor); this.physics.add.collider(boss, [this.wall, this.wallR]);
-    $('boss').classList.remove('hidden'); this.bossBar(); banner();
+    $('boss').classList.remove('hidden'); this.bossBar(); banner(); this.stormSky();
   }
   // a big boss falls: flash, smoke and light, then the labour is won
   bossFall(B, then) {
@@ -1850,6 +1954,7 @@ class Play extends Phaser.Scene {
   }
   oladYields() {
     // Olad is not slain: he kneels, Rostam's lasso binds him, and he becomes the guide
+    this.calmSky();
     const o = this.olad, p = this.player; o.state = 'down'; o.setVelocity(0); o.body.enable = false; o.play('olad-kneel'); this.hideMark();
     $('boss').classList.add('hidden'); this.wall?.destroy(); this.wallR?.destroy(); this.frozen = true; p.setVelocityX(0); sfx('win');
     const rope = this.add.graphics().setDepth(8); let t = 0;
