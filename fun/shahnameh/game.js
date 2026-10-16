@@ -40,7 +40,7 @@ const FPS = { 'rostam-idle': 5, 'rostam-run': 14, 'rostam-jump': 6, 'rostam-atta
 const SIZE = { rider: 124, rostam: 112, lion: 148, jackal: 108, div: 108, scorpion: 86, vulture: 92, ram: 86, dragon: 136, rakhsh: 104, bat: 108, serpent: 92, hag: 108, beauty: 108, spearman: 140, olad: 112, divwarrior: 100, arzhang: 136, whitediv: 136 };
 const BODY = { rider: [0.3, 0.5], rostam: [0.143, 0.393], lion: [0.5, 0.36], jackal: [0.3, 0.22], div: [0.22, 0.34], scorpion: [0.4, 0.22], vulture: [0.33, 0.2], ram: [0.4, 0.4],
   dragon: [0.46, 0.42], rakhsh: [0.5, 0.5], bat: [0.32, 0.24], serpent: [0.31, 0.31], hag: [0.27, 0.42], beauty: [0.2, 0.47], spearman: [0.115, 0.386], olad: [0.17, 0.49], divwarrior: [0.31, 0.64], arzhang: [0.3, 0.7], whitediv: [0.4, 0.58] };
-const V = 50;   // bump to bust caches when assets change
+const V = 51;   // bump to bust caches when assets change
 
 // PixelLab VFX strips in ./assets/fx: frame size, frame count, fps, and the effect's origin as a fraction of the frame
 const FX = {
@@ -987,8 +987,9 @@ const MODES = { shur: [0, 150, 300, 500, 700, 800, 1000], mahur: [0, 200, 400, 5
 function pitch(S, deg) { const m = MODES[S.mode], o = Math.floor(deg / 7), i = ((deg % 7) + 7) % 7; return S.root * 2 ** (o + m[i] / 1200); }
 const KEY = { mode: 'shur', root: 293.66 };
 // the recorded music: one track for the menus, one for the road, a darker one for the dragon's night and the
-// White Div's cave, and an epic one for every boss
-const TRACK_VOL = { menu: 1, road: 0.62, dark: 0.5, boss: 0.45 }, DARK = new Set([3, 7]);   // the battle theme is cut to begin at full tilt, without its slow opening   // the volumes even out the tracks' own loudness
+// White Div's cave, and an orchestral action theme for every boss ("Battle Boss Fight Game Music" by alex-morgan,
+// Pixabay), cut to begin at full tilt without its slow opening. The volumes even out the tracks' own loudness.
+const TRACK_VOL = { menu: 1, road: 0.62, dark: 0.5, boss: 0.25 }, DARK = new Set([3, 7]);
 function track(name) {
   let t = A.tracks[name]; if (t) return t;
   const el = new Audio(`assets/music/${name}.m4a?v=${V}`); el.loop = true; el.preload = 'auto';
