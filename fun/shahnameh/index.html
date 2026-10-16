@@ -96,7 +96,7 @@ h2{font-size:clamp(21px,4.6vw,27px);margin:2px 0 8px}
 @media (prefers-reduced-motion:reduce){#hint.new{animation:none}}
 @media (pointer:fine){#toast{bottom:28px}}
 .btns{display:flex;flex-wrap:wrap;gap:10px 12px;justify-content:center;align-items:center}
-.btn2{display:inline-flex;align-items:center;justify-content:center;height:36px;padding:0 10px;border:solid transparent;border-width:9px 16px;border-image:url(assets/ui/btn-cream.png) 9 16 fill stretch;image-rendering:pixelated;
+.btn2{display:inline-flex;align-items:center;justify-content:center;height:36px;white-space:nowrap;padding:0 10px;border:solid transparent;border-width:9px 16px;border-image:url(assets/ui/btn-cream.png) 9 16 fill stretch;image-rendering:pixelated;
   font:700 15px/1 Cinzel,serif;letter-spacing:.04em;color:var(--inkb);text-decoration:none;transition:transform .1s,filter .15s}
 .btn2:hover:not(:disabled),.btn2:focus-visible{filter:brightness(1.08) drop-shadow(0 0 6px rgba(200,144,42,.7))}
 .btn2:active{transform:translateY(2px)}
@@ -194,6 +194,18 @@ h2{font-size:clamp(21px,4.6vw,27px);margin:2px 0 8px}
   .gcard{grid-template-columns:auto 1fr;justify-items:start;text-align:left;gap:12px}.gtext .fa{font-size:22px;text-align:left}.gtext h2{font-size:18px}.gtext .kick{font-size:13px;margin-bottom:2px}
   .gport{width:110px;height:120px;padding-bottom:4px}.gport .spr{--s:100px!important}.gtale,.ghow ol{font-size:15px;line-height:1.35}.ghow{margin-top:6px;padding:4px 10px}
   .gmore p{font-size:14px}.gmore .spr{--s:48px!important}.guidePage .pager{padding-top:4px;margin-top:2px;background:none}.guidePage .pager .kick{display:none}.guidePage .pager .btn2{height:30px}}
+/* the home map fits one screen: the seal already names the labour, so its Persian ordinal is not repeated below */
+#mapInfo .pf{display:none}.mapPage .fa{margin-bottom:.15em}#s-map.home .story.home-only{margin:4px auto 6px}.mapPage .keys{margin-top:8px}
+.road{width:min(100%,calc((100dvh - 440px) * 2.876));margin-inline:auto}
+.menu .btn,.menu .btn2{width:250px;min-width:0}
+/* out of play, the HUD shows only the way back and the sound switch, not empty hearts and provisions */
+body:not(.playing):not(.paused) #hearts,body:not(.playing):not(.paused) #hud [title="Provisions gathered"],body:not(.playing):not(.paused) #waterPill{display:none!important}
+/* a short landscape phone: the pause menu in two columns, Continue across both */
+@media (max-height:520px){#s-pause .menu{grid-template-columns:repeat(2,232px);justify-content:center}#s-pause .menu>*{width:232px;white-space:nowrap;font-size:14px}
+  #s-pause .menu .btn,#s-pause .menu>:last-child{grid-column:1/-1;justify-self:center}}
+/* a narrow portrait phone: every row of buttons stacks, all one width */
+@media (max-width:520px){.btns{flex-direction:column;gap:8px}.btns .btn,.btns .btn2{width:250px}
+  #s-map.home .story.home-only{font-size:16px;line-height:1.35}.mapPage .fa{font-size:30px}#mapInfo{font-size:16px;line-height:1.35;margin:6px auto 10px}}
 </style>
 </head>
 <body>
@@ -242,7 +254,7 @@ h2{font-size:clamp(21px,4.6vw,27px);margin:2px 0 8px}
     <p class="story" id="winMsg"></p>
     <div class="stats" id="winStats"></div>
     <p id="winBest"></p>
-    <div class="btns"><button class="btn" id="nextBtn">Next labour</button><button class="btn2" id="againBtn">Play again</button><button class="btn2" data-map>The seven labours</button></div>
+    <div class="menu"><button class="btn" id="nextBtn">Next labour</button><button class="btn2" id="againBtn">Play again</button><button class="btn2" data-map>The seven labours</button></div>
     <a class="alt" href="/fun/">Back to the Funfair</a>
   </div>
 </section>
@@ -251,7 +263,7 @@ h2{font-size:clamp(21px,4.6vw,27px);margin:2px 0 8px}
     <p class="kick">Even heroes fall</p>
     <h2>Rise again, Rostam</h2>
     <p class="story" id="deadTip">The road to Mazandaran is long. Try once more.</p>
-    <div class="btns"><button class="btn" id="retryBtn">Try again</button><button class="btn2 hidden" id="freshBtn">Start the labour again</button><button class="btn2" data-story>Read the tale</button><button class="btn2" data-guide>Book of Foes</button></div>
+    <div class="menu"><button class="btn" id="retryBtn">Try again</button><button class="btn2 hidden" id="freshBtn">Start the labour again</button><button class="btn2" data-story>Read the tale</button><button class="btn2" data-guide>Book of Foes</button></div>
   </div>
 </section>
 
