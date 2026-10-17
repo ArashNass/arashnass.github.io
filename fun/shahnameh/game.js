@@ -50,10 +50,10 @@ const FPS = { 'queen-walk': 10, 'queen-sting': 14, 'queen-spit': 12, 'queen-die'
   'divwarrior-walk': 8, 'divwarrior-smash': 13, 'arzhang-walk': 7, 'arzhang-smash': 9,
   'whitediv-walk': 6, 'whitediv-smash': 11, 'whitediv-throw': 10, 'whitediv-die': 7, 'arzhang-die': 7, 'firediv-walk': 9, 'firediv-throw': 14, 'ghul-crawl': 14, 'ghul-leap': 14, 'serpent-strike': 16, 'scorpion-sting': 16, 'kavus-sight': 6 };
 // on-screen frame height in game pixels; equal to the PixelLab frame size so sprites draw 1:1
-const SIZE = { queen: 150, rider: 124, rostam: 112, lion: 148, jackal: 108, div: 108, scorpion: 86, vulture: 92, ram: 86, dragon: 136, rakhsh: 104, bat: 108, serpent: 92, hag: 108, beauty: 108, spearman: 140, olad: 112, divwarrior: 100, arzhang: 136, whitediv: 136, firediv: 104, ghul: 100 };
+const SIZE = { queen: 150, rider: 124, rostam: 112, lion: 148, jackal: 108, div: 108, scorpion: 86, vulture: 92, ram: 86, dragon: 136, rakhsh: 104, bat: 108, serpent: 92, hag: 108, beauty: 108, spearman: 140, olad: 112, divwarrior: 100, arzhang: 136, whitediv: 204, firediv: 104, ghul: 100 };
 const BODY = { queen: [0.62, 0.42], rider: [0.3, 0.5], rostam: [0.143, 0.393], lion: [0.5, 0.36], jackal: [0.3, 0.22], div: [0.22, 0.34], scorpion: [0.4, 0.22], vulture: [0.33, 0.2], ram: [0.4, 0.4],
-  dragon: [0.46, 0.42], rakhsh: [0.5, 0.5], bat: [0.32, 0.24], serpent: [0.31, 0.31], hag: [0.27, 0.42], beauty: [0.2, 0.47], spearman: [0.115, 0.386], olad: [0.17, 0.49], divwarrior: [0.31, 0.64], arzhang: [0.3, 0.7], whitediv: [0.4, 0.58], firediv: [0.2, 0.6], ghul: [0.5, 0.36] };
-const V = 81;
+  dragon: [0.46, 0.42], rakhsh: [0.5, 0.5], bat: [0.32, 0.24], serpent: [0.31, 0.31], hag: [0.27, 0.42], beauty: [0.2, 0.47], spearman: [0.115, 0.386], olad: [0.17, 0.49], divwarrior: [0.31, 0.64], arzhang: [0.3, 0.7], whitediv: [0.2667, 0.3867], firediv: [0.2, 0.6], ghul: [0.5, 0.36] };
+const V = 83;
 const ZOOM = 2;                                                   // canvas pixels per world pixel   // bump to bust caches when assets change
 
 // PixelLab VFX strips in ./assets/fx: frame size, frame count, fps, and the effect's origin as a fraction of the frame
@@ -814,7 +814,7 @@ const LEVELS = {
     parse(s, ch, x, y) {
       if (ch === 'w') s.spawnFoe('divwarrior', x, y); else if (ch === 'b') s.spawnFoe('bat', x, y);
       else if (ch === 'X') s.whiteAt = { x, y };
-      else if (ch === 'k') { const k = s.kavus = s.add.sprite(x, y + 1, 'kavus-sight', 0).setOrigin(0.5, 0.955).setScale(0.5).setDepth(3); s.add.image(x, y - 26, 'glow').setScale(0.6).setTint(0x8ab0ff).setBlendMode(Phaser.BlendModes.ADD).setDepth(2); }
+      else if (ch === 'k') { const k = s.kavus = s.add.sprite(x, y + 1, 'kavus-sight', 0).setOrigin(0.5, 0.955).setScale(0.5).setDepth(3); if (s.textures.exists('cage')) s.cage = s.add.image(x, y + 1, 'cage').setOrigin(0.5, 1).setDepth(3.5); s.add.image(x, y - 26, 'glow').setScale(0.6).setTint(0x8ab0ff).setBlendMode(Phaser.BlendModes.ADD).setDepth(2); }
     },
     create(s) {
       s.darkness(0.15, 0x060a18); for (const a of s.altars) s.light(a, 0.7); s.light(s.kavus, 0.8);
@@ -1257,12 +1257,13 @@ class Play extends Phaser.Scene {
     L.image('heart-pick', 'assets/ui/heart.png' + q);
     this.lv = LEVELS[cur]; this.lv.load(L, q);
     if (this.lv.sky?.paint) L.image('storm-' + cur, 'assets/' + this.lv.sky.paint + q);
-    L.image('decor-' + cur, `assets/decor/${cur}.png${q}`);                       // the labour's ground litter, 32 px frames in a row   // the arena repainted for the boss fight
+    L.image('decor-' + cur, `assets/decor/${cur}.png${q}`);
+    if (cur === 7) L.image('cage', `assets/k7/cage.png${q}`);   // Kay Kavus's cage, which Rostam breaks open                       // the labour's ground litter, 32 px frames in a row   // the arena repainted for the boss fight
   }
   create() {
     // the scene object is reused from labour to labour: forget whatever the last one left behind
     for (const k of ['dark', 'lights', 'lamp', 'wall', 'wallR', 'stars', 'pose', 'swingFx', 'witch', 'unmasked', 'olad', 'rakhsh', 'dragonSeen', 'horde', 'hordeDone',
-      'gates', 'hordeBat', 'toldRock', 'toldFarr', 'toldOffer', 'atAltar', 'bossT', 'maceHit', 'toldIce', 'chargeWarn', 'toldCharge', 'shards', 'shardG', 'mark', 'markGlow', 'markOpen', 'bossHeart', 'bossHeartT', 'floorWarn', 'highWarn', 'regrow', 'drums', 'sky', 'flashA', 'intro', 'fgReeds', 'mound', 'swirl', 'qx', 'puddles', 'combo', 'comboT', 'heavy', 'heavyGo', 'chargeT', 'chargeFull', 'chargeGlow', 'dodgeT', 'dodgeCd', 'dodgeDir', 'whiteDown', 'ended', 'mounted', 'prayed', 'drank', 'toldImmune', 'toldDeflect', 'kavus', 'stones', 'puzzle', 'springOpen', 'pool']) delete this[k];
+      'gates', 'hordeBat', 'toldRock', 'toldFarr', 'toldOffer', 'atAltar', 'bossT', 'maceHit', 'toldIce', 'chargeWarn', 'toldCharge', 'shards', 'shardG', 'mark', 'markGlow', 'markOpen', 'bossHeart', 'bossHeartT', 'floorWarn', 'highWarn', 'regrow', 'drums', 'sky', 'flashA', 'intro', 'fgReeds', 'mound', 'swirl', 'qx', 'puddles', 'combo', 'comboT', 'heavy', 'heavyGo', 'chargeT', 'chargeFull', 'chargeGlow', 'dodgeT', 'dodgeCd', 'dodgeDir', 'whiteDown', 'ended', 'mounted', 'prayed', 'drank', 'toldImmune', 'toldDeflect', 'toldVenom', 'cage', 'kavus', 'stones', 'puzzle', 'springOpen', 'pool']) delete this[k];
     // turn loaded strips into square frames; anything missing falls back to placeholder art
     for (const k of ['decor-' + cur]) if (this.textures.exists(k) && this.textures.get(k).frameTotal < 3) { const t = this.textures.get(k), h = t.getSourceImage().height; for (let i = 0; i < Math.round(t.getSourceImage().width / h); i++) t.add(i, 0, i * h, 0, h, h); }
     for (const [k, f] of Object.entries(ART)) if (f && this.textures.exists(k)) {
@@ -1395,8 +1396,7 @@ class Play extends Phaser.Scene {
   // a heart: one more life, glowing so it can be found even in the dark
   heart(x, y) {
     const h = this.pickup(x, y, 'heart-pick', 0, 'heart'); h.setScale(2); h.body.setSize(24, 24); h.setDepth(4);
-    h.glow = this.add.image(x, y, 'glow').setScale(0.5).setTint(0xff5a6a).setBlendMode(Phaser.BlendModes.ADD).setDepth(3);
-    this.tweens.add({ targets: h.glow, alpha: 0.45, scale: 0.6, yoyo: true, repeat: -1, duration: 700, ease: 'Sine.easeInOut' });
+    this.tweens.add({ targets: h, y: y - 3, yoyo: true, repeat: -1, duration: 900, ease: 'Sine.easeInOut' });   // a gentle bob, nothing more
     this.light(h, 0.5, 0.1); return h;
   }
   // light a fire altar (or drink at a well): the checkpoint
@@ -1527,7 +1527,7 @@ class Play extends Phaser.Scene {
     this.hitStop(f === this.boss ? 70 : 45);
     if (f === this.boss && !legend() && !f.gaveHeart && f.hp > 0 && f.hp <= f.max / 2 && this.hp < this.maxHp) {
       f.gaveHeart = true; const x = this.player.x + (this.player.x < this.cam.scrollX + W / 2 ? 60 : -60), r = this.groundAt(x);
-      if (r != null) { this.fx('beam', x, r * TS + 1, { depth: 4 }); this.heart(x, r * TS - 12).beacon = this.fx('beacon', x, r * TS + 1, { depth: 3 }).setAlpha(0.75); toast('A heart shines in the arena. Take it!'); }
+      if (r != null) { this.heart(x, r * TS - 12); toast('A heart appears in the arena. Take it!'); }
     }
     if (f.hp <= 0) {
       if (f === this.boss) return f.onDown();
@@ -1691,7 +1691,7 @@ class Play extends Phaser.Scene {
         // the highest standing place near the corner farthest from the boss: a ledge if there is one
         const cx = this.cam.scrollX, side = fromX > cx + W / 2 ? 1 : -1; let x = side > 0 ? cx + 24 : cx + W - 24, r = this.groundAt(x);
         for (let i = 0; i < 9; i++) { const xx = x + side * i * TS, rr = this.groundAt(xx); if (rr != null && rr < r) { x = Math.floor(xx / TS) * TS + TS / 2; r = rr; } }
-        if (r != null) { const h = this.bossHeart = this.heart(x, r * TS - 12); h.beacon = this.fx('beacon', x, r * TS + 1, { depth: 3 }).setAlpha(0.75); h.dieAt = time + 10000; this.fx('heal', x, r * TS, { depth: 6 }); toast('A heart glows in the corner. Grab it!'); }
+        if (r != null) { const h = this.bossHeart = this.heart(x, r * TS - 12); h.dieAt = time + 10000; toast('A heart appears in the corner. Grab it!'); }
       }
     }
   }
@@ -1922,7 +1922,7 @@ class Play extends Phaser.Scene {
     this.hazards = this.hazards.filter(z => { if (z.move) z.r.x += z.move * k; if (Phaser.Geom.Intersects.RectangleToRectangle(b, z.r)) this.hurt(z.r.centerX); return time < z.until; });
     this.drawDark();
     // a curse turned back strikes the one who cast it
-    for (const sh of this.shots.getChildren()) if (sh.back && this.boss?.active && this.boss.hp > 0 && this.boss.body.enable && Phaser.Geom.Intersects.RectangleToRectangle(sh.getBounds(), this.boss.body)) { sh.destroy(); this.damage(this.boss); }
+    for (const sh of this.shots.getChildren()) if (sh.back && this.boss?.active && this.boss.hp > 0 && this.boss.body.enable && Phaser.Geom.Intersects.RectangleToRectangle(sh.getBounds(), this.boss.body)) { sh.destroy(); this.boss.onBack ? this.boss.onBack() : this.damage(this.boss); }
     // boss
     const B = this.boss;
     if (B && B.active && B.hp > 0) {
@@ -2559,36 +2559,47 @@ class Play extends Phaser.Scene {
     rush = null; setTimeout(() => $('s-win').classList.remove('hidden'), 600);
   }
   freeKing() {
-    // Rostam kneels before the blind king and touches the blood of the White Div's heart to his eyes: a drop falls, the
-    // king's eyes kindle, his chains burst apart, light pours down on him and he rises with his arms open. Rostam raises
-    // his mace to the sky, and the tale is told to its end
-    this.ended = true; this.frozen = true; const p = this.player, k = this.kavus; p.setVelocityX(0); this.face = k.x >= p.x ? 1 : -1; p.setFlipX(this.face < 0);
-    const anoint = this.anims.exists('rostam-anoint'); hint(null);
-    this.pose = anoint ? 'rostam-anoint' : 'rostam-drink'; p.anims.stop(); p.play(this.pose); sfx('swing');
-    const eye = { x: k.x - 3 * Math.sign(k.x - p.x || 1), y: k.y - k.displayHeight * 0.8 }, hand = () => ({ x: p.x + this.face * 24, y: p.y + 4 });
-    this.time.delayedCall(700, () => {
-      // a single dark-red drop falls from the vial
-      const h = hand(), drop = this.add.circle(h.x, h.y, 2, 0xb0101a).setDepth(9).setStrokeStyle(1, 0x400008);
-      this.tweens.add({ targets: drop, x: eye.x, y: eye.y, duration: 520, ease: 'Quad.easeIn', onComplete: () => {
+    // Rostam smashes the cage the Divs built around the king; the bars fly apart and the blind king turns toward the
+    // sound. Rostam lets a drop of the White Div's heart-blood fall on his eyes; his chains burst, light pours down, and
+    // he rises with his arms open. Rostam raises his mace, the king speaks, and after a breath the tale is told to its end
+    this.ended = true; this.frozen = true; const p = this.player, k = this.kavus; p.setVelocityX(0); this.face = k.x >= p.x ? 1 : -1; p.setFlipX(this.face < 0); hint(null);
+    const cage = this.cage, T0 = cage?.active ? 1500 : 0;
+    if (cage?.active) {
+      this.pose = 'rostam-heavy'; p.anims.stop(); p.play({ key: 'rostam-heavy', startFrame: 3 }); sfx('swing');
+      this.time.delayedCall(260, () => {
+        sfx('clang'); sfx('hit'); this.time.delayedCall(90, () => sfx('clang')); this.cam.shake(320, 0.014); this.hitStop(80);
+        this.fx('impact', cage.x - this.face * 20, cage.y - cage.displayHeight * 0.45, { depth: 10 }).setScale(1.5);
+        this.shatter(cage, { step: 2, power: 1.2 }); cage.destroy(); this.cage = null;
+        for (let i = 0; i < 4; i++) this.fx('dust', k.x + (i - 1.5) * 18, k.y, { depth: 8 });
+      });
+      this.time.delayedCall(800, () => { k.setFlipX(k.x > p.x); this.pose = null; p.anims.stop(); p.play('rostam-idle'); });   // the king turns to him
+    } else k.setFlipX(k.x > p.x);
+    const anoint = this.anims.exists('rostam-anoint');
+    this.time.delayedCall(T0, () => { this.pose = anoint ? 'rostam-anoint' : 'rostam-drink'; p.anims.stop(); p.play(this.pose); sfx('swing'); });
+    const eye = () => ({ x: k.x - 3 * (k.flipX ? 1 : -1), y: k.y - k.displayHeight * 0.8 }), hand = () => ({ x: p.x + this.face * 24, y: p.y + 4 });
+    this.time.delayedCall(T0 + 700, () => {
+      const h = hand(), e = eye(), drop = this.add.circle(h.x, h.y, 2, 0xb0101a).setDepth(9).setStrokeStyle(1, 0x400008);
+      this.tweens.add({ targets: drop, x: e.x, y: e.y, duration: 520, ease: 'Quad.easeIn', onComplete: () => {
         drop.destroy(); sfx('coin');
-        const g = this.add.image(eye.x, eye.y, 'glow').setTint(0xffe0a0).setBlendMode(Phaser.BlendModes.ADD).setDepth(9).setScale(0.1);
+        const g = this.add.image(e.x, e.y, 'glow').setTint(0xffe0a0).setBlendMode(Phaser.BlendModes.ADD).setDepth(9).setScale(0.1);
         this.tweens.add({ targets: g, scale: 1.1, alpha: { from: 1, to: 0 }, duration: 900, ease: 'Cubic.easeOut', onComplete: () => g.destroy() });
       } });
     });
-    this.time.delayedCall(1700, () => {
-      // his chains burst, light pours down, and he rises
+    this.time.delayedCall(T0 + 1700, () => {
       this.cam.flash(700, 255, 250, 220); this.cam.shake(300, 0.008); sfx('win');
       const bits = this.add.particles(k.x, k.y - 30, 'flake', { speed: { min: 80, max: 180 }, angle: { min: 200, max: 340 }, gravity: 600, lifespan: 900, quantity: 18, emitting: false, scale: { min: 1, max: 2 }, tint: [0x8a8f9a, 0xc8ccd6, 0x5a5f6a] }).setDepth(9);
       bits.explode(18); this.time.delayedCall(1200, () => bits.destroy()); sfx('clang'); this.time.delayedCall(120, () => sfx('clang'));
-      this.fx('beam', k.x, k.y + 1, { depth: 6 }); this.fx('beacon', k.x, k.y + 1, { depth: 2 }).setTint(0xfff0c0).setAlpha(0.8);
+      this.fx('beam', k.x, k.y + 1, { depth: 6 });
       k.play('kavus-sight'); this.light(k, 2.2);
       banner('کاووس شاه', 'The king sees again');
     });
-    this.time.delayedCall(2900, () => {
+    // the king speaks; two seconds after his last word the tale goes on in pictures
+    let told = false; const tell = () => { if (told) return; told = true; this.time.delayedCall(2000, () => cinema('ending', () => this.win({ destroy() {} }))); };
+    this.time.delayedCall(T0 + 2900, () => {
       if (this.anims.exists('rostam-victory')) { this.pose = 'rostam-victory'; p.anims.stop(); p.play('rostam-victory'); }
-      toast('"Rostam!" cries Kay Kavus. "My eyes are opened, and Iran is saved."'); say('kavus1');
+      toast('"Rostam!" cries Kay Kavus. "My eyes are opened, and Iran is saved."');
+      if (!say('kavus1', { then: tell })) this.time.delayedCall(3200, tell);
     });
-    this.time.delayedCall(7200, () => cinema('ending', () => this.win({ destroy() {} })));   // the ending in pictures, the credits, then the win
   }
   /* ---- Khan II: thirst, wells, the ram and the spring ---- */
   renderWater() { const w = Math.round(this.water); $('water').style.width = w + '%'; $('waterPill').classList.toggle('low', w < 25); }
@@ -2632,9 +2643,9 @@ class Play extends Phaser.Scene {
   // the mace meets a curse and sends it back where it came from, faster
   deflect(sh) {
     const B = this.boss, a = B?.active ? Math.atan2(B.y - 8 - sh.y, B.x - sh.x) : (this.face > 0 ? 0 : Math.PI);
-    sh.back = true; sh.setVelocity(Math.cos(a) * 280, Math.sin(a) * 280); sh.setRotation(a); sh.setTint(0xffe08a); sh.die = this.time.now + 2500;
+    sh.back = true; sh.body.setAllowGravity(false); sh.setVelocity(Math.cos(a) * 280, Math.sin(a) * 280); sh.setRotation(a); sh.setTint(0xffe08a); sh.die = this.time.now + 2500;
     this.fx('hit', sh.x, sh.y, { depth: 10 }); sfx('hit'); this.hitStop(40);
-    if (!this.toldDeflect) { this.toldDeflect = true; toast('Your mace turns the curse back on the witch!'); }
+    if (!this.toldDeflect) { this.toldDeflect = true; toast(cur === 2 ? 'Your mace knocks the venom back at the Queen!' : 'Your mace turns the curse back on the witch!'); }
   }
   // the ram's riddle: it taps the standing stones in an order; strike them in the same order and the rock gives water
   startStones() {
@@ -2718,7 +2729,11 @@ class Play extends Phaser.Scene {
     q.body.setAllowGravity(false); q.y = y - q.displayHeight * (0.97 - q.originY); q.groundY = q.y; this.sink(q, false, 900);
     q.immune = () => q.state !== 'stuck' && q.state !== 'surfaced'; q.calm = () => !q.immune(); q.contact = () => q.state === 'walk' || q.state === 'turn';
     q.immuneMsg = 'Her armour turns the blow. Let her sting miss: when it sticks in the sand, strike!';
-    q.lines = { intro: 'queen1', rage: 'queen2' }; q.kickable = () => ['walk', 'turn', 'aim', 'sting', 'spit'].includes(q.state) && !q.sinking; q.ai = () => this.queenAI(); q.onDown = () => { this.stars?.destroy(); this.stars = null; this.mound?.destroy(); this.swirl?.destroy(); this.puddles?.forEach(o => o.destroy()); this.bossFall(q, () => this.queenFallen()); };
+    q.lines = { intro: 'queen1', rage: 'queen2' };
+    // her own venom, knocked back by the mace, stuns her: an opening as good as a stuck sting
+    q.onBack = () => { if (q.state === 'under' || !q.body.enable) return; this.damage(q, 1, true); if (q.hp <= 0) return;
+      q.state = 'stuck'; q.tm = 110; q.setVelocityX(0); q.anims.stop(); q.setTexture('queen-sting', 5); q.setTint(0xb8ff90); this.stars?.destroy(); this.stars = this.fx('stun', q.x, q.body.top - 4, { depth: 10, follow: q });
+      if (!this.toldVenom) { this.toldVenom = true; toast('Her own venom stuns her! Strike while she reels.'); } }; q.kickable = () => ['walk', 'turn', 'aim', 'sting', 'spit'].includes(q.state) && !q.sinking; q.ai = () => this.queenAI(); q.onDown = () => { this.stars?.destroy(); this.stars = null; this.mound?.destroy(); this.swirl?.destroy(); this.puddles?.forEach(o => o.destroy()); this.bossFall(q, () => this.queenFallen()); };
     this.arena(138 * TS, q, 12); this.light(q, 1.6); this.recede();
     hint('The <b>Scorpion Queen</b> patrols the sand. When her <b>stinger glows green, step back</b>: when it <b>sticks in the sand, strike!</b> Jump over her as she passes.');
   }
@@ -2748,14 +2763,14 @@ class Play extends Phaser.Scene {
   }
   // a drop of venom that lands as a small green puddle, which burns for a moment and dries up
   venom(x, y, vx, vy, big = false) {
-    const g = 700, sh = this.shoot(x, y, vx, vy, 'fx-venom', { gravity: g, life: 2600 }); sh.play('fx-venom'); sh.setScale(big ? 0.85 : 0.6);
+    const g = 700, sh = this.shoot(x, y, vx, vy, 'fx-venom', { gravity: g, life: 2600 }); sh.play('fx-venom'); sh.setScale(big ? 0.85 : 0.6); sh.curse = true;   // the mace can knock it back
     // where it comes down: solve for the floor under its path
     let t = 0.05, px = x, py = y, r = null;
     for (; t < 2.5; t += 0.02) { px = x + vx * t; py = y + vy * t + 0.5 * g * t * t; r = this.groundAt(px); if (r != null && vy + g * t > 0 && py >= r * TS) break; }
     if (r == null) return;
     this.time.delayedCall(t * 1000, () => {
       if (!this.boss || this.boss.hp <= 0) return;
-      if (sh.active) sh.destroy();
+      if (!sh.active || sh.back) return; sh.destroy();
       const fy = r * TS, w = big ? 28 : 20, pd = this.add.ellipse(px, fy - 1, w, 6, 0x3fae22, 0.95).setStrokeStyle(1, 0xd8ff8a, 1).setDepth(7);
       this.puddles = (this.puddles || []).filter(o => o.active); this.puddles.push(pd); this.fx('dust', px, fy, { depth: 8 });
       this.hazard(px - w / 2 + 2, fy - 7, w - 4, 7, 1300);
@@ -2772,7 +2787,7 @@ class Play extends Phaser.Scene {
     if (q.state === 'emerge') { q.setVelocityX(0); if (q.tm <= 0) { q.state = 'walk'; q.play('queen-walk'); } }
     else if (q.state === 'walk') {
       q.setVelocityX(q.dir * (mad ? 80 : 60)); if (q.anims.currentAnim?.key !== 'queen-walk' || !q.anims.isPlaying) q.play('queen-walk');
-      const ahead = d * q.dir, close = ahead > 10 && ahead < 96 && !onLedge;
+      const ahead = d * q.dir, close = ahead > 10 && ahead < 124 && !onLedge;
       if (close && q.stingCd <= 0) { q.state = 'aim'; q.tm = mad ? 28 : 38; q.setVelocityX(0); q.anims.stop(); q.setTexture('queen-sting', 0); sfx('roar'); }
       else if (q.spitCd <= 0 && (onLedge || Math.abs(d) > 190)) { q.state = 'spit'; q.tm = 44; q.setVelocityX(0); q.dir = Math.sign(d) || q.dir; q.play('queen-spit'); q.spat = false; }
       else if ((q.dir < 0 && (q.x <= L || q.hitKeep)) || (q.dir > 0 && q.x >= R)) {
@@ -2795,18 +2810,18 @@ class Play extends Phaser.Scene {
         for (let i = 0; i < (mad ? 3 : 2); i++) this.venom(hx, q.body.top + 6, q.dir * (70 + i * 55 + Math.random() * 20), -170 - Math.random() * 60);
       }
       if (q.tm <= 0) {   // the stinger is driven into the sand: the opening
-        q.state = 'stuck'; q.tm = mad ? 80 : 100; q.anims.stop(); q.setFrame(5); q.setTint(0xffd0a0);
+        q.state = 'stuck'; q.tm = mad ? 100 : 125; q.anims.stop(); q.setFrame(5); q.setTint(0xffd0a0);
         this.stars = this.fx('stun', q.x, q.body.top - 4, { depth: 10, follow: q }); hint('Her sting is <b>stuck in the sand: strike now!</b>');
       }
     } else if (q.state === 'stuck') {
       q.setVelocityX(0); this.stars?.setPosition(Math.round(q.x), Math.round(q.body.top - 4));
-      if (q.tm <= 0) { q.clearTint(); this.stars?.destroy(); this.stars = null; q.state = 'walk'; q.stingCd = mad ? 70 : 100; q.play('queen-walk'); }
+      if (q.tm <= 0) { q.clearTint(); this.stars?.destroy(); this.stars = null; q.state = 'walk'; q.stingCd = mad ? 40 : 60; q.play('queen-walk'); }
     } else if (q.state === 'spit') {
       q.setVelocityX(0);
       if (!q.spat && q.tm < 26) { q.spat = true; sfx('fire');
         for (let i = 0; i < (mad ? 3 : 2); i++) { const tx = p.x + (i - 0.5) * 36, t = 0.85 + i * 0.12, vx = (tx - q.x) / t, vy = -(0.5 * 700 * t) + (p.y - q.body.top) / t;
           this.venom(q.x + q.dir * 40, q.body.top + 10, vx, vy, true); } }
-      if (q.tm <= 0) { q.state = 'walk'; q.spitCd = mad ? 150 : 200; q.dir = q.x < (L + R) / 2 ? 1 : -1; }
+      if (q.tm <= 0) { q.state = 'walk'; q.spitCd = mad ? 120 : 160; q.dir = q.x < (L + R) / 2 ? 1 : -1; }
     } else if (q.state === 'dive') {
       q.setVelocityX(0);
       if (q.tm <= 0) {   // under the sand: a trail of sand runs across the arena to the far side
@@ -2905,7 +2920,7 @@ const GUIDE = [
       ['k6/firediv-throw', 9, 112, 'Fire Div', 'Keeps its distance and lobs fireballs. Run in after a throw, or jump the flame.'],
       ['k6/ghul-leap', 9, 112, 'Ghul', 'Scuttles on all fours and pounces. Jump its leap, then strike as it lands.'],
       ['k3/bat-fly', 8, 108, 'Bat', 'Pesters you on the high platform. Swing up at it.']] },
-  { k: 7, fa: 'دیوِ سپید', name: 'The White Div', art: ['k7/whitediv-smash', 9, 136],
+  { k: 7, fa: 'دیوِ سپید', name: 'The White Div', art: ['k7/whitediv-smash', 9, 204],
     tale: 'The White Div held King Kay Kavus captive in a cave as dark as night, beyond seven mountains. Only the blood of its heart could give the blinded king back his sight. Rostam fought it until the cave ran with blood and sweat.',
     how: ['When <b>the floor glows blue</b> he raises his club: <b>jump onto the ice ledge</b>.', 'His slam shakes the whole floor, and his <b>club sticks in the ice</b>: <b>drop down and strike!</b>', 'Linger on the ledge and he roars: where <b>a light shines</b>, an <b>icicle falls</b> a second later. Move!', 'If he <b>stamps and flushes red</b>, he will <b>charge</b>: leap onto a ledge. If he hits the wall he is <b>dazed: strike!</b>'],
     more: [['k6/divwarrior-smash', 8, 148, 'Div warrior', 'Three blows. Strike his back while he turns.'], ['k3/bat-fly', 8, 108, 'Bat', 'Swing up at it as it swoops.']] },
@@ -3101,13 +3116,14 @@ function narrate(key, then) {
 const LINES = {"queen1": ["The Scorpion Queen", "Thirsty, little man? Then come… and drink."], "queen2": ["The Scorpion Queen", "My children… will feast on your bones!"], "witch1": ["The Lady of the Garden", "Sit, brave traveller. Eat… drink… and rest awhile."], "witch2": ["The Witch", "You see me now, do you? Then see your death!"], "olad1": ["Olad", "Who are you, to cross the marches of Mazandaran?"], "olad2": ["Olad", "Enough! Spare me… and I will lead you to the White Div."], "arzhang1": ["Arzhang Div", "Who dares walk into my camp? I will grind your bones for my supper!"], "arzhang2": ["Arzhang Div", "You will pay for every drop of my blood!"], "white1": ["The White Div", "So… the son of Zal comes at last."], "white2": ["The White Div", "I have broken kings, little hero. I will break you."], "white3": ["The White Div", "No… this cannot be…"], "kavus1": ["Kay Kavus", "Rostam! My eyes… my eyes are opened! Iran is saved!"]};
 // a spoken line, with its words as a subtitle; once only = never again this visit (an entrance, a labour's opening)
 const said = new Set();
-function say(k, { once = false, sub = true } = {}) {
-  if (once && said.has(k)) return; said.add(k);
+function say(k, { once = false, sub = true, then } = {}) {
+  if (once && said.has(k)) return false; said.add(k);
   const el = $('sub'), L = LINES[k], text = L ? `<b>${L[0]}:</b> \u201c${L[1]}\u201d` : KHAN_LINES[k];
   // the speaker's face beside the words: the storyteller for the narrator's lines
   const who = { queen: 'queen', witch1: 'beauty', witch2: 'hag', olad: 'olad', arzhang: 'arzhang', white: 'white', kavus: 'kavus' }, face = who[k] || who[k.replace(/\d+$/, '')] || 'narrator';
-  const a = narrate(k, () => el.classList.remove('on'));
+  const a = narrate(k, () => { el.classList.remove('on'); then?.(); });
   if (a && sub && text) { el.innerHTML = `<img src="assets/ui/port/${face}.png?v=${V}" alt=""><span>${text}</span>`; el.classList.add('on'); $('toast').classList.remove('on'); } else el.classList.remove('on');   // the spoken words replace the written note
+  return !!a;
 }
 // as a labour begins (the first time this visit) the narrator sets the scene
 function sayIntro(n) { say('khan' + n, { once: true }); }
