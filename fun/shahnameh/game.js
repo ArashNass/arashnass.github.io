@@ -53,7 +53,7 @@ const FPS = { 'queen-walk': 10, 'queen-sting': 14, 'queen-spit': 12, 'queen-die'
 const SIZE = { queen: 150, rider: 124, rostam: 112, lion: 148, jackal: 108, div: 108, scorpion: 86, vulture: 92, ram: 86, dragon: 136, rakhsh: 104, bat: 108, serpent: 92, hag: 108, beauty: 108, spearman: 140, olad: 112, divwarrior: 100, arzhang: 136, whitediv: 136, firediv: 104, ghul: 100 };
 const BODY = { queen: [0.62, 0.42], rider: [0.3, 0.5], rostam: [0.143, 0.393], lion: [0.5, 0.36], jackal: [0.3, 0.22], div: [0.22, 0.34], scorpion: [0.4, 0.22], vulture: [0.33, 0.2], ram: [0.4, 0.4],
   dragon: [0.46, 0.42], rakhsh: [0.5, 0.5], bat: [0.32, 0.24], serpent: [0.31, 0.31], hag: [0.27, 0.42], beauty: [0.2, 0.47], spearman: [0.115, 0.386], olad: [0.17, 0.49], divwarrior: [0.31, 0.64], arzhang: [0.3, 0.7], whitediv: [0.4, 0.58], firediv: [0.2, 0.6], ghul: [0.5, 0.36] };
-const V = 66;
+const V = 67;
 const ZOOM = 2;                                                   // canvas pixels per world pixel   // bump to bust caches when assets change
 
 // PixelLab VFX strips in ./assets/fx: frame size, frame count, fps, and the effect's origin as a fraction of the frame
@@ -1253,7 +1253,7 @@ class Play extends Phaser.Scene {
   create() {
     // the scene object is reused from labour to labour: forget whatever the last one left behind
     for (const k of ['dark', 'lights', 'lamp', 'wall', 'wallR', 'stars', 'pose', 'swingFx', 'witch', 'unmasked', 'olad', 'rakhsh', 'dragonSeen', 'horde', 'hordeDone',
-      'gates', 'hordeBat', 'toldRock', 'toldFarr', 'toldOffer', 'atAltar', 'bossT', 'maceHit', 'toldIce', 'chargeWarn', 'toldCharge', 'shards', 'shardG', 'mark', 'markGlow', 'markOpen', 'bossHeart', 'bossHeartT', 'floorWarn', 'highWarn', 'regrow', 'drums', 'sky', 'flashA', 'intro', 'fgReeds', 'mound', 'swirl', 'qx', 'combo', 'comboT', 'heavy', 'heavyGo', 'chargeT', 'chargeFull', 'chargeGlow', 'dodgeT', 'dodgeCd', 'dodgeDir', 'whiteDown', 'ended', 'mounted', 'prayed', 'drank', 'toldImmune', 'toldDeflect', 'kavus', 'stones', 'puzzle', 'springOpen', 'pool']) delete this[k];
+      'gates', 'hordeBat', 'toldRock', 'toldFarr', 'toldOffer', 'atAltar', 'bossT', 'maceHit', 'toldIce', 'chargeWarn', 'toldCharge', 'shards', 'shardG', 'mark', 'markGlow', 'markOpen', 'bossHeart', 'bossHeartT', 'floorWarn', 'highWarn', 'regrow', 'drums', 'sky', 'flashA', 'intro', 'fgReeds', 'mound', 'swirl', 'qx', 'puddles', 'combo', 'comboT', 'heavy', 'heavyGo', 'chargeT', 'chargeFull', 'chargeGlow', 'dodgeT', 'dodgeCd', 'dodgeDir', 'whiteDown', 'ended', 'mounted', 'prayed', 'drank', 'toldImmune', 'toldDeflect', 'kavus', 'stones', 'puzzle', 'springOpen', 'pool']) delete this[k];
     // turn loaded strips into square frames; anything missing falls back to placeholder art
     for (const k of ['decor-' + cur]) if (this.textures.exists(k) && this.textures.get(k).frameTotal < 3) { const t = this.textures.get(k), h = t.getSourceImage().height; for (let i = 0; i < Math.round(t.getSourceImage().width / h); i++) t.add(i, 0, i * h, 0, h, h); }
     for (const [k, f] of Object.entries(ART)) if (f && this.textures.exists(k)) {
@@ -2621,83 +2621,118 @@ class Play extends Phaser.Scene {
     if (this.textures.exists('queen-walk')) this.time.delayedCall(1800, () => this.startQueen());   // ...and something stirs beneath the sand
     else { this.springOpen = true; hint('<b>Walk into the spring</b> to drink.'); }
   }
-  // the Scorpion Queen bursts from the sand to guard the spring. Her hide turns every blow; her sting buries itself in the
-  // sand (the opening); she burrows and erupts under Rostam where the sand swirls; from afar she spits venom
+  // the Scorpion Queen bursts from the sand to guard the spring. One clear loop: she patrols the arena from side to side;
+  // whoever stands in front of her gets the sting (the stinger glows green first), which sprays venom and then sticks in the
+  // sand: the opening. At the end of some passes she burrows, a trail of sand runs under the arena, the sand swirls at the
+  // far side and she bursts out there, dazed for a moment: the second opening. Stand on the corner ledge and she spits.
   startQueen() {
     const x = 160 * TS, y = 14 * TS;
     this.cam.shake(900, 0.012); sfx('roar'); for (let i = 0; i < 6; i++) this.time.delayedCall(i * 120, () => this.fx('dust', x + Phaser.Math.Between(-40, 40), y, { depth: 8 }));
     const q = this.physics.add.sprite(x, y - 60, 'queen-walk', 0).setDepth(4).setFlipX(true);
-    this.fit(q, 'queen'); q.dir = -1; q.keep = KEEP2; q.state = 'emerge'; q.tm = 60;
+    this.fit(q, 'queen'); q.dir = -1; q.keep = KEEP2; q.state = 'emerge'; q.tm = 60; q.passes = 0; q.nextDive = 2; q.stingCd = 40; q.spitCd = 120;
     q.body.setAllowGravity(false); q.y = y - q.displayHeight * (0.97 - q.originY); q.groundY = q.y; this.sink(q, false, 900);
-    q.immune = () => q.state !== 'stuck' && q.state !== 'surfaced'; q.calm = () => !q.immune(); q.contact = () => q.state === 'walk';
-    q.immuneMsg = 'Her armour turns the blow. Dodge her sting: when it sticks in the sand, strike!';
-    q.ai = () => this.queenAI(); q.onDown = () => { this.stars?.destroy(); this.stars = null; this.mound?.destroy(); this.swirl?.destroy(); this.bossFall(q, () => this.queenFallen()); };
+    q.immune = () => q.state !== 'stuck' && q.state !== 'surfaced'; q.calm = () => !q.immune(); q.contact = () => q.state === 'walk' || q.state === 'turn';
+    q.immuneMsg = 'Her armour turns the blow. Let her sting miss: when it sticks in the sand, strike!';
+    q.ai = () => this.queenAI(); q.onDown = () => { this.stars?.destroy(); this.stars = null; this.mound?.destroy(); this.swirl?.destroy(); this.puddles?.forEach(o => o.destroy()); this.bossFall(q, () => this.queenFallen()); };
     this.arena(138 * TS, q, 12); this.light(q, 1.6);
-    hint('The <b>Scorpion Queen</b>! Her armour turns blows. <b>Dodge her sting</b>: when it <b>sticks in the sand, strike!</b> When she burrows, <b>move away from the swirling sand</b>.');
+    hint('The <b>Scorpion Queen</b> patrols the sand. When her <b>stinger glows green, step back</b>: when it <b>sticks in the sand, strike!</b> Jump over her as she passes.');
   }
   // the Queen sinks into the sand or rises out of it: the part of her below the ground line is cut away as she moves
   sink(q, down, ms) {
-    const fh = q.frame.height, sc = q.scaleY, depth = fh * 0.97 * sc;
+    const fh = q.frame.height, sc = q.scaleY, depth = fh * 0.97 * sc; q.sinking = true;
     this.tweens.addCounter({ from: down ? 0 : 1, to: down ? 1 : 0, duration: ms, ease: down ? 'Quad.easeIn' : 'Back.easeOut', onUpdate: tw => {
       const v = Math.max(0, tw.getValue()); q.y = q.groundY + v * depth; q.setCrop(0, 0, q.frame.width, Math.max(0, fh * 0.97 - v * depth / sc));
-    }, onComplete: () => { if (!down) { q.y = q.groundY; q.setCrop(); } } });
+    }, onComplete: () => { q.sinking = false; if (!down) { q.y = q.groundY; q.setCrop(); } } });
     for (let i = 0; i < 4; i++) this.time.delayedCall(i * (ms / 4), () => this.fx('dust', q.x + Phaser.Math.Between(-40, 40), q.groundY + q.displayHeight * (0.97 - q.originY), { depth: 8 }));
   }
+  // a drop of venom that lands as a small green puddle, which burns for a moment and dries up
+  venom(x, y, vx, vy, big = false) {
+    const g = 700, sh = this.shoot(x, y, vx, vy, 'glow', { gravity: g, life: 2600, tint: 0x8aff5a }); sh.setScale(big ? 0.35 : 0.24); sh.setBlendMode(Phaser.BlendModes.ADD);
+    // where it comes down: solve for the floor under its path
+    let t = 0.05, px = x, py = y, r = null;
+    for (; t < 2.5; t += 0.02) { px = x + vx * t; py = y + vy * t + 0.5 * g * t * t; r = this.groundAt(px); if (r != null && vy + g * t > 0 && py >= r * TS) break; }
+    if (r == null) return;
+    this.time.delayedCall(t * 1000, () => {
+      if (!this.boss || this.boss.hp <= 0) return;
+      if (sh.active) sh.destroy();
+      const fy = r * TS, w = big ? 28 : 20, pd = this.add.ellipse(px, fy - 1, w, 6, 0x3fae22, 0.95).setStrokeStyle(1, 0xd8ff8a, 1).setDepth(7);
+      this.puddles = (this.puddles || []).filter(o => o.active); this.puddles.push(pd); this.fx('dust', px, fy, { depth: 8 });
+      this.hazard(px - w / 2 + 2, fy - 7, w - 4, 7, 1300);
+      this.tweens.add({ targets: pd, scaleY: 1.25, yoyo: true, repeat: 3, duration: 130 });   // it bubbles
+      this.tweens.add({ targets: pd, alpha: 0, scaleX: 0.5, delay: 1000, duration: 400, onComplete: () => pd.destroy() });
+    });
+  }
   queenAI() {
-    const q = this.boss, p = this.player; q.tm--; const d = p.x - q.x, mad = q.hp <= q.max / 2;
-    if (!['sting', 'stuck', 'under', 'aim'].includes(q.state)) { q.dir = Math.sign(d) || q.dir; q.setFlipX(q.dir < 0); }
-    if (q.state === 'emerge') { q.setVelocityX(0); if (q.tm <= 0) { q.state = 'walk'; q.tm = 60; q.play('queen-walk'); } }
+    const q = this.boss, p = this.player; q.tm--; q.stingCd--; q.spitCd--; const d = p.x - q.x, mad = q.hp <= q.max / 2;
+    const L = KEEP2 * TS + 4, R = 165 * TS, floorY = 14 * TS, onLedge = p.body.bottom < 12.5 * TS;
+    // she belongs to the sand: pinned to the ground unless she is sinking into it or rising out of it
+    if (!q.sinking && q.body.enable) { q.y = q.groundY; q.body.setVelocityY(0); }
+    q.setFlipX(q.dir < 0);
+    if (q.state === 'emerge') { q.setVelocityX(0); if (q.tm <= 0) { q.state = 'walk'; q.play('queen-walk'); } }
     else if (q.state === 'walk') {
-      q.setVelocityX(Math.abs(d) > 60 ? q.dir * (mad ? 70 : 52) : 0); if (q.anims.currentAnim?.key !== 'queen-walk') q.play('queen-walk');
-      if (q.tm <= 0) {
-        const far = Math.abs(d) > 150, r = Math.random();
-        if (!far && r < 0.65) { q.state = 'aim'; q.tm = mad ? 30 : 42; q.setVelocityX(0); q.anims.stop(); q.setTexture('queen-sting', 0); sfx('roar'); }
-        else if (far && r < 0.55) { q.state = 'spit'; q.tm = 44; q.setVelocityX(0); q.play('queen-spit'); q.spat = false; }
-        else { q.state = 'dive'; q.tm = 46; q.setVelocityX(0); q.anims.stop(); this.sink(q, true, 700); sfx('hit'); }
+      q.setVelocityX(q.dir * (mad ? 80 : 60)); if (q.anims.currentAnim?.key !== 'queen-walk' || !q.anims.isPlaying) q.play('queen-walk');
+      const ahead = d * q.dir, close = ahead > 10 && ahead < 96 && !onLedge;
+      if (close && q.stingCd <= 0) { q.state = 'aim'; q.tm = mad ? 28 : 38; q.setVelocityX(0); q.anims.stop(); q.setTexture('queen-sting', 0); sfx('roar'); }
+      else if (q.spitCd <= 0 && (onLedge || Math.abs(d) > 190)) { q.state = 'spit'; q.tm = 44; q.setVelocityX(0); q.dir = Math.sign(d) || q.dir; q.play('queen-spit'); q.spat = false; }
+      else if ((q.dir < 0 && (q.x <= L || q.hitKeep)) || (q.dir > 0 && q.x >= R)) {
+        // the end of a pass: turn back, or every few passes go under the sand and come out at the far side
+        q.setVelocityX(0); q.passes++;
+        if (q.passes >= q.nextDive) { q.passes = 0; q.nextDive = mad ? 1 : 2 + (Math.random() < 0.5 ? 1 : 0); q.state = 'dive'; q.tm = 44; q.anims.stop(); this.sink(q, true, 700); sfx('hit'); }
+        else { q.state = 'turn'; q.tm = 18; q.anims.stop(); }
       }
+    } else if (q.state === 'turn') {
+      q.setVelocityX(0); if (q.tm <= 0) { q.dir = q.x < (L + R) / 2 ? 1 : -1; q.state = 'walk'; }
     } else if (q.state === 'aim') {
       // the stinger glows green: the strike is coming
       q.setVelocityX(0); Math.floor(q.tm / 4) % 2 ? q.setTint(0x9aff6a) : q.clearTint();
       if (q.tm <= 0) { q.clearTint(); q.state = 'sting'; q.tm = 26; q.play('queen-sting'); q.hit = false; }
     } else if (q.state === 'sting') {
       q.setVelocityX(0);
-      if (!q.hit && q.tm < 16) { q.hit = true; const hx = q.x + q.dir * 54; this.hazard(hx - 28, q.body.bottom - 46, 56, 46, 180); this.fx('dust', hx, q.body.bottom, { depth: 8 }); this.cam.shake(180, 0.01); sfx('hit'); }
+      if (!q.hit && q.tm < 16) {
+        q.hit = true; const hx = q.x + q.dir * 54; this.hazard(hx - 28, q.body.bottom - 46, 56, 46, 180); this.fx('dust', hx, q.body.bottom, { depth: 8 }); this.cam.shake(180, 0.01); sfx('hit');
+        // a spray of venom flies off the stinger as it strikes
+        for (let i = 0; i < (mad ? 3 : 2); i++) this.venom(hx, q.body.top + 6, q.dir * (70 + i * 55 + Math.random() * 20), -170 - Math.random() * 60);
+      }
       if (q.tm <= 0) {   // the stinger is driven into the sand: the opening
         q.state = 'stuck'; q.tm = mad ? 80 : 100; q.anims.stop(); q.setFrame(5); q.setTint(0xffd0a0);
         this.stars = this.fx('stun', q.x, q.body.top - 4, { depth: 10, follow: q }); hint('Her sting is <b>stuck in the sand: strike now!</b>');
       }
     } else if (q.state === 'stuck') {
       q.setVelocityX(0); this.stars?.setPosition(Math.round(q.x), Math.round(q.body.top - 4));
-      if (q.tm <= 0) { q.clearTint(); this.stars?.destroy(); this.stars = null; q.state = 'walk'; q.tm = (mad ? 50 : 70) + Math.random() * 30; }
+      if (q.tm <= 0) { q.clearTint(); this.stars?.destroy(); this.stars = null; q.state = 'walk'; q.stingCd = mad ? 70 : 100; q.play('queen-walk'); }
     } else if (q.state === 'spit') {
       q.setVelocityX(0);
       if (!q.spat && q.tm < 26) { q.spat = true; sfx('fire');
-        for (let i = 0; i < (mad ? 3 : 2); i++) { const tx = p.x + (i - 0.5) * 40, t = 0.85 + i * 0.12, vx = (tx - q.x) / t, vy = -(0.5 * 700 * t) + (p.y - q.body.top) / t;
-          const sh = this.shoot(q.x + q.dir * 40, q.body.top + 10, vx, vy, 'glow', { gravity: 700, life: 2600, tint: 0x8aff5a }); sh.setScale(0.35); sh.setBlendMode(Phaser.BlendModes.ADD); } }
-      if (q.tm <= 0) { q.state = 'walk'; q.tm = 60; }
+        for (let i = 0; i < (mad ? 3 : 2); i++) { const tx = p.x + (i - 0.5) * 36, t = 0.85 + i * 0.12, vx = (tx - q.x) / t, vy = -(0.5 * 700 * t) + (p.y - q.body.top) / t;
+          this.venom(q.x + q.dir * 40, q.body.top + 10, vx, vy, true); } }
+      if (q.tm <= 0) { q.state = 'walk'; q.spitCd = mad ? 150 : 200; q.dir = q.x < (L + R) / 2 ? 1 : -1; }
     } else if (q.state === 'dive') {
       q.setVelocityX(0);
-      if (q.tm <= 0) {   // under the sand: a mound runs toward Rostam
-        q.state = 'under'; q.tm = mad ? 70 : 90; q.setAlpha(0); q.body.enable = false;
+      if (q.tm <= 0) {   // under the sand: a trail of sand runs across the arena to the far side
+        q.state = 'under'; q.setAlpha(0); q.body.enable = false;
+        q.goal = q.x < (L + R) / 2 ? R - 10 : L + 10;
+        if (mad && Math.random() < 0.4 && !onLedge) q.goal = Phaser.Math.Clamp(p.x, L + 10, R - 10);   // enraged, she may come up right under Rostam
         this.mound = this.add.particles(0, 0, 'sand', { x: 0, y: 0, speedX: { min: -50, max: 50 }, speedY: { min: -90, max: -30 }, gravityY: 300, lifespan: 600, frequency: 25, scale: { min: 1, max: 2 } }).setDepth(8);
       }
     } else if (q.state === 'under') {
-      q.x = Math.max(KEEP2 * TS, q.x + Phaser.Math.Clamp(p.x - q.x, -3.2, 3.2)); this.mound?.setPosition(q.x, 14 * TS);
-      if (Math.round(q.tm) === 24 && !this.swirl?.active) {   // the sand swirls where she will rise
-        this.qx = q.x; this.swirl = this.add.ellipse(q.x, 14 * TS - 2, 70, 12).setStrokeStyle(2, 0xffd890, 1).setDepth(8);
-        this.tweens.add({ targets: this.swirl, scaleX: 0.6, scaleY: 0.6, alpha: 0.4, yoyo: true, repeat: -1, duration: 160 });
-      }
-      if (this.swirl?.active) q.x = this.qx;
-      if (q.tm <= 0) {
-        this.mound?.destroy(); this.swirl?.destroy(); this.swirl = null;
-        q.state = 'surfaced'; q.tm = mad ? 48 : 60; q.setAlpha(1); q.body.enable = true; this.sink(q, false, 260);
-        this.hazard(q.x - 36, 14 * TS - 60, 72, 60, 260); this.cam.shake(420, 0.016); sfx('hit'); sfx('roar');
-        for (let i = 0; i < 6; i++) this.fx('dust', q.x + (i - 2.5) * 16, 14 * TS, { depth: 8 });
+      if (!this.swirl?.active) {
+        const step = mad ? 4.4 : 3.4; q.x += Phaser.Math.Clamp(q.goal - q.x, -step, step); this.mound?.setPosition(q.x, floorY);
+        if (Math.abs(q.goal - q.x) < 1) {   // she has arrived: the sand swirls where she will rise
+          this.mound?.destroy(); q.tm = mad ? 34 : 46;
+          this.swirl = this.add.ellipse(q.x, floorY - 2, 70, 12).setStrokeStyle(2, 0xffd890, 1).setDepth(8);
+          this.tweens.add({ targets: this.swirl, scaleX: 0.6, scaleY: 0.6, alpha: 0.4, yoyo: true, repeat: -1, duration: 160 });
+        }
+      } else if (q.tm <= 0) {
+        this.swirl.destroy(); this.swirl = null;
+        q.state = 'surfaced'; q.tm = mad ? 50 : 64; q.setAlpha(1); q.body.enable = true; q.setTexture('queen-walk', 0); this.sink(q, false, 260);
+        q.dir = q.x < (L + R) / 2 ? 1 : -1;
+        this.hazard(q.x - 36, floorY - 60, 72, 60, 260); this.cam.shake(420, 0.016); sfx('hit'); sfx('roar');
+        for (let i = 0; i < 6; i++) this.fx('dust', q.x + (i - 2.5) * 16, floorY, { depth: 8 });
         this.stars = this.fx('stun', q.x, q.body.top - 4, { depth: 10, follow: q });
       }
     } else if (q.state === 'surfaced') {
       q.setVelocityX(0); this.stars?.setPosition(Math.round(q.x), Math.round(q.body.top - 4));
-      if (q.tm <= 0) { this.stars?.destroy(); this.stars = null; q.state = 'walk'; q.tm = 50; q.play('queen-walk'); }
+      if (q.tm <= 0) { this.stars?.destroy(); this.stars = null; q.state = 'walk'; q.stingCd = 30; q.play('queen-walk'); }
     }
   }
   queenFallen() {
@@ -2746,7 +2781,7 @@ const GUIDE = [
     more: [['jackal-run', 8, 108, 'Jackal', 'Runs straight at you. One blow.'], ['div-hop', 8, 108, 'Blue Div', 'Hops toward you. Strike as it lands.']] },
   { k: 2, fa: 'ملکهٔ کژدم', name: 'The Scorpion Queen', art: ['k2/queen-sting', 9, 150],
     tale: 'Beyond the reeds lay a desert where no bird flew. A ram led the dying Rostam to a hidden spring, and when its four bells rang the water burst from the rock; but the Queen of the scorpions had made that water her own.',
-    how: ['Her armour turns every blow. When her <b>stinger glows green</b> she is about to strike: <b>dodge</b> or step back.', 'Her sting <b>sticks in the sand</b>: she is dazed, so <b>strike now</b>.', 'When she <b>burrows</b>, a mound follows you and the <b>sand swirls</b> where she will rise: move away, then strike as she surfaces.', 'From afar she <b>spits venom</b>: keep moving. Your water does not drain while you fight her.'],
+    how: ['She <b>patrols</b> the sand from side to side, and her armour turns every blow. <b>Jump over her</b> as she passes.', 'If you stand in her path her <b>stinger glows green</b>: <b>step back</b>. The sting sprays <b>venom</b> that burns where it lands, then <b>sticks in the sand</b>: <b>strike now</b>.', 'At the end of a pass she may <b>burrow</b>: a trail of sand runs under the arena and the <b>sand swirls</b> where she will rise. Keep clear, then strike while she is dazed.', 'Hide on the corner ledge and she <b>spits venom</b> at it. Your water does not drain while you fight her.'],
     more: [['k2/scorpion-crawl', 8, 108, 'Scorpion', 'Two blows, or jump on it. Mind the sting.'], ['k2/vulture-fly', 8, 108, 'Vulture', 'Circles, then dives. Strike it as it swoops low.'], ['k2/ram-walk', 8, 108, 'The Ram', 'Follow it to the four bell towers, and ring them in the order it shows you.']] },
   { k: 3, fa: 'اژدها', name: 'The Dragon', art: ['k3/dragon-fire', 8, 136],
     tale: 'A dragon eighty cubits long ruled the night. Twice Rakhsh woke Rostam to warn him, and twice the dragon vanished into the dark. The third time God let Rostam see it, and with Rakhsh biting its neck he struck off its head.',
