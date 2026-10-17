@@ -472,6 +472,7 @@ body.calm #banner.on{animation-name:banCalm}@keyframes banCalm{0%{opacity:0}15%,
       <section><h3>Sound</h3>
         <label class="slide"><span>Music</span><input type="range" id="setMusic" min="0" max="100" step="5" aria-label="Music volume"><output id="setMusicV"></output></label>
         <label class="slide"><span>Effects</span><input type="range" id="setFx" min="0" max="100" step="5" aria-label="Effects volume"><output id="setFxV"></output></label>
+        <label class="slide"><span>Narrator</span><input type="range" id="setVoice" min="0" max="100" step="5" aria-label="Narrator volume (0 turns the voice off)"><output id="setVoiceV"></output></label>
         <h3>Comfort</h3>
         <button class="sw" id="setShake" role="switch" aria-checked="true"><i></i><span><b>Screen shake</b>The view jolts with heavy blows.</span></button>
         <button class="sw" id="setFlash" role="switch" aria-checked="false"><i></i><span><b>Reduce flashes</b>No white flashes or lightning glare.</span></button>
@@ -524,7 +525,7 @@ body.calm #banner.on{animation-name:banCalm}@keyframes banCalm{0%{opacity:0}15%,
 </section>
 <section class="ov hidden" id="s-map" role="dialog" aria-modal="true" aria-label="The seven labours">
   <div class="homebg" aria-hidden="true"><i></i><b></b></div><canvas id="emb" aria-hidden="true"></canvas>
-  <div class="heroes" aria-hidden="true"><figure class="hero-l"><img src="assets/ui/title-rostam.png?v=69" alt=""></figure><figure class="hero-r"><img src="assets/ui/title-rakhsh.png?v=69" alt=""></figure></div>
+  <div class="heroes" aria-hidden="true"><figure class="hero-l"><img src="assets/ui/title-rostam.png?v=70" alt=""></figure><figure class="hero-r"><img src="assets/ui/title-rakhsh.png?v=70" alt=""></figure></div>
   <div class="page mapPage">
     <button class="x" id="mapClose" aria-label="Close">&times;</button>
     <div class="fa">هفت خوان</div>
@@ -656,6 +657,6 @@ body.calm #banner.on{animation-name:banCalm}@keyframes banCalm{0%{opacity:0}15%,
 </template>
 
 <script src="https://cdn.jsdelivr.net/npm/phaser@3.80.1/dist/phaser.min.js"></script>
-<script src="game.js?v=69"></script>
+<script src="game.js?v=70"></script>
 </body>
 </html>
