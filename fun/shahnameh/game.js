@@ -29,7 +29,7 @@ const ART = {
   'jackal-run': 'jackal-run.png', 'div-hop': 'div-hop.png',
   // Khan II
   'ride-gallop': 'k3/ride-gallop.png', 'ride-strike': 'k3/ride-strike.png', 'ride-rear': 'k3/ride-rear.png',
-  'queen-walk': 'k2/queen-walk.png', 'queen-sting': 'k2/queen-sting.png', 'queen-spit': 'k2/queen-spit.png', 'queen-die': 'k2/queen-die.png', 'scorpion-crawl': 'k2/scorpion-crawl.png', 'scorpion-sting': 'k2/scorpion-sting.png', 'vulture-fly': 'k2/vulture-fly.png', 'ram-walk': 'k2/ram-walk.png', 'rostam-drink': 'rostam-drink.png',
+  'queen-walk': 'k2/queen-walk.png', 'queen-sting': 'k2/queen-sting.png', 'queen-spit': 'k2/queen-spit.png', 'queen-die': 'k2/queen-die.png', 'scorpion-crawl': 'k2/scorpion-crawl.png', 'scorpion-sting': 'k2/scorpion-sting.png', 'vulture-fly': 'k2/vulture-fly.png', 'ram-walk': 'k2/ram-walk.png', 'rostam-drink': 'rostam-drink.png', 'rostam-fall': 'rostam-fall.png', 'rostam-victory': 'rostam-victory.png', 'rostam-anoint': 'rostam-anoint.png',
   // Khan III
   'dragon-move': 'k3/dragon-move.png', 'dragon-fire': 'k3/dragon-fire.png', 'dragon-die': 'k3/dragon-die.png', 'rakhsh-gallop': 'k3/rakhsh-gallop.png', 'rakhsh-rear': 'k3/rakhsh-rear.png', 'bat-fly': 'k3/bat-fly.png',
   // Khan IV
@@ -43,7 +43,7 @@ const ART = {
   'whitediv-walk': 'k7/whitediv-walk.png', 'whitediv-smash': 'k7/whitediv-smash.png', 'whitediv-throw': 'k7/whitediv-throw.png', 'whitediv-die': 'k7/whitediv-die.png', 'kavus-sight': 'k7/kavus-sight.png'
 };
 const FPS = { 'queen-walk': 10, 'queen-sting': 14, 'queen-spit': 12, 'queen-die': 7, 'rostam-dodge': 22, 'rostam-heavy': 14, 'simurgh-fly': 9, 'lion-die': 6, 'dragon-die': 6, 'hag-die': 6, 'rostam-idle': 5, 'rostam-run': 14, 'rostam-jump': 6, 'rostam-attack': 24, 'rostam-hurt': 10, 'lion-walk': 9, 'lion-run': 14, 'lion-roar': 6, 'jackal-run': 12, 'div-hop': 8, 'coin-spin': 8, 'fire-burn': 10,
-  'scorpion-crawl': 10, 'vulture-fly': 10, 'ram-walk': 8, 'rostam-drink': 6, 'ride-gallop': 12, 'ride-strike': 18, 'ride-rear': 11,
+  'scorpion-crawl': 10, 'vulture-fly': 10, 'ram-walk': 8, 'rostam-drink': 6, 'rostam-fall': 7, 'rostam-victory': 8, 'rostam-anoint': 6, 'ride-gallop': 12, 'ride-strike': 18, 'ride-rear': 11,
   'dragon-move': 7, 'dragon-fire': 9, 'rakhsh-gallop': 12, 'rakhsh-rear': 9, 'bat-fly': 14,
   'serpent': 8, 'hag-cast': 10, 'beauty-idle': 4,
   'spearman-walk': 10, 'spearman-thrust': 12, 'olad-walk': 10, 'olad-slash': 14, 'olad-kneel': 8,
@@ -53,7 +53,7 @@ const FPS = { 'queen-walk': 10, 'queen-sting': 14, 'queen-spit': 12, 'queen-die'
 const SIZE = { queen: 150, rider: 124, rostam: 112, lion: 148, jackal: 108, div: 108, scorpion: 86, vulture: 92, ram: 86, dragon: 136, rakhsh: 104, bat: 108, serpent: 92, hag: 108, beauty: 108, spearman: 140, olad: 112, divwarrior: 100, arzhang: 136, whitediv: 136, firediv: 104, ghul: 100 };
 const BODY = { queen: [0.62, 0.42], rider: [0.3, 0.5], rostam: [0.143, 0.393], lion: [0.5, 0.36], jackal: [0.3, 0.22], div: [0.22, 0.34], scorpion: [0.4, 0.22], vulture: [0.33, 0.2], ram: [0.4, 0.4],
   dragon: [0.46, 0.42], rakhsh: [0.5, 0.5], bat: [0.32, 0.24], serpent: [0.31, 0.31], hag: [0.27, 0.42], beauty: [0.2, 0.47], spearman: [0.115, 0.386], olad: [0.17, 0.49], divwarrior: [0.31, 0.64], arzhang: [0.3, 0.7], whitediv: [0.4, 0.58], firediv: [0.2, 0.6], ghul: [0.5, 0.36] };
-const V = 76;
+const V = 78;
 const ZOOM = 2;                                                   // canvas pixels per world pixel   // bump to bust caches when assets change
 
 // PixelLab VFX strips in ./assets/fx: frame size, frame count, fps, and the effect's origin as a fraction of the frame
@@ -1270,7 +1270,7 @@ class Play extends Phaser.Scene {
     makeTextures(this);
     for (const k of Object.keys(FPS)) {
       const t = this.textures.get(k), n = t.frameTotal - 1;
-      if (!this.anims.exists(k)) this.anims.create({ key: k, frames: this.anims.generateFrameNumbers(k, { start: 0, end: Math.max(0, n - 1) }), frameRate: FPS[k], repeat: /attack|hurt|roar|jump|thrust|slash|kneel|smash|throw|fire|rear|sight|strike|sting|die|leap|heavy|dodge/.test(k) ? 0 : -1 });
+      if (!this.anims.exists(k)) this.anims.create({ key: k, frames: this.anims.generateFrameNumbers(k, { start: 0, end: Math.max(0, n - 1) }), frameRate: FPS[k], repeat: /attack|hurt|roar|jump|thrust|slash|kneel|smash|throw|fire|rear|sight|strike|sting|die|leap|heavy|dodge|fall|victory|anoint/.test(k) ? 0 : -1 });
     }
     const lv = this.lv, map = lv.map(), C = map[0].length;
     $('lbl').innerHTML = lv.hud; $('waterPill').classList.add('hidden'); $('bossName').textContent = lv.bossName || lv.name;
@@ -1490,7 +1490,8 @@ class Play extends Phaser.Scene {
     this.hp--; this.renderHearts(); this.inv = thirst ? 30 : gentle() ? 130 : 90; sfx('hurt'); this.cam.shake(160, 0.008); this.cam.flash(120, 180, 40, 60);
     if (!thirst) this.player.setVelocity((this.player.x < fromX ? -1 : 1) * 160, -220);
     if (this.hp <= 0) {
-      this.done = true; playing = false; music(false); document.body.classList.remove('playing'); this.player.setTint(0x777777); hint(null);
+      this.done = true; playing = false; music(false); document.body.classList.remove('playing'); hint(null);
+      if (this.anims.exists('rostam-fall') && !this.mounted) { this.pose = 'rostam-fall'; this.player.anims.stop(); this.player.play('rostam-fall'); this.tweens.addCounter({ from: 255, to: 150, duration: 900, onUpdate: tw => { const c = Math.round(tw.getValue()); this.player.setTint((c << 16) | (c << 8) | c); } }); } else this.player.setTint(0x777777);
       const t = this.lv.tips; $('deadTip').textContent = t[Math.floor(Math.random() * t.length)];
       const cp = resumeAt?.n === cur;
       if (cp) Object.assign(resumeAt, { coins: this.coinCount, kills: this.kills, t: this.time.now - this.t0 });
@@ -1754,6 +1755,7 @@ class Play extends Phaser.Scene {
   takeFeather(f) {
     if (this.done || f.taken) return; f.taken = true; f.body.enable = false; this.tweens.killTweensOf(f);
     const p = this.player; this.frozen = true; p.setVelocityX(0); sfx('fire');
+    if (this.anims.exists('rostam-victory') && !this.mounted) { this.pose = 'rostam-victory'; p.anims.stop(); p.play('rostam-victory'); }
     f.spark?.stop(); this.tweens.killTweensOf([f.ring, f.col].filter(Boolean)); this.tweens.add({ targets: [f.glow, f.ring, f.col].filter(Boolean), alpha: 0, duration: 400 });
     this.tweens.addCounter({ from: 0, to: 1, duration: 900, ease: 'Sine.easeIn', onUpdate: tw => { const v = tw.getValue(); f.x = p.x + Math.cos(v * Math.PI * 4) * 26 * (1 - v); f.y = p.body.center.y - v * 30 + Math.sin(v * Math.PI * 4) * 8; f.angle = v * 540; f.setScale(0.62 * (1 - v * 0.6)); },
       onComplete: () => { this.cam.flash(500, 255, 240, 200); const r = this.add.image(p.x, p.body.center.y, 'rays').setTint(0xffe08a).setBlendMode(Phaser.BlendModes.ADD).setDepth(10).setScale(0.2);
@@ -2522,16 +2524,36 @@ class Play extends Phaser.Scene {
     hint('<b>Walk to Kay Kavus</b>, chained at the back of the cave.');
   }
   freeKing() {
-    // the blood of the White Div's heart opens the king's eyes
-    this.ended = true; this.frozen = true; const p = this.player, k = this.kavus; p.setVelocityX(0); this.face = 1;
-    this.pose = 'rostam-drink'; p.play('rostam-drink');
-    this.time.delayedCall(900, () => {
-      this.fx('beam', k.x, k.y + 1, { depth: 6 }); this.cam.flash(700, 255, 250, 220); sfx('win');
+    // Rostam kneels before the blind king and touches the blood of the White Div's heart to his eyes: a drop falls, the
+    // king's eyes kindle, his chains burst apart, light pours down on him and he rises with his arms open. Rostam raises
+    // his mace to the sky, and the tale is told to its end
+    this.ended = true; this.frozen = true; const p = this.player, k = this.kavus; p.setVelocityX(0); this.face = k.x >= p.x ? 1 : -1; p.setFlipX(this.face < 0);
+    const anoint = this.anims.exists('rostam-anoint'); hint(null);
+    this.pose = anoint ? 'rostam-anoint' : 'rostam-drink'; p.anims.stop(); p.play(this.pose); sfx('swing');
+    const eye = { x: k.x - 3 * Math.sign(k.x - p.x || 1), y: k.y - k.displayHeight * 0.8 }, hand = () => ({ x: p.x + this.face * 24, y: p.y + 4 });
+    this.time.delayedCall(700, () => {
+      // a single dark-red drop falls from the vial
+      const h = hand(), drop = this.add.circle(h.x, h.y, 2, 0xb0101a).setDepth(9).setStrokeStyle(1, 0x400008);
+      this.tweens.add({ targets: drop, x: eye.x, y: eye.y, duration: 520, ease: 'Quad.easeIn', onComplete: () => {
+        drop.destroy(); sfx('coin');
+        const g = this.add.image(eye.x, eye.y, 'glow').setTint(0xffe0a0).setBlendMode(Phaser.BlendModes.ADD).setDepth(9).setScale(0.1);
+        this.tweens.add({ targets: g, scale: 1.1, alpha: { from: 1, to: 0 }, duration: 900, ease: 'Cubic.easeOut', onComplete: () => g.destroy() });
+      } });
+    });
+    this.time.delayedCall(1700, () => {
+      // his chains burst, light pours down, and he rises
+      this.cam.flash(700, 255, 250, 220); this.cam.shake(300, 0.008); sfx('win');
+      const bits = this.add.particles(k.x, k.y - 30, 'flake', { speed: { min: 80, max: 180 }, angle: { min: 200, max: 340 }, gravity: 600, lifespan: 900, quantity: 18, emitting: false, scale: { min: 1, max: 2 }, tint: [0x8a8f9a, 0xc8ccd6, 0x5a5f6a] }).setDepth(9);
+      bits.explode(18); this.time.delayedCall(1200, () => bits.destroy());
+      this.fx('beam', k.x, k.y + 1, { depth: 6 }); this.fx('beacon', k.x, k.y + 1, { depth: 2 }).setTint(0xfff0c0).setAlpha(0.8);
       k.play('kavus-sight'); this.light(k, 2.2);
       banner('کاووس شاه', 'The king sees again');
     });
-    this.time.delayedCall(2600, () => { toast('"Rostam!" cries Kay Kavus. "My eyes are opened, and Iran is saved."'); say('kavus1'); });
-    this.time.delayedCall(4800, () => cinema('ending', () => this.win({ destroy() {} })));   // the ending in pictures, the credits, then the win
+    this.time.delayedCall(2900, () => {
+      if (this.anims.exists('rostam-victory')) { this.pose = 'rostam-victory'; p.anims.stop(); p.play('rostam-victory'); }
+      toast('"Rostam!" cries Kay Kavus. "My eyes are opened, and Iran is saved."'); say('kavus1');
+    });
+    this.time.delayedCall(7200, () => cinema('ending', () => this.win({ destroy() {} })));   // the ending in pictures, the credits, then the win
   }
   /* ---- Khan II: thirst, wells, the ram and the spring ---- */
   renderWater() { const w = Math.round(this.water); $('water').style.width = w + '%'; $('waterPill').classList.toggle('low', w < 25); }
@@ -3035,8 +3057,10 @@ const said = new Set();
 function say(k, { once = false, sub = true } = {}) {
   if (once && said.has(k)) return; said.add(k);
   const el = $('sub'), L = LINES[k], text = L ? `<b>${L[0]}:</b> \u201c${L[1]}\u201d` : KHAN_LINES[k];
+  // the speaker's face beside the words: the storyteller for the narrator's lines
+  const who = { queen: 'queen', witch1: 'beauty', witch2: 'hag', olad: 'olad', arzhang: 'arzhang', white: 'white', kavus: 'kavus' }, face = who[k] || who[k.replace(/\d+$/, '')] || 'narrator';
   const a = narrate(k, () => el.classList.remove('on'));
-  if (a && sub && text) { el.innerHTML = text; el.classList.add('on'); } else el.classList.remove('on');
+  if (a && sub && text) { el.innerHTML = `<img src="assets/ui/port/${face}.png?v=${V}" alt=""><span>${text}</span>`; el.classList.add('on'); $('toast').classList.remove('on'); } else el.classList.remove('on');   // the spoken words replace the written note
 }
 // as a labour begins (the first time this visit) the narrator sets the scene
 function sayIntro(n) { say('khan' + n, { once: true }); }
@@ -3202,7 +3226,7 @@ function hint(html) {
   h.classList.remove('hidden', 'new', 'dim'); void h.offsetWidth; h.classList.add('new');
   clearTimeout(hint.t); hint.t = setTimeout(() => h.classList.add('dim'), 7000);
 }
-function toast(msg) { const t = $('toast'); t.textContent = msg; t.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('on'), 3200); }
+function toast(msg) { if ($('sub').classList.contains('on')) return; const t = $('toast'); t.textContent = msg; t.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('on'), 3200); }
 function banner(fa, name, ep = '') {
   const lv = LEVELS[cur], b = $('banner');
   b.querySelector('.fa').textContent = fa || lv.bossFa || lv.fa; b.querySelector('h2').textContent = name || lv.bossName || lv.name;
