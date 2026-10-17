@@ -96,6 +96,8 @@ h2{font-size:clamp(21px,4.6vw,27px);margin:2px 0 8px}
   background:#efe0bc;border:2px solid #7a4e14;outline:1px solid #c8902a;outline-offset:-5px;box-shadow:0 6px 16px rgba(0,0,0,.55);padding:8px 18px;
   font:500 18px/1.4 var(--book);color:var(--inkb);text-align:center}
 #hint b{color:#8a1e10;font-weight:700}
+#sub{position:fixed;left:50%;bottom:calc(max(14px,env(safe-area-inset-bottom)) + 18px);transform:translate(-50%,8px);z-index:6;width:max-content;max-width:min(92vw,720px);pointer-events:none;padding:8px 18px;border-radius:10px;background:rgba(6,5,10,.72);color:#f6ead0;font:italic 500 19px/1.35 'EB Garamond',serif;text-align:center;text-shadow:0 1px 2px #000;opacity:0;transition:opacity .5s,transform .5s}#sub.on{opacity:1;transform:translate(-50%,0)}
+@media (pointer:coarse){#sub{bottom:calc(max(14px,env(safe-area-inset-bottom)) + 150px)}}@media (max-width:620px){#sub{font-size:15px;padding:6px 12px}}
 #boss:not(.hidden)~#hint{top:calc(max(10px,env(safe-area-inset-top)) + 84px)}
 #hint.new{animation:hintIn .6s ease}@keyframes hintIn{0%{opacity:0;transform:translate(-50%,-6px)}100%{opacity:1;transform:translateX(-50%)}}
 @media (max-width:620px),(max-height:520px){#hint{font-size:15px;padding:5px 12px;max-width:min(78vw,520px)}}
@@ -465,6 +467,7 @@ body.calm #banner.on{animation-name:banCalm}@keyframes banCalm{0%{opacity:0}15%,
     <div class="pager"><button class="btn2" id="prevPg">&larr; Back</button><div class="dots" id="dots"></div><button class="btn2" id="nextPg">Next &rarr;</button></div>
   </div>
 </section>
+<div id="sub" aria-live="polite"></div>
 <section class="ov hidden cineOv" id="s-cine" aria-label="The tale told in pictures">
   <div class="cframe"><img class="cimg" alt=""><img class="cimg" alt=""></div>
   <i class="cbar"></i><i class="cbar bot"></i>
@@ -544,7 +547,7 @@ body.calm #banner.on{animation-name:banCalm}@keyframes banCalm{0%{opacity:0}15%,
 </section>
 <section class="ov hidden" id="s-map" role="dialog" aria-modal="true" aria-label="The seven labours">
   <div class="homebg" aria-hidden="true"><i></i><b></b></div><canvas id="emb" aria-hidden="true"></canvas>
-  <div class="heroes" aria-hidden="true"><figure class="hero-l"><img src="assets/ui/title-rostam.png?v=71" alt=""></figure><figure class="hero-r"><img src="assets/ui/title-rakhsh.png?v=71" alt=""></figure></div>
+  <div class="heroes" aria-hidden="true"><figure class="hero-l"><img src="assets/ui/title-rostam.png?v=73" alt=""></figure><figure class="hero-r"><img src="assets/ui/title-rakhsh.png?v=73" alt=""></figure></div>
   <div class="page mapPage">
     <button class="x" id="mapClose" aria-label="Close">&times;</button>
     <div class="fa">هفت خوان</div>
@@ -676,6 +679,6 @@ body.calm #banner.on{animation-name:banCalm}@keyframes banCalm{0%{opacity:0}15%,
 </template>
 
 <script src="https://cdn.jsdelivr.net/npm/phaser@3.80.1/dist/phaser.min.js"></script>
-<script src="game.js?v=72"></script>
+<script src="game.js?v=73"></script>
 </body>
 </html>

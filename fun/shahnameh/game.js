@@ -53,7 +53,7 @@ const FPS = { 'queen-walk': 10, 'queen-sting': 14, 'queen-spit': 12, 'queen-die'
 const SIZE = { queen: 150, rider: 124, rostam: 112, lion: 148, jackal: 108, div: 108, scorpion: 86, vulture: 92, ram: 86, dragon: 136, rakhsh: 104, bat: 108, serpent: 92, hag: 108, beauty: 108, spearman: 140, olad: 112, divwarrior: 100, arzhang: 136, whitediv: 136, firediv: 104, ghul: 100 };
 const BODY = { queen: [0.62, 0.42], rider: [0.3, 0.5], rostam: [0.143, 0.393], lion: [0.5, 0.36], jackal: [0.3, 0.22], div: [0.22, 0.34], scorpion: [0.4, 0.22], vulture: [0.33, 0.2], ram: [0.4, 0.4],
   dragon: [0.46, 0.42], rakhsh: [0.5, 0.5], bat: [0.32, 0.24], serpent: [0.31, 0.31], hag: [0.27, 0.42], beauty: [0.2, 0.47], spearman: [0.115, 0.386], olad: [0.17, 0.49], divwarrior: [0.31, 0.64], arzhang: [0.3, 0.7], whitediv: [0.4, 0.58], firediv: [0.2, 0.6], ghul: [0.5, 0.36] };
-const V = 72;
+const V = 73;
 const ZOOM = 2;                                                   // canvas pixels per world pixel   // bump to bust caches when assets change
 
 // PixelLab VFX strips in ./assets/fx: frame size, frame count, fps, and the effect's origin as a fraction of the frame
@@ -1340,6 +1340,7 @@ class Play extends Phaser.Scene {
     for (const c of lv.hearts || []) { const r = topAt(map, c); if (r != null) { const h = this.heart(c * TS + TS / 2, r * TS - 12); h.regrow = lv.regrow?.includes(c); } }
     // rising again after a fall: start at the last fire lit, with what was gathered on the way
     const R = this.resuming && resumeAt?.n === cur ? resumeAt : null; this.resuming = false;
+    if (!R) this.time.delayedCall(1100, () => playing && sayIntro(cur));
     if (R && this.altars[R.i]) { const a = this.altars[R.i]; this.start = { x: a.x, y: a.y }; for (const b of this.altars.slice(0, R.i + 1)) this.kindle(b, true); }
     this.respawn = { ...this.start };
     this.mounted = !!lv.mounted && this.textures.exists('ride-gallop');
@@ -2965,17 +2966,17 @@ $('farrBtn').onclick = () => { const sc = game.scene.getScene('play'); if (playi
 // the tale told in pictures: the prologue before the first labour, and the ending after the last, then the credits
 const CINE = {
   opening: [
-    ['open1', 'شاهنامه', 'Kay Kavus, King of Iran, was proud and easily flattered. One night a minstrel came to his court and sang of Mazandaran: endless gardens, rose-scented air, treasure without end. The minstrel was a Div in disguise.'],
-    ['open2', 'دیوِ سپید', 'Against the counsel of his wisest men the king marched north. In a single night the White Div raised a storm of sorcery, and when it lifted Kay Kavus and all his army were blind. The Divs led them away in chains.'],
-    ['open3', 'زابلستان', 'One messenger slipped away through the dark and rode without rest to Zabulistan: to old Zal, and to his son Rostam, the mightiest hero Iran had ever known.'],
-    ['open4', 'دو راه', '"There are two roads to Mazandaran," said Zal. "The long road is safe, and takes six months. The short road takes two weeks, but it passes through seven terrors, and no one has ever come back from it."'],
-    ['open5', 'رستم و رخش', 'Rostam chose the short road. He put on his tiger-skin coat, took up his ox-headed mace, and saddled Rakhsh, the fiery horse no other rider could tame.'],
-    ['open6', 'هفت خوان', 'At dawn they rode out together. Seven labours lay between Rostam and his king.']
+    ['open1', 'شاهنامه', 'Listen… and I will tell you a tale from the Book of Kings. Long ago, Kay Kavus sat on the throne of Iran: a king as proud as he was easily flattered. One night a minstrel came to his court and sang of Mazandaran. Of gardens that never fade. Of air sweet with roses. Of treasure without end. The king listened, and he wanted it all. But the minstrel… was a Div in disguise.'],
+    ['open2', 'دیوِ سپید', 'Deaf to the counsel of his wisest men, the king marched north. And in a single night, the White Div rose. He called down a storm of sorcery, of hail and darkness and stone. When at last it lifted, Kay Kavus and all his army were blind. And the Divs led them away in chains.'],
+    ['open3', 'زابلستان', 'Only one messenger escaped. Through the dark he rode, without rest, without sleep, all the way to Zabulistan… to old Zal, and to his son Rostam: the mightiest hero Iran had ever known.'],
+    ['open4', 'دو راه', '"Two roads lead to Mazandaran," said Zal. "The long road is safe, and takes six months. The short road takes but two weeks… yet it passes through seven terrors. And no man who has walked it has ever come back."'],
+    ['open5', 'رستم و رخش', 'Rostam would not wait six months. He put on his coat of tiger skin, took up his ox-headed mace, and saddled Rakhsh: the fiery red horse no other rider could tame. "Two weeks," he said. "The king has waited long enough."'],
+    ['open6', 'هفت خوان', 'At dawn they rode out together, the hero and his horse. Seven labours lay between Rostam and his king. And this… is where your journey begins.']
   ],
   ending: [
-    ['end1', 'خونِ دلِ دیو', 'With the blood of the White Div\'s heart Rostam touched the eyes of the king. Light returned to Kay Kavus, and to every one of his warriors.'],
-    ['end2', 'آزادی', 'The army of Iran walked out of the dark into the morning, and Rostam rode at its head. High above them, the Simurgh turned in the sun.'],
-    ['end3', 'جهان‌پهلوان', 'In the hall of kings Kay Kavus honoured Rostam before the whole court, and old Zal wept with pride. The seven labours were done.']
+    ['end1', 'خونِ دلِ دیو', 'And so the White Div fell. Rostam took the blood of the demon\'s heart and touched it to the eyes of the king. And light came flooding back: to Kay Kavus, and to every one of his warriors.'],
+    ['end2', 'آزادی', 'Out of the dark, the army of Iran walked into the morning, and Rostam rode at its head. High above them the Simurgh turned in the sun, watching over the son of the child she had once raised.'],
+    ['end3', 'جهان‌پهلوان', 'In the hall of kings, Kay Kavus honoured Rostam before the whole court, and old Zal wept with pride. Seven labours. Seven terrors. And the hero had overcome them all. Here ends the tale… but the Book of Kings has many more.']
   ]
 };
 const CREDITS = `<div class="fa">هفت خوانِ رستم</div><h2>The Seven Labours of Rostam</h2><p>After the <em>Shahnameh</em>, the Book of Kings, by Ferdowsi of Tus (c. 1010 CE)</p>
@@ -2989,7 +2990,9 @@ const CREDITS = `<div class="fa">هفت خوانِ رستم</div><h2>The Seven L
 let cine = null;
 // the narrator: recorded readings, one file per picture in assets/voice (open1.mp3 ... end3.mp3). A picture is read
 // aloud only if its name is in VOICED, so a missing recording never leaves a gap; the music sinks beneath the voice
-const VOICED = new Set([]);
+const VOICED = new Set(['open1', 'open2', 'open3', 'open4', 'open5', 'open6', 'end1', 'end2', 'end3', 'khan1', 'khan2', 'khan3', 'khan4', 'khan5', 'khan6', 'khan7']);
+// the narrator's line as each labour begins, shown as a subtitle while he speaks
+const KHAN_LINES = {"khan1": "The first labour. Rostam lay down to sleep among the reeds, while Rakhsh grazed nearby… and in the thicket, a lion was watching.", "khan2": "The second labour: the burning desert. No water. No shade. Not a single bird in the sky… only the sand, and whatever waits beneath it.", "khan3": "The third labour. Night fell, and out of the dark came a dragon eighty cubits long: a beast that only Rakhsh could see.", "khan4": "The fourth labour. In a green garden a feast was laid, and a beautiful lady poured the wine. But in Mazandaran… beauty is rarely what it seems.", "khan5": "The fifth labour. Rostam rode into the lands of Olad: a warden who did not take kindly to strangers.", "khan6": "The sixth labour. At the gates of Mazandaran stood Arzhang, chief of the Divs, with an army of demons at his back.", "khan7": "The seventh labour. Beyond seven mountains, in a cave as dark as night… the White Div was waiting."};
 let sayId = 0, voiceEl = null;
 function hush() { sayId++; if (voiceEl) { voiceEl.onended = voiceEl.onerror = null; voiceEl.pause(); voiceEl = null; } if (A.music) A.music.gain.value = 0.7 * SET.music / 70; }
 function narrate(key, then) {
@@ -2998,7 +3001,14 @@ function narrate(key, then) {
   if (A.music) A.music.gain.value = 0.7 * SET.music / 70 * 0.35;
   const end = () => { if (id !== sayId) return; voiceEl = null; if (A.music) A.music.gain.value = 0.7 * SET.music / 70; then?.(); };
   a.onended = end; a.onerror = end; a.play().catch(end);
-  return true;
+  return a;
+}
+// as a labour begins (the first time this visit) the narrator sets the scene, with his words as a subtitle
+const introSaid = new Set();
+function sayIntro(n) {
+  const k = 'khan' + n; if (introSaid.has(k) || !KHAN_LINES[k]) return; introSaid.add(k);
+  const el = $('sub'); el.textContent = KHAN_LINES[k];
+  const a = narrate(k, () => el.classList.remove('on')); if (a) el.classList.add('on');
 }
 function cinema(name, done, start = 0) {
   const P = CINE[name]; if (!P) { done?.(); return; }
@@ -3021,8 +3031,14 @@ function cineShow(i) {
   // the narration types out, a few letters at a time; the next picture follows on its own after a reading pause
   clearInterval(c.typing); clearTimeout(c.auto); let n = 0;
   // with the narrator on, the words appear at his pace and the next picture waits for him to finish
-  const panel = i; c.speaking = narrate(img, () => { if (cine === c && c.i === panel) { c.speaking = false; if (!c.typing) c.auto = setTimeout(cineNext, 1500); } });
-  c.typing = setInterval(() => { n += c.speaking ? 1 : 2; p.textContent = text.slice(0, n); if (n >= text.length) { clearInterval(c.typing); c.typing = 0; cap.classList.add('done'); if (!c.speaking) c.auto = setTimeout(cineNext, 2600 + text.length * 32); } }, c.speaking ? 52 : 28);
+  const panel = i, a = narrate(img, () => { if (cine === c && c.i === panel) { c.speaking = false; if (!c.typing) c.auto = setTimeout(cineNext, 1400); } }), t0 = performance.now();
+  c.speaking = !!a;
+  c.typing = setInterval(() => {
+    const d = a && a.duration > 0 && isFinite(a.duration) ? a.duration : 0;
+    n = c.speaking ? (d ? Math.floor(text.length * (performance.now() - t0) / (d * 900)) : n) : n + 2;
+    p.textContent = text.slice(0, n);
+    if (n >= text.length) { clearInterval(c.typing); c.typing = 0; p.textContent = text; cap.classList.add('done'); if (!c.speaking) c.auto = setTimeout(cineNext, 2600 + text.length * 32); }
+  }, 28);
 }
 function cineNext() {
   const c = cine; if (!c) return;
@@ -3141,6 +3157,7 @@ $('nextBtn').onclick = () => begin(cur + 1);
 let paused = false;
 function setPaused(on) {
   if (on === paused) return;
+  if (on && !cine) { hush(); $('sub').classList.remove('on'); }
   paused = on; playing = !on;
   for (const k in keys) keys[k] = false;
   if (on) game.scene.pause('play'); else game.scene.resume('play');
