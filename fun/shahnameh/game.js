@@ -53,7 +53,7 @@ const FPS = { 'queen-walk': 10, 'queen-sting': 14, 'queen-spit': 12, 'queen-die'
 const SIZE = { queen: 150, rider: 124, rostam: 112, lion: 148, jackal: 108, div: 108, scorpion: 86, vulture: 92, ram: 86, dragon: 136, rakhsh: 104, bat: 108, serpent: 92, hag: 108, beauty: 108, spearman: 140, olad: 112, divwarrior: 100, arzhang: 136, whitediv: 136, firediv: 104, ghul: 100 };
 const BODY = { queen: [0.62, 0.42], rider: [0.3, 0.5], rostam: [0.143, 0.393], lion: [0.5, 0.36], jackal: [0.3, 0.22], div: [0.22, 0.34], scorpion: [0.4, 0.22], vulture: [0.33, 0.2], ram: [0.4, 0.4],
   dragon: [0.46, 0.42], rakhsh: [0.5, 0.5], bat: [0.32, 0.24], serpent: [0.31, 0.31], hag: [0.27, 0.42], beauty: [0.2, 0.47], spearman: [0.115, 0.386], olad: [0.17, 0.49], divwarrior: [0.31, 0.64], arzhang: [0.3, 0.7], whitediv: [0.4, 0.58], firediv: [0.2, 0.6], ghul: [0.5, 0.36] };
-const V = 71;
+const V = 72;
 const ZOOM = 2;                                                   // canvas pixels per world pixel   // bump to bust caches when assets change
 
 // PixelLab VFX strips in ./assets/fx: frame size, frame count, fps, and the effect's origin as a fraction of the frame
@@ -1188,7 +1188,7 @@ function cry() {
   tone(790, 1.1, { type: 'triangle', vol: 0.02, to: 640, t: t + 0.4 }); noise(t, 1.4, { type: 'bandpass', f: 900, to: 300, q: 0.6, vol: 0.05 });
 }
 function setMuted(m) {
-  A.muted = m; store.set('sh-muted', m ? '1' : '0'); if (A.master) A.master.gain.value = m ? 0 : 0.8; if (m) window.speechSynthesis?.cancel();
+  A.muted = m; store.set('sh-muted', m ? '1' : '0'); if (A.master) A.master.gain.value = m ? 0 : 0.8; if (m) hush();
   $('muteIco').setAttribute('d', m ? 'M4 9v6h4l5 4V5L8 9z M17 9l5 6 M22 9l-5 6' : 'M4 9v6h4l5 4V5L8 9z M16 9a4 4 0 0 1 0 6 M19 6a8 8 0 0 1 0 12');
   music(!m && game && game.scene.isActive('play') && playing);
 }
@@ -2987,30 +2987,19 @@ const CREDITS = `<div class="fa">هفت خوانِ رستم</div><h2>The Seven L
   <h3>With thanks to</h3><p>Ferdowsi, who said: <em>"I have raised from my verse a palace that no wind or rain can harm."</em></p>
   <p class="last"><b>Thank you for playing.</b><br>The road waits for the next hero.</p>`;
 let cine = null;
-// the narrator: an old storyteller's voice, deep, slow and unhurried, from the best voice this device has. He reads a
-// sentence at a time with a breath between, and the music sinks beneath him while he speaks
-const SAY = window.speechSynthesis;
-const VOICES = ['Daniel', 'Arthur', 'Oliver', 'Google UK English Male', 'Microsoft Ryan', 'Microsoft George', 'Microsoft Thomas', 'Microsoft Guy', 'Aaron'];
-function storyteller() {
-  const vs = SAY?.getVoices() || [], en = vs.filter(v => /^en/i.test(v.lang) && !/female|woman|girl|zira|susan|hazel|samantha|karen|moira|tessa|fiona|serena|kate/i.test(v.name));
-  for (const n of VOICES) { const v = en.find(v => v.name.startsWith(n) && /enhanced|premium|natural|neural/i.test(v.name)) || en.find(v => v.name.startsWith(n)); if (v) return v; }
-  return en.find(v => /en-GB/i.test(v.lang)) || en[0] || null;
-}
-let sayId = 0;
-function hush() { sayId++; if (SAY) SAY.cancel(); if (A.music && cine) A.music.gain.value = 0.7 * SET.music / 70; }
-function narrate(text, then) {
-  if (!SAY || A.muted || !SET.voice) return false;
-  hush(); const id = sayId, v = storyteller(), parts = text.match(/[^.!?:;]+[.!?:;]*["”]?\s*/g) || [text];
-  if (A.music) A.music.gain.value = 0.7 * SET.music / 70 * 0.35;   // the music sinks beneath the voice
-  parts.forEach((t, k) => {
-    const u = new SpeechSynthesisUtterance(t.trim()); if (v) { u.voice = v; u.lang = v.lang; } else u.lang = 'en-GB';
-    u.rate = 0.84; u.pitch = 0.72; u.volume = SET.voice / 100;
-    if (k === parts.length - 1) u.onend = () => { if (id !== sayId) return; if (A.music) A.music.gain.value = 0.7 * SET.music / 70; then?.(); };
-    SAY.speak(u);
-  });
+// the narrator: recorded readings, one file per picture in assets/voice (open1.mp3 ... end3.mp3). A picture is read
+// aloud only if its name is in VOICED, so a missing recording never leaves a gap; the music sinks beneath the voice
+const VOICED = new Set([]);
+let sayId = 0, voiceEl = null;
+function hush() { sayId++; if (voiceEl) { voiceEl.onended = voiceEl.onerror = null; voiceEl.pause(); voiceEl = null; } if (A.music) A.music.gain.value = 0.7 * SET.music / 70; }
+function narrate(key, then) {
+  if (!VOICED.has(key) || A.muted || !SET.voice) return false;
+  hush(); const id = sayId, a = voiceEl = new Audio(`assets/voice/${key}.mp3?v=${V}`); a.volume = SET.voice / 100;
+  if (A.music) A.music.gain.value = 0.7 * SET.music / 70 * 0.35;
+  const end = () => { if (id !== sayId) return; voiceEl = null; if (A.music) A.music.gain.value = 0.7 * SET.music / 70; then?.(); };
+  a.onended = end; a.onerror = end; a.play().catch(end);
   return true;
 }
-SAY && SAY.addEventListener?.('voiceschanged', () => {});   // some browsers only list their voices once asked
 function cinema(name, done, start = 0) {
   const P = CINE[name]; if (!P) { done?.(); return; }
   const ov = $('s-cine'), imgs = ov.querySelectorAll('.cimg');
@@ -3032,7 +3021,7 @@ function cineShow(i) {
   // the narration types out, a few letters at a time; the next picture follows on its own after a reading pause
   clearInterval(c.typing); clearTimeout(c.auto); let n = 0;
   // with the narrator on, the words appear at his pace and the next picture waits for him to finish
-  const panel = i; c.speaking = narrate(text, () => { if (cine === c && c.i === panel) { c.speaking = false; if (!c.typing) c.auto = setTimeout(cineNext, 1500); } });
+  const panel = i; c.speaking = narrate(img, () => { if (cine === c && c.i === panel) { c.speaking = false; if (!c.typing) c.auto = setTimeout(cineNext, 1500); } });
   c.typing = setInterval(() => { n += c.speaking ? 1 : 2; p.textContent = text.slice(0, n); if (n >= text.length) { clearInterval(c.typing); c.typing = 0; cap.classList.add('done'); if (!c.speaking) c.auto = setTimeout(cineNext, 2600 + text.length * 32); } }, c.speaking ? 52 : 28);
 }
 function cineNext() {
@@ -3077,7 +3066,7 @@ function applySettings() {
   document.body.classList.toggle('calm', !SET.flash);
 }
 function renderSettings() {
-  $('setMusic').value = SET.music; $('setFx').value = SET.fx; $('setMusicV').textContent = SET.music + '%'; $('setFxV').textContent = SET.fx + '%'; $('setVoice').value = SET.voice; $('setVoiceV').textContent = SET.voice ? SET.voice + '%' : 'Off';
+  $('setMusic').value = SET.music; $('setFx').value = SET.fx; $('setMusicV').textContent = SET.music + '%'; $('setFxV').textContent = SET.fx + '%'; $('setVoice').closest('label').hidden = !VOICED.size; $('setVoice').value = SET.voice; $('setVoiceV').textContent = SET.voice ? SET.voice + '%' : 'Off';
   $('setShake').setAttribute('aria-checked', String(SET.shake)); $('setFlash').setAttribute('aria-checked', String(!SET.flash));
   $('keyList').innerHTML = ACTIONS.map(([a, label]) => `<li><span>${label}</span>${[0, 1].map(i => `<button class="kb${rebind?.a === a && rebind.i === i ? ' wait' : ''}" data-a="${a}" data-i="${i}" aria-label="${label}, key ${i + 1}: ${SET.keys[a][i] ? keyName(SET.keys[a][i]) : 'none'}">${rebind?.a === a && rebind.i === i ? 'Press a key\u2026' : SET.keys[a][i] ? keyName(SET.keys[a][i]) : '\u2014'}</button>`).join('')}</li>`).join('');
   $('keyList').querySelectorAll('.kb').forEach(b => b.onclick = () => { rebind = { a: b.dataset.a, i: +b.dataset.i }; renderSettings(); $('keyList').querySelector('.kb.wait')?.focus(); });
@@ -3102,7 +3091,7 @@ $('setMusic').oninput = e => { SET.music = +e.target.value; $('setMusicV').textC
 $('setFx').oninput = e => { SET.fx = +e.target.value; $('setFxV').textContent = SET.fx + '%'; applySettings(); saveSet(); };
 $('setFx').onchange = () => sfx('coin');
 $('setVoice').oninput = e => { SET.voice = +e.target.value; $('setVoiceV').textContent = SET.voice ? SET.voice + '%' : 'Off'; saveSet(); };
-$('setVoice').onchange = () => { if (SET.voice && !A.muted) { narrate('So begins the tale of Rostam.'); } else hush(); };   // a sample of the voice
+$('setVoice').onchange = () => { const k = [...VOICED][0]; if (k && SET.voice && !A.muted) narrate(k); else hush(); };   // a sample of the voice
 $('setShake').onclick = () => { SET.shake = !SET.shake; saveSet(); renderSettings(); };
 $('setFlash').onclick = () => { SET.flash = !SET.flash; saveSet(); applySettings(); renderSettings(); };
 $('keyReset').onclick = () => { SET.keys = JSON.parse(JSON.stringify(KEY_DEF)); saveSet(); buildKeys(); renderSettings(); };
@@ -3206,5 +3195,5 @@ $('playBtn').onclick = () => (unlocked() > 1 ? openMap() : begin(1)); $('againBt
 $('muteBtn').onclick = () => { audio(); setMuted(!A.muted); };
 setMuted(A.muted);
 openMap(false);                                                   // the game opens on the road of the seven labours
-if (location.hash === '#debug') window.__sh = { game, scene: () => game.scene.getScene('play'), keys, pressed, setPaused, openStory, begin, openMap, LEVELS, FOES, snd: { A, audio, sfx, pickTrack }, cinema, SET };
+if (location.hash === '#debug') window.__sh = { game, scene: () => game.scene.getScene('play'), keys, pressed, setPaused, openStory, begin, openMap, LEVELS, FOES, snd: { A, audio, sfx, pickTrack }, cinema, SET, VOICED };
 })();
