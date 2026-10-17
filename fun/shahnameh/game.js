@@ -53,7 +53,7 @@ const FPS = { 'queen-walk': 10, 'queen-sting': 14, 'queen-spit': 12, 'queen-die'
 const SIZE = { queen: 150, rider: 124, rostam: 112, lion: 148, jackal: 108, div: 108, scorpion: 86, vulture: 92, ram: 86, dragon: 136, rakhsh: 104, bat: 108, serpent: 92, hag: 108, beauty: 108, spearman: 140, olad: 112, divwarrior: 100, arzhang: 136, whitediv: 136, firediv: 104, ghul: 100 };
 const BODY = { queen: [0.62, 0.42], rider: [0.3, 0.5], rostam: [0.143, 0.393], lion: [0.5, 0.36], jackal: [0.3, 0.22], div: [0.22, 0.34], scorpion: [0.4, 0.22], vulture: [0.33, 0.2], ram: [0.4, 0.4],
   dragon: [0.46, 0.42], rakhsh: [0.5, 0.5], bat: [0.32, 0.24], serpent: [0.31, 0.31], hag: [0.27, 0.42], beauty: [0.2, 0.47], spearman: [0.115, 0.386], olad: [0.17, 0.49], divwarrior: [0.31, 0.64], arzhang: [0.3, 0.7], whitediv: [0.4, 0.58], firediv: [0.2, 0.6], ghul: [0.5, 0.36] };
-const V = 78;
+const V = 79;
 const ZOOM = 2;                                                   // canvas pixels per world pixel   // bump to bust caches when assets change
 
 // PixelLab VFX strips in ./assets/fx: frame size, frame count, fps, and the effect's origin as a fraction of the frame
@@ -261,10 +261,10 @@ function map5() {
   const row = (a, b, r, ch) => { for (let c = a; c <= b; c++) g[r][c] = ch; };
   const pit = (a, b) => { ground(a, b, 16); row(a, b, 15, '^'); };
   ground(0, 22, 14); ground(23, 27, 13); ground(28, 31, 12); ground(32, 44, 14); pit(45, 49); row(46, 48, 10, '=');
-  ground(50, 62, 14); row(54, 58, 10, '='); ground(63, 66, 12); ground(67, 78, 14); pit(79, 84); row(80, 81, 11, '='); row(83, 84, 9, '=');
-  ground(85, 98, 14); ground(92, 95, 12); ground(99, 149, 14); row(102, 106, 10, '=');
+  ground(50, 62, 14); row(54, 58, 9, '='); ground(63, 66, 12); ground(67, 78, 14); pit(79, 84); row(80, 81, 11, '='); row(83, 84, 9, '=');
+  ground(85, 98, 14); ground(92, 95, 12); ground(99, 149, 14); row(102, 106, 9, '=');
   put(3, 13, 'P');
-  [[9, 12], [10, 12], [25, 11], [30, 10], [40, 12], [47, 9], [56, 9], [57, 9], [65, 10], [73, 12], [84, 8], [90, 12], [94, 10], [104, 9]].forEach(([c, r]) => put(c, r, 'c'));
+  [[9, 12], [10, 12], [25, 11], [30, 10], [40, 12], [47, 9], [56, 8], [57, 8], [65, 10], [73, 12], [84, 8], [90, 12], [94, 10], [104, 8]].forEach(([c, r]) => put(c, r, 'c'));
   put(14, 13, 'q'); put(36, 13, 'q'); put(42, 13, 'j'); put(60, 13, 'q'); put(71, 13, 'q'); put(76, 13, 'j'); put(88, 13, 'q'); put(97, 13, 'q'); put(108, 13, 'q');
   put(52, 13, 'F');
   put(130, 13, 'O');
@@ -291,7 +291,7 @@ function map6() {
   row(124, 130, 11, '=');
   put(3, 13, 'P');
   [[9, 8], [16, 7], [22, 10], [23, 10], [32, 12], [39, 8], [48, 12], [90, 10], [97, 7], [104, 12]].forEach(([c, r]) => put(c, r, 'c'));
-  put(15, 13, 'd'); put(30, 13, 'w'); put(46, 13, 'd'); put(52, 13, 'w'); put(102, 13, 'w'); put(110, 13, 'd');
+  put(26, 13, 'd'); put(30, 13, 'w'); put(46, 13, 'd'); put(52, 13, 'w'); put(102, 13, 'w'); put(110, 13, 'd');
   // war fires, kept well apart from each other and from the altars (44, 100, 118)
   [[12, 13], [28, 13], [67, 13], [134, 13]].forEach(([c, r]) => put(c, r, 'B'));
   put(44, 13, 'F'); put(100, 13, 'F');
@@ -310,8 +310,8 @@ const ELEMENTS = [{ name: 'earth', tint: 0xe8b060, note: 392 }, { name: 'water',
 const PLINTHS = [[150, 152], [160, 162]], TOWER_AT = [146, 151, 156, 161];   // Khan II: the four bell towers, two of them raised
 const KEEP2 = 150, KEEP1 = 99, KEEP3 = 126, KEEP5 = 125, KEEP6 = 137, KEEP7 = 159;
 // the row a thing can stand on in a map column (or the nearest column that has ground): for fires and hearts
-function topAt(map, c) {
-  const solid = ch => ch === '#' || ch === '=';
+function topAt(map, c, groundOnly = false) {
+  const solid = ch => ch === '#' || (!groundOnly && ch === '=');
   for (const dc of [0, 1, -1, 2, -2, 3, -3]) { const k = c + dc; for (let r = 1; r < map.length; r++) if (map[r][k] && solid(map[r][k]) && !solid(map[r - 1][k])) return r; }
   return null;
 }
@@ -320,11 +320,11 @@ function map7() {
   const ground = (a, b, top) => { for (let c = a; c <= b; c++) for (let r = top; r < ROWS; r++) g[r][c] = '#'; };
   const put = (c, r, ch) => { g[r][c] = ch; };
   const row = (a, b, r, ch) => { for (let c = a; c <= b; c++) g[r][c] = ch; };
-  const pit = (a, b) => { ground(a, b, 16); row(a, b, 15, '^'); };
+  const pit = (a, b) => { for (let c = a; c <= b; c++) for (let r = 0; r < 16; r++) g[r][c] = '.'; ground(a, b, 16); row(a, b, 15, '^'); };
   ground(0, 18, 14); ground(19, 22, 12); ground(23, 26, 10); ground(27, 34, 13); pit(35, 40); row(36, 37, 10, '='); row(39, 40, 9, '=');
   ground(41, 52, 13); ground(53, 56, 11); ground(57, 66, 14); pit(67, 71); row(68, 70, 11, '='); ground(72, 84, 13); ground(85, 88, 11);
   ground(89, 98, 14); pit(99, 104); row(100, 101, 10, '='); row(103, 104, 9, '='); ground(105, 199, 14); ground(110, 113, 12);
-  ground(126, 129, 12); pit(133, 136); row(134, 135, 11, '=');
+  ground(126, 129, 12); pit(133, 136); row(134, 135, 11, '=');   // laid after the floor: pit() digs it out
   // the White Div's arena (146 to 176): one ice ledge in the left corner, safe from his slam; one jump up. He keeps
   // out of mace reach of it (KEEP7)
   row(146, 152, 11, '=');
@@ -1337,14 +1337,15 @@ class Play extends Phaser.Scene {
       else if (lv.parse) lv.parse(this, ch, x, y, c, r);
     }));
     // the labour's own extra fires (one before every boss) and hearts, set on the ground of their column
-    for (const c of lv.fires || []) { const r = topAt(map, c); if (r != null) { const a = this.add.image(c * TS + TS / 2, r * TS, 'altar').setOrigin(0.5, 1).setDepth(2); a.lit = false; this.altars.push(a); } }
+    for (const c of lv.fires || []) { const r = topAt(map, c, true); if (r != null) { const a = this.add.image(c * TS + TS / 2, r * TS, 'altar').setOrigin(0.5, 1).setDepth(2); a.lit = false; this.altars.push(a); } }
     this.altars.sort((a, b) => a.x - b.x);
     this.regrow = [];
     for (const c of lv.hearts || []) { const r = topAt(map, c); if (r != null) { const h = this.heart(c * TS + TS / 2, r * TS - 12); h.regrow = lv.regrow?.includes(c); } }
     // rising again after a fall: start at the last fire lit, with what was gathered on the way
     const R = this.resuming && resumeAt?.n === cur ? resumeAt : null; this.resuming = false;
     if (!R) { voiceBuf('khan' + cur)?.catch(() => {}); this.time.delayedCall(1100, () => playing && sayIntro(cur)); }
-    if (R && this.altars[R.i]) { const a = this.altars[R.i]; this.start = { x: a.x, y: a.y }; for (const b of this.altars.slice(0, R.i + 1)) this.kindle(b, true); }
+    if (R && this.altars[R.i]) { const a = this.altars[R.i]; this.start = { x: a.x, y: a.y }; for (const b of this.altars.slice(0, R.i + 1)) this.kindle(b, true);
+      for (const f of [...this.foes.getChildren()]) if (Math.abs(f.x - a.x) < 7 * TS) f.destroy(); }   // no foe waits where Rostam rises
     this.respawn = { ...this.start };
     this.mounted = !!lv.mounted && this.textures.exists('ride-gallop');
     this.player = this.physics.add.sprite(this.start.x, this.start.y - 30, this.mounted ? 'ride-gallop' : 'rostam-idle', 0);
