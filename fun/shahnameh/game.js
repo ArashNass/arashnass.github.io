@@ -53,7 +53,7 @@ const FPS = { 'queen-walk': 10, 'queen-sting': 14, 'queen-spit': 12, 'queen-die'
 const SIZE = { queen: 150, rider: 124, rostam: 112, lion: 148, jackal: 108, div: 108, scorpion: 86, vulture: 92, ram: 86, dragon: 136, rakhsh: 104, bat: 108, serpent: 92, hag: 108, beauty: 108, spearman: 140, olad: 112, divwarrior: 100, arzhang: 136, whitediv: 204, firediv: 104, ghul: 100 };
 const BODY = { queen: [0.62, 0.42], rider: [0.3, 0.5], rostam: [0.143, 0.393], lion: [0.5, 0.36], jackal: [0.3, 0.22], div: [0.22, 0.34], scorpion: [0.4, 0.22], vulture: [0.33, 0.2], ram: [0.4, 0.4],
   dragon: [0.46, 0.42], rakhsh: [0.5, 0.5], bat: [0.32, 0.24], serpent: [0.31, 0.31], hag: [0.27, 0.42], beauty: [0.2, 0.47], spearman: [0.115, 0.386], olad: [0.17, 0.49], divwarrior: [0.31, 0.64], arzhang: [0.3, 0.7], whitediv: [0.2667, 0.3867], firediv: [0.2, 0.6], ghul: [0.5, 0.36] };
-const V = 83;
+const V = 88;
 const ZOOM = 2;                                                   // canvas pixels per world pixel   // bump to bust caches when assets change
 
 // PixelLab VFX strips in ./assets/fx: frame size, frame count, fps, and the effect's origin as a fraction of the frame
@@ -245,7 +245,7 @@ function map4() {
   ground(73, 86, 14); ground(80, 83, 12); pit(87, 90); ground(91, 149, 14); row(96, 100, 10, '=');
   put(3, 13, 'P');
   [[10, 9], [11, 9], [22, 10], [30, 12], [37, 10], [45, 9], [46, 9], [55, 10], [62, 12], [69, 9], [72, 8], [81, 10], [94, 12], [98, 9]].forEach(([c, r]) => put(c, r, 'c'));
-  put(16, 13, 'n'); put(29, 13, 'n'); put(38, 7, 'b'); put(50, 13, 'n'); put(63, 13, 'n'); put(70, 6, 'b'); put(77, 13, 'n'); put(85, 13, 'n'); put(95, 7, 'b'); put(104, 13, 'n');
+  put(16, 13, 'n'); put(29, 13, 'n'); put(38, 7, 'b'); put(50, 13, 'n'); put(63, 13, 'n'); put(70, 6, 'b'); put(77, 13, 'n'); put(98, 13, 'n'); put(95, 7, 'b'); put(104, 13, 'n');   // serpents lie in the open, never in a pocket Rostam would have to drop into
   [[6, 11], [28, 11], [64, 11], [78, 11], [132, 11], [146, 11]].forEach(([c, r]) => put(c, r, 'l'));   // lanterns, never beside an altar
   put(48, 13, 'F'); put(92, 13, 'F');
   put(120, 13, 'T'); put(128, 13, 'W');
@@ -265,7 +265,7 @@ function map5() {
   ground(85, 98, 14); ground(92, 95, 12); ground(99, 149, 14); row(102, 106, 9, '=');
   put(3, 13, 'P');
   [[9, 12], [10, 12], [25, 11], [30, 10], [40, 12], [47, 9], [56, 8], [57, 8], [65, 10], [73, 12], [84, 8], [90, 12], [94, 10], [104, 8]].forEach(([c, r]) => put(c, r, 'c'));
-  put(14, 13, 'q'); put(36, 13, 'q'); put(42, 13, 'j'); put(60, 13, 'q'); put(71, 13, 'q'); put(76, 13, 'j'); put(88, 13, 'q'); put(97, 13, 'q'); put(108, 13, 'q');
+  put(14, 13, 'q'); put(36, 13, 'q'); put(42, 13, 'j'); put(60, 13, 'q'); put(71, 13, 'q'); put(76, 13, 'j'); put(88, 13, 'q'); put(97, 13, 'q'); put(103, 13, 'q');   // the last spearman patrols clear of Olad's arena platform
   put(52, 13, 'F');
   put(130, 13, 'O');
   row(115, 118, 10, '=');                                  // Olad's arena (112 to 142): one short ledge on the left (KEEP5)
@@ -468,7 +468,8 @@ const FOES = {
       if (f.cool <= 0 && Math.abs(d) < 80 && Math.abs(p.body.bottom - f.body.bottom) < 30 && f.body.blocked.down) {
         // it rears back, then lunges with its jaws wide
         const dir = Math.sign(d) || 1; f.cool = 100; f.setVelocityX(0); f.play('serpent-strike');
-        s.time.delayedCall(230, () => { if (f.active && f.body.enable) { f.setVelocity(dir * 160, -110); sfx('swing'); } });
+        s.time.delayedCall(230, () => { if (f.active && f.body.enable) { f.setVelocity(dir * 190, -110); sfx('swing');
+          s.time.delayedCall(90, () => f.active && f.body.enable && s.hazard(dir > 0 ? f.body.right - 6 : f.body.left - 46, f.body.top - 10, 52, f.body.height + 14, 160)); } });   // the jaws snap shut a full lunge ahead
         f.once('animationcomplete', () => f.active && f.play('serpent'));
       } else if (f.body.blocked.down) f.setVelocityX(0);
     }
@@ -525,7 +526,7 @@ function flyer(tex, { range, dive, rest, offY, speed = 0.012 }) {
         const tx = f.home.x + Math.sin(f.t) * range, ty = f.home.y + Math.sin(f.t * 2) * 10;
         f.setVelocity((tx - f.x) * 2.2, (ty - f.y) * 2.2); f.setFlipX(Math.cos(f.t) < 0);
         if (f.cool <= 0 && Math.abs(p.x - f.x) < 170 && p.y > f.y) {
-          f.state = 'dive'; f.tm = 46; const a = Math.atan2(p.y - 6 - f.y, p.x - f.x);
+          f.state = 'dive'; f.tm = 46; const a = Math.atan2(p.body.center.y - f.body.center.y, p.body.center.x - f.body.center.x);   // aim the body, not the picture: they sit apart
           f.setVelocity(Math.cos(a) * dive, Math.sin(a) * dive); f.setFlipX(Math.cos(a) < 0); f.anims.timeScale = 0.4; sfx('swing');
         }
       } else if (f.state === 'dive') { if ((f.tm -= k) <= 0 || f.body.blocked.down) { f.state = 'rise'; f.anims.timeScale = 1.4; } }
@@ -1357,7 +1358,7 @@ class Play extends Phaser.Scene {
     this.player.setY(this.start.y - 1 - 0.47 * this.player.displayHeight); this.player.body.reset(this.player.x, this.player.y);   // feet on the floor, however tall the rider
     this.player.setDepth(5);
     this.physics.add.collider(this.player, this.layer);
-    this.physics.add.collider(this.foes, this.layer);
+    this.physics.add.collider(this.foes, this.layer, null, (f, t) => f.body.allowGravity || t.index % 4 !== 2);   // fliers pass through the thin ledges
     this.physics.add.overlap(this.player, this.coins, (pl, c) => this.eat(c));
     this.lion = null; this.boss = null; this.frozen = false; this.ram = null;
     this.cam = this.cameras.main;
@@ -3352,6 +3353,24 @@ if (location.hash === '#selftest') (async () => {
     const stuck = s.foes.getChildren().filter(f => { if (!f.active || !f.body.enable || !f.body.allowGravity) return false; const b = f.body; if (f.y > 20 * TS) return true;
       for (let x = b.left + 3; x <= b.right - 3; x += 6) for (let y = b.top + 3; y <= b.bottom - 4; y += 6) { const t = tile(x, y); if (t && (t.collides || t.index % 4 === 2)) return true; } return false; });
     say(!stuck.length, `Khan ${ROMAN[n]}: no foe stuck in the ground or a platform${stuck.length ? ` (${stuck.map(f => f.kind + '@' + Math.round(f.x / TS)).join(', ')})` : ''}`);
+    // every foe on its own: Rostam stands beside it on open ground, and it must reach him and land a blow within seven
+    // seconds, without sticking in the ground (a foe with no open ground near it, such as a bird over a pit, is skipped)
+    { const top = x => { for (let r = 2; r < 17; r++) { const t = tile(x, r * TS + 2); if (t && t.collides) return r; } return 99; };
+      const open = (x, r) => [1, 2, 3, 4, 5, 6].every(k => !tile(x, (r - k) * TS + 4));
+      let hits = 0; s.hurt = function () { hits++; this.inv = 0; };
+      const all = s.foes.getChildren().slice(), failed = []; let tested = 0, skipped = 0;
+      for (const f of all) { if (!f.active || !f.body.enable) continue;
+        all.forEach(o => { if (o !== f && o.active) { o.body.enable = false; o.setVisible(false); } });
+        const fly = !f.body.allowGravity, hx = f.home?.x ?? f.x, fr = fly ? null : Math.round(f.body.bottom / TS);
+        let px = null; for (const d of fly ? [-50, 50, -80, 80] : [-56, 56, -72, 72, -40, 40]) { const x = hx + d, r = top(x); if (r === 99 || !open(x, r)) continue;
+          if (!fly) { if (r !== fr) continue; let ok = true; for (let xx = Math.min(x, hx); xx <= Math.max(x, hx); xx += 8) if (top(xx) !== fr) ok = false; if (!ok) continue; } px = x; break; }
+        if (px == null) skipped++;
+        else { tested++; const r = top(px); s.player.body.reset(px, r * TS - 1 - 0.47 * s.player.displayHeight); s.player.setVelocity(0); hits = 0; if (f.state === 'rise') f.state = 'circle'; f.cool = 0;
+          let ok = false; for (let t = 0; t < 420 && f.active; t++) { step(1); s.water = 100; s.player.setVelocityX(0); if (hits) { ok = true; break; } if (t % 90 === 0) await W8(1); }
+          const b = f.body; let inGround = false; if (f.active && !fly) for (let x = b.left + 3; x <= b.right - 3; x += 6) for (let y = b.top + 3; y <= b.bottom - 4; y += 6) { const t = tile(x, y); if (t && (t.collides || t.index % 4 === 2)) inGround = true; }
+          if (!ok || inGround) failed.push(`${f.kind}@${Math.round(hx / TS)}${ok ? '' : ' never struck'}${inGround ? ' stuck in the ground' : ''}`); }
+        all.forEach(o => { if (o.active) { o.body.enable = true; o.setVisible(true); } }); }
+      delete s.hurt; say(!failed.length, `Khan ${ROMAN[n]}: ${tested} foes each reach Rostam and strike${skipped ? ` (${skipped} with no open ground beside them, skipped)` : ''}${failed.length ? ': ' + failed.join(', ') : ''}`); }
     // the boss: walk into the arena, wait for it, strike it down, and see the labour through
     s.frozen = false; const ax = RUSH_AT[n] + 3, r = s.groundAt(ax * TS + 8) ?? 14; s.player.body.reset(ax * TS + 8, r * TS - 1 - 0.47 * s.player.displayHeight);
     if (n === 2) { s.prayed = true; s.puzzle = { done: true }; s.startQueen(); }
