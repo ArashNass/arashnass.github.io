@@ -53,7 +53,7 @@ const FPS = { 'queen-walk': 10, 'queen-sting': 14, 'queen-spit': 12, 'queen-die'
 const SIZE = { queen: 150, rider: 124, rostam: 112, lion: 148, jackal: 108, div: 108, scorpion: 86, vulture: 92, ram: 86, dragon: 136, rakhsh: 104, bat: 108, serpent: 92, hag: 108, beauty: 108, spearman: 140, olad: 112, divwarrior: 100, arzhang: 136, whitediv: 136, firediv: 104, ghul: 100 };
 const BODY = { queen: [0.62, 0.42], rider: [0.3, 0.5], rostam: [0.143, 0.393], lion: [0.5, 0.36], jackal: [0.3, 0.22], div: [0.22, 0.34], scorpion: [0.4, 0.22], vulture: [0.33, 0.2], ram: [0.4, 0.4],
   dragon: [0.46, 0.42], rakhsh: [0.5, 0.5], bat: [0.32, 0.24], serpent: [0.31, 0.31], hag: [0.27, 0.42], beauty: [0.2, 0.47], spearman: [0.115, 0.386], olad: [0.17, 0.49], divwarrior: [0.31, 0.64], arzhang: [0.3, 0.7], whitediv: [0.4, 0.58], firediv: [0.2, 0.6], ghul: [0.5, 0.36] };
-const V = 75;
+const V = 76;
 const ZOOM = 2;                                                   // canvas pixels per world pixel   // bump to bust caches when assets change
 
 // PixelLab VFX strips in ./assets/fx: frame size, frame count, fps, and the effect's origin as a fraction of the frame
@@ -1496,6 +1496,7 @@ class Play extends Phaser.Scene {
       if (cp) Object.assign(resumeAt, { coins: this.coinCount, kills: this.kills, t: this.time.now - this.t0 });
       $('retryBtn').textContent = cp ? (resumeAt.well ? 'Rise at the well' : 'Rise at the sacred fire') : 'Try again'; $('freshBtn').classList.toggle('hidden', !cp);
       setTimeout(() => { if (!playing && this.done) $('s-dead').classList.remove('hidden'); }, 900);
+      setTimeout(() => say('fall' + (1 + Math.floor(Math.random() * 3)), { sub: false }), 1000);   // "Rise, son of Zal"
     }
   }
   // the charged blow comes down: a long reach, triple force, and the ground itself shakes and throws up dust both ways
@@ -1772,6 +1773,7 @@ class Play extends Phaser.Scene {
     const bk = cur === 1 ? 'sh-best' : 'sh-best-' + cur, best = +(store.get(bk) || 0); if (!best || s < best) store.set(bk, s);
     $('winBest').textContent = !best || s < best ? 'A new best time!' : `Best time ${Math.floor(best / 60)}:${String(best % 60).padStart(2, '0')}`;
     setTimeout(() => $('s-win').classList.remove('hidden'), 600);
+    if (cur < LABOURS) setTimeout(() => say('win' + cur, { sub: false }), 900);   // the narrator marks the victory
   }
   update(time, delta) {
     const k = delta / 16.67, p = this.player, b = p.body;
@@ -1913,6 +1915,7 @@ class Play extends Phaser.Scene {
       if (this.intro) { B.setVelocityX?.(0); if (B.anims?.isPlaying && B.anims.currentAnim?.key?.endsWith('walk')) { B.anims.stop(); B.setFrame(0); } } else B.ai();
       this.bossBar(); this.bossMark(B, time);
       // below half strength a boss burns with rage: red fire flickers up behind it
+      if (B.lines?.rage && B.hp > 0 && B.hp <= B.max / 2) say(B.lines.rage, { once: true });
       if (!B.rageFx && B.hp <= B.max / 2 && B.body.enable) { B.rageFx = this.fx('rage', B.x, B.body.bottom, { depth: B.depth - 0.05 }).setAlpha(0).setScale(Math.max(1.2, B.displayHeight / 88)); this.tweens.add({ targets: B.rageFx, alpha: 0.78, duration: 800 }); }
       B.rageFx?.setPosition(Math.round(B.x), Math.round(B.body.bottom)).setVisible(B.body.enable && B.alpha > 0.5 && !B.sinking);
       // a boss never comes within mace reach of its arena's corner ledge: that ledge is a refuge, not a perch to strike from
@@ -2049,6 +2052,7 @@ class Play extends Phaser.Scene {
     const a0 = B.alpha;                                               // a foe hiding in the dark shows itself for its entrance
     if (a0 < 0.5) { this.tweens.add({ targets: B, alpha: 1, delay: 420, duration: 250 }); this.time.delayedCall(2200, () => B.active && B.state === 'lurk' && this.tweens.add({ targets: B, alpha: a0, duration: 500 })); }
     this.time.delayedCall(500, () => { sfx('roar'); this.cam.shake(520, 0.012); banner(undefined, undefined, lv.epithet); });
+    if (B.lines?.intro) this.time.delayedCall(1100, () => say(B.lines.intro, { once: true }));
     this.time.delayedCall(2500, () => {
       $('cine').classList.remove('on'); document.body.classList.remove('cine');
       this.tweens.add({ targets: shade, alpha: 0, duration: 400, onComplete: () => { this.events.off('update', draw); shade.destroy(); } });
@@ -2140,7 +2144,7 @@ class Play extends Phaser.Scene {
   startWitch() {
     const w = this.witch = this.physics.add.sprite(this.witchAt.x, this.witchAt.y - 40, 'beauty-idle', 0).setDepth(4).setFlipX(true);
     this.fit(w, 'beauty'); w.play('beauty-idle'); w.immune = () => !this.unmasked || w.alpha < 0.5; w.noMark = () => !this.unmasked; w.immuneMsg = 'She only smiles. Speak the name of God: stand near her and strike.';
-    w.ai = () => this.witchAI(); w.onDown = () => this.bossFall(w);
+    w.lines = { intro: 'witch1' }; w.ai = () => this.witchAI(); w.onDown = () => this.bossFall(w);
     this.arena(112 * TS, w, 10); $('bossName').textContent = 'The Lady of the Garden';
     this.light(w, 1.2); banner('ضیافت', 'The Feast');
     toast('A lovely woman steps from the pavilion and offers you a cup of wine. Stand near her and strike to give thanks in the name of God.');
@@ -2149,7 +2153,7 @@ class Play extends Phaser.Scene {
   unmask() {
     // at the name of God her true face shows
     const w = this.witch; this.unmasked = true; this.frozen = true; this.player.setVelocity(0);
-    banner('به نامِ یزدان', 'In the name of God'); this.cam.flash(500, 255, 255, 255); sfx('roar');
+    banner('به نامِ یزدان', 'In the name of God'); this.cam.flash(500, 255, 255, 255); sfx('roar'); this.time.delayedCall(700, () => say('witch2'));
     for (let i = 0; i < 3; i++) this.time.delayedCall(i * 120, () => this.fx('poof', w.x + (i - 1) * 16, w.body.bottom - 20, { depth: 10 }));
     this.time.delayedCall(450, () => {
       w.setTexture('hag-cast', 0); this.fit(w, 'hag'); w.play('hag-cast'); w.body.setAllowGravity(false); w.setVelocity(0);
@@ -2200,7 +2204,7 @@ class Play extends Phaser.Scene {
     o.immune = () => o.state !== 'open' && Math.sign(this.player.x - o.x) === o.dir && this.player.body.bottom > o.body.top + 12;
     o.calm = () => o.state === 'open';
     o.immuneMsg = 'Olad catches your blow on his shield! Dodge his swing, then strike while he glows. Or leap over him and strike his back.';
-    o.keep = KEEP5; o.ai = () => this.oladAI(); o.onDown = () => this.oladYields();
+    o.keep = KEEP5; o.lines = { intro: 'olad1' }; o.ai = () => this.oladAI(); o.onDown = () => this.oladYields();
     this.arena(112 * TS, o, 9); this.olad = o;
     toast('Olad rides out to meet you, sword drawn: "Who are you, to cross the marches of Mazandaran?"');
     hint('Olad\'s <b>shield blocks you from the front</b>. When he <b>flashes, step back</b> from his sword; then he glows and lowers his guard: <b>strike!</b> Or <b>jump twice</b> over him and hit his back. Strike when the <b>gold arrow</b> shows.');
@@ -2240,7 +2244,7 @@ class Play extends Phaser.Scene {
     };
     this.time.addEvent({ delay: 16, repeat: 40, callback: draw });
     banner('کمند', "Rostam's Lasso");
-    this.time.delayedCall(1200, () => toast('Olad yields: "Spare me, and I will lead you to Arzhang Div and to the White Div\'s cave."'));
+    this.time.delayedCall(1200, () => { toast('Olad yields: "Spare me, and I will lead you to Arzhang Div and to the White Div\'s cave."'); say('olad2'); });
     this.time.delayedCall(3400, () => { this.frozen = false; rope.clear().lineStyle(2, 0xc8a060, 1).strokeEllipse(o.x, o.y - 4, 30, 14); this.reward(o.x); });
   }
   /* ---- Khan VI: the horde, and Arzhang Div ---- */
@@ -2295,7 +2299,7 @@ class Play extends Phaser.Scene {
     // his hide turns every blow until he rests on his axe after his strikes: that is the opening
     a.immune = () => a.state !== 'rest' && a.state !== 'dazed'; a.calm = () => !a.immune(); a.contact = () => a.state === 'charge';
     a.immuneMsg = 'Arzhang shrugs off the blow. Dodge his two strikes, then hit him while he rests on his axe.';
-    a.ai = () => this.arzhangAI(); a.onDown = () => { this.floorWarn?.destroy(); this.highWarn?.destroy(); this.chargeWarn?.destroy(); this.stars?.destroy(); this.stars = null; this.bossFall(a); };
+    a.lines = { intro: 'arzhang1', rage: 'arzhang2' }; a.ai = () => this.arzhangAI(); a.onDown = () => { this.floorWarn?.destroy(); this.highWarn?.destroy(); this.chargeWarn?.destroy(); this.stars?.destroy(); this.stars = null; this.bossFall(a); };
     this.arena(124 * TS, a, 12); this.light(a, 2); sfx('roar'); this.cam.shake(500, 0.008);
     // red glows warn where the axe will fall: along the floor, or across the platforms
     const glow = (y, h) => this.add.rectangle(124 * TS, y, 30 * TS, h, 0xff3010, 1).setOrigin(0, 0.5).setBlendMode(Phaser.BlendModes.ADD).setAlpha(0).setDepth(3);
@@ -2454,7 +2458,7 @@ class Play extends Phaser.Scene {
     // his hide of snow turns every blow, until his club is caught fast in the ice after a slam
     w.immune = () => w.state !== 'stuck' && w.state !== 'dazed'; w.calm = () => !w.immune(); w.contact = () => w.state === 'charge';   // his blows hurt, not his hide
     w.immuneMsg = 'The blow glances off his hide of snow. Strike while his club is stuck in the ice, or when he is dazed after a charge.';
-    w.ai = () => this.whiteAI(); w.onDown = () => { this.floorWarn?.destroy(); this.chargeWarn?.destroy(); this.stars?.destroy(); this.stars = null; this.bossFall(w, () => this.whiteFallen()); };
+    w.lines = { intro: 'white1', rage: 'white2' }; w.ai = () => this.whiteAI(); w.onDown = () => { say('white3'); this.floorWarn?.destroy(); this.chargeWarn?.destroy(); this.stars?.destroy(); this.stars = null; this.bossFall(w, () => this.whiteFallen()); };
     this.arena(146 * TS, w, 12); this.light(w, 2.4); sfx('roar'); this.cam.shake(700, 0.01); this.ledgeT = 0;
     // a blue glow along the floor warns of the slam
     this.floorWarn = this.add.rectangle(146 * TS, 14 * TS - 10, 30 * TS, 20, 0x80c8ff, 1).setOrigin(0, 0.5).setBlendMode(Phaser.BlendModes.ADD).setAlpha(0).setDepth(3);
@@ -2526,7 +2530,7 @@ class Play extends Phaser.Scene {
       k.play('kavus-sight'); this.light(k, 2.2);
       banner('کاووس شاه', 'The king sees again');
     });
-    this.time.delayedCall(2600, () => toast('"Rostam!" cries Kay Kavus. "My eyes are opened, and Iran is saved."'));
+    this.time.delayedCall(2600, () => { toast('"Rostam!" cries Kay Kavus. "My eyes are opened, and Iran is saved."'); say('kavus1'); });
     this.time.delayedCall(4800, () => cinema('ending', () => this.win({ destroy() {} })));   // the ending in pictures, the credits, then the win
   }
   /* ---- Khan II: thirst, wells, the ram and the spring ---- */
@@ -2657,7 +2661,7 @@ class Play extends Phaser.Scene {
     q.body.setAllowGravity(false); q.y = y - q.displayHeight * (0.97 - q.originY); q.groundY = q.y; this.sink(q, false, 900);
     q.immune = () => q.state !== 'stuck' && q.state !== 'surfaced'; q.calm = () => !q.immune(); q.contact = () => q.state === 'walk' || q.state === 'turn';
     q.immuneMsg = 'Her armour turns the blow. Let her sting miss: when it sticks in the sand, strike!';
-    q.kickable = () => ['walk', 'turn', 'aim', 'sting', 'spit'].includes(q.state) && !q.sinking; q.ai = () => this.queenAI(); q.onDown = () => { this.stars?.destroy(); this.stars = null; this.mound?.destroy(); this.swirl?.destroy(); this.puddles?.forEach(o => o.destroy()); this.bossFall(q, () => this.queenFallen()); };
+    q.lines = { intro: 'queen1', rage: 'queen2' }; q.kickable = () => ['walk', 'turn', 'aim', 'sting', 'spit'].includes(q.state) && !q.sinking; q.ai = () => this.queenAI(); q.onDown = () => { this.stars?.destroy(); this.stars = null; this.mound?.destroy(); this.swirl?.destroy(); this.puddles?.forEach(o => o.destroy()); this.bossFall(q, () => this.queenFallen()); };
     this.arena(138 * TS, q, 12); this.light(q, 1.6); this.recede();
     hint('The <b>Scorpion Queen</b> patrols the sand. When her <b>stinger glows green, step back</b>: when it <b>sticks in the sand, strike!</b> Jump over her as she passes.');
   }
@@ -2994,7 +2998,7 @@ const CREDITS = `<div class="fa">هفت خوانِ رستم</div><h2>The Seven L
 let cine = null;
 // the narrator: recorded readings, one file per picture in assets/voice (open1.mp3 ... end3.mp3). A picture is read
 // aloud only if its name is in VOICED, so a missing recording never leaves a gap; the music sinks beneath the voice
-const VOICED = new Set(['open1', 'open2', 'open3', 'open4', 'open5', 'open6', 'end1', 'end2', 'end3', 'khan1', 'khan2', 'khan3', 'khan4', 'khan5', 'khan6', 'khan7']);
+const VOICED = new Set(['open1', 'open2', 'open3', 'open4', 'open5', 'open6', 'end1', 'end2', 'end3', 'khan1', 'khan2', 'khan3', 'khan4', 'khan5', 'khan6', 'khan7', 'win1', 'win2', 'win3', 'win4', 'win5', 'win6', 'fall1', 'fall2', 'fall3', 'queen1', 'queen2', 'witch1', 'witch2', 'olad1', 'olad2', 'arzhang1', 'arzhang2', 'white1', 'white2', 'white3', 'kavus1']);
 // the narrator's line as each labour begins, shown as a subtitle while he speaks
 const KHAN_LINES = {"khan1": "The first labour. Rostam lay down to sleep among the reeds, while Rakhsh grazed nearby… and in the thicket, a lion was watching.", "khan2": "The second labour: the burning desert. No water. No shade. Not a single bird in the sky… only the sand, and whatever waits beneath it.", "khan3": "The third labour. Night fell, and out of the dark came a dragon eighty cubits long: a beast that only Rakhsh could see.", "khan4": "The fourth labour. In a green garden a feast was laid, and a beautiful lady poured the wine. But in Mazandaran… beauty is rarely what it seems.", "khan5": "The fifth labour. Rostam rode into the lands of Olad: a warden who did not take kindly to strangers.", "khan6": "The sixth labour. At the gates of Mazandaran stood Arzhang, chief of the Divs, with an army of demons at his back.", "khan7": "The seventh labour. Beyond seven mountains, in a cave as dark as night… the White Div was waiting."};
 let sayId = 0, voiceEl = null;
@@ -3024,13 +3028,18 @@ function narrate(key, then) {
   }).catch(end);
   return h;
 }
-// as a labour begins (the first time this visit) the narrator sets the scene, with his words as a subtitle
-const introSaid = new Set();
-function sayIntro(n) {
-  const k = 'khan' + n; if (introSaid.has(k) || !KHAN_LINES[k]) return; introSaid.add(k);
-  const el = $('sub'); el.textContent = KHAN_LINES[k];
-  const a = narrate(k, () => el.classList.remove('on')); if (a) el.classList.add('on');
+// what the foes and the king say aloud, shown as a subtitle with the speaker's name
+const LINES = {"queen1": ["The Scorpion Queen", "Thirsty, little man? Then come… and drink."], "queen2": ["The Scorpion Queen", "My children… will feast on your bones!"], "witch1": ["The Lady of the Garden", "Sit, brave traveller. Eat… drink… and rest awhile."], "witch2": ["The Witch", "You see me now, do you? Then see your death!"], "olad1": ["Olad", "Who are you, to cross the marches of Mazandaran?"], "olad2": ["Olad", "Enough! Spare me… and I will lead you to the White Div."], "arzhang1": ["Arzhang Div", "Who dares walk into my camp? I will grind your bones for my supper!"], "arzhang2": ["Arzhang Div", "You will pay for every drop of my blood!"], "white1": ["The White Div", "So… the son of Zal comes at last."], "white2": ["The White Div", "I have broken kings, little hero. I will break you."], "white3": ["The White Div", "No… this cannot be…"], "kavus1": ["Kay Kavus", "Rostam! My eyes… my eyes are opened! Iran is saved!"]};
+// a spoken line, with its words as a subtitle; once only = never again this visit (an entrance, a labour's opening)
+const said = new Set();
+function say(k, { once = false, sub = true } = {}) {
+  if (once && said.has(k)) return; said.add(k);
+  const el = $('sub'), L = LINES[k], text = L ? `<b>${L[0]}:</b> \u201c${L[1]}\u201d` : KHAN_LINES[k];
+  const a = narrate(k, () => el.classList.remove('on'));
+  if (a && sub && text) { el.innerHTML = text; el.classList.add('on'); } else el.classList.remove('on');
 }
+// as a labour begins (the first time this visit) the narrator sets the scene
+function sayIntro(n) { say('khan' + n, { once: true }); }
 function cinema(name, done, start = 0) {
   const P = CINE[name]; if (!P) { done?.(); return; }
   const ov = $('s-cine'), imgs = ov.querySelectorAll('.cimg');
