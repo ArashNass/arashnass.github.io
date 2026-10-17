@@ -290,6 +290,16 @@ body:not(.playing) #farrBtn{display:none}
 body.cine #hint,body.cine #toast{opacity:0!important;transition:opacity .2s}
 @media (max-height:520px){#banner{top:22%}#banner.grand .fa{font-size:46px}#banner.grand h2{font-size:20px}#banner .ep{font-size:14px}}
 /* settings: two columns on a page, sound and comfort on the left, the keys on the right */
+.clipPage{width:min(100%,900px);max-height:calc(100dvh - 32px);display:flex;flex-direction:column}.clipLead{text-align:center;margin:0 0 8px;opacity:.85}
+.clipScroll{overflow:auto;padding:4px 4px 8px;margin:0 -4px}.clipScroll h3{display:flex;align-items:center;gap:10px;margin:10px 0 8px}.clipScroll h3 .btn2{margin-left:auto}
+.clips{display:grid;grid-template-columns:repeat(auto-fill,minmax(168px,1fr));gap:12px}
+.clip{position:relative;display:block;padding:0;border:1px solid rgba(232,194,90,.45);border-radius:8px;overflow:hidden;background:#0a0806;color:#f6ead0;text-align:left;cursor:pointer;transition:transform .15s,border-color .15s,box-shadow .15s;font:inherit}
+.clip img{display:block;width:100%;aspect-ratio:16/9;object-fit:cover;image-rendering:pixelated;transition:transform .4s}
+.clip span{display:block;padding:6px 9px 8px;font:600 14px/1.25 'EB Garamond',serif}.clip span b{font:700 11px Cinzel,serif;color:#e8c25a;letter-spacing:.06em;margin-right:6px}
+.clip:hover,.clip:focus-visible{border-color:#f6dc8c;box-shadow:0 0 0 2px #f6dc8c,0 6px 18px rgba(0,0,0,.6);transform:translateY(-2px);outline:none}.clip:hover img,.clip:focus-visible img{transform:scale(1.06)}
+.clip:after{content:"\25B6";position:absolute;top:8px;right:8px;width:26px;height:26px;border-radius:50%;background:rgba(10,8,4,.7);border:1px solid #e8c25a;color:#f6dc8c;font-size:10px;display:grid;place-items:center;opacity:0;transition:opacity .15s}.clip:hover:after,.clip:focus-visible:after{opacity:1}
+.clip.locked{cursor:default}.clip.locked img{filter:grayscale(1) brightness(.35) blur(2px)}.clip.locked:after{content:"\1F512";opacity:1;font-size:12px}.clip.locked:hover{transform:none;box-shadow:none;border-color:rgba(232,194,90,.45)}
+.cdots i{cursor:pointer}.cdots i:hover{background:rgba(232,194,90,.5)}
 .setPage{width:min(100%,820px);text-align:left;max-height:calc(100dvh - 32px);display:flex;flex-direction:column}.setPage .fa,.setPage h2{text-align:center}
 .setgrid{display:grid;grid-template-columns:1fr 1.15fr;gap:8px 26px;overflow:auto;min-height:0;padding:2px 4px 6px}
 .setgrid h3{font:900 15px Cinzel,serif;letter-spacing:.08em;color:var(--rubric);margin:10px 0 6px;display:flex;align-items:center;justify-content:space-between}
@@ -326,7 +336,7 @@ body.calm #banner.on{animation-name:banCalm}@keyframes banCalm{0%{opacity:0}15%,
 .ccap .fa{font-size:clamp(26px,4.4vh,40px);margin:0;color:#f6dc8c;text-shadow:0 2px 0 #000,0 0 18px rgba(0,0,0,.9)}
 .ccap p{font:500 clamp(17px,2.6vh,24px)/1.45 var(--book);color:#f4ead2;text-shadow:0 2px 3px #000,0 0 12px #000;min-height:3em;margin:2px 0 6px}
 .chint{font:600 12px Inter,sans-serif;letter-spacing:.08em;color:rgba(232,214,174,.55);text-transform:uppercase;opacity:0;transition:opacity .5s}.ccap.done .chint{opacity:1}
-.cdots{position:absolute;top:calc(8vh + 12px);left:50%;transform:translateX(-50%);display:flex;gap:8px;z-index:3}.cdots i{width:8px;height:8px;transform:rotate(45deg);border:1px solid #e8c25a;display:block}.cdots i.on{background:#e8c25a}
+.cdots{position:absolute;top:calc(8vh + 12px);left:50%;transform:translateX(-50%);display:flex;gap:8px;z-index:4;padding:6px}.cdots i{width:8px;height:8px;transform:rotate(45deg);border:1px solid #e8c25a;display:block}.cdots i.on{background:#e8c25a}
 .cskip{position:absolute;top:calc(8vh + 6px);right:max(16px,env(safe-area-inset-right));z-index:4;height:34px;padding:0 16px;border-radius:17px;border:1.5px solid rgba(232,194,90,.7);background:rgba(10,8,4,.55);color:#f6dc8c;font:700 14px Cinzel,serif;letter-spacing:.06em}
 .cskip:hover,.cskip:focus-visible{background:rgba(232,194,90,.25);outline:2px solid #f6dc8c;outline-offset:2px}
 .credits{position:absolute;inset:0;z-index:5;background:radial-gradient(ellipse at center,#120c06,#000 75%);overflow:hidden}
@@ -464,6 +474,15 @@ body.calm #banner.on{animation-name:banCalm}@keyframes banCalm{0%{opacity:0}15%,
   <button class="cskip" id="cineSkip">Skip &rsaquo;</button>
   <div class="credits hidden" id="credits"><div class="roll" id="roll"></div></div>
 </section>
+<section class="ov hidden" id="s-clips" role="dialog" aria-modal="true" aria-label="The tale in pictures">
+  <div class="page clipPage">
+    <button class="x" id="clipClose" aria-label="Close">&times;</button>
+    <div class="fa">داستان</div><h2>The Tale in Pictures</h2>
+    <p class="clipLead">Choose a picture to watch the tale from there.</p>
+    <div class="clipScroll" id="clipList"></div>
+    <div class="btns"><button class="btn" id="clipDone">Back</button></div>
+  </div>
+</section>
 <section class="ov hidden" id="s-set" role="dialog" aria-modal="true" aria-label="Settings">
   <div class="page setPage">
     <button class="x" id="setClose" aria-label="Close">&times;</button>
@@ -525,13 +544,13 @@ body.calm #banner.on{animation-name:banCalm}@keyframes banCalm{0%{opacity:0}15%,
 </section>
 <section class="ov hidden" id="s-map" role="dialog" aria-modal="true" aria-label="The seven labours">
   <div class="homebg" aria-hidden="true"><i></i><b></b></div><canvas id="emb" aria-hidden="true"></canvas>
-  <div class="heroes" aria-hidden="true"><figure class="hero-l"><img src="assets/ui/title-rostam.png?v=70" alt=""></figure><figure class="hero-r"><img src="assets/ui/title-rakhsh.png?v=70" alt=""></figure></div>
+  <div class="heroes" aria-hidden="true"><figure class="hero-l"><img src="assets/ui/title-rostam.png?v=71" alt=""></figure><figure class="hero-r"><img src="assets/ui/title-rakhsh.png?v=71" alt=""></figure></div>
   <div class="page mapPage">
     <button class="x" id="mapClose" aria-label="Close">&times;</button>
     <div class="fa">هفت خوان</div>
     <h2>The Seven Labours of Rostam</h2>
     <p class="kick">The road from Zabulistan to Mazandaran</p>
-    <button class="prologue" id="prologueBtn"><b>&#9654;</b> Watch the prologue</button>
+    <button class="prologue" id="prologueBtn"><b>&#9654;</b> The tale in pictures</button>
     <p class="story home-only">King Kay Kavus lies captive in Mazandaran, land of the Divs. <em>Rostam</em> rides out on the shortest and most perilous road. <b>Choose a labour on the map, then ride out.</b></p>
     <ol class="road" id="road"></ol>
     <p class="story" id="mapInfo"></p>
@@ -657,6 +676,6 @@ body.calm #banner.on{animation-name:banCalm}@keyframes banCalm{0%{opacity:0}15%,
 </template>
 
 <script src="https://cdn.jsdelivr.net/npm/phaser@3.80.1/dist/phaser.min.js"></script>
-<script src="game.js?v=70"></script>
+<script src="game.js?v=71"></script>
 </body>
 </html>

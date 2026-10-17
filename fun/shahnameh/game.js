@@ -53,7 +53,7 @@ const FPS = { 'queen-walk': 10, 'queen-sting': 14, 'queen-spit': 12, 'queen-die'
 const SIZE = { queen: 150, rider: 124, rostam: 112, lion: 148, jackal: 108, div: 108, scorpion: 86, vulture: 92, ram: 86, dragon: 136, rakhsh: 104, bat: 108, serpent: 92, hag: 108, beauty: 108, spearman: 140, olad: 112, divwarrior: 100, arzhang: 136, whitediv: 136, firediv: 104, ghul: 100 };
 const BODY = { queen: [0.62, 0.42], rider: [0.3, 0.5], rostam: [0.143, 0.393], lion: [0.5, 0.36], jackal: [0.3, 0.22], div: [0.22, 0.34], scorpion: [0.4, 0.22], vulture: [0.33, 0.2], ram: [0.4, 0.4],
   dragon: [0.46, 0.42], rakhsh: [0.5, 0.5], bat: [0.32, 0.24], serpent: [0.31, 0.31], hag: [0.27, 0.42], beauty: [0.2, 0.47], spearman: [0.115, 0.386], olad: [0.17, 0.49], divwarrior: [0.31, 0.64], arzhang: [0.3, 0.7], whitediv: [0.4, 0.58], firediv: [0.2, 0.6], ghul: [0.5, 0.36] };
-const V = 70;
+const V = 71;
 const ZOOM = 2;                                                   // canvas pixels per world pixel   // bump to bust caches when assets change
 
 // PixelLab VFX strips in ./assets/fx: frame size, frame count, fps, and the effect's origin as a fraction of the frame
@@ -1210,6 +1210,7 @@ addEventListener('keydown', e => {
   if (rebind) { e.preventDefault(); finishRebind(e.key === 'Escape' ? null : e.key); return; }
   if (cine) { e.preventDefault(); if (e.key === 'Escape') cineEnd(); else if ([' ', 'Enter', 'ArrowRight', 'x', 'X'].includes(e.key)) cineNext(); return; }
   if (!$('s-set').classList.contains('hidden')) { if (e.key === 'Escape') closeSettings(); return; }
+  if (!$('s-clips').classList.contains('hidden')) { if (e.key === 'Escape') closeClips(); return; }
   if (!$('s-map').classList.contains('hidden')) { if (e.key === 'Escape') closeMap(); return; }
   if (!$('s-help').classList.contains('hidden')) { if (e.key === 'Escape') closeHelp(); return; }
   if (!$('s-temple').classList.contains('hidden')) { if (e.key === 'Escape' || e.key === 'ArrowDown' || e.key === 's' || e.key === 'S') closeTemple(); return; }
@@ -3010,12 +3011,12 @@ function narrate(text, then) {
   return true;
 }
 SAY && SAY.addEventListener?.('voiceschanged', () => {});   // some browsers only list their voices once asked
-function cinema(name, done) {
+function cinema(name, done, start = 0) {
   const P = CINE[name]; if (!P) { done?.(); return; }
   const ov = $('s-cine'), imgs = ov.querySelectorAll('.cimg');
-  cine = { P, i: -1, done, typing: 0, auto: 0, name, from: document.querySelector('.ov:not(.hidden):not(#s-cine)') };
+  cine = { P, i: start - 1, done, typing: 0, auto: 0, name, from: document.querySelector('.ov:not(.hidden):not(#s-cine)') };
   cine.from?.classList.add('hidden'); $('credits').classList.add('hidden');
-  ov.querySelector('.cdots').innerHTML = P.map(() => '<i></i>').join('');
+  ov.querySelector('.cdots').innerHTML = P.map((_, k) => `<i title="Picture ${k + 1}" data-k="${k}"></i>`).join('');
   imgs.forEach(im => im.classList.remove('on'));
   ov.classList.remove('hidden'); music(true); cineNext(); $('cineNext').focus();
 }
@@ -3053,7 +3054,22 @@ function cineEnd() {
   c.done?.();
 }
 $('cineNext').onclick = cineNext; $('cineSkip').onclick = cineEnd;
-$('prologueBtn').onclick = () => { store.set('sh-prologue', '1'); cinema('opening', () => openMap(false)); };
+// the dots above a picture jump straight to that picture
+$('s-cine').querySelector('.cdots').onclick = e => { const k = +e.target.dataset?.k, c = cine; if (!c || isNaN(k) || c.credits) return; hush(); clearInterval(c.typing); c.typing = 0; clearTimeout(c.auto); c.i = k; cineShow(k); };
+// the tale in pictures: every picture of the prologue and the ending, to watch from wherever the player likes. The
+// ending stays sealed until the White Div has fallen
+const CLIP_NAMES = { open1: 'The minstrel at court', open2: 'The White Div’s storm', open3: 'The messenger', open4: 'Two roads', open5: 'Rostam and Rakhsh', open6: 'Riding out',
+  end1: 'The king sees again', end2: 'The army set free', end3: 'The hero of the world' };
+function openClips() {
+  const won = bestOf(LABOURS) > 0, group = (name, title, locked) => `<h3>${title}${locked ? '' : `<button class="btn2 sm" data-play="${name}">&#9654; Play all</button>`}</h3><div class="clips">${CINE[name].map(([img], k) =>
+    `<button class="clip${locked ? ' locked' : ''}" ${locked ? 'aria-disabled="true" title="Free the king to unlock the ending"' : `data-play="${name}" data-k="${k}"`} aria-label="${CLIP_NAMES[img]}${locked ? ', locked' : ''}"><img src="assets/cine/${img}.png?v=${V}" alt="" loading="lazy"><span><b>${k + 1}</b>${locked ? 'Free the king to see it' : CLIP_NAMES[img]}</span></button>`).join('')}</div>`;
+  $('clipList').innerHTML = group('opening', 'The Prologue', false) + group('ending', 'The Ending', !won);
+  $('clipList').querySelectorAll('[data-play]').forEach(b => b.onclick = () => { store.set('sh-prologue', '1'); $('s-clips').classList.add('hidden'); cinema(b.dataset.play, openClips, +(b.dataset.k || 0)); });
+  document.querySelectorAll('.ov:not(.hidden)').forEach(o => o.id !== 's-clips' && o.classList.add('hidden'));
+  $('s-clips').classList.remove('hidden'); $('clipList').querySelector('.clip:not(.locked)')?.focus();
+}
+const closeClips = () => { $('s-clips').classList.add('hidden'); openMap(false); };
+$('prologueBtn').onclick = openClips; $('clipClose').onclick = closeClips; $('clipDone').onclick = closeClips;
 // settings: a page of the manuscript with the volumes, the comfort switches and the keys
 let setFrom = null, rebind = null;
 function applySettings() {
