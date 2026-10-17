@@ -257,8 +257,8 @@ body:not(.playing) #farrBtn{display:none}
 .heroes img{height:100%;width:auto;image-rendering:pixelated;filter:drop-shadow(0 0 1px #000) drop-shadow(0 22px 30px rgba(0,0,0,.85));transform-origin:50% 100%;animation:breathe 4.6s ease-in-out infinite alternate}
 .heroes figure:before{content:"";position:absolute;left:-10%;right:-10%;top:12%;bottom:6%;background:radial-gradient(ellipse at 50% 45%,rgba(255,170,70,.32),rgba(255,120,40,.1) 45%,transparent 70%);filter:blur(6px);animation:halo 3.2s ease-in-out infinite alternate}
 .heroes figure:after{content:"";position:absolute;left:8%;right:8%;bottom:1.5vh;height:5vh;background:radial-gradient(ellipse at center,rgba(0,0,0,.85),transparent 70%)}
-.hero-l{height:84vh;left:calc(50% - 360px - 56vh + 70px)}
-.hero-r{height:72vh;right:calc(50% - 360px - 61.5vh + 70px)}.hero-r img{animation-delay:-2.3s}
+.hero-l{height:64vh;left:calc(50% - 360px - 42.3vh + 64px)}
+.hero-r{height:84vh;right:calc(50% - 360px - 69.7vh + 84px)}.hero-r img{animation-delay:-2.3s}
 @keyframes breathe{to{transform:scaleY(1.012) translateY(-.3%)}}@keyframes halo{to{opacity:.65}}
 @media (max-width:1180px){.heroes figure{opacity:.45}}
 @media (max-width:820px),(max-height:520px){.heroes{display:none!important}}
@@ -524,7 +524,7 @@ body.calm #banner.on{animation-name:banCalm}@keyframes banCalm{0%{opacity:0}15%,
 </section>
 <section class="ov hidden" id="s-map" role="dialog" aria-modal="true" aria-label="The seven labours">
   <div class="homebg" aria-hidden="true"><i></i><b></b></div><canvas id="emb" aria-hidden="true"></canvas>
-  <div class="heroes" aria-hidden="true"><figure class="hero-l"><img src="assets/ui/title-rostam.png" alt=""></figure><figure class="hero-r"><img src="assets/ui/title-rakhsh.png" alt=""></figure></div>
+  <div class="heroes" aria-hidden="true"><figure class="hero-l"><img src="assets/ui/title-rostam.png?v=69" alt=""></figure><figure class="hero-r"><img src="assets/ui/title-rakhsh.png?v=69" alt=""></figure></div>
   <div class="page mapPage">
     <button class="x" id="mapClose" aria-label="Close">&times;</button>
     <div class="fa">هفت خوان</div>
@@ -656,6 +656,6 @@ body.calm #banner.on{animation-name:banCalm}@keyframes banCalm{0%{opacity:0}15%,
 </template>
 
 <script src="https://cdn.jsdelivr.net/npm/phaser@3.80.1/dist/phaser.min.js"></script>
-<script src="game.js?v=67"></script>
+<script src="game.js?v=69"></script>
 </body>
 </html>
