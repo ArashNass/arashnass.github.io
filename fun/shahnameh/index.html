@@ -6,12 +6,21 @@
 <meta name="robots" content="noindex,nofollow">
 <meta name="theme-color" content="#0c1024">
 <meta name="description" content="Shahnameh: The Seven Labours of Rostam. A pixel-art platformer inspired by Ferdowsi's Book of Kings.">
-<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/ui/icon-32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="assets/ui/icon-192.png">
+<link rel="apple-touch-icon" href="assets/ui/icon-180.png">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Arash Nassirpour">
+<meta property="og:url" content="https://arashnassirpour.com/fun/shahnameh/">
 <meta property="og:title" content="Shahnameh: The Seven Labours of Rostam">
-<meta property="og:description" content="A pixel-art platformer from Ferdowsi's Book of Kings. Ride out as Rostam and face the lion of the reeds.">
-<meta property="og:image" content="https://arashnassirpour.com/fun/shahnameh/assets/og.png">
+<meta property="og:description" content="A pixel-art adventure from Ferdowsi's Book of Kings. Ride out as Rostam through seven labours: the lion, the desert, the dragon, the witch, and the White Div.">
+<meta property="og:image:alt" content="Rostam and his horse Rakhsh beneath the title The Seven Labours of Rostam">
+<meta property="og:image" content="https://arashnassirpour.com/fun/shahnameh/assets/og.png?v=2">
 <meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Shahnameh: The Seven Labours of Rostam">
+<meta name="twitter:description" content="A pixel-art adventure from Ferdowsi's Book of Kings.">
+<meta name="twitter:image" content="https://arashnassirpour.com/fun/shahnameh/assets/og.png?v=2">
 <title>Shahnameh: Seven Labours | Arash Nassirpour</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=EB+Garamond:ital,wght@0,500;0,700;1,500&family=Lalezar&family=Noto+Nastaliq+Urdu:wght@700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
@@ -364,6 +373,10 @@ body.calm #banner.on{animation-name:banCalm}@keyframes banCalm{0%{opacity:0}15%,
 .road .fc{position:absolute;left:50%;top:100%;transform:translate(-50%,3px);display:flex;gap:2px;pointer-events:none}
 .road .fc i{width:6px;height:11px;border-radius:50% 50% 50% 50%/70% 70% 30% 30%;background:linear-gradient(#7affe0,#e8c25a);box-shadow:0 0 4px rgba(122,255,224,.8);display:block}
 .road .fc i.no{background:rgba(0,0,0,.45);box-shadow:inset 0 0 0 1px rgba(232,194,90,.45)}.road .fc.all i{box-shadow:0 0 6px #ffe28a}
+.road .st{position:absolute;left:50%;bottom:100%;transform:translate(-50%,-2px);font-size:10px;line-height:1;letter-spacing:1px;color:#ffd860;text-shadow:0 0 4px rgba(255,200,80,.8),0 1px 1px #000;white-space:nowrap;pointer-events:none}.road .st.lg{color:#ff7a5a;text-shadow:0 0 5px rgba(255,90,60,.9),0 1px 1px #000}
+.wstars{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:6px;margin:4px 0 8px}.wstars i{font-style:normal;font-size:34px;line-height:1;color:rgba(80,50,20,.35);text-shadow:none}.wstars i.on{color:#e8a820;text-shadow:0 0 10px rgba(255,200,80,.8),0 2px 0 #7a4a10;animation:starIn .5s cubic-bezier(.3,1.6,.5,1) both}
+.wstars small{flex-basis:100%;text-align:center;font:500 15px var(--book);color:#5a3a18}@keyframes starIn{from{transform:scale(0) rotate(-40deg);opacity:0}to{transform:none;opacity:1}}
+#rushBtn small{font:600 12px Inter,sans-serif;opacity:.8;margin-left:4px}
 .ftot{display:block;margin-top:4px;font:500 15px var(--book);color:#4a2e14}.ftot b{color:var(--rubric)}#s-map.home .ftot{color:#c8b896}#s-map.home .ftot b{color:#7affe0}
 .ftot i{display:inline-block;width:7px;height:12px;margin-right:4px;vertical-align:-1px;border-radius:50%/70% 70% 30% 30%;background:linear-gradient(#7affe0,#e8c25a)}
 .gport.k0{background:radial-gradient(ellipse at 50% 60%,rgba(122,255,224,.35),transparent 60%),linear-gradient(#2a3a6a,#0b1233)}
@@ -376,6 +389,8 @@ body.calm #banner.on{animation-name:banCalm}@keyframes banCalm{0%{opacity:0}15%,
 /* a phone held sideways: the HUD keeps to one line (the labour's name and the Funfair label give way) */
 @media (max-height:440px),(max-width:760px){#lbl,.back .t{display:none!important}#hud .pill{height:32px;padding:0 10px;font-size:13px}#hud .icon{width:32px;padding:0}#hearts img{width:18px;height:15px}.pill.farr .fl{display:none}.fbar{width:44px}#pauseBtn{gap:4px}}
 @media (max-height:440px){#pauseBtn{font-size:0;width:32px;padding:0;justify-content:center}#pauseBtn svg{margin:0}}
+/* a phone held upright: the top bar tightens, and if it still cannot fit it wraps rather than running off the screen */
+@media (max-width:520px){#hud{gap:4px;flex-wrap:wrap}#hud>.row{gap:4px;flex-wrap:wrap;justify-content:flex-end;margin-left:auto}#hud .pill{padding:0 7px;gap:4px}#pauseBtn{font-size:0;width:32px;padding:0;justify-content:center}#pauseBtn svg{margin:0}#hearts img{width:14px;height:12px}.fbar{width:30px}.wbar{width:34px}#hud .food{width:16px;height:16px}}
 /* the standing hint steps back after a while so it never hides the road; it comes forward again when it changes */
 #hint{transition:opacity .6s}#hint.dim{opacity:.38}
 </style>
@@ -429,6 +444,7 @@ body.calm #banner.on{animation-name:banCalm}@keyframes banCalm{0%{opacity:0}15%,
     <p class="kick" id="winKick">The first labour is done</p>
     <h2 id="winTitle">The lion is slain</h2>
     <p class="story" id="winMsg"></p>
+    <div class="wstars" id="winStars"></div>
     <div class="stats" id="winStats"></div>
     <p id="winBest"></p>
     <div class="menu"><button class="btn" id="nextBtn">Next labour</button><button class="btn2" id="againBtn">Play again</button><button class="btn2" data-map>The seven labours</button></div>
@@ -558,8 +574,8 @@ body.calm #banner.on{animation-name:banCalm}@keyframes banCalm{0%{opacity:0}15%,
     <p class="story home-only">King Kay Kavus lies captive in Mazandaran, land of the Divs. <em>Rostam</em> rides out on the shortest and most perilous road. <b>Choose a labour on the map, then ride out.</b></p>
     <ol class="road" id="road"></ol>
     <p class="story" id="mapInfo"></p>
-    <div class="btns"><button class="btn" id="rideBtn">Ride out</button><button class="btn2" id="mapTale">Read its tale</button><button class="btn2" data-guide>Book of Foes</button><button class="btn2" data-help>How to play</button><button class="btn2" data-settings>Settings</button></div>
-    <div class="diff" role="group" aria-label="Difficulty">Road <button data-diff="hero" aria-pressed="true">Hero's road</button><button data-diff="gentle" aria-pressed="false">Gentle road</button></div>
+    <div class="btns"><button class="btn" id="rideBtn">Ride out</button><button class="btn2" id="mapTale">Read its tale</button><button class="btn2" data-guide>Book of Foes</button><button class="btn2" data-help>How to play</button><button class="btn2" data-settings>Settings</button><button class="btn2 hidden" id="rushBtn">Boss rush</button></div>
+    <div class="diff" role="group" aria-label="Difficulty">Road <button data-diff="hero" aria-pressed="true">Hero's road</button><button data-diff="gentle" aria-pressed="false">Gentle road</button><button data-diff="legend" aria-pressed="false" title="Three hearts, stronger foes, no healing in the arenas">Legend's road</button></div>
     <div class="keys deskonly home-only"><kbd>&larr;</kbd> <kbd>&rarr;</kbd> move &middot; <kbd>&uarr;</kbd>/<kbd>Space</kbd> jump (twice for a super jump) &middot; <kbd>X</kbd> strike &middot; <kbd>Esc</kbd> menu</div>
     <div class="keys touchonly home-only">On-screen buttons to move, jump and strike. Turn your phone sideways for the best view.</div>
   </div>
@@ -680,6 +696,6 @@ body.calm #banner.on{animation-name:banCalm}@keyframes banCalm{0%{opacity:0}15%,
 </template>
 
 <script src="https://cdn.jsdelivr.net/npm/phaser@3.80.1/dist/phaser.min.js"></script>
-<script src="game.js?v=79"></script>
+<script src="game.js?v=81"></script>
 </body>
 </html>
