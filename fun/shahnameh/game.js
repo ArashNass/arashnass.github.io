@@ -53,7 +53,7 @@ const FPS = { 'queen-walk': 10, 'queen-sting': 14, 'queen-spit': 12, 'queen-die'
 const SIZE = { queen: 150, rider: 124, rostam: 112, lion: 148, jackal: 108, div: 108, scorpion: 86, vulture: 92, ram: 86, dragon: 136, rakhsh: 104, bat: 108, serpent: 92, hag: 108, beauty: 108, spearman: 140, olad: 112, divwarrior: 100, arzhang: 136, whitediv: 136, firediv: 104, ghul: 100 };
 const BODY = { queen: [0.62, 0.42], rider: [0.3, 0.5], rostam: [0.143, 0.393], lion: [0.5, 0.36], jackal: [0.3, 0.22], div: [0.22, 0.34], scorpion: [0.4, 0.22], vulture: [0.33, 0.2], ram: [0.4, 0.4],
   dragon: [0.46, 0.42], rakhsh: [0.5, 0.5], bat: [0.32, 0.24], serpent: [0.31, 0.31], hag: [0.27, 0.42], beauty: [0.2, 0.47], spearman: [0.115, 0.386], olad: [0.17, 0.49], divwarrior: [0.31, 0.64], arzhang: [0.3, 0.7], whitediv: [0.4, 0.58], firediv: [0.2, 0.6], ghul: [0.5, 0.36] };
-const V = 65;
+const V = 66;
 const ZOOM = 2;                                                   // canvas pixels per world pixel   // bump to bust caches when assets change
 
 // PixelLab VFX strips in ./assets/fx: frame size, frame count, fps, and the effect's origin as a fraction of the frame
@@ -1253,7 +1253,7 @@ class Play extends Phaser.Scene {
   create() {
     // the scene object is reused from labour to labour: forget whatever the last one left behind
     for (const k of ['dark', 'lights', 'lamp', 'wall', 'wallR', 'stars', 'pose', 'swingFx', 'witch', 'unmasked', 'olad', 'rakhsh', 'dragonSeen', 'horde', 'hordeDone',
-      'gates', 'hordeBat', 'toldRock', 'toldFarr', 'toldOffer', 'atAltar', 'bossT', 'maceHit', 'toldIce', 'chargeWarn', 'toldCharge', 'shards', 'shardG', 'mark', 'markGlow', 'markOpen', 'bossHeart', 'bossHeartT', 'floorWarn', 'highWarn', 'regrow', 'drums', 'sky', 'flashA', 'intro', 'fgReeds', 'mound', 'swirl', 'qx', 'combo', 'comboT', 'heavy', 'heavyGo', 'charge', 'chargeFull', 'chargeGlow', 'dodgeT', 'dodgeCd', 'dodgeDir', 'whiteDown', 'ended', 'mounted', 'prayed', 'drank', 'toldImmune', 'toldDeflect', 'kavus', 'stones', 'puzzle', 'springOpen', 'pool']) delete this[k];
+      'gates', 'hordeBat', 'toldRock', 'toldFarr', 'toldOffer', 'atAltar', 'bossT', 'maceHit', 'toldIce', 'chargeWarn', 'toldCharge', 'shards', 'shardG', 'mark', 'markGlow', 'markOpen', 'bossHeart', 'bossHeartT', 'floorWarn', 'highWarn', 'regrow', 'drums', 'sky', 'flashA', 'intro', 'fgReeds', 'mound', 'swirl', 'qx', 'combo', 'comboT', 'heavy', 'heavyGo', 'chargeT', 'chargeFull', 'chargeGlow', 'dodgeT', 'dodgeCd', 'dodgeDir', 'whiteDown', 'ended', 'mounted', 'prayed', 'drank', 'toldImmune', 'toldDeflect', 'kavus', 'stones', 'puzzle', 'springOpen', 'pool']) delete this[k];
     // turn loaded strips into square frames; anything missing falls back to placeholder art
     for (const k of ['decor-' + cur]) if (this.textures.exists(k) && this.textures.get(k).frameTotal < 3) { const t = this.textures.get(k), h = t.getSourceImage().height; for (let i = 0; i < Math.round(t.getSourceImage().width / h); i++) t.add(i, 0, i * h, 0, h, h); }
     for (const [k, f] of Object.entries(ART)) if (f && this.textures.exists(k)) {
@@ -1797,29 +1797,29 @@ class Play extends Phaser.Scene {
       if (this.heavy) { this.pose = 'rostam-heavy'; p.anims.stop(); p.play({ key: 'rostam-heavy', startFrame: 4, frameRate: 26 }); p.once('animationcomplete', () => { if (this.pose === 'rostam-heavy') this.pose = null; }); }
       else { if (this.pose === 'rostam-heavy') this.pose = null; p.play(this.mounted ? 'ride-strike' : 'rostam-attack', true); }
       this.swingFx = this.fx('swing', p.x + this.face * 6, p.y - 2, { flip: this.face < 0, depth: 6 });
-      this.charge = 0;
+      this.chargeT = 0;
     }
     this.comboT = (this.comboT || 0) - k;
     // the heavy blow: keep holding the strike after a swing and the mace gathers light; let go to bring it down
     if (keys.attack && !this.mounted && ground && this.atk <= 0 && !(this.dodgeT > 0) && !this.frozen && this.anims.exists('rostam-heavy')) {
-      this.charge = (this.charge || 0) + k;
-      if (this.charge > 8 && this.pose !== 'rostam-heavy') { this.pose = 'rostam-heavy'; p.play('rostam-heavy', true); p.anims.pause(); p.setFrame(3); b.velocity.x *= 0.4; }
+      this.chargeT = (this.chargeT || 0) + k;
+      if (this.chargeT > 8 && this.pose !== 'rostam-heavy') { this.pose = 'rostam-heavy'; p.play('rostam-heavy', true); p.anims.pause(); p.setFrame(3); b.velocity.x *= 0.4; }
       if (this.pose === 'rostam-heavy' && !this.heavyGo) { b.velocity.x *= 0.85; p.setFrame(3); }
-      if (this.charge > 8) {
-        const full = this.charge >= 34; this.chargeGlow ||= this.add.image(0, 0, 'glow').setBlendMode(Phaser.BlendModes.ADD).setDepth(6);
-        this.chargeGlow.setPosition(p.x - this.face * 14, p.y - 30).setScale((full ? 0.9 : 0.3 + this.charge / 60) + Math.sin(time * 0.03) * 0.08).setTint(full ? 0xffe28a : 0xffb060).setAlpha(full ? 1 : 0.7);
+      if (this.chargeT > 8) {
+        const full = this.chargeT >= 34; this.chargeGlow ||= this.add.image(0, 0, 'glow').setBlendMode(Phaser.BlendModes.ADD).setDepth(6);
+        this.chargeGlow.setPosition(p.x - this.face * 14, p.y - 30).setScale((full ? 0.9 : 0.3 + this.chargeT / 60) + Math.sin(time * 0.03) * 0.08).setTint(full ? 0xffe28a : 0xffb060).setAlpha(full ? 1 : 0.7);
         if (full && !this.chargeFull) { this.chargeFull = true; sfx('coin'); this.fx('pickup', p.x - this.face * 14, p.y - 30, { depth: 7 }); }
       }
-    } else if (this.charge > 0 && !keys.attack) {
+    } else if (this.chargeT > 0 && !keys.attack) {
       if (this.chargeFull && ground && !this.frozen) this.heavyBlow();
       else if (this.pose === 'rostam-heavy' && !this.heavyGo) this.pose = null;
-      this.charge = 0; this.chargeFull = false; this.chargeGlow?.destroy(); this.chargeGlow = null;
+      this.chargeT = 0; this.chargeFull = false; this.chargeGlow?.destroy(); this.chargeGlow = null;
     }
     // the dodge: a low, fast dash that no blow can catch, with a short breath after it
     this.dodgeCd = (this.dodgeCd || 0) - k;
     if (pressed.dodge) { pressed.dodge = false;
       if (this.dodgeCd <= 0 && !this.mounted && !this.frozen && this.anims.exists('rostam-dodge')) {
-        this.dodgeT = 15; this.dodgeCd = 38; this.dodgeDir = dirX || this.face; this.face = this.dodgeDir; this.atk = 0; this.charge = 0; this.chargeGlow?.destroy(); this.chargeGlow = null;
+        this.dodgeT = 15; this.dodgeCd = 38; this.dodgeDir = dirX || this.face; this.face = this.dodgeDir; this.atk = 0; this.chargeT = 0; this.chargeGlow?.destroy(); this.chargeGlow = null;
         this.pose = 'rostam-dodge'; p.play('rostam-dodge', true); sfx('jump'); this.fx('dust', p.x - this.dodgeDir * 10, b.bottom, { flip: this.dodgeDir > 0, depth: 6 });
       } }
     if (this.dodgeT > 0) {
