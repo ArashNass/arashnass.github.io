@@ -53,7 +53,7 @@ const FPS = { 'queen-walk': 10, 'queen-sting': 14, 'queen-spit': 12, 'queen-die'
 const SIZE = { queen: 150, rider: 124, rostam: 112, lion: 148, jackal: 108, div: 108, scorpion: 86, vulture: 92, ram: 86, dragon: 136, rakhsh: 104, bat: 108, serpent: 92, hag: 108, beauty: 108, spearman: 140, olad: 112, divwarrior: 100, arzhang: 136, whitediv: 136, firediv: 104, ghul: 100 };
 const BODY = { queen: [0.62, 0.42], rider: [0.3, 0.5], rostam: [0.143, 0.393], lion: [0.5, 0.36], jackal: [0.3, 0.22], div: [0.22, 0.34], scorpion: [0.4, 0.22], vulture: [0.33, 0.2], ram: [0.4, 0.4],
   dragon: [0.46, 0.42], rakhsh: [0.5, 0.5], bat: [0.32, 0.24], serpent: [0.31, 0.31], hag: [0.27, 0.42], beauty: [0.2, 0.47], spearman: [0.115, 0.386], olad: [0.17, 0.49], divwarrior: [0.31, 0.64], arzhang: [0.3, 0.7], whitediv: [0.4, 0.58], firediv: [0.2, 0.6], ghul: [0.5, 0.36] };
-const V = 74;
+const V = 75;
 const ZOOM = 2;                                                   // canvas pixels per world pixel   // bump to bust caches when assets change
 
 // PixelLab VFX strips in ./assets/fx: frame size, frame count, fps, and the effect's origin as a fraction of the frame
@@ -65,7 +65,10 @@ const FX = {
   fireflies: { w: 172, h: 141, n: 16, fps: 8, ox: 0.483, oy: 0.418, loop: true }, glow: { w: 53, h: 79, n: 12, fps: 10, ox: 0.491, oy: 0.506, loop: true },
   splash: { w: 70, h: 56, n: 10, fps: 14, ox: 0.5, oy: 0.5 }, beam: { w: 72, h: 122, n: 12, fps: 12, ox: 0.5, oy: 0.869 },
   breath: { w: 128, h: 59, n: 8, fps: 12, ox: 0.07, oy: 0.492, loop: true }, orb: { w: 54, h: 25, n: 8, fps: 12, ox: 0.759, oy: 0.48, loop: true },
-  bolt: { w: 136, h: 216, n: 9, fps: 14, ox: 0.5, oy: 0.829 }
+  bolt: { w: 136, h: 216, n: 9, fps: 14, ox: 0.5, oy: 0.829 },
+  // made in PixelLab's effects workbench: a heavy impact, a ground shockwave, a boss's death blast, the finisher's arc, venom,
+  // the Simurgh's sigil, a boss's rage, smoke, and the beacon over an arena heart
+  impact: { w: 44, h: 44, n: 4, fps: 16, ox: 0.477, oy: 0.523 }, shock: { w: 104, h: 20, n: 7, fps: 14, ox: 0.481, oy: 0.6 }, blast: { w: 72, h: 79, n: 10, fps: 14, ox: 0.5, oy: 0.456 }, arc: { w: 73, h: 64, n: 5, fps: 14, ox: 0.466, oy: 0.641 }, venom: { w: 24, h: 23, n: 8, fps: 12, ox: 0.5, oy: 0.478, loop: true }, sigil: { w: 122, h: 57, n: 12, fps: 12, ox: 0.5, oy: 0.667, loop: true }, rage: { w: 84, h: 106, n: 8, fps: 12, ox: 0.5, oy: 0.915, loop: true }, smoke: { w: 41, h: 39, n: 8, fps: 12, ox: 0.512, oy: 0.462 }, beacon: { w: 68, h: 87, n: 12, fps: 12, ox: 0.5, oy: 0.897, loop: true }
 };
 // provisions on the road to Mazandaran; 'lamb' is a roast leg that restores a heart
 const FOOD = ['lamb', 'pomegranate', 'naan', 'grapes'];
@@ -1450,7 +1453,7 @@ class Play extends Phaser.Scene {
     }
     if (c.kind === 'heart') {
       if (c.regrow) this.regrow.push({ x: c.x, y: c.y, away: 0 });
-      c.glow?.destroy(); c.destroy(); this.fx('heal', this.player.x, this.player.body.bottom - 4, { depth: 6 }); sfx('fire');
+      c.glow?.destroy(); c.beacon?.destroy(); c.destroy(); this.fx('heal', this.player.x, this.player.body.bottom - 4, { depth: 6 }); sfx('fire');
       if (this.hp < this.maxHp) { this.hp++; this.renderHearts(); toast('A heart! Rostam\'s strength returns.'); } else toast('A heart, but Rostam is already whole.');
       return;
     }
@@ -1503,8 +1506,7 @@ class Play extends Phaser.Scene {
       this.atk = 11; this.hitDone = new Set(); this.cool = 26;
       const y = p.body.bottom; this.cam.shake(260, 0.014); sfx('hit'); this.hitStop(60);
       for (const d of [-1, 1]) for (let i = 0; i < 3; i++) this.time.delayedCall(i * 60, () => this.fx('dust', p.x + this.face * 30 + d * (12 + i * 22), y, { flip: d < 0, depth: 8 }));
-      const ring = this.add.ellipse(p.x + this.face * 30, y - 1, 16, 5).setStrokeStyle(1.5, 0xffe28a, 0.9).setDepth(8);
-      this.tweens.add({ targets: ring, scaleX: 7, scaleY: 2.4, alpha: 0, duration: 420, ease: 'Cubic.easeOut', onComplete: () => ring.destroy() });
+      this.fx('shock', p.x + this.face * 30, y + 1, { depth: 8 });
     });
     p.once('animationcomplete', () => { this.heavyGo = false; if (this.pose === 'rostam-heavy') this.pose = null; this.heavy = null; });
   }
@@ -1514,10 +1516,11 @@ class Play extends Phaser.Scene {
     f.hp -= n; f.setTintFill(0xffffff); this.time.delayedCall(80, () => f.active && f.clearTint());
     const hx = Phaser.Math.Clamp(this.face > 0 ? f.body.left + 6 : f.body.right - 6, f.body.left, f.body.right);
     this.fx('hit', hx, f.body.center.y - 4, { depth: 10 }); sfx('hit'); this.cam.shake(80, 0.004);
+    if (f === this.boss || this.heavy) this.fx('impact', hx, f.body.center.y - 4, { depth: 10 });
     this.hitStop(f === this.boss ? 70 : 45);
     if (f === this.boss && !f.gaveHeart && f.hp > 0 && f.hp <= f.max / 2 && this.hp < this.maxHp) {
       f.gaveHeart = true; const x = this.player.x + (this.player.x < this.cam.scrollX + W / 2 ? 60 : -60), r = this.groundAt(x);
-      if (r != null) { this.fx('beam', x, r * TS + 1, { depth: 4 }); this.heart(x, r * TS - 12); toast('A heart shines in the arena. Take it!'); }
+      if (r != null) { this.fx('beam', x, r * TS + 1, { depth: 4 }); this.heart(x, r * TS - 12).beacon = this.fx('beacon', x, r * TS + 1, { depth: 3 }).setAlpha(0.75); toast('A heart shines in the arena. Take it!'); }
     }
     if (f.hp <= 0) {
       if (f === this.boss) return f.onDown();
@@ -1561,7 +1564,7 @@ class Play extends Phaser.Scene {
   // down with a shockwave of dust; then it lies where it fell, dark and smoking, while the sky clears. Returns the ms
   // until it is down.
   bossDeath(B) {
-    B.body.enable = false; B.anims.stop(); this.hideMark(); this.chargeWarn?.destroy(); this.stars?.destroy(); this.stars = null;
+    B.body.enable = false; B.anims.stop(); this.hideMark(); B.rageFx?.destroy(); B.rageFx = null; this.chargeWarn?.destroy(); this.stars?.destroy(); this.stars = null;
     B.clearTint(); B.setAlpha(1); this.tweens.killTweensOf(B);
     this.hitStop(320); this.cam.flash(260, 255, 255, 255); this.cam.shake(260, 0.02); sfx('hit'); sfx('roar');
     const S = this.lv.sky || {}, glow = S.glow ?? 0xffd890, cy = () => B.body.center.y;
@@ -1574,7 +1577,7 @@ class Play extends Phaser.Scene {
         for (const [lw, c, al] of [[7, S.bolt ?? 0xfff0c0, 0.35], [2.5, 0xffffff, 1]]) { g.lineStyle(lw, c, al); g.beginPath(); g.moveTo(...pts[0]); pts.forEach(q => g.lineTo(...q)); g.strokePath(); }
         this.tweens.add({ targets: g, alpha: 0, duration: 420, ease: 'Expo.easeIn', onComplete: () => g.destroy() });
       }
-      this.cam.flash(200, 255, 245, 220); this.flashA = 0.5; thunder(1);
+      this.cam.flash(200, 255, 245, 220); this.flashA = 0.5; thunder(1); this.fx('blast', B.x, cy(), { depth: 10 }).setScale(1.3);
       const rays = this.add.image(B.x, cy(), 'rays').setTint(glow).setBlendMode(Phaser.BlendModes.ADD).setDepth(3).setScale(0.2).setAlpha(0.95);
       this.tweens.add({ targets: rays, scale: 1.6, angle: 40, duration: 1500, ease: 'Cubic.easeOut' });
       this.tweens.add({ targets: rays, alpha: 0, delay: 1100, duration: 900, onComplete: () => rays.destroy() });
@@ -1596,8 +1599,7 @@ class Play extends Phaser.Scene {
       this.cam.shake(600, 0.024); this.cam.flash(380, 255, 236, 190);
       // the crash: a ring of dust and a shockwave of light along the ground
       for (const d of [-1, 1]) for (let i = 0; i < 4; i++) this.time.delayedCall(i * 70, () => this.fx('dust', B.x + d * (18 + i * 30), floor, { flip: d < 0, depth: 8 }));
-      const ring = this.add.ellipse(B.x, floor - 2, 20, 6).setStrokeStyle(2, glow, 0.9).setDepth(9);
-      this.tweens.add({ targets: ring, scaleX: 16, scaleY: 4, alpha: 0, duration: 800, ease: 'Cubic.easeOut', onComplete: () => ring.destroy() });
+      this.fx('shock', B.x, floor + 1, { depth: 9 }).setScale(1.8);
       if (B.texture.key === 'queen-die') this.tweens.add({ targets: B, scaleY: B.scaleY * 0.84, y: B.y + B.displayHeight * 0.08, duration: 420, ease: 'Bounce.easeOut' });   // her legs give way
       if (B.texture.key === 'dragon-die') {                            // the dragon's great body slumps and thunders down
         this.tweens.add({ targets: B, angle: (B.flipX ? 1 : -1) * 14, y: B.y + B.displayHeight * 0.08, duration: 520, ease: 'Bounce.easeOut' });
@@ -1674,14 +1676,14 @@ class Play extends Phaser.Scene {
   // now and then a heart glows in the corner of the arena farthest from the danger (a ledge if there is one), for 10 s
   cornerHeart(fromX, time) {
     this.bossHeartT = (this.bossHeartT ?? 480) - 1;
-    if (this.bossHeart?.active && time > this.bossHeart.dieAt) { this.bossHeart.glow?.destroy(); this.bossHeart.destroy(); }
+    if (this.bossHeart?.active && time > this.bossHeart.dieAt) { this.bossHeart.glow?.destroy(); this.bossHeart.beacon?.destroy(); this.bossHeart.destroy(); }
     if (this.bossHeartT <= 0) {
       this.bossHeartT = 900;
       if (!this.bossHeart?.active) {
         // the highest standing place near the corner farthest from the boss: a ledge if there is one
         const cx = this.cam.scrollX, side = fromX > cx + W / 2 ? 1 : -1; let x = side > 0 ? cx + 24 : cx + W - 24, r = this.groundAt(x);
         for (let i = 0; i < 9; i++) { const xx = x + side * i * TS, rr = this.groundAt(xx); if (rr != null && rr < r) { x = Math.floor(xx / TS) * TS + TS / 2; r = rr; } }
-        if (r != null) { const h = this.bossHeart = this.heart(x, r * TS - 12); h.dieAt = time + 10000; this.fx('heal', x, r * TS, { depth: 6 }); toast('A heart glows in the corner. Grab it!'); }
+        if (r != null) { const h = this.bossHeart = this.heart(x, r * TS - 12); h.beacon = this.fx('beacon', x, r * TS + 1, { depth: 3 }).setAlpha(0.75); h.dieAt = time + 10000; this.fx('heal', x, r * TS, { depth: 6 }); toast('A heart glows in the corner. Grab it!'); }
       }
     }
   }
@@ -1736,10 +1738,8 @@ class Play extends Phaser.Scene {
         if (!f.active) return; f.x = fx; f.angle = 0; sync();
         // a ring of light opens on the ground where it lands, and a beam rises from it
         // a soft pool of light on the ground, rings of light rippling out from it, and a column of light over it
-        const sig = this.add.image(fx, fy + 21, 'glow').setTint(0xffd890).setBlendMode(Phaser.BlendModes.ADD).setDepth(2).setScale(1.5, 0.32).setAlpha(0);
-        const ring = this.add.ellipse(fx, fy + 21, 30, 7).setStrokeStyle(1, 0xffe8a0, 0.8).setDepth(2).setAlpha(0);
-        this.tweens.add({ targets: sig, alpha: 0.9, duration: 500 });
-        this.tweens.add({ targets: ring, scaleX: 2.2, scaleY: 2.2, alpha: { from: 0.9, to: 0 }, duration: 1600, repeat: -1, ease: 'Sine.easeOut' });
+        const sig = this.fx('sigil', fx, fy + 22, { depth: 2 }).setScale(0.75).setAlpha(0), ring = null;   // the Simurgh's eight-pointed star turns on the ground
+        this.tweens.add({ targets: sig, alpha: 0.95, scale: 0.85, duration: 600, ease: 'Back.easeOut' });
         const col = this.add.image(fx, fy + 21, 'glow').setOrigin(0.5, 1).setTint(0xfff0c0).setBlendMode(Phaser.BlendModes.ADD).setDepth(2).setScale(0.35, 2.4).setAlpha(0);
         this.tweens.add({ targets: col, alpha: 0.4, duration: 600, yoyo: true, hold: 300, repeat: -1, repeatDelay: 200 });
         f.glow = sig; f.ring = ring; f.col = col; this.fx('beam', fx, fy + 22, { depth: 4 }); sfx('coin');
@@ -1802,7 +1802,7 @@ class Play extends Phaser.Scene {
       this.atk = this.heavy ? 18 : 16; this.cool = this.mounted ? 26 : this.heavy ? 30 : 22; sfx('swing'); this.hitDone = new Set();
       if (this.heavy) { this.pose = 'rostam-heavy'; p.anims.stop(); p.play({ key: 'rostam-heavy', startFrame: 4, frameRate: 26 }); p.once('animationcomplete', () => { if (this.pose === 'rostam-heavy') this.pose = null; }); }
       else { if (this.pose === 'rostam-heavy') this.pose = null; p.play(this.mounted ? 'ride-strike' : 'rostam-attack', true); }
-      this.swingFx = this.fx('swing', p.x + this.face * 6, p.y - 2, { flip: this.face < 0, depth: 6 });
+      this.swingFx = this.heavy ? this.fx('arc', p.x + this.face * 12, p.y - 10, { flip: this.face < 0, depth: 7 }) : this.fx('swing', p.x + this.face * 6, p.y - 2, { flip: this.face < 0, depth: 6 });
       this.chargeT = 0;
     }
     this.comboT = (this.comboT || 0) - k;
@@ -1912,6 +1912,9 @@ class Play extends Phaser.Scene {
     if (B && B.active && B.hp > 0) {
       if (this.intro) { B.setVelocityX?.(0); if (B.anims?.isPlaying && B.anims.currentAnim?.key?.endsWith('walk')) { B.anims.stop(); B.setFrame(0); } } else B.ai();
       this.bossBar(); this.bossMark(B, time);
+      // below half strength a boss burns with rage: red fire flickers up behind it
+      if (!B.rageFx && B.hp <= B.max / 2 && B.body.enable) { B.rageFx = this.fx('rage', B.x, B.body.bottom, { depth: B.depth - 0.05 }).setAlpha(0).setScale(Math.max(1.2, B.displayHeight / 88)); this.tweens.add({ targets: B.rageFx, alpha: 0.78, duration: 800 }); }
+      B.rageFx?.setPosition(Math.round(B.x), Math.round(B.body.bottom)).setVisible(B.body.enable && B.alpha > 0.5 && !B.sinking);
       // a boss never comes within mace reach of its arena's corner ledge: that ledge is a refuge, not a perch to strike from
       B.hitKeep = false;
       if (B.keep && B.body.enable && B.x < B.keep * TS) { B.x = B.keep * TS; if (B.body.velocity.x < 0) B.setVelocityX(0); B.hitKeep = true; }
@@ -2024,6 +2027,7 @@ class Play extends Phaser.Scene {
   hazard(x, y, w, h, ms, move = 0) { this.hazards.push({ r: new Phaser.Geom.Rectangle(x, y, w, h), until: this.time.now + ms, move }); }
   // a shockwave that races along the ground both ways from a slam
   shockwave(x, y) {
+    this.fx('shock', x, y + 1, { depth: 8 }).setScale(1.3);
     for (const d of [-1, 1]) {
       this.hazard(x - 8, y - 14, 16, 14, 650, d * 4.2);
       for (let i = 0; i < 4; i++) this.time.delayedCall(i * 130, () => this.fx('dust', x + d * (20 + i * 34), y, { flip: d < 0, depth: 8 }));
@@ -2481,7 +2485,7 @@ class Play extends Phaser.Scene {
       if (!w.hit && w.tm < 24) {
         // the whole floor of the cave shakes: only the ledges and the air are safe
         w.hit = true; const y = 14 * TS; this.floorWarn.setAlpha(0.9); this.tweens.add({ targets: this.floorWarn, alpha: 0, duration: 400 });
-        this.hazard(146 * TS, y - 22, 30 * TS, 22, 520); this.groundIce(146, 176, w.x);
+        this.hazard(146 * TS, y - 22, 30 * TS, 22, 520); this.groundIce(146, 176, w.x); this.fx('shock', w.x + w.dir * 40, y + 1, { depth: 8 }).setScale(1.6);
         this.cam.shake(380, 0.016); sfx('hit');
       }
       if (w.tm <= 0) {
@@ -2683,7 +2687,7 @@ class Play extends Phaser.Scene {
   }
   // a drop of venom that lands as a small green puddle, which burns for a moment and dries up
   venom(x, y, vx, vy, big = false) {
-    const g = 700, sh = this.shoot(x, y, vx, vy, 'glow', { gravity: g, life: 2600, tint: 0x8aff5a }); sh.setScale(big ? 0.35 : 0.24); sh.setBlendMode(Phaser.BlendModes.ADD);
+    const g = 700, sh = this.shoot(x, y, vx, vy, 'fx-venom', { gravity: g, life: 2600 }); sh.play('fx-venom'); sh.setScale(big ? 0.85 : 0.6);
     // where it comes down: solve for the floor under its path
     let t = 0.05, px = x, py = y, r = null;
     for (; t < 2.5; t += 0.02) { px = x + vx * t; py = y + vy * t + 0.5 * g * t * t; r = this.groundAt(px); if (r != null && vy + g * t > 0 && py >= r * TS) break; }
@@ -2778,7 +2782,7 @@ class Play extends Phaser.Scene {
   // foes in a stretch of the level vanish in smoke
   banish(x0, x1) {
     for (const f of this.foes.getChildren()) if (f.body.enable && f.x > x0 && f.x < x1) {
-      f.body.enable = false; this.fx('poof', f.x, f.body.bottom - 14, { depth: 10 });
+      f.body.enable = false; this.fx('smoke', f.x, f.body.bottom - 16, { depth: 10 });
       this.tweens.add({ targets: f, alpha: 0, duration: 250, onComplete: () => f.destroy() });
     }
   }
