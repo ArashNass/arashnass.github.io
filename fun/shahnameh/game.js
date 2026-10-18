@@ -53,7 +53,7 @@ const FPS = { 'queen-walk': 10, 'queen-sting': 14, 'queen-spit': 12, 'queen-die'
 const SIZE = { queen: 150, rider: 124, rostam: 112, lion: 148, jackal: 108, div: 108, scorpion: 86, vulture: 92, ram: 86, dragon: 136, rakhsh: 104, bat: 108, serpent: 92, hag: 108, beauty: 108, spearman: 140, olad: 112, divwarrior: 100, arzhang: 136, whitediv: 204, firediv: 104, ghul: 100 };
 const BODY = { queen: [0.62, 0.42], rider: [0.3, 0.5], rostam: [0.143, 0.393], lion: [0.5, 0.36], jackal: [0.3, 0.22], div: [0.22, 0.34], scorpion: [0.4, 0.22], vulture: [0.33, 0.2], ram: [0.4, 0.4],
   dragon: [0.46, 0.42], rakhsh: [0.5, 0.5], bat: [0.32, 0.24], serpent: [0.31, 0.31], hag: [0.27, 0.42], beauty: [0.2, 0.47], spearman: [0.115, 0.386], olad: [0.17, 0.49], divwarrior: [0.31, 0.64], arzhang: [0.3, 0.7], whitediv: [0.2667, 0.3867], firediv: [0.2, 0.6], ghul: [0.5, 0.36] };
-const V = 88;
+const V = 89;
 const ZOOM = 2;                                                   // canvas pixels per world pixel   // bump to bust caches when assets change
 
 // PixelLab VFX strips in ./assets/fx: frame size, frame count, fps, and the effect's origin as a fraction of the frame
@@ -1787,8 +1787,13 @@ class Play extends Phaser.Scene {
     $('winStats').innerHTML = `<div><b>${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}</b>time</div><div><b>${this.coinCount}</b>provisions</div><div><b>${this.kills}</b>foes</div><div><b>${this.hp}</b>hearts</div>`;
     const bk = cur === 1 ? 'sh-best' : 'sh-best-' + cur, best = +(store.get(bk) || 0); if (!best || s < best) store.set(bk, s);
     $('winBest').textContent = !best || s < best ? 'A new best time!' : `Best time ${Math.floor(best / 60)}:${String(best % 60).padStart(2, '0')}`;
-    setTimeout(() => $('s-win').classList.remove('hidden'), 600);
-    if (cur < LABOURS) setTimeout(() => say('win' + cur, { sub: false }), 900);   // the narrator marks the victory
+    const labour = cur, showWin = () => {
+      music(false); $('s-win').classList.remove('hidden');
+      (labour < LABOURS ? $('nextBtn') : $('againBtn')).focus();
+      if (labour < LABOURS) say('win' + labour, { sub: false });
+    };
+    // The seventh labour already closes with the king's restoration, the ending paintings and the credits.
+    setTimeout(() => labour < LABOURS && location.hash !== '#selftest' ? cinema('outro' + labour, showWin) : showWin(), 600);
   }
   update(time, delta) {
     const k = delta / 16.67, p = this.player, b = p.body;
@@ -2873,14 +2878,20 @@ class Play extends Phaser.Scene {
 }
 
 let resumeAt = null;           // the last fire lit in this labour: { n, i, well, coins, kills, t }
-function begin(n = cur, rise = false, keepRush = false) {
+function begin(n = cur, rise = false, keepRush = false, afterStory = false) {
+  // A fresh journey gets its illustrated opening; a checkpoint retry and the boss rush go straight back to play.
+  if (!rise && !keepRush && !afterStory && CINE['intro' + n]) {
+    if (!keepRush) rush = null;
+    cinema('intro' + n, () => begin(n, rise, keepRush, true));
+    return;
+  }
   if (!keepRush) rush = null;
   audio(); ['s-title', 's-win', 's-dead', 's-pause', 's-map'].forEach(id => $(id).classList.add('hidden'));
   $('touch').classList.toggle('hidden', !touch); $('boss').classList.add('hidden');
   const sc = game.scene.getScene('play');
-  if (!sc.player) { sc.events.once('create', () => begin(n, rise)); return; }     // still loading: start once it is ready
+  if (!sc.player) { sc.events.once('create', () => begin(n, rise, keepRush, true)); return; }     // still loading: start once it is ready
   if (!rise || resumeAt?.n !== n) resumeAt = null; sc.resuming = !!resumeAt;
-  if (paused) { paused = false; game.scene.resume('play'); }
+  paused = false; if (game.scene.isPaused('play')) game.scene.resume('play');
   const changed = n !== cur; cur = n; store.set('sh-cur', n);
   if (sc.done || sc.started || changed) { $('toast').classList.remove('on'); hint(null); sc.scene.restart(); }   // a fresh scene brings its own hint
   sc.started = true; playing = true; music(true); document.body.classList.add('playing');
@@ -3051,8 +3062,21 @@ function closeTemple() { $('s-temple').classList.add('hidden'); setPaused(false)
 $('templeDone').onclick = closeTemple; $('templeClose').onclick = closeTemple;
 $('offerBtn').onclick = () => { if (!playing) return; const s = game.scene.getScene('play'); if (s?.nearBell >= 0) s.ringBell(s.nearBell); else openTemple(); };
 $('farrBtn').onclick = () => { const sc = game.scene.getScene('play'); if (playing && sc?.farr >= 100) sc.farrBlast(); };
-// the tale told in pictures: the prologue before the first labour, and the ending after the last, then the credits
+// The tale in pictures: the prologue, a painting before and after each labour, and the final ending and credits.
 const CINE = {
+  intro1: [["khan1-intro", "شیر نیستان", "After a long day on the road to Mazandaran, Rostam slept among the reeds. Rakhsh grazed nearby, but in the darkness a lion watched. While the hero dreamed, his faithful horse stood guard."]],
+  outro1: [["khan1-outro", "شیر نیستان", "The lion of the reeds lay defeated. Rostam rested a hand on faithful Rakhsh, his companion through the night. Together they turned toward the desert, where a fiercer thirst awaited."]],
+  intro2: [["khan2-intro", "بیابان بی‌آب", "The sun burned over an endless waste. Rostam and Rakhsh pressed on without water, until strength began to leave them. The hero who had faced armies now bowed his head and prayed for a spring."]],
+  outro2: [["khan2-outro", "بیابان بی‌آب", "The Scorpion Queen was defeated, and the hidden spring ran clear. Rostam drank, let Rakhsh drink, and gave thanks for the ram that had shown the way. Beyond the water, night and another labour awaited."]],
+  intro3: [["khan3-intro", "نبرد با اژدها", "When darkness fell, Rostam lay down to rest. A terrible dragon came out of the night. Rakhsh stamped and cried to wake him, but each time the hero rose, the creature vanished into shadow."]],
+  outro3: [["khan3-outro", "نبرد با اژدها", "At last Rostam saw the dragon. With Rakhsh beside him, he fought the monster and overcame it. Once more, courage alone had not been enough: the watchful horse had helped carry the hero through."]],
+  intro4: [["khan4-intro", "زن جادوگر", "In a green garden, Rostam found a feast and a beautiful woman offering wine. After hunger and hardship, the welcome seemed a blessing. Yet beneath the sweetness lay an enchantment."]],
+  outro4: [["khan4-outro", "زن جادوگر", "When Rostam spoke the name of God, the disguise broke and the sorceress stood revealed. He overcame her enchantment and left the false garden behind. The road led deeper into Mazandaran."]],
+  intro5: [["khan5-intro", "اولاد", "Beyond the wilderness lay fields guarded by Olad and his men. Rostam’s passage brought a challenge, and the warden rode out to confront the stranger. The road to the captive king would not open peacefully."]],
+  outro5: [["khan5-outro", "اولاد", "Rostam defeated Olad and took him captive. In return for his life, Olad promised to show the way to the demons and their strongholds. Mercy had won the hero a guide for the trials ahead."]],
+  intro6: [["khan6-intro", "ارژنگ دیو", "Olad led Rostam to the camp of Arzhang, a mighty demon chief. Fires glowed between the tents, and warriors gathered beneath dark banners. Beyond this camp lay the captive king and the final terror."]],
+  outro6: [["khan6-outro", "ارژنگ دیو", "Arzhang fell, and the demon host scattered. Rostam’s road opened at last toward Kay Kavus. But the king’s sight could be restored only after the White Div was overcome; the greatest labour remained."]],
+  intro7: [["khan7-intro", "دیو سپید", "Beyond the mountains waited a cavern filled with darkness. Inside lay the White Div, whose sorcery had blinded Kay Kavus and his army. Rostam entered alone, knowing that the king’s hope rested on this final battle."]],
   opening: [
     ['open1', 'شاهنامه', 'Listen… and I will tell you a tale from the Book of Kings. Long ago, Kay Kavus sat on the throne of Iran: a king as proud as he was easily flattered. One night a minstrel came to his court and sang of Mazandaran. Of gardens that never fade. Of air sweet with roses. Of treasure without end. The king listened, and he wanted it all. But the minstrel… was a Div in disguise.'],
     ['open2', 'دیوِ سپید', 'Deaf to the counsel of his wisest men, the king marched north. And in a single night, the White Div rose. He called down a storm of sorcery, of hail and darkness and stone. When at last it lifted, Kay Kavus and all his army were blind. And the Divs led them away in chains.'],
@@ -3131,7 +3155,13 @@ function sayIntro(n) { say('khan' + n, { once: true }); }
 function cinema(name, done, start = 0) {
   const P = CINE[name]; if (!P) { done?.(); return; }
   const ov = $('s-cine'), imgs = ov.querySelectorAll('.cimg');
-  cine = { P, i: start - 1, done, typing: 0, auto: 0, name, from: document.querySelector('.ov:not(.hidden):not(#s-cine)') };
+  const wasPlaying = playing, sceneActive = game?.scene.isActive('play');
+  if (sceneActive) game.scene.pause('play');
+  playing = false; hush(); $('sub').classList.remove('on');
+  for (const k in keys) keys[k] = false;
+  for (const k in pressed) pressed[k] = false;
+  cine = { P, i: start - 1, done, typing: 0, auto: 0, name, wasPlaying, sceneActive,
+    from: document.querySelector('.ov:not(.hidden):not(#s-cine)') };
   cine.from?.classList.add('hidden'); $('credits').classList.add('hidden');
   ov.querySelector('.cdots').innerHTML = P.map((_, k) => `<i title="Picture ${k + 1}" data-k="${k}"></i>`).join('');
   imgs.forEach(im => im.classList.remove('on'));
@@ -3173,6 +3203,7 @@ function cineEnd() {
   const c = cine; if (!c) return; hush(); cine = null; clearInterval(c.typing); clearTimeout(c.auto);
   $('s-cine').classList.add('hidden'); $('credits').classList.add('hidden');
   if (c.from && !c.done) c.from.classList.remove('hidden');
+  if (!c.done && c.sceneActive) { game.scene.resume('play'); playing = c.wasPlaying; }
   c.done?.();
 }
 $('cineNext').onclick = cineNext; $('cineSkip').onclick = cineEnd;
@@ -3181,11 +3212,29 @@ $('s-cine').querySelector('.cdots').onclick = e => { const k = +e.target.dataset
 // the tale in pictures: every picture of the prologue and the ending, to watch from wherever the player likes. The
 // ending stays sealed until the White Div has fallen
 const CLIP_NAMES = { open1: 'The minstrel at court', open2: 'The White Div’s storm', open3: 'The messenger', open4: 'Two roads', open5: 'Rostam and Rakhsh', open6: 'Riding out',
-  end1: 'The king sees again', end2: 'The army set free', end3: 'The hero of the world' };
+  end1: 'The king sees again', end2: 'The army set free', end3: 'The hero of the world',
+  "khan1-intro": "The Lion of the Reeds — The road ahead",
+  "khan1-outro": "The Lion of the Reeds — The labour completed",
+  "khan2-intro": "The Burning Desert — The road ahead",
+  "khan2-outro": "The Burning Desert — The labour completed",
+  "khan3-intro": "The Dragon’s Night — The road ahead",
+  "khan3-outro": "The Dragon’s Night — The labour completed",
+  "khan4-intro": "The Enchanted Feast — The road ahead",
+  "khan4-outro": "The Enchanted Feast — The labour completed",
+  "khan5-intro": "Olad, Warden of the Marches — The road ahead",
+  "khan5-outro": "Olad, Warden of the Marches — The labour completed",
+  "khan6-intro": "The Camp of Arzhang — The road ahead",
+  "khan6-outro": "The Camp of Arzhang — The labour completed",
+  "khan7-intro": "The White Div — The road ahead",
+};
 function openClips() {
   const won = bestOf(LABOURS) > 0, group = (name, title, locked) => `<h3>${title}${locked ? '' : `<button class="btn2 sm" data-play="${name}">&#9654; Play all</button>`}</h3><div class="clips">${CINE[name].map(([img], k) =>
-    `<button class="clip${locked ? ' locked' : ''}" ${locked ? 'aria-disabled="true" title="Free the king to unlock the ending"' : `data-play="${name}" data-k="${k}"`} aria-label="${CLIP_NAMES[img]}${locked ? ', locked' : ''}"><img src="assets/cine/${img}.png?v=${V}" alt="" loading="lazy"><span><b>${k + 1}</b>${locked ? 'Free the king to see it' : CLIP_NAMES[img]}</span></button>`).join('')}</div>`;
-  $('clipList').innerHTML = group('opening', 'The Prologue', false) + group('ending', 'The Ending', !won);
+    `<button class="clip${locked ? ' locked' : ''}" ${locked ? 'aria-disabled="true" title="Free the king to unlock the ending"' : `data-play="${name}" data-k="${k}"`} aria-label="${CLIP_NAMES[img]}${locked ? ', locked' : ''}"><img src="assets/cine/${img}.png?v=${V}" alt="" loading="lazy"><span><b>${k + 1}</b>${locked ? 'Complete this part of the journey to see it' : CLIP_NAMES[img]}</span></button>`).join('')}</div>`;
+  $('clipList').innerHTML = group('opening', 'The Prologue', false) +
+    Array.from({ length: LABOURS }, (_, i) => { const n = i + 1;
+      return group('intro' + n, 'Khan ' + ROMAN[n] + ': ' + NAMES[n][0], n > unlocked()) +
+        (n < LABOURS ? group('outro' + n, 'After Khan ' + ROMAN[n], !bestOf(n)) : '');
+    }).join('') + group('ending', 'The Ending', !won);
   $('clipList').querySelectorAll('[data-play]').forEach(b => b.onclick = () => { store.set('sh-prologue', '1'); $('s-clips').classList.add('hidden'); cinema(b.dataset.play, openClips, +(b.dataset.k || 0)); });
   document.querySelectorAll('.ov:not(.hidden)').forEach(o => o.id !== 's-clips' && o.classList.add('hidden'));
   $('s-clips').classList.remove('hidden'); $('clipList').querySelector('.clip:not(.locked)')?.focus();
@@ -3343,7 +3392,7 @@ if (location.hash === '#selftest') (async () => {
   document.body.append(box); const lines = ['The Seven Labours: self-test\n']; let fails = 0;
   const say = (ok, msg) => { if (!ok) fails++; lines.push(`${ok ? '✔' : '✘'} ${msg}`); box.textContent = lines.join('\n'); };
   for (let i = 0; i < 40 && !sc()?.player; i++) { step(2); await W8(30); }
-  const load = async n => { begin(n); for (let i = 0; i < 300; i++) { step(3); await W8(15); const s = sc(); if (s?.player?.anims && s.lv === LEVELS[n] && s.foes) break; } step(20); return sc(); };
+  const load = async n => { begin(n, false, false, true); for (let i = 0; i < 300; i++) { step(3); await W8(15); const s = sc(); if (s?.player?.anims && s.lv === LEVELS[n] && s.foes) break; } step(20); return sc(); };
   for (let n = 1; n <= LABOURS; n++) {
     const e0 = errs.length; let s = await load(n); s.hp = s.maxHp = 99; s.water = 100;
     const L = s.layer, tile = (x, y) => { const t = L.getTileAtWorldXY(x, y); return t && t.index >= 0 ? t : null; };
