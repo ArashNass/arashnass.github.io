@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="robots" content="noindex,nofollow">
 <meta name="theme-color" content="#0c1024">
 <meta name="description" content="Shahnameh: The Seven Labours of Rostam. A pixel-art platformer inspired by Ferdowsi's Book of Kings.">
@@ -28,9 +28,9 @@
 :root{--book:'EB Garamond',Georgia,serif;--lapis:#14286b;--lapis2:#1f3f9a;--gold:#e8c25a;--gold2:#f6dc8c;--turq:#2fa8b5;--ink:#fdf6e3;--panel:rgba(16,28,80,.9);--inkb:#24150a;--rubric:#9a2a1c;--lapisInk:#1d2f7c;--goldInk:#8a5a12}
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%;overflow:hidden;background:#070a18}
-body{font-family:Inter,system-ui,sans-serif;color:var(--ink);touch-action:none;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent}
+body{font-family:Inter,system-ui,sans-serif;color:var(--ink);touch-action:manipulation;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent}
 #game{position:fixed;inset:0;display:grid;place-items:center}
-#game canvas{image-rendering:pixelated}
+#game canvas{image-rendering:pixelated;touch-action:none}.tb{touch-action:none}
 button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
 .hidden{display:none!important}
 #hud{position:fixed;inset:0 0 auto 0;z-index:5;display:flex;justify-content:space-between;align-items:center;gap:8px;padding:max(10px,env(safe-area-inset-top)) max(12px,env(safe-area-inset-right)) 0 max(12px,env(safe-area-inset-left));pointer-events:none}
@@ -340,6 +340,7 @@ body.calm #banner.on{animation-name:banCalm}@keyframes banCalm{0%{opacity:0}15%,
 .cineOv{padding:0;background:#000;z-index:20;overflow:hidden}
 .cframe{position:absolute;inset:0;overflow:hidden}
 .cimg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;image-rendering:pixelated;opacity:0;transition:opacity 1.2s ease;will-change:transform,opacity}
+.backgrounded .cimg.on,.backgrounded .roll{animation-play-state:paused!important}
 .cimg.on{opacity:1;animation:burns var(--d,12s) linear forwards}
 @keyframes burns{from{transform:scale(var(--s0,1.08)) translate(var(--x0,0),var(--y0,0))}to{transform:scale(var(--s1,1.18)) translate(var(--x1,0),var(--y1,0))}}
 .cbar{position:absolute;left:0;right:0;top:0;height:8vh;background:#000;z-index:1}.cbar.bot{top:auto;bottom:0;height:min(30vh,230px);background:linear-gradient(transparent,#000 38%)}
@@ -435,7 +436,7 @@ body.calm #banner.on{animation-name:banCalm}@keyframes banCalm{0%{opacity:0}15%,
     <p class="kick">Khan I &middot; The Lion of the Reeds</p>
     <p class="story">King Kay Kavus lies captive in Mazandaran, land of the Divs. <em>Rostam</em> sets out on the shortest and most perilous road. On the first night, among the reeds, a great lion stirs&hellip;</p>
     <div class="btns"><button class="btn" id="playBtn">Begin</button><button class="btn2" data-map>The seven labours</button><button class="btn2" data-story>Read the tale</button><button class="btn2" data-guide>Book of Foes</button></div>
-    <div class="keys deskonly"><kbd>&larr;</kbd> <kbd>&rarr;</kbd> move &middot; <kbd>&uarr;</kbd>/<kbd>Space</kbd> jump (twice for a super jump) &middot; <kbd>X</kbd> strike with the ox-head mace</div>
+    <div class="keys deskonly"><kbd data-action-key="left">&larr;</kbd> <kbd data-action-key="right">&rarr;</kbd> move &middot; <kbd data-action-key="jump">&uarr; / Space</kbd> jump (twice for a super jump) &middot; <kbd data-action-key="attack">X</kbd> strike with the ox-head mace</div>
     <div class="keys touchonly">On-screen buttons to move, jump and strike.<br>Turn your phone sideways for the best view.</div>
   </div>
 </section>
@@ -485,7 +486,7 @@ body.calm #banner.on{animation-name:banCalm}@keyframes banCalm{0%{opacity:0}15%,
   </div>
 </section>
 <div id="sub" aria-live="polite"></div>
-<section class="ov hidden cineOv" id="s-cine" aria-label="The tale told in pictures">
+<section class="ov hidden cineOv" id="s-cine" role="dialog" aria-modal="true" aria-label="The tale told in pictures">
   <div class="cframe"><img class="cimg" alt=""><img class="cimg" alt=""></div>
   <i class="cbar"></i><i class="cbar bot"></i>
   <button class="cnext" id="cineNext" aria-label="Next picture"></button>
@@ -530,11 +531,11 @@ body.calm #banner.on{animation-name:banCalm}@keyframes banCalm{0%{opacity:0}15%,
     <div class="fa">راهِ پهلوانی</div>
     <h2>How to Play</h2>
     <div class="helpGrid">
-      <section><h3>Moving</h3><p><kbd>&larr;</kbd> <kbd>&rarr;</kbd> run &middot; <kbd>&uarr;</kbd> or <kbd>Space</kbd> jump, and <b>jump again in the air</b> for a super jump. Land on a foe from above for a double blow.<span class="touch"> On a phone, use the buttons at the bottom of the screen.</span></p></section>
-      <section><h3>Fighting</h3><p><kbd>X</kbd> strike with the ox-head mace. <b>Three quick strikes</b> end in a hard finisher. <b>Keep holding</b> Strike after a swing until the mace glows, then let go for a <b>heavy blow</b>. <kbd>Shift</kbd> or <kbd>C</kbd> <b>dodges</b>: no blow can touch you mid-dash.</p></section>
+      <section><h3>Moving</h3><p><kbd data-action-key="left">&larr;</kbd> <kbd data-action-key="right">&rarr;</kbd> run &middot; <kbd data-action-key="jump">&uarr; / Space</kbd> jump, and <b>jump again in the air</b> for a super jump. Land on a foe from above for a double blow.<span class="touch"> On a phone, use the buttons at the bottom of the screen.</span></p></section>
+      <section><h3>Fighting</h3><p><kbd data-action-key="attack">X</kbd> strike with the ox-head mace. <b>Three quick strikes</b> end in a hard finisher. <b>Keep holding</b> Strike after a swing until the mace glows, then let go for a <b>heavy blow</b>. <kbd data-action-key="dodge">Shift / C</kbd> <b>dodges</b>: no blow can touch you mid-dash.</p></section>
       <section><h3>Bosses</h3><p>Each great foe has an opening. <b>When stars circle its head it is dazed: strike now</b>, and the boss bar flashes <b>Strike now!</b> Otherwise your blows glance off. Watch for the warning glow before its big attacks; the corner ledge is a refuge, but you must come down to win.</p></section>
-      <section><h3>Hearts and fires</h3><p>Roast lamb and glowing hearts restore you; in boss fights a heart appears in a corner now and then. Walk past a <b>fire altar</b> to light it: if you fall, you rise there. At a lit fire press <kbd>&darr;</kbd> (or tap <b>Offer</b>) for the <b>Fire Temple</b>.</p></section>
-      <section><h3>Provisions and Farr</h3><p>Provisions fill your purse, to spend at the Fire Temple on lasting gifts, and your golden <b>Farr</b>: when it is full press <kbd>F</kbd> and the Simurgh strikes every foe on screen. Gather eight in a labour and <b>Rakhsh</b> gallops in to kick the boss.</p></section>
+      <section><h3>Hearts and fires</h3><p>Roast lamb and glowing hearts restore you; in boss fights a heart appears in a corner now and then. Walk past a <b>fire altar</b> to light it: if you fall, you rise there. At a lit fire press <kbd data-action-key="offer">&darr;</kbd> (or tap <b>Offer</b>) for the <b>Fire Temple</b>.</p></section>
+      <section><h3>Provisions and Farr</h3><p>Provisions fill your purse, to spend at the Fire Temple on lasting gifts, and your golden <b>Farr</b>: when it is full press <kbd data-action-key="farr">F</kbd> and the Simurgh strikes every foe on screen. Gather eight in a labour and <b>Rakhsh</b> gallops in to kick the boss.</p></section>
       <section><h3>Simurgh feathers</h3><p>Three feathers glow on the <b>highest perches</b> of every labour. The map shows how many you have found. Find all <b>twenty-one</b> for the Simurgh's blessing: one more heart, for ever.</p></section>
       <section><h3>Gamepad</h3><p>Stick or D-pad move &middot; <b>A</b> jump &middot; <b>X</b> strike (hold for heavy) &middot; <b>B</b> dodge &middot; <b>Y</b> Farr &middot; <b>Start</b> menu. In menus the D-pad moves, A presses and B goes back.</p></section>
       <section><h3>Your way</h3><p>Choose the <b>Gentle road</b> on the home screen for more hearts and gentler bosses. In <b>Settings</b> set the volumes, turn off screen shake or flashes, and change any key.</p></section>
@@ -576,7 +577,7 @@ body.calm #banner.on{animation-name:banCalm}@keyframes banCalm{0%{opacity:0}15%,
     <p class="story" id="mapInfo"></p>
     <div class="btns"><button class="btn" id="rideBtn">Ride out</button><button class="btn2" id="mapTale">Read its tale</button><button class="btn2" data-guide>Book of Foes</button><button class="btn2" data-help>How to play</button><button class="btn2" data-settings>Settings</button><button class="btn2 hidden" id="rushBtn">Boss rush</button></div>
     <div class="diff" role="group" aria-label="Difficulty">Road <button data-diff="hero" aria-pressed="true">Hero's road</button><button data-diff="gentle" aria-pressed="false">Gentle road</button><button data-diff="legend" aria-pressed="false" title="Three hearts, stronger foes, no healing in the arenas">Legend's road</button></div>
-    <div class="keys deskonly home-only"><kbd>&larr;</kbd> <kbd>&rarr;</kbd> move &middot; <kbd>&uarr;</kbd>/<kbd>Space</kbd> jump (twice for a super jump) &middot; <kbd>X</kbd> strike &middot; <kbd>Esc</kbd> menu</div>
+    <div class="keys deskonly home-only"><kbd data-action-key="left">&larr;</kbd> <kbd data-action-key="right">&rarr;</kbd> move &middot; <kbd data-action-key="jump">&uarr; / Space</kbd> jump (twice for a super jump) &middot; <kbd data-action-key="attack">X</kbd> strike &middot; <kbd>Esc</kbd> menu</div>
     <div class="keys touchonly home-only">On-screen buttons to move, jump and strike. Turn your phone sideways for the best view.</div>
   </div>
 </section>
@@ -695,7 +696,11 @@ body.calm #banner.on{animation-name:banCalm}@keyframes banCalm{0%{opacity:0}15%,
   </article>
 </template>
 
-<script src="https://cdn.jsdelivr.net/npm/phaser@3.80.1/dist/phaser.min.js"></script>
-<script src="game.js?v=89"></script>
+<section class="ov hidden" id="boot-error" role="alertdialog" aria-modal="true" aria-label="Game loading problem" style="z-index:100">
+  <div class="page"><h2>The game could not load</h2><p class="story">Check your connection and try again. Your saved progress is kept.</p><div class="btns"><button class="btn" id="boot-retry">Try again</button></div></div>
+</section>
+<script src="boot.js?v=91"></script>
+<script src="assets/vendor/phaser-3.80.1.min.js" data-game-script="engine"></script>
+<script src="game.js?v=91" data-game-script="game"></script>
 </body>
 </html>

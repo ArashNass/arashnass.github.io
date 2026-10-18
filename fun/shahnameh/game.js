@@ -53,7 +53,7 @@ const FPS = { 'queen-walk': 10, 'queen-sting': 14, 'queen-spit': 12, 'queen-die'
 const SIZE = { queen: 150, rider: 124, rostam: 112, lion: 148, jackal: 108, div: 108, scorpion: 86, vulture: 92, ram: 86, dragon: 136, rakhsh: 104, bat: 108, serpent: 92, hag: 108, beauty: 108, spearman: 140, olad: 112, divwarrior: 100, arzhang: 136, whitediv: 204, firediv: 104, ghul: 100 };
 const BODY = { queen: [0.62, 0.42], rider: [0.3, 0.5], rostam: [0.143, 0.393], lion: [0.5, 0.36], jackal: [0.3, 0.22], div: [0.22, 0.34], scorpion: [0.4, 0.22], vulture: [0.33, 0.2], ram: [0.4, 0.4],
   dragon: [0.46, 0.42], rakhsh: [0.5, 0.5], bat: [0.32, 0.24], serpent: [0.31, 0.31], hag: [0.27, 0.42], beauty: [0.2, 0.47], spearman: [0.115, 0.386], olad: [0.17, 0.49], divwarrior: [0.31, 0.64], arzhang: [0.3, 0.7], whitediv: [0.2667, 0.3867], firediv: [0.2, 0.6], ghul: [0.5, 0.36] };
-const V = 89;
+const V = 91;
 const ZOOM = 2;                                                   // canvas pixels per world pixel   // bump to bust caches when assets change
 
 // PixelLab VFX strips in ./assets/fx: frame size, frame count, fps, and the effect's origin as a fraction of the frame
@@ -567,7 +567,7 @@ const LEVELS = {
     food: (c, r, n) => (c === 44 && r === 8) || (c === 80 && r === 5) ? 'lamb' : FOOD[1 + (n % 3)],
     create(s) {
       for (const fx of [14, 37, 58, 76, 98, 118]) s.add.sprite(fx * TS, 160, 'fx-fireflies').play({ key: 'fx-fireflies', startFrame: fx % 16 }).setDepth(11).setAlpha(0.9);
-      hint(`Cross the reeds. <b>Strike</b> with ${touch ? 'the mace button' : '<b>X</b>'}, or land on foes from above. <b>Jump again in mid-air</b> for a higher leap. <b>Walk past a fire altar</b> to light it: you rise there if you fall.`);
+      hint(`Cross the reeds. <b>Strike</b> with ${touch ? 'the mace button' : keyHTML('attack')}, or land on foes from above. <b>Jump again in mid-air</b> for a higher leap. <b>Walk past a fire altar</b> to light it: you rise there if you fall.`);
     },
     // the storm over each boss fight: veil and cloud colours, the sun or moon behind it, lightning colour and pace, and its weather
     sky: { veil: 0x3a0a06, cloud: 0xa8401c, glow: 0xff7a2a, sun: [0.76, 0.34], bolt: 0xffd0a0, every: [260, 420], edge: 0x6a1004, fx: 'dust', paint: 'bg/storm.png' },
@@ -1042,13 +1042,13 @@ function makeTextures(scene) {
 // The music is recorded: four Pixabay tracks (free to use, no credit needed) that crossfade as the game
 // moves between the menus, the road, the darker labours and the bosses. The sound effects are synthesised:
 // a santur and a tar from a plucked-string model and a daf frame drum, in a small hall of reverb.
-const A = { ctx: null, master: null, muted: store.get('sh-muted') === '1', bufs: {}, tracks: {}, cur: null, want: false };
+const A = { ctx: null, master: null, muted: store.get('sh-muted') === '1', bufs: {}, tracks: {}, cur: null, want: false, failed: false, background: document.hidden || !document.hasFocus() };
 function audio() {
   if (!A.ctx) {
     const C = window.AudioContext || window.webkitAudioContext; if (!C) return null;
     const c = A.ctx = new C();
     const comp = c.createDynamicsCompressor(); comp.threshold.value = -16; comp.ratio.value = 3; comp.connect(c.destination);
-    A.master = c.createGain(); A.master.gain.value = A.muted ? 0 : 0.8; A.master.connect(comp);
+    A.master = c.createGain(); A.master.gain.value = A.muted || A.background ? 0 : 0.8; A.master.connect(comp);
     A.verb = c.createConvolver(); A.verb.buffer = hall(c, 2.8); const wet = c.createGain(); wet.gain.value = 0.42; A.verb.connect(wet).connect(A.master);
     A.music = c.createGain(); A.music.gain.value = 0.7; A.music.connect(A.master);
     A.fx = c.createGain(); A.fx.gain.value = 0.85; A.fx.connect(A.master); setTimeout(applySettings);
@@ -1057,7 +1057,7 @@ function audio() {
     const fs = c.createGain(); fs.gain.value = 0.2; A.fx.connect(fs).connect(A.verb);
     A.noise = c.createBuffer(1, c.sampleRate, c.sampleRate); const nd = A.noise.getChannelData(0); for (let i = 0; i < nd.length; i++) nd[i] = Math.random() * 2 - 1;
   }
-  if (A.ctx.state === 'suspended') A.ctx.resume(); return A.ctx;
+  if (A.ctx.state === 'suspended' && !A.muted && !A.background && !A.failed) A.ctx.resume().catch(() => {}); return A.ctx;
 }
 // a hall: stereo noise falling away, darker as it fades
 function hall(c, sec) {
@@ -1133,7 +1133,7 @@ function setTrack(name) {
 // which track fits this moment
 function pickTrack() {
   if (!A.ctx) return;
-  if (A.muted || document.hidden) return setTrack(null);
+  if (A.muted || A.background || A.failed) return setTrack(null);
   if (!A.want) return setTrack('menu');
   const sc = game?.scene.getScene('play'), boss = sc && sc.bossOn && !sc.done && sc.boss?.active && sc.boss.hp > 0;
   setTrack(boss ? 'boss' : DARK.has(cur) ? 'dark' : 'road');
@@ -1194,7 +1194,7 @@ function cry() {
   tone(790, 1.1, { type: 'triangle', vol: 0.02, to: 640, t: t + 0.4 }); noise(t, 1.4, { type: 'bandpass', f: 900, to: 300, q: 0.6, vol: 0.05 });
 }
 function setMuted(m) {
-  A.muted = m; store.set('sh-muted', m ? '1' : '0'); if (A.master) A.master.gain.value = m ? 0 : 0.8; if (m) hush();
+  A.muted = m; store.set('sh-muted', m ? '1' : '0'); if (A.master) A.master.gain.value = m || A.background ? 0 : 0.8; if (m) hush(true);
   $('muteIco').setAttribute('d', m ? 'M4 9v6h4l5 4V5L8 9z M17 9l5 6 M22 9l-5 6' : 'M4 9v6h4l5 4V5L8 9z M16 9a4 4 0 0 1 0 6 M19 6a8 8 0 0 1 0 12');
   music(!m && game && game.scene.isActive('play') && playing);
 }
@@ -1207,14 +1207,34 @@ const ACTIONS = [['left', 'Move left'], ['right', 'Move right'], ['jump', 'Jump 
 const SET = (() => { let s = {}; try { s = JSON.parse(store.get('sh-set') || '{}'); } catch (e) {} return { music: 70, fx: 85, voice: 90, shake: true, flash: true, ...s, keys: JSON.parse(JSON.stringify({ ...KEY_DEF, ...(s.keys || {}) })) }; })();
 const saveSet = () => store.set('sh-set', JSON.stringify(SET));
 const keyName = k => ({ ' ': 'Space', ArrowLeft: '\u2190', ArrowRight: '\u2192', ArrowUp: '\u2191', ArrowDown: '\u2193', Shift: 'Shift', Control: 'Ctrl', Enter: 'Enter' })[k] || (k.length === 1 ? k.toUpperCase() : k);
+const keyLabel = action => SET.keys[action].filter(Boolean).map(keyName).join(' / ') || 'Unbound';
+const escapeHTML = text => String(text).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+const controlText = text => String(text).replace(/\bpress (Down|F|X)\b/gi, (_, key) => 'press ' + keyLabel({ down: 'offer', f: 'farr', x: 'attack' }[key.toLowerCase()]));
+const keyHTML = action => `<kbd data-action-key="${action}">${escapeHTML(keyLabel(action))}</kbd>`;
+function refreshControlLabels(root = document) {
+  root.querySelectorAll('[data-action-key]').forEach(el => { el.textContent = keyLabel(el.dataset.actionKey); });
+  if (root === document) document.querySelectorAll('template').forEach(t => refreshControlLabels(t.content));
+}
 let KEYMAP = {};
-function buildKeys() { KEYMAP = {}; for (const [a, ks] of Object.entries(SET.keys)) for (const k of ks) if (k) KEYMAP[k.length === 1 ? k.toLowerCase() : k] = a; }
+function buildKeys() { KEYMAP = {}; for (const [a, ks] of Object.entries(SET.keys)) for (const k of ks) if (k) KEYMAP[k.length === 1 ? k.toLowerCase() : k] = a; refreshControlLabels(); }
 buildKeys();
 const keyOf = e => e.key.length === 1 ? e.key.toLowerCase() : e.key;
-const press = (k, down) => { if (down && !keys[k] && k in pressed) pressed[k] = true; keys[k] = down; };
+const clearInput = () => { for (const k in keys) keys[k] = false; for (const k in pressed) pressed[k] = false; };
+const gameplayInput = () => playing && !paused && !cine && !document.querySelector('.ov:not(.hidden)');
+const press = (k, down) => { if (down && !gameplayInput()) return; if (down && !keys[k] && k in pressed) pressed[k] = true; keys[k] = down; };
 addEventListener('keydown', e => {
   if (rebind) { e.preventDefault(); finishRebind(e.key === 'Escape' ? null : e.key); return; }
-  if (cine) { e.preventDefault(); if (e.key === 'Escape') cineEnd(); else if ([' ', 'Enter', 'ArrowRight', 'x', 'X'].includes(e.key)) cineNext(); return; }
+  if (e.key === 'm' || e.key === 'M') { e.preventDefault(); setMuted(!A.muted); return; }
+  if (cine) {
+    if (e.key === 'Tab') {
+      const controls = [...$('s-cine').querySelectorAll('button:not(:disabled)')].filter(el => el.offsetParent);
+      const i = controls.indexOf(document.activeElement), next = e.shiftKey ? i - 1 : i + 1;
+      if (i < 0 || next < 0 || next >= controls.length) { e.preventDefault(); controls[e.shiftKey ? controls.length - 1 : 0]?.focus(); }
+    } else if (e.key === 'Escape') { e.preventDefault(); cineEnd(); }
+    else if ([' ', 'Enter'].includes(e.key) && e.target.closest?.('button')) { /* Native button activation respects Skip. */ }
+    else if ([' ', 'Enter', 'ArrowRight', 'x', 'X'].includes(e.key)) { e.preventDefault(); cineNext(); }
+    return;
+  }
   if (!$('s-set').classList.contains('hidden')) { if (e.key === 'Escape') closeSettings(); return; }
   if (!$('s-clips').classList.contains('hidden')) { if (e.key === 'Escape') closeClips(); return; }
   if (!$('s-map').classList.contains('hidden')) { if (e.key === 'Escape') closeMap(); return; }
@@ -1229,19 +1249,19 @@ addEventListener('keydown', e => {
     return;
   }
   if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', ' '].includes(e.key) && e.target.tagName !== 'BUTTON') e.preventDefault();
-  if (e.key === 'm' || e.key === 'M') return setMuted(!A.muted);
   if (e.key === 'Escape' || e.key === 'p' || e.key === 'P') { if (playing || paused) setPaused(!paused); return; }
+  if (!gameplayInput() && (paused || document.querySelector('.ov:not(.hidden)'))) return;
   if (e.key === 'Enter' && !playing && !paused && e.target.tagName !== 'BUTTON') return begin();
   const k = KEYMAP[keyOf(e)]; if (k) press(k, true);
 });
 addEventListener('keyup', e => { const k = KEYMAP[keyOf(e)]; if (k) press(k, false); });
 document.querySelectorAll('.tb').forEach(b => {
   const k = b.dataset.k;
-  b.addEventListener('pointerdown', e => { e.preventDefault(); audio(); b.setPointerCapture?.(e.pointerId); b.classList.add('on'); press(k, true); });
+  b.addEventListener('pointerdown', e => { e.preventDefault(); if (!gameplayInput()) return; audio(); b.setPointerCapture?.(e.pointerId); b.classList.add('on'); press(k, true); });
   const off = e => { e.preventDefault(); b.classList.remove('on'); press(k, false); };
   ['pointerup', 'pointercancel', 'lostpointercapture'].forEach(ev => b.addEventListener(ev, off));
 });
-addEventListener('blur', () => { for (const k in keys) keys[k] = false; });
+addEventListener('blur', clearInput);
 
 /* ---------------------------- scene ---------------------------- */
 let game = null, playing = false;
@@ -1249,8 +1269,11 @@ const touch = matchMedia('(pointer:coarse)').matches || 'ontouchstart' in window
 
 class Play extends Phaser.Scene {
   constructor() { super('play'); }
+  essentialLoadError(file) { if (file.key === this.lv?.tiles) window.showGameLoadError?.(); }
   preload() {
     const L = this.load, q = '?v=' + V;
+    L.off('loaderror', this.essentialLoadError, this);
+    L.on('loaderror', this.essentialLoadError, this);
     for (const [k, f] of Object.entries(ART)) if (f) L.image(k, 'assets/' + f + q);
     for (const [k, f] of Object.entries(FX)) L.spritesheet('fx-' + k, `assets/fx/${k}.png${q}`, { frameWidth: f.w, frameHeight: f.h });
     L.spritesheet('food', 'assets/food.png' + q, { frameWidth: 27, frameHeight: 27 });
@@ -1264,7 +1287,7 @@ class Play extends Phaser.Scene {
   create() {
     // the scene object is reused from labour to labour: forget whatever the last one left behind
     for (const k of ['dark', 'lights', 'lamp', 'wall', 'wallR', 'stars', 'pose', 'swingFx', 'witch', 'unmasked', 'olad', 'rakhsh', 'dragonSeen', 'horde', 'hordeDone',
-      'gates', 'hordeBat', 'toldRock', 'toldFarr', 'toldOffer', 'atAltar', 'bossT', 'maceHit', 'toldIce', 'chargeWarn', 'toldCharge', 'shards', 'shardG', 'mark', 'markGlow', 'markOpen', 'bossHeart', 'bossHeartT', 'floorWarn', 'highWarn', 'regrow', 'drums', 'sky', 'flashA', 'intro', 'fgReeds', 'mound', 'swirl', 'qx', 'puddles', 'combo', 'comboT', 'heavy', 'heavyGo', 'chargeT', 'chargeFull', 'chargeGlow', 'dodgeT', 'dodgeCd', 'dodgeDir', 'whiteDown', 'ended', 'mounted', 'prayed', 'drank', 'toldImmune', 'toldDeflect', 'toldVenom', 'cage', 'kavus', 'stones', 'puzzle', 'springOpen', 'pool']) delete this[k];
+      'gates', 'hordeBat', 'toldRock', 'toldFarr', 'toldOffer', 'atAltar', 'bossT', 'maceHit', 'toldIce', 'chargeWarn', 'toldCharge', 'shards', 'shardG', 'mark', 'markGlow', 'markOpen', 'bossHeart', 'bossHeartT', 'floorWarn', 'highWarn', 'regrow', 'drums', 'sky', 'flashA', 'intro', 'fgReeds', 'mound', 'swirl', 'qx', 'puddles', 'combo', 'comboT', 'heavy', 'heavyGo', 'chargeT', 'chargeFull', 'chargeGlow', 'dodgeT', 'dodgeCd', 'dodgeDir', 'whiteDown', 'ended', 'mounted', 'prayed', 'drank', 'toldImmune', 'toldDeflect', 'toldVenom', 'cage', 'kavus', 'stones', 'puzzle', 'springOpen', 'pool', 'victory']) delete this[k];
     // turn loaded strips into square frames; anything missing falls back to placeholder art
     for (const k of ['decor-' + cur]) if (this.textures.exists(k) && this.textures.get(k).frameTotal < 3) { const t = this.textures.get(k), h = t.getSourceImage().height; for (let i = 0; i < Math.round(t.getSourceImage().width / h); i++) t.add(i, 0, i * h, 0, h, h); }
     for (const [k, f] of Object.entries(ART)) if (f && this.textures.exists(k)) {
@@ -1476,7 +1499,7 @@ class Play extends Phaser.Scene {
   // the Farr: a golden bar that fills as Rostam gathers provisions and slays foes
   gainFarr(n) {
     const was = this.farr >= 100; this.farr = Math.min(100, this.farr + n); store.set('sh-farr', this.farr); this.renderFarr();
-    if (!was && this.farr >= 100) { sfx('fire'); toast('Your Farr is full! Press F, or tap the golden Farr, to call on the Simurgh.'); }
+    if (!was && this.farr >= 100) { sfx('fire'); toast(`Your Farr is full! Press ${keyLabel('farr')}, or tap the golden Farr, to call on the Simurgh.`); }
   }
   renderFarr() { $('farrFill').style.width = this.farr + '%'; const full = this.farr >= 100; $('farrBtn').classList.toggle('full', full); document.querySelector('.tb.farr')?.classList.toggle('hidden', !full); }
   // the Simurgh's blast: a ring of golden light that strikes every foe on screen and wounds a boss through any guard
@@ -1498,7 +1521,7 @@ class Play extends Phaser.Scene {
     if (this.hp <= 0) {
       this.done = true; playing = false; music(false); document.body.classList.remove('playing'); hint(null);
       if (this.anims.exists('rostam-fall') && !this.mounted) { this.pose = 'rostam-fall'; this.player.anims.stop(); this.player.play('rostam-fall'); this.tweens.addCounter({ from: 255, to: 150, duration: 900, onUpdate: tw => { const c = Math.round(tw.getValue()); this.player.setTint((c << 16) | (c << 8) | c); } }); } else this.player.setTint(0x777777);
-      const t = this.lv.tips; $('deadTip').textContent = t[Math.floor(Math.random() * t.length)];
+      const t = this.lv.tips; $('deadTip').textContent = controlText(t[Math.floor(Math.random() * t.length)]);
       const cp = resumeAt?.n === cur;
       if (cp) Object.assign(resumeAt, { coins: this.coinCount, kills: this.kills, t: this.time.now - this.t0 });
       $('retryBtn').textContent = rush ? 'Start the rush again' : cp ? (resumeAt.well ? 'Rise at the well' : 'Rise at the sacred fire') : 'Try again'; $('freshBtn').classList.toggle('hidden', !cp || !!rush);
@@ -1769,23 +1792,34 @@ class Play extends Phaser.Scene {
         this.tweens.add({ targets: r, scale: 2.2, alpha: 0, angle: 90, duration: 900, ease: 'Cubic.easeOut', onComplete: () => r.destroy() });
         cry(); this.win(f); } });
   }
+  recordVictory() {
+    if (this.victory) return this.victory;
+    const seconds = Math.max(1, Math.round((this.time.now - this.t0) / 1000));
+    const healthy = this.hp >= Math.ceil(this.maxHp / 2), F = feathers();
+    const allFeathers = [0, 1, 2].every(k => F[cur + ':' + k]), stars = 1 + Number(healthy) + Number(allFeathers);
+    const S = starsOf(); S[cur] = Math.max(S[cur] || 0, stars); store.set('sh-stars', JSON.stringify(S));
+    if (legend()) { const L = legendsOf(); L[cur] = 1; store.set('sh-legend', JSON.stringify(L)); }
+    if (cur < LABOURS) store.set('sh-unlocked', Math.max(unlocked(), cur + 1));
+    const bk = cur === 1 ? 'sh-best' : 'sh-best-' + cur, previousBest = +(store.get(bk) || 0);
+    if (!previousBest || seconds < previousBest) store.set(bk, seconds);
+    return this.victory = { seconds, stars, healthy, allFeathers, previousBest, legend: legend(), hp: this.hp, coins: this.coinCount, kills: this.kills };
+  }
   win(f) {
     if (this.done) return; this.done = true; playing = false; music(false); sfx('fire'); document.body.classList.remove('playing'); hint(null); resumeAt = null;
     this.tweens.killTweensOf([f, f.glow, f.ring, f.col].filter(Boolean)); f.spark?.destroy(); f.glow?.destroy?.(); f.ring?.destroy?.(); f.col?.destroy?.(); f.destroy();
-    const s = Math.round((this.time.now - this.t0) / 1000);
     if (rush) { this.rushNext(); return; }
-    const F = feathers(), stars = 1 + (this.hp >= Math.ceil(this.maxHp / 2) ? 1 : 0) + ([0, 1, 2].every(k => F[cur + ':' + k]) ? 1 : 0), S = starsOf();
-    S[cur] = Math.max(S[cur] || 0, stars); store.set('sh-stars', JSON.stringify(S));
-    if (legend()) { const L = legendsOf(); L[cur] = 1; store.set('sh-legend', JSON.stringify(L)); }
+    const result = this.recordVictory(), { seconds: s, stars, healthy, allFeathers, previousBest: best } = result;
+    const reward = stars === 3 ? 'A perfect labour: heart to spare and every feather found' :
+      healthy ? 'Done with heart to spare' : allFeathers ? 'Every feather found' : 'Labour done';
+    const missing = [!healthy && 'keep half your hearts', !allFeathers && 'find all three feathers'].filter(Boolean);
+    const advice = missing.join(' and ');
     $('winStars').innerHTML = [0, 1, 2].map(i => `<i class="${i < stars ? 'on' : ''}" style="animation-delay:${0.7 + i * 0.35}s">\u2605</i>`).join('') +
-      `<small>${['', 'Labour done', 'Done with heart to spare', 'A perfect labour: every feather found'][stars]}${stars < 3 ? `. ${stars < 2 ? 'Keep half your hearts' : 'Find all three feathers'} for the next star.` : ''}${legend() ? ' On the legend\u2019s road!' : ''}</small>`;
+      `<small>${reward}${missing.length ? '. ' + advice[0].toUpperCase() + advice.slice(1) + ' for a perfect labour.' : ''}${result.legend ? ' On the legend\u2019s road!' : ''}</small>`;
     $('winMsg').textContent = this.lv.win;
     $('winKick').textContent = `The ${['', 'first', 'second', 'third', 'fourth', 'fifth', 'sixth', 'seventh'][cur]} labour is done`;
     $('winTitle').textContent = this.lv.winTitle || 'The labour is done';
-    if (cur < LABOURS) store.set('sh-unlocked', Math.max(unlocked(), cur + 1));
     $('nextBtn').classList.toggle('hidden', cur >= LABOURS || !LEVELS[cur + 1]);
-    $('winStats').innerHTML = `<div><b>${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}</b>time</div><div><b>${this.coinCount}</b>provisions</div><div><b>${this.kills}</b>foes</div><div><b>${this.hp}</b>hearts</div>`;
-    const bk = cur === 1 ? 'sh-best' : 'sh-best-' + cur, best = +(store.get(bk) || 0); if (!best || s < best) store.set(bk, s);
+    $('winStats').innerHTML = `<div><b>${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}</b>time</div><div><b>${result.coins}</b>provisions</div><div><b>${result.kills}</b>foes</div><div><b>${result.hp}</b>hearts</div>`;
     $('winBest').textContent = !best || s < best ? 'A new best time!' : `Best time ${Math.floor(best / 60)}:${String(best % 60).padStart(2, '0')}`;
     const labour = cur, showWin = () => {
       music(false); $('s-win').classList.remove('hidden');
@@ -1865,13 +1899,13 @@ class Play extends Phaser.Scene {
     const altar = ground && !this.bossOn ? this.altars.find(a => a.lit && !a.onLight && Math.abs(a.x - p.x) < 30) : null;
     if (altar !== this.atAltar) {
       this.atAltar = altar; $('offerBtn').classList.toggle('hidden', !altar); if (altar) $('offerBtn').innerHTML = '&#128293; Offer';
-      if (altar && !this.toldOffer && purse() >= Math.min(...UPGRADES.map(u => u.costs[upg()[u.id] || 0] ?? Infinity))) { this.toldOffer = true; hint('You stand at a sacred fire. Press <b>↓</b> or tap <b>Offer</b> to trade provisions for lasting gifts.'); }
+      if (altar && !this.toldOffer && purse() >= Math.min(...UPGRADES.map(u => u.costs[upg()[u.id] || 0] ?? Infinity))) { this.toldOffer = true; hint(`You stand at a sacred fire. Press ${keyHTML('offer')} or tap <b>Offer</b> to trade provisions for lasting gifts.`); }
     }
     // at a bell tower during the ram's riddle, Down (or the Ring button) rings its bell
     const P = this.puzzle, bellAt = P && !P.done && !P.showing && !this.frozen && b.blocked.down ? this.stones.findIndex(st => Math.abs(p.x - st.x) < 22 && Math.abs(b.bottom - st.footY) < 6) : -1;
     if (bellAt !== (this.nearBell ?? -1)) {
       this.nearBell = bellAt; this.ringTip?.destroy(); this.ringTip = null;
-      if (bellAt >= 0) { const st = this.stones[bellAt]; this.ringTip = this.add.text(st.x, st.footY - st.displayHeight - 8, touch ? 'Tap Ring' : '\u2193 Ring', { fontFamily: 'EB Garamond, serif', fontSize: '11px', color: '#ffe8a8', stroke: '#2a1408', strokeThickness: 3, resolution: 4 }).setOrigin(0.5, 1).setDepth(11);
+      if (bellAt >= 0) { const st = this.stones[bellAt]; this.ringTip = this.add.text(st.x, st.footY - st.displayHeight - 8, touch ? 'Tap Ring' : keyLabel('offer') + ' Ring', { fontFamily: 'EB Garamond, serif', fontSize: '11px', color: '#ffe8a8', stroke: '#2a1408', strokeThickness: 3, resolution: 4 }).setOrigin(0.5, 1).setDepth(11);
         this.tweens.add({ targets: this.ringTip, y: this.ringTip.y - 3, yoyo: true, repeat: -1, duration: 500, ease: 'Sine.easeInOut' }); }
       if (!this.atAltar) { $('offerBtn').classList.toggle('hidden', bellAt < 0); $('offerBtn').innerHTML = '&#128276; Ring'; }
     }
@@ -2548,15 +2582,15 @@ class Play extends Phaser.Scene {
   rushSetup() {
     this.hordeDone = true; this.prayed = true; this.water = 100; hint(null);
     if (rush.hp != null) { this.hp = Math.min(this.maxHp, rush.hp + 1); this.renderHearts(); }
-    banner(ROMAN[cur] + ' / VII', 'Boss rush'); toast(`Boss rush: foe ${cur} of 7. ${fmtTime(performance.now() - rush.t0)}`);
+    banner(ROMAN[cur] + ' / VII', 'Boss rush'); toast(`Boss rush: foe ${cur} of 7. ${fmtTime(rushElapsed())}`);
     if (cur === 2) { this.puzzle = { done: true }; this.time.delayedCall(900, () => this.startQueen()); }
   }
   rushNext() {
-    rush.splits.push(performance.now() - rush.t0); rush.hp = this.hp;
+    rush.splits.push(rushElapsed()); rush.hp = this.hp;
     if (cur < LABOURS) { this.done = true; this.time.delayedCall(1200, () => { rush.n = cur + 1; begin(cur + 1, false, true); }); return; }
     // all seven are fallen: the time, and the best ever
     this.done = true; playing = false; music(false); document.body.classList.remove('playing');
-    const ms = performance.now() - rush.t0, best = +(store.get('sh-rush') || 0), nb = !best || ms < best; if (nb) store.set('sh-rush', Math.round(ms));
+    const ms = rushElapsed(), best = +(store.get('sh-rush') || 0), nb = !best || ms < best; if (nb) store.set('sh-rush', Math.round(ms));
     $('winKick').textContent = 'Seven foes, one after another'; $('winTitle').textContent = 'The boss rush is done';
     $('winMsg').textContent = 'The lion, the Scorpion Queen, the dragon, the witch, Olad, Arzhang and the White Div have all fallen before Rostam.';
     $('winStars').innerHTML = ''; $('nextBtn').classList.add('hidden');
@@ -2596,6 +2630,7 @@ class Play extends Phaser.Scene {
       const bits = this.add.particles(k.x, k.y - 30, 'flake', { speed: { min: 80, max: 180 }, angle: { min: 200, max: 340 }, gravity: 600, lifespan: 900, quantity: 18, emitting: false, scale: { min: 1, max: 2 }, tint: [0x8a8f9a, 0xc8ccd6, 0x5a5f6a] }).setDepth(9);
       bits.explode(18); this.time.delayedCall(1200, () => bits.destroy()); sfx('clang'); this.time.delayedCall(120, () => sfx('clang'));
       this.fx('beam', k.x, k.y + 1, { depth: 6 });
+      this.recordVictory();   // Save the rescued king before the ending or credits can be interrupted.
       k.play('kavus-sight'); this.light(k, 2.2);
       banner('کاووس شاه', 'The king sees again');
     });
@@ -2672,7 +2707,7 @@ class Play extends Phaser.Scene {
     }));
     this.time.delayedCall(P.seq.length * 1100 + 500, () => {
       P.showing = false; this.frozen = false; this.cam.startFollow(this.player, true, 0.12, 0.12, W / 2, H / 2);
-      hint('Now ring the bells <b>in the same order</b>: stand at a tower and press <b>\u2193</b> (or tap <b>Ring</b>). Two of them stand on plinths: jump up.');
+      hint(`Now ring the bells <b>in the same order</b>: stand at a tower and press ${keyHTML('offer')} (or tap <b>Ring</b>). Two of them stand on plinths: jump up.`);
     });
   }
   // a bell rings: it swings on its beam and slowly settles, its tower trembles and glows, a ring of sound spreads from the
@@ -2912,7 +2947,7 @@ const GUIDE = [
   { k: 2, fa: 'ملکهٔ کژدم', name: 'The Scorpion Queen', art: ['k2/queen-sting', 9, 150],
     tale: 'Beyond the reeds lay a desert where no bird flew. A ram led the dying Rostam to a hidden spring, and when its four bells rang the water burst from the rock; but the Queen of the scorpions had made that water her own.',
     how: ['She <b>patrols</b> the sand from side to side, and her armour turns every blow. <b>Jump over her</b> as she passes.', 'If you stand in her path her <b>stinger glows green</b>: <b>step back</b>. The sting sprays <b>venom</b> that burns where it lands, then <b>sticks in the sand</b>: <b>strike now</b>.', 'At the end of a pass she may <b>burrow</b>: a trail of sand runs under the arena and the <b>sand swirls</b> where she will rise. Keep clear, then strike while she is dazed.', 'Hide on the corner ledge and she <b>spits venom</b> at it. Your water does not drain while you fight her.'],
-    more: [['k2/scorpion-crawl', 8, 108, 'Scorpion', 'Two blows, or jump on it. Mind the sting.'], ['k2/vulture-fly', 8, 108, 'Vulture', 'Circles, then dives. Strike it as it swoops low.'], ['k2/ram-walk', 8, 108, 'The Ram', 'Follow it to the four bell towers. Stand at each one and press Down (or tap Ring) in the order it shows you.']] },
+    more: [['k2/scorpion-crawl', 8, 108, 'Scorpion', 'Two blows, or jump on it. Mind the sting.'], ['k2/vulture-fly', 8, 108, 'Vulture', 'Circles, then dives. Strike it as it swoops low.'], ['k2/ram-walk', 8, 108, 'The Ram', `Follow it to the four bell towers. Stand at each one and press ${keyHTML('offer')} (or tap Ring) in the order it shows you.`]] },
   { k: 3, fa: 'اژدها', name: 'The Dragon', art: ['k3/dragon-fire', 8, 136],
     tale: 'A dragon eighty cubits long ruled the night. Twice Rakhsh woke Rostam to warn him, and twice the dragon vanished into the dark. The third time God let Rostam see it, and with Rakhsh biting its neck he struck off its head.',
     how: ['You ride <b>Rakhsh</b>: faster, with a longer reach from the saddle.', 'The dragon <b>hides in the dark</b>; while hidden, blows pass through it.', 'When <b>Rakhsh rears and neighs</b> it is revealed: <b>charge and strike</b>, and <b>jump its fire</b>.'],
@@ -2938,7 +2973,7 @@ const GUIDE = [
     more: [['k6/divwarrior-smash', 8, 148, 'Div warrior', 'Three blows. Strike his back while he turns.'], ['k3/bat-fly', 8, 108, 'Bat', 'Swing up at it as it swoops.']] },
   { k: 0, tab: '\u2726', kick: 'Rostam\'s allies', fa: 'یاران', name: 'Rakhsh and the Simurgh', art: ['simurgh-fly', 9, 150],
     tale: 'Rostam never rides alone. Rakhsh, the rose-red horse no other rider could tame, carries him and fights beside him; and the Simurgh, the wise great bird who raised his father Zal, answers when a feather of hers is burned.',
-    how: ['Gather <b>eight provisions</b> in a labour and <b>Rakhsh</b> is well fed: he gallops in to kick the boss once.', 'Every provision fills your <b>Farr</b>. When it is full, press <b>F</b> (or tap Farr) and the Simurgh\'s light strikes every foe on screen.', 'Three <b>Simurgh feathers</b> hide in every labour, on its highest perches. Find all twenty-one for <b>the Simurgh\'s blessing</b>: one more heart, for ever.', 'Rostam\'s own arts: <b>dodge</b> (Shift), a <b>heavy blow</b> (hold Strike after a swing), and a <b>three-blow combo</b>.'],
+    how: ['Gather <b>eight provisions</b> in a labour and <b>Rakhsh</b> is well fed: he gallops in to kick the boss once.', `Every provision fills your <b>Farr</b>. When it is full, press ${keyHTML('farr')} (or tap Farr) and the Simurgh's light strikes every foe on screen.`, 'Three <b>Simurgh feathers</b> hide in every labour, on its highest perches. Find all twenty-one for <b>the Simurgh\'s blessing</b>: one more heart, for ever.', `Rostam's own arts: <b>dodge</b> (${keyHTML('dodge')}), a <b>heavy blow</b> (hold Strike after a swing), and a <b>three-blow combo</b>.`],
     more: [['k3/rakhsh-gallop', 8, 104, 'Rakhsh', 'Carries Rostam through the third labour, and rears to warn of the dragon.'], ['simurgh-fly', 9, 150, 'The Simurgh', 'Drops a feather after every victory. Take it to end the labour.']] }
 ];
 let gpg = 0, guideFrom = null;
@@ -2971,7 +3006,7 @@ function showGuide(i) {
     <div class="gtext"><div class="fa">${g.fa}</div><h2>${g.name}</h2><p class="kick">${g.kick || `Khan ${ROMAN[g.k]} &middot; ${NAMES[g.k][0]}`}</p><p class="gtale">${g.tale}</p></div></div>
     <div class="ghow"><h3>${g.k ? 'How to beat it' : 'How they help'} ${g.k ? '<span class="gkey"><i class="kz"></i>stars: dazed, strike now</span>' : ''}</h3><ol>${g.how.map(h => `<li>${h}</li>`).join('')}</ol></div>
     <h3 class="galso">${g.k ? 'Also on this road' : 'Who they are'}</h3><div class="gmore">${g.more.map(([src, n, h, name, tip]) => `<div>${mini([src, n, h], 64)}<p><b>${name}</b>${tip}</p></div>`).join('')}</div>`;
-  $('gleaf').scrollTop = 0; animateMinis();
+  refreshControlLabels($('gleaf')); $('gleaf').scrollTop = 0; animateMinis();
 }
 function openGuide(n) {
   if (playing) setPaused(true);
@@ -3094,7 +3129,7 @@ const CINE = {
 const CREDITS = `<div class="fa">هفت خوانِ رستم</div><h2>The Seven Labours of Rostam</h2><p>After the <em>Shahnameh</em>, the Book of Kings, by Ferdowsi of Tus (c. 1010 CE)</p>
   <img src="assets/ui/title-rostam.png?v=${V}" alt="">
   <h3>Made by</h3><p>Arash Nassirpour</p>
-  <h3>Pixel art</h3><p>Painted and animated with PixelLab</p>
+  <h3>Pixel art</h3><p>Painted and animated with PixelLab<br>Selected story paintings refined with OpenAI</p>
   <h3>Music and sound</h3><p>Recorded tracks and effects from Pixabay, among them<br>"Battle Boss Fight Game Music" by alex-morgan<br>Thunder, stone, metal and ice from "100 CC0 SFX #2" on OpenGameArt</p>
   <h3>Voices</h3><p>Narration and the voices of the foes made with ElevenLabs</p>
   <h3>Built with</h3><p>Phaser 3</p>
@@ -3104,7 +3139,8 @@ let cine = null;
 // the boss rush: the seven foes one after another, from each arena's door; hearts carry over, one restored between
 let rush = null;
 const RUSH_AT = { 1: 84, 2: 150, 3: 110, 4: 111, 5: 111, 6: 121, 7: 145 };
-function startRush() { rush = { n: 1, t0: performance.now(), hp: null, splits: [] }; begin(1, false, true); }
+function rushElapsed() { return performance.now() - rush.t0 - rush.pausedMs - (rush.pauseAt == null ? 0 : performance.now() - rush.pauseAt); }
+function startRush() { rush = { n: 1, t0: performance.now(), pausedMs: 0, pauseAt: null, hp: null, splits: [] }; begin(1, false, true); }
 // the narrator: recorded readings, one file per picture in assets/voice (open1.mp3 ... end3.mp3). A picture is read
 // aloud only if its name is in VOICED, so a missing recording never leaves a gap; the music sinks beneath the voice
 const VOICED = new Set(['open1', 'open2', 'open3', 'open4', 'open5', 'open6', 'end1', 'end2', 'end3', 'khan1', 'khan2', 'khan3', 'khan4', 'khan5', 'khan6', 'khan7', 'win1', 'win2', 'win3', 'win4', 'win5', 'win6', 'fall1', 'fall2', 'fall3', 'queen1', 'queen2', 'witch1', 'witch2', 'olad1', 'olad2', 'arzhang1', 'arzhang2', 'white1', 'white2', 'white3', 'kavus1']);
@@ -3118,14 +3154,15 @@ function voiceBuf(key) {
   if (!audio() || !VOICED.has(key)) return null;
   return voiceBufs[key] ||= fetch(`assets/voice/${key}.mp3?v=${V}`).then(r => r.arrayBuffer()).then(b => new Promise((ok, no) => A.ctx.decodeAudioData(b, ok, no))).catch(e => { delete voiceBufs[key]; throw e; });
 }
-function hush() {
+function hush(finish = false) {
   sayId++; const h = voiceEl; voiceEl = null;
   if (h?.src) { h.src.onended = null; try { h.src.stop(); } catch (e) {} }
   if (A.music) A.music.gain.value = 0.7 * SET.music / 70;
+  if (finish) h?.then?.();
 }
 function narrate(key, then) {
   if (!VOICED.has(key) || A.muted || !SET.voice || !audio()) return false;
-  hush(); const id = sayId, h = voiceEl = { duration: 0, t0: 0 };
+  hush(); const id = sayId, h = voiceEl = { duration: 0, t0: 0, then };
   if (!A.vox) { A.vox = A.ctx.createGain(); A.vox.connect(A.master); }
   A.vox.gain.value = 1.15 * SET.voice / 100;
   if (A.music) A.music.gain.value = 0.7 * SET.music / 70 * 0.3;   // the music sinks beneath the voice
@@ -3133,7 +3170,7 @@ function narrate(key, then) {
   voiceBuf(key).then(buf => {
     if (id !== sayId) return;
     const src = A.ctx.createBufferSource(); src.buffer = buf; src.connect(A.vox); src.onended = end; src.start();
-    h.src = src; h.duration = buf.duration; h.t0 = performance.now();
+    h.src = src; h.duration = buf.duration; h.t0 = A.ctx.currentTime * 1000;
   }).catch(end);
   return h;
 }
@@ -3152,6 +3189,12 @@ function say(k, { once = false, sub = true, then } = {}) {
 }
 // as a labour begins (the first time this visit) the narrator sets the scene
 function sayIntro(n) { say('khan' + n, { once: true }); }
+function cineAdvanceAfter(ms) {
+  const c = cine; if (!c) return;
+  clearTimeout(c.auto); c.autoRemaining = null; c.autoDue = Date.now() + ms;
+  if (A.background) { c.auto = 0; c.autoRemaining = ms; return; }
+  c.auto = setTimeout(() => { if (cine === c) { c.auto = 0; cineNext(); } }, ms);
+}
 function cinema(name, done, start = 0) {
   const P = CINE[name]; if (!P) { done?.(); return; }
   const ov = $('s-cine'), imgs = ov.querySelectorAll('.cimg');
@@ -3177,19 +3220,20 @@ function cineShow(i) {
   ov.querySelectorAll('.cdots i').forEach((d, k) => d.classList.toggle('on', k === i));
   const cap = ov.querySelector('.ccap'); cap.classList.remove('done'); cap.querySelector('.fa').textContent = fa; const p = cap.querySelector('p'); p.textContent = '';
   // the narration types out, a few letters at a time; the next picture follows on its own after a reading pause
-  clearInterval(c.typing); clearTimeout(c.auto); let n = 0;
+  clearInterval(c.typing); clearTimeout(c.auto); c.autoRemaining = null; let n = 0;
   // with the narrator on, the words appear at his pace and the next picture waits for him to finish
-  const panel = i, a = narrate(img, () => { if (cine === c && c.i === panel) { c.speaking = false; if (!c.typing) c.auto = setTimeout(cineNext, 1400); } });
+  const panel = i, a = narrate(img, () => { if (cine === c && c.i === panel) { c.speaking = false; if (!c.typing) cineAdvanceAfter(1400); } });
   c.speaking = !!a;
   c.typing = setInterval(() => {
-    n = c.speaking ? (a.duration ? Math.floor(text.length * (performance.now() - a.t0) / (a.duration * 900)) : 0) : n + 2;
+    if (A.background) return;
+    n = c.speaking ? (a.duration ? Math.floor(text.length * (A.ctx.currentTime * 1000 - a.t0) / (a.duration * 900)) : 0) : n + 2;
     p.textContent = text.slice(0, n);
-    if (n >= text.length) { clearInterval(c.typing); c.typing = 0; p.textContent = text; cap.classList.add('done'); if (!c.speaking) c.auto = setTimeout(cineNext, 2600 + text.length * 32); }
+    if (n >= text.length) { clearInterval(c.typing); c.typing = 0; p.textContent = text; cap.classList.add('done'); if (!c.speaking) cineAdvanceAfter(2600 + text.length * 32); }
   }, 28);
 }
 function cineNext() {
   const c = cine; if (!c) return;
-  if (c.typing) { clearInterval(c.typing); c.typing = 0; const cap = $('s-cine').querySelector('.ccap'); cap.querySelector('p').textContent = c.P[c.i][2]; cap.classList.add('done'); clearTimeout(c.auto); if (!c.speaking) c.auto = setTimeout(cineNext, 2600 + c.P[c.i][2].length * 32); return; }
+  if (c.typing) { clearInterval(c.typing); c.typing = 0; const cap = $('s-cine').querySelector('.ccap'); cap.querySelector('p').textContent = c.P[c.i][2]; cap.classList.add('done'); clearTimeout(c.auto); if (!c.speaking) cineAdvanceAfter(2600 + c.P[c.i][2].length * 32); return; }
   if (c.credits) return cineEnd();
   if (++c.i >= c.P.length) return c.name === 'ending' ? rollCredits() : cineEnd();
   cineShow(c.i); sfx('swing');
@@ -3197,7 +3241,7 @@ function cineNext() {
 function rollCredits() {
   const c = cine; clearTimeout(c.auto); c.credits = true; hush();
   $('roll').innerHTML = CREDITS; const r = $('roll'); r.style.animation = 'none'; void r.offsetWidth; r.style.animation = '';
-  $('credits').classList.remove('hidden'); c.auto = setTimeout(cineEnd, 34500);
+  $('credits').classList.remove('hidden'); cineAdvanceAfter(34500);
 }
 function cineEnd() {
   const c = cine; if (!c) return; hush(); cine = null; clearInterval(c.typing); clearTimeout(c.auto);
@@ -3297,7 +3341,7 @@ function padPoll() {
       if (!dir) padNav = 0;
       if (edge(0)) document.activeElement?.click?.();
       if (edge(1)) dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
-      if (edge(9) && playing === false && paused) setPaused(false);
+      if (edge(9) && menu.id === 's-pause' && paused) setPaused(false);
       for (const a of Object.values(PAD)) if (keys[a]) press(a, false); if (keys.left) press('left', false); if (keys.right) press('right', false);
     } else {
       for (const [i, a] of Object.entries(PAD)) if (b(i) !== was(i)) press(a, b(i));
@@ -3314,7 +3358,7 @@ addEventListener('gamepadconnected', () => { toast('Gamepad connected. Press Sta
 requestAnimationFrame(padPoll);
 // how to play: a page of the manuscript, opened from the home map and the menu
 let helpFrom = null;
-function openHelp() { if (playing) setPaused(true); helpFrom = document.querySelector('.ov:not(.hidden):not(#s-help)'); helpFrom?.classList.add('hidden'); $('s-help').classList.remove('hidden'); $('helpDone').focus(); }
+function openHelp() { refreshControlLabels(); if (playing) setPaused(true); helpFrom = document.querySelector('.ov:not(.hidden):not(#s-help)'); helpFrom?.classList.add('hidden'); $('s-help').classList.remove('hidden'); $('helpDone').focus(); }
 function closeHelp() { $('s-help').classList.add('hidden'); if (helpFrom) { helpFrom.classList.remove('hidden'); helpFrom.querySelector('.btn')?.focus(); } else openMap(false); }
 document.querySelectorAll('[data-help]').forEach(b => b.onclick = openHelp); $('helpDone').onclick = closeHelp; $('helpClose').onclick = closeHelp;
 document.querySelectorAll('[data-guide]').forEach(b => b.onclick = () => openGuide($('s-map').classList.contains('hidden') ? cur : pick));
@@ -3324,9 +3368,11 @@ $('rushBtn').onclick = startRush;
 let paused = false;
 function setPaused(on) {
   if (on === paused) return;
-  if (on && !cine) { hush(); $('sub').classList.remove('on'); }
+  if (on && !cine) { hush(true); $('sub').classList.remove('on'); }
   paused = on; playing = !on;
-  for (const k in keys) keys[k] = false;
+  clearInput();
+  if (rush) { if (on && rush.pauseAt == null) rush.pauseAt = performance.now();
+    else if (!on && rush.pauseAt != null) { rush.pausedMs += performance.now() - rush.pauseAt; rush.pauseAt = null; } }
   if (on) game.scene.pause('play'); else game.scene.resume('play');
   $('s-pause').classList.toggle('hidden', !on); music(!on);
   if (on) $('resumeBtn').focus();
@@ -3336,11 +3382,11 @@ let toastT = 0;
 // a standing line under the HUD: what to do right now. It changes as the labour unfolds.
 function hint(html) {
   const h = $('hint'); if (!html) { h.classList.add('hidden'); h.dataset.t = ''; return; }
-  if (h.dataset.t === html) return; h.dataset.t = html; h.innerHTML = html;
+  if (h.dataset.t === html) return; h.dataset.t = html; h.innerHTML = html; refreshControlLabels(h);
   h.classList.remove('hidden', 'new', 'dim'); void h.offsetWidth; h.classList.add('new');
   clearTimeout(hint.t); hint.t = setTimeout(() => h.classList.add('dim'), 7000);
 }
-function toast(msg) { if ($('sub').classList.contains('on')) return; const t = $('toast'); t.textContent = msg; t.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('on'), 3200); }
+function toast(msg) { if ($('sub').classList.contains('on')) return; const t = $('toast'); t.textContent = controlText(msg); t.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('on'), 3200); }
 function banner(fa, name, ep = '') {
   const lv = LEVELS[cur], b = $('banner');
   b.querySelector('.fa').textContent = fa || lv.bossFa || lv.fa; b.querySelector('h2').textContent = name || lv.bossName || lv.name;
@@ -3368,7 +3414,33 @@ document.querySelectorAll('[data-story]').forEach(b => b.onclick = () => openSto
 $('prevPg').onclick = () => turn(-1); $('nextPg').onclick = () => turn(1); $('storyClose').onclick = closeStory;
 $('pauseBtn').onclick = () => setPaused(true); $('resumeBtn').onclick = () => setPaused(false);
 $('restartBtn').onclick = () => { const sc = game.scene.getScene('play'); sc.done = true; begin(); };
-addEventListener('blur', () => { if (playing) setPaused(true); });
+function syncBackgroundAudio() {
+  const background = document.hidden || !document.hasFocus();
+  if (background === A.background) return;
+  A.background = background; document.body.classList.toggle('backgrounded', background);
+  if (background) {
+    clearInput();
+    if (playing) setPaused(true);
+    if (cine?.auto) { cine.autoRemaining = Math.max(0, cine.autoDue - Date.now()); clearTimeout(cine.auto); cine.auto = 0; }
+    if (A.master) A.master.gain.value = 0;
+    for (const t of Object.values(A.tracks)) { clearTimeout(t.stop); t.el.pause(); }
+    A.cur = null;
+    if (A.ctx?.state === 'running') A.ctx.suspend().catch(() => {});
+  } else {
+    if (A.master) A.master.gain.value = A.muted ? 0 : 0.8;
+    if (!A.muted) { audio(); pickTrack(); }
+    if (cine?.autoRemaining != null) cineAdvanceAfter(cine.autoRemaining);
+  }
+}
+addEventListener('blur', syncBackgroundAudio);
+addEventListener('focus', syncBackgroundAudio);
+document.addEventListener('visibilitychange', syncBackgroundAudio);
+document.addEventListener('game-load-error', () => {
+  clearInput(); playing = false; A.failed = true; game?.scene.pause('play');
+  if (A.master) A.master.gain.value = 0;
+  for (const t of Object.values(A.tracks)) { clearTimeout(t.stop); t.el.pause(); }
+  A.cur = null; if (A.ctx?.state === 'running') A.ctx.suspend().catch(() => {});
+});
 game = new Phaser.Game({
   type: Phaser.AUTO, parent: 'game', width: W * ZOOM, height: H * ZOOM, pixelArt: true, backgroundColor: '#06060c',
   scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH },
@@ -3377,15 +3449,23 @@ game = new Phaser.Game({
 });
 $('playBtn').onclick = () => (unlocked() > 1 ? openMap() : begin(1)); $('againBtn').onclick = () => $('winTitle').textContent === 'The boss rush is done' ? startRush() : begin(); $('retryBtn').onclick = () => rush ? startRush() : begin(cur, true); $('freshBtn').onclick = () => begin();
 $('muteBtn').onclick = () => { audio(); setMuted(!A.muted); };
-setMuted(A.muted);
+setMuted(A.muted); document.body.classList.toggle('backgrounded', A.background);
 openMap(false);                                                   // the game opens on the road of the seven labours
 // the self-test (open the game with #selftest): every labour is loaded and played through on a fast, silent clock, and a
 // report lists what passed and what failed: errors, checkpoints, stuck foes, each boss beaten through to its victory
 if (location.hash === '#selftest') (async () => {
   const W8 = ms => new Promise(r => setTimeout(r, ms)), sc = () => game.scene.getScene('play');
-  let T = performance.now() + 1e6; const step = k => { for (let i = 0; i < k; i++) { T += 16.67; game.step(T, 16.67); } };
+  // Phaser 3.80 tweens normally use Date.now(), independently of game.step's clock.
+  // Give both clocks the same simulated frame delta here, and restore normal timing afterwards.
+  const tweenClocks = new Map();
+  let T = performance.now() + 1e6; const step = k => {
+    const manager = sc()?.tweens;
+    if (manager && !tweenClocks.has(manager)) { tweenClocks.set(manager, manager.getDelta); manager.getDelta = () => 16.67; }
+    for (let i = 0; i < k; i++) { T += 16.67; game.step(T, 16.67); }
+  };
   const errs = []; addEventListener('error', e => errs.push(`${e.message} (line ${e.lineno})`));
   const saved = Object.fromEntries(Object.keys(localStorage).filter(k => k.startsWith('sh-')).map(k => [k, localStorage.getItem(k)]));   // put back afterwards
+  try {
   while (!game.isBooted || !game.renderer) await W8(50);
   A.muted = true; game.loop.sleep();
   const box = document.createElement('div'); box.style.cssText = 'position:fixed;inset:20px;z-index:99;overflow:auto;padding:18px 22px;background:rgba(8,10,24,.96);color:#f6ead0;font:14px/1.5 Inter,sans-serif;border:2px solid #e8c25a;border-radius:12px;white-space:pre-wrap';
@@ -3428,7 +3508,8 @@ if (location.hash === '#selftest') (async () => {
     if (B) {
       B.hp = 1; s.damage(B, 1, true); let done = false;
       for (let i = 0; i < 160 && !done; i++) { step(10); await W8(5); s.hp = 99;
-        const f = s.children.list.find(o => o.texture?.key === 'feather' && o.spark && !o.taken); if (f && !f.taken) s.takeFeather(f);
+        const f = s.children.list.find(o => o.texture?.key === 'feather' && o.kind !== 'sfeather' && o.spark && o.glow && !o.taken); if (f && !f.taken) s.takeFeather(f);
+        if (n === 2 && s.springOpen && !s.drank) s.reachSpring();
         if (n === LABOURS && s.whiteDown && !s.ended) s.freeKing();
         done = s.done || !$('s-cine').classList.contains('hidden'); }
       if (!$('s-cine').classList.contains('hidden')) cineEnd();
@@ -3440,8 +3521,13 @@ if (location.hash === '#selftest') (async () => {
   const urls = [...[...VOICED].map(k => `assets/voice/${k}.mp3`), ...Object.keys(FX).map(k => `assets/fx/${k}.png`), ...Object.values(CINE).flat().map(([img]) => `assets/cine/${img}.png`), ...Object.values(SAMPLE).map(([f]) => `assets/sfx/${f}.m4a`)];
   const missing = []; await Promise.all([...new Set(urls)].map(u => fetch(u, { method: 'HEAD' }).then(r => r.ok || missing.push(u)).catch(() => missing.push(u))));
   say(!missing.length, `${new Set(urls).size} sound and picture files load${missing.length ? `; missing: ${missing.join(', ')}` : ''}`);
-  Object.keys(localStorage).filter(k => k.startsWith('sh-')).forEach(k => localStorage.removeItem(k)); Object.entries(saved).forEach(([k, v]) => localStorage.setItem(k, v));
+
   lines.push(`\n${fails ? `${fails} check(s) FAILED` : 'All checks passed.'}  Your progress was not changed: reload without #selftest to play.`); box.textContent = lines.join('\n');
+  } finally {
+    for (const [manager, getDelta] of tweenClocks) manager.getDelta = getDelta;
+    Object.keys(localStorage).filter(k => k.startsWith('sh-')).forEach(k => localStorage.removeItem(k));
+    Object.entries(saved).forEach(([k, v]) => localStorage.setItem(k, v));
+  }
 })();
-if (location.hash === '#debug') window.__sh = { game, scene: () => game.scene.getScene('play'), keys, pressed, setPaused, openStory, begin, openMap, LEVELS, FOES, snd: { A, audio, sfx, pickTrack }, cinema, SET, VOICED };
+if (location.hash === '#debug') window.__sh = { game, scene: () => game.scene.getScene('play'), keys, pressed, setPaused, openStory, begin, openMap, LEVELS, FOES, snd: { A, audio, sfx, pickTrack }, cinema, SET, VOICED, rushTime: () => rush ? rushElapsed() : null };
 })();
