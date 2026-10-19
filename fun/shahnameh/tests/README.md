@@ -35,3 +35,5 @@ Require `LION REGRESSION COMPLETE`, all 19 probes passing, and no errors. Result
 For a normal-speed lion fight with normal health, open <http://127.0.0.1:8773/lion-play.html#debug> while this server is running. It skips the approach and starts in the lion arena, with audio disabled. This test route is local only.
 
 The normal-speed arena preview also accepts `?boss=2` through `?boss=7` before `#debug`, for example <http://127.0.0.1:8773/lion-play.html?boss=3#debug>. These local previews skip each labour's approach but retain normal player health and combat speed.
+
+The boss suite now includes 96 probes: Queen rear-player tracking and honest eruption cues; dragon directional lunges, pinned movement and flame-safe recovery; witch committed casting, reflected-curse stagger and bounded teleport placement; Olad boundary footwork, ledge choices and clear guard-down cues; directional Div charges, Arzhang's committed stomp and per-blow combo cues; and the White Div's post-ice punish window after actual hazards expire.
