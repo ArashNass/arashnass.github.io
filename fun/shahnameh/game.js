@@ -3231,11 +3231,10 @@ function renderMap() {
     b.onkeydown = e => { if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(e.key)) return; e.preventDefault(); e.stopPropagation(); pick = e.key === 'Home' ? 1 : e.key === 'End' ? Math.min(u, LABOURS) : Phaser.Math.Clamp(pick + (e.key === 'ArrowRight' ? 1 : -1), 1, Math.min(u, LABOURS)); renderMap(); $('road').querySelector(`[data-n="${pick}"]`)?.focus({ preventScroll: true }); };
   });
   const ready = !!LEVELS[pick] && pick <= u, best = bestOf(pick);
-  const found = [0, 1, 2].filter(k => F[pick + ':' + k]).length, finished = Array.from({ length: LABOURS }, (_, i) => i + 1).filter(n => bestOf(n)).length;
+  const found = [0, 1, 2].filter(k => F[pick + ':' + k]).length;
   $('journeyTitle').textContent = NAMES[pick][0];
-  $('journeyChapter').textContent = `Khan ${ROMAN[pick]} · ${pick} of ${LABOURS}`;
+  $('journeyChapter').textContent = `Khan ${ROMAN[pick]}`;
   $('journeyStatus').textContent = best ? 'A road already travelled' : pick === 1 ? 'The journey begins' : 'The next chapter awaits';
-  $('journeyProgress').textContent = `${finished} of ${LABOURS} completed · ${Object.keys(F).length} feathers`;
   const art = $('journeyArt'), artPath = `assets/cine/khan${pick}-intro.png?v=${V}`;
   if (art.getAttribute('src') !== artPath) art.src = artPath; art.alt = `${NAMES[pick][0]}: ${BLURB[pick]}`;
   $('mapInfo').innerHTML = `${BLURB[pick]}<span class="ftot">Simurgh feathers <b>${found} / 3</b>${best ? `<br>Best time <b>${fmtTime(best * 1000)}</b>` : ''}${Object.keys(F).length >= 21 ? '<br>The Simurgh blesses you.' : ''}</span>`;
