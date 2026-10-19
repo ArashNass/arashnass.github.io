@@ -7,7 +7,7 @@ const log=(ok,msg)=>{lines.push((ok?'PASS ':'FAIL ')+msg);box.textContent=lines.
 const until=async(fn,msg,ms=20000)=>{let t=Date.now();while(!fn()){if(Date.now()-t>ms)throw Error('Timed out: '+msg);await sleep(30);}};
 try{
  await until(()=>window.__sh?.scene()?.player,'boot');const S=window.__sh;S.snd.A.muted=true;S.SET.voice=0;
- const begin=async n=>{S.begin(n);document.getElementById('cineSkip').click();await until(()=>S.scene().lv===S.LEVELS[n]&&S.game.scene.isActive('play'),'level '+n);await sleep(120);return S.scene()};
+ const begin=async n=>{const previous=S.scene().player,first=!S.scene().started&&!S.scene().done&&S.scene().lv===S.LEVELS[n];S.begin(n);document.getElementById('cineSkip').click();await until(()=>(first||S.scene().player!==previous)&&S.scene().lv===S.LEVELS[n]&&S.game.scene.isActive('play'),'level '+n);await sleep(120);return S.scene()};
  let sc=await begin(1);
  S.setPaused(true);dispatchEvent(new KeyboardEvent('keydown',{key:'x'}));
  log(!S.pressed.attack&&!S.keys.attack,'Keyboard Strike is ignored in the pause menu');S.setPaused(false);

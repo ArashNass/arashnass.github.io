@@ -1,0 +1,58 @@
+(async()=>{
+if(location.hostname!=='127.0.0.1'||location.port!=='8772')throw Error('Dedicated test origin required');
+const sleep=ms=>new Promise(r=>setTimeout(r,ms)), result={trials:[],probes:[],errors:[]};
+addEventListener('error',e=>result.errors.push(e.message));
+const box=document.createElement('pre');box.id='boss-audit-report';box.style='position:fixed;inset:12px;z-index:101;background:#101520ee;color:white;overflow:auto;padding:15px;pointer-events:none';document.body.append(box);
+const write=s=>box.textContent+=s+'\n';
+try{
+ while(!window.__sh?.scene()?.player)await sleep(30);
+ const S=window.__sh;S.snd.A.muted=true;S.SET.voice=0;S.SET.shake=false;S.SET.flash=false;S.game.loop.sleep();
+ let T=performance.now()+1e6,dt=1000/60;const clocks=new Map();
+ const step=(n=1)=>{const m=S.scene()?.tweens;if(m&&!clocks.has(m)){clocks.set(m,m.getDelta);m.getDelta=()=>dt;}for(let i=0;i<n;i++){T+=dt;S.game.step(T,dt);}};
+ const bases={};for(const k of ['hurt','hazard','shoot','iceStrike','splitFloor','sweepHigh'])bases[k]=S.scene()[k];
+ const start=[null,'startBoss','startQueen','startDragon','startWitch','startOlad','startArzhang','startWhiteDiv'];
+ const left=[0,86,138,112,112,112,124,146],ledge=[0,90,142,116,116,116,128,150];
+ const load=async n=>{
+  let sc=S.scene();for(const k in bases)sc[k]=bases[k];
+  const previousPlayer=sc.player, first=!sc.started&&!sc.done&&sc.lv===S.LEVELS[n];let created=false;S.begin(n,false,false,true);for(let i=0;i<500;i++){step(3);await sleep(8);sc=S.scene();created=(first||sc.player!==previousPlayer)&&sc.player?.active&&!!sc.foes?.children;if(created&&sc.lv===S.LEVELS[n])break;}if(!created)throw Error('Level not ready '+n);
+  sc.hp=sc.maxHp=999;sc.water=100;sc.hordeDone=true;sc.foes.clear(true,true);sc.prayed=true;
+  sc.player.body.reset((left[n]+6)*16,14*16-1-.47*sc.player.displayHeight);sc.player.setVelocity(0);
+  if(!sc.bossOn)sc[start[n]]();if(n===4&&!sc.unmasked)sc.unmask();
+  for(let i=0;i<220&&(sc.intro||sc.frozen||!sc.boss?.body.enable);i++){step(1);if(i%60===0)await sleep(2);}
+  sc.frozen=false;sc.intro=false;sc.hp=999;return sc;
+ };
+
+ const check=(name,ok,details={})=>{result.probes.push({name,pass:!!ok,...details});write((ok?'PASS ':'FAIL ')+name+' '+JSON.stringify(details));};
+ for(const fps of [30,60]){dt=1000/fps;for(let n=1;n<=7;n++){const sc=await load(n),B=sc.boss;let below=false;for(let i=0;i<fps*30;i++){step();below ||= B.body.top>472;if(i%120===0)await sleep(1);}check(`boss ${n} remains in arena at ${fps}fps`,!below,{y:B.y,state:B.state});}}
+ for(const fps of [30,60]){dt=1000/fps;const sc=await load(1),B=sc.boss;B.state='roar';B.tm=120;let frames=0;while(B.state==='roar'&&frames<200){step();frames++;}check(`real-time roar at ${fps}fps`,Math.abs(frames*dt-2000)<dt+1,{ms:frames*dt});}
+ dt=1000/60;
+ {const sc=await load(5),B=sc.boss;B.state='guard';B.tm=999;B.dir=-1;B.body.reset(132*16,224-1-.47*B.displayHeight);B.setVelocity(0);sc.player.body.reset(B.x-28,224-1-.47*sc.player.displayHeight);sc.player.setVelocity(0);S.keys.right=true;step();S.keys.right=false;sc.atk=10;sc.hitDone=new Set();sc.heavy=null;const hp=B.hp;step();check('blocked strike has no knockback',B.hp===hp&&B.body.velocity.y>=0,{hp:B.hp,vy:B.body.velocity.y});}
+ {const sc=await load(1),B=sc.boss;B.state='stun';B.tm=100;B.setVelocity(0);sc.inv=0;sc.player.body.reset(sc.player.x+B.body.center.x-sc.player.body.center.x,sc.player.y+B.body.center.y-sc.player.body.center.y);sc.player.setVelocity(0);const hp=sc.hp;step();check('stunned lion contact is safe',sc.hp===hp);}
+ {const sc=await load(5),B=sc.boss;B.state='ready';B.tm=20;B.dir=-1;sc.player.body.reset(B.x+30,sc.player.y);sc.oladAI();check('Olad windup commits direction',B.dir===-1);}
+ {const sc=await load(3),B=sc.boss;B.state='lunge';B.tm=30;B.dir=1;B.setVelocityX(250);sc.player.body.reset(B.x-60,sc.player.y);sc.dragonAI();check('dragon lunge faces movement',B.dir===1&&!B.flipX&&B.body.velocity.x>0);}
+ {const sc=await load(7),B=sc.boss;let created=0;sc.hazard=function(...args){created++;return bases.hazard.apply(this,args)};sc.iceStrike(sc.player.x);B.hp=1;sc.damage(B,1,true);step(110);check('queued icicle cannot attack after death',created===0,{created});}
+ {const sc=await load(1),B=sc.boss;B.state='crouch';B.tm=32;B.dir=-1;B.setVelocity(0);step(20);check('lion has visible pounce anticipation',B.state==='crouch'&&B.body.velocity.y===0);step(14);check('lion launches after anticipation',B.state==='pounce'&&B.body.velocity.y<0);}
+ {const sc=await load(5),B=sc.boss;B.hp=Math.floor(B.max/2);B.state='walk';B.tm=0;sc.oladAI();B.state='slash';B.tm=0;sc.oladAI();check('Olad second phase warns before follow-up',B.state==='ready'&&B.tm>=30);B.state='slash';B.tm=0;sc.oladAI();check('Olad combo ends with punish window',B.state==='open'&&B.tm>=80);}
+ {const sc=await load(2),B=sc.boss;B.state='walk';B.diveAge=800;sc.queenAI();check('Queen cannot indefinitely skip burrow',B.state==='dive');B.state='surfacing';B.tm=18;check('Queen eruption is not advertised as opening',B.immune());step(19);check('Queen opens after eruption',B.state==='surfaced'&&!B.immune());}
+ {const sc=await load(3),B=sc.boss;B.hp=Math.floor(B.max/2);B.state='breath';B.tm=0;B.fired=true;sc.dragonAI();check('dragon phase two has warned follow-up',B.state==='coil'&&B.tm>=30);}
+ {const sc=await load(6),B=sc.boss;sc.placeBoss(B);B.body.reset(B.x,1000);step();check('boss out-of-world recovery',B.body.bottom<300);}
+ for(const n of [6,7]){const sc=await load(n),B=sc.boss;B.state=n===6?'raise':'raise';B.tm=1;if(n===6)B.combo=['split'];let opened=false;for(let i=0;i<150;i++){step();if(B.state===(n===6?'rest':'stuck')){opened=true;break;}}check(`boss ${n} floor hazard expires before opening`,opened&&sc.hazards.every(z=>z.until<=sc.time.now),{state:B.state,remaining:sc.hazards.map(z=>z.until-sc.time.now)});}
+ // Defeat through the actual player's melee update: no forced boss damage, immunity changes or forced opening states.
+ for(let n=1;n<=7;n++){
+  const sc=await load(n),B=sc.boss;let strikes=0,elapsed=0;const states=new Set();
+  for(;elapsed<24000&&B.hp>0;elapsed++){
+   sc.hp=999;sc.inv=999;sc.water=100;states.add(B.state);
+   if(B.body.enable&&B.alpha>.5&&!B.immune?.()){
+    const side=B.x>sc.cam.scrollX+240?-1:1;
+    const px=side<0?B.body.left-sc.player.body.width/2-10:B.body.right+sc.player.body.width/2+10;
+    sc.face=side<0?1:-1;
+    sc.player.body.reset(px,sc.bossFloorAt(px)-1-.47*sc.player.displayHeight);sc.player.setVelocity(0);
+    if(elapsed%18===0){sc.atk=10;sc.hitDone=new Set();sc.heavy=null;strikes++;}
+   }else if(elapsed%60===0){sc.player.body.reset((left[n]+19)*16,224-1-.47*sc.player.displayHeight);sc.player.setVelocity(0);}
+   step();if(elapsed%180===0)await sleep(1);
+  }
+  check(`boss ${n} defeated by player strike collisions`,B.hp<=0,{seconds:elapsed/60,strikes,hp:B.hp,states:[...states]});
+ }
+ S.setPaused(true);write('BOSS FIX REGRESSION COMPLETE');
+}catch(e){result.error=e.stack;write(e.stack);}fetch('/__result',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(result)});
+})();

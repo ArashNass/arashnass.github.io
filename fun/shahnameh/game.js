@@ -1544,7 +1544,8 @@ class Play extends Phaser.Scene {
   }
   strikeBox(extra = 0) { const p = this.player, r = (this.mounted ? 48 : 34) + (upg().reach ? 12 : 0) + extra; return new Phaser.Geom.Rectangle(this.face > 0 ? p.body.right - 4 : p.body.left - r + 4, p.body.top - 22, r, p.body.height + 24); }   // the blade arcs over his head too
   damage(f, n = 1, force = false) {
-    if (f.immune?.() && !force) { this.fx('dust', f.x, f.body.center.y, { depth: 10 }); sfx('clang'); if (!this.toldImmune) { this.toldImmune = true; toast(f.immuneMsg || 'Your blow passes through shadow.'); } return; }
+    if (!f.active || !f.body.enable || f.hp <= 0) return false;
+    if (f.immune?.() && !force) { this.fx('dust', f.x, f.body.center.y, { depth: 10 }); sfx('clang'); if (!this.toldImmune) { this.toldImmune = true; toast(f.immuneMsg || 'Your blow passes through shadow.'); } return false; }
     f.hp -= n; f.setTintFill(0xffffff); this.time.delayedCall(80, () => f.active && f.clearTint());
     const hx = Phaser.Math.Clamp(this.face > 0 ? f.body.left + 6 : f.body.right - 6, f.body.left, f.body.right);
     this.fx('hit', hx, f.body.center.y - 4, { depth: 10 }); sfx('hit'); this.cam.shake(80, 0.004);
@@ -1555,9 +1556,10 @@ class Play extends Phaser.Scene {
       if (r != null) { this.heart(x, r * TS - 12); toast('A heart appears in the arena. Take it!'); }
     }
     if (f.hp <= 0) {
-      if (f === this.boss) return f.onDown();
+      if (f === this.boss) { f.onDown(); return true; }
       this.kills++; f.body.enable = false; this.slay(f); this.gainFarr(4);
     }
+    return true;
   }
   // a tiny freeze on impact makes blows feel heavy
   // a slain foe flashes white, then bursts into its own pixels, which fly apart as embers and fade
@@ -1668,13 +1670,29 @@ class Play extends Phaser.Scene {
     this.cam.stopFollow(); this.tweens.add({ targets: this.cam, scrollX: Math.min(this.levelW - W, x0), duration: 700, ease: 'Sine.easeInOut' });
     this.arenaWalls(x0);
     const l = this.lion = this.physics.add.sprite(this.lionAt.x, this.lionAt.y - 40, 'lion-walk', 0);
-    this.fit(l, 'lion'); l.hp = l.max = gentle() ? 6 : legend() ? 11 : 8; l.state = 'roar'; l.tm = 70; l.dir = -1; l.setFlipX(true); l.play('lion-roar'); l.setDepth(4);
+    this.fit(l, 'lion'); this.placeBoss(l); l.hp = l.max = gentle() ? 6 : legend() ? 11 : 8; l.state = 'roar'; l.tm = 70; l.dir = -1; l.setFlipX(true); l.play('lion-roar'); l.setDepth(4);
     this.boss = l; l.keep = KEEP1; l.onDown = () => this.lionDown(); l.ai = () => this.lionAI();
-    l.immune = () => l.state !== 'stun'; l.immuneMsg = 'The lion\'s hide turns your blow. Jump its charge so it runs into the rocks, then strike while it is dazed.';
+    l.calm = () => l.state === 'stun'; l.contact = () => ['charge', 'pounce'].includes(l.state);
+    l.immune = () => !l.calm(); l.immuneMsg = 'The lion\'s hide turns your blow. Jump its charge so it runs into the rocks, then strike while it is dazed.';
     this.physics.add.collider(l, this.layer, null, onFloor); this.physics.add.collider(l, [this.wall, this.wallR]);
     sfx('roar'); this.roarRings(l);
     $('boss').classList.remove('hidden'); this.bossBar(); this.bossIntro(l);
     hint('The lion roars, then charges. <b>Jump over the charge</b>: when it runs into the rocks it is dazed. <b>Strike while the stars circle its head.</b>');
+  }
+  // Keep frame-authored patterns in real time, independent of render/update frequency.
+  bossStep() { return this.bossDelta ?? 1; }
+  bossFloorAt(x) {
+    for (let r = 2; r < ROWS; r++) { const t = this.layer.getTileAtWorldXY(x, r * TS + 2); if (t?.collides && t.index % 4 !== 2) return r * TS; }
+    return 14 * TS;
+  }
+  placeBoss(b) {
+    const y = this.bossFloorAt(b.x) - 1 - 0.47 * b.displayHeight;
+    b.body.reset(b.x, y); b.setVelocity(0);
+  }
+  // At most two consecutive repeats; distance/height may still favour the same move.
+  bossChoice(b, preferred, alternative) {
+    const move = b.lastMove === preferred && b.moveRepeats >= 2 ? alternative : preferred;
+    b.moveRepeats = b.lastMove === move ? b.moveRepeats + 1 : 1; b.lastMove = move; return move;
   }
   bossBar() { $('bossHp').style.width = (this.boss.hp / this.boss.max * 100) + '%'; }
   // when a blow will land the boss bar says so; over the boss itself only the dazed stars show
@@ -1687,7 +1705,7 @@ class Play extends Phaser.Scene {
     }
     this.cornerHeart(B.x, time);
     // a well-fed Rakhsh gallops in once: twelve seconds into the fight, or sooner if Rostam is hard pressed
-    this.bossT = (this.bossT || 0) + 1;
+    this.bossT = (this.bossT || 0) + this.bossStep();
     if (this.rakhshFed && !this.rakhshRode && !this.mounted && !this.frozen && B.hp > 0 && B.body.enable && B.alpha > 0.5 && (B.kickable?.() ?? true) && (this.bossT > 720 || this.hp <= 2)) this.rakhshRides(B);
   }
   rakhshRides(B) {
@@ -1708,7 +1726,7 @@ class Play extends Phaser.Scene {
   // now and then a heart glows in the corner of the arena farthest from the danger (a ledge if there is one), for 10 s
   cornerHeart(fromX, time) {
     if (legend()) return;   // on the legend's road no heart is given in the arena
-    this.bossHeartT = (this.bossHeartT ?? 480) - 1;
+    this.bossHeartT = (this.bossHeartT ?? 480) - this.bossStep();
     if (this.bossHeart?.active && time > this.bossHeart.dieAt) { this.bossHeart.glow?.destroy(); this.bossHeart.beacon?.destroy(); this.bossHeart.destroy(); }
     if (this.bossHeartT <= 0) {
       this.bossHeartT = 900;
@@ -1723,12 +1741,13 @@ class Play extends Phaser.Scene {
   hideMark() { this.mark?.destroy(); this.markGlow?.destroy(); this.mark = this.markGlow = null; this.markOpen = undefined; if (this.bossHeart?.active) { this.bossHeart.glow?.destroy(); this.bossHeart.destroy(); } }
   lionAI() {
     const l = this.lion, p = this.player; if (!l || !l.active || l.hp <= 0) return;
-    l.tm--; const toP = Math.sign(p.x - l.x) || 1;
-    if (l.state === 'prowl') { l.setVelocityX(toP * 45); l.dir = toP; if (l.anims.currentAnim?.key !== 'lion-walk') l.play('lion-walk'); if (l.tm <= 0) { l.state = Math.random() < 0.6 ? 'roar' : 'pounce'; l.tm = 45; l.setVelocityX(0); if (l.state === 'roar') { l.play('lion-roar'); sfx('roar'); this.roarRings(l); } } }
+    l.tm -= this.bossStep(); const toP = Math.sign(p.x - l.x) || 1;
+    if (l.state === 'prowl') { l.setVelocityX(toP * 45); l.dir = toP; if (l.anims.currentAnim?.key !== 'lion-walk') l.play('lion-walk'); if (l.tm <= 0) { const preferred = Math.abs(p.x - l.x) > 140 || Math.random() < 0.6 ? 'roar' : 'crouch'; l.state = this.bossChoice(l, preferred, preferred === 'roar' ? 'crouch' : 'roar'); l.tm = l.state === 'crouch' ? 32 : 45; l.dir = toP; l.setVelocityX(0); if (l.state === 'crouch') { l.anims.stop(); l.setFrame(0); } if (l.state === 'roar') { l.play('lion-roar'); sfx('roar'); this.roarRings(l); } } }
     else if (l.state === 'roar') { l.setVelocityX(0); if (l.tm <= 0) { l.state = 'charge'; l.dir = toP; l.tm = 110; l.play('lion-run'); } }
     else if (l.state === 'charge') { l.setVelocityX(l.dir * 230); if (l.body.blocked.left || l.body.blocked.right || l.hitKeep || l.tm <= 0) { l.state = 'stun'; l.tm = 110; l.setVelocityX(0); l.play('lion-walk'); l.anims.pause(); this.cam.shake(200, 0.01);
       this.fx('dust', l.x + l.dir * 30, l.body.bottom, { depth: 8 }); this.stars = this.fx('stun', l.x, l.body.top - 6, { depth: 10, follow: l }); } }
-    else if (l.state === 'pounce') { if (l.tm === 44) { l.dir = toP; l.setVelocity(toP * 170, -330); l.play('lion-run'); } if (l.tm < 30 && l.body.blocked.down) { l.state = 'prowl'; l.tm = 70 + Math.random() * 40; l.setVelocityX(0); } }
+    else if (l.state === 'crouch') { l.setVelocityX(0); l.setTint(0xffdc9a); if (l.tm <= 0) { l.clearTint(); l.state = 'pounce'; l.tm = 45; l.setVelocity(l.dir * 170, -330); l.play('lion-run'); } }
+    else if (l.state === 'pounce') { if (l.tm < 30 && l.body.blocked.down) { l.state = 'prowl'; l.tm = 70 + Math.random() * 40; l.setVelocityX(0); } }
     else if (l.state === 'stun') { if (this.stars) this.stars.setPosition(Math.round(l.x), Math.round(l.body.top - 6)); if (l.tm <= 0) { l.anims.resume(); l.state = 'prowl'; l.tm = 80; this.stars?.destroy(); this.stars = null; } }
     if (l.state === 'pounce' && l.tm < 30 && l.body.blocked.down && !l.landed) { l.landed = true; this.fx('dust', l.x, l.body.bottom, { depth: 8 }); }
     if (l.state !== 'pounce') l.landed = false;
@@ -1918,7 +1937,7 @@ class Play extends Phaser.Scene {
         const targets = [...this.foes.getChildren(), ...(this.boss && this.boss.active && this.boss.hp > 0 ? [this.boss] : [])];
         // the Mace of Sam: double against foes, and every other blow on a boss lands twice as hard
         const mace = upg().mace, base = this.heavy === 'heavy' ? 3 : this.heavy ? 2 : 1, hit = f => (!mace ? 1 : f !== this.boss ? 2 : (this.maceHit = !this.maceHit) ? 2 : 1) * base;
-        for (const f of targets) if (f.body.enable && !this.hitDone.has(f) && Phaser.Geom.Intersects.RectangleToRectangle(box, f.body)) { this.hitDone.add(f); this.damage(f, hit(f)); if (!f.calm?.()) f.body.allowGravity ? f.setVelocity(this.face * (f === this.boss ? 60 : 140), f.kind === 'vulture' ? -60 : -120) : f === this.boss ? f.setVelocityX(this.face * 60) : f.setVelocity(this.face * 140, -60); }
+        for (const f of targets) if (f.body.enable && !this.hitDone.has(f) && Phaser.Geom.Intersects.RectangleToRectangle(box, f.body)) { this.hitDone.add(f); const landed = this.damage(f, hit(f)); if (landed && f.hp > 0 && f.body.enable && !f.calm?.()) f.body.allowGravity ? f.setVelocity(this.face * (f === this.boss ? 60 : 140), f.kind === 'vulture' ? -60 : -120) : f === this.boss ? f.setVelocityX(this.face * 60) : f.setVelocity(this.face * 140, -60); }
         for (const sh of this.shots.getChildren()) if (sh.curse && !sh.back && Phaser.Geom.Intersects.RectangleToRectangle(box, sh.getBounds())) this.deflect(sh);
       }
     }
@@ -1960,15 +1979,17 @@ class Play extends Phaser.Scene {
     this.lv.update?.(this, k, time, p, b);
     // projectiles expire; hazard zones (fire breath, shockwaves) hurt while they last
     for (const sh of this.shots.getChildren()) if (time > sh.die) sh.destroy(); else if (sh.spin) sh.angle += sh.spin * k;
-    this.hazards = this.hazards.filter(z => { if (z.move) z.r.x += z.move * k; if (Phaser.Geom.Intersects.RectangleToRectangle(b, z.r)) this.hurt(z.r.centerX); return time < z.until; });
+    this.hazards = this.hazards.filter(z => { if (time >= z.until) return false; if (z.move) z.r.x += z.move * k; if (Phaser.Geom.Intersects.RectangleToRectangle(b, z.r)) this.hurt(z.r.centerX); return time < z.until; });
     this.drawDark();
     // a curse turned back strikes the one who cast it
     for (const sh of this.shots.getChildren()) if (sh.back && this.boss?.active && this.boss.hp > 0 && this.boss.body.enable && Phaser.Geom.Intersects.RectangleToRectangle(sh.getBounds(), this.boss.body)) { sh.destroy(); this.boss.onBack ? this.boss.onBack() : this.damage(this.boss); }
     // boss
     const B = this.boss;
+    this.bossDelta = delta / (1000 / 60);
     if (B && B.active && B.hp > 0) {
+      if (B.body.enable && B.body.allowGravity && B.body.top > ROWS * TS + 60) this.placeBoss(B);
       if (this.intro) { B.setVelocityX?.(0); if (B.anims?.isPlaying && B.anims.currentAnim?.key?.endsWith('walk')) { B.anims.stop(); B.setFrame(0); } } else B.ai();
-      if (B.faceRostam && B.body.enable) B.setFlipX(p.x < B.x);   // a great Div never takes his eyes off Rostam
+      if (B.faceRostam && B.body.enable) B.setFlipX(B.dir < 0);   // keep the artwork aligned with the committed attack
       this.bossBar(); this.bossMark(B, time);
       // below half strength a boss burns with rage: red fire flickers up behind it
       if (B.lines?.rage && B.hp > 0 && B.hp <= B.max / 2) say(B.lines.rage, { once: true });
@@ -1978,7 +1999,7 @@ class Play extends Phaser.Scene {
       B.hitKeep = false;
       if (B.keep && B.body.enable && B.x < B.keep * TS) { B.x = B.keep * TS; if (B.body.velocity.x < 0) B.setVelocityX(0); B.hitKeep = true; }
       // as a boss recovers from an opening it shrugs Rostam off for a moment rather than hurting him where he stands
-      const calm = !!B.calm?.(); if (B.wasCalm && !calm) B.grace = 45; B.wasCalm = calm; B.grace = (B.grace || 0) - 1;
+      const calm = !!B.calm?.(); if (B.wasCalm && !calm) B.grace = 45; B.wasCalm = calm; B.grace = (B.grace || 0) - this.bossStep();
       // touching a boss hurts unless it is reeling (or still hidden, or not yet unmasked); landing on an open one is a blow
       if (B.alpha > 0.5 && !B.noMark?.() && Phaser.Geom.Intersects.RectangleToRectangle(b, B.body)) {
         if (!B.immune?.() && b.velocity.y > 60 && b.bottom - B.body.top < 14) { this.damage(B); p.setVelocityY(-320); }
@@ -2126,6 +2147,7 @@ class Play extends Phaser.Scene {
     this.bossOn = true;
     this.cam.stopFollow(); this.tweens.add({ targets: this.cam, scrollX: Math.min(this.levelW - W, x0), duration: 700, ease: 'Sine.easeInOut' });
     this.arenaWalls(x0);
+    if (boss.body.allowGravity) this.placeBoss(boss);
     boss.hp = boss.max = gentle() ? Math.ceil(max * 0.7) : legend() ? Math.ceil(max * 1.35) : max; this.boss = boss;
     this.physics.add.collider(boss, this.layer, null, onFloor); this.physics.add.collider(boss, [this.wall, this.wallR]);
     $('boss').classList.remove('hidden'); this.bossBar(); this.stormSky(); this.bossIntro(boss);
@@ -2156,11 +2178,11 @@ class Play extends Phaser.Scene {
     hint('Rakhsh can sense the dragon. <b>When he rears and neighs, the dragon shows itself: strike it then.</b> While it hides, your blows pass through. Jump its fire.');
   }
   dragonAI() {
-    const d = this.boss, p = this.player, r = this.rakhsh; d.tm--;
+    const d = this.boss, p = this.player, r = this.rakhsh; d.tm -= this.bossStep();
     if (r && r.body.velocity.x > 0 && r.x >= this.rakhshAt.x) { r.setVelocityX(0); r.anims.stop(); r.setFrame(0); }
-    const toP = Math.sign(p.x - d.x) || -1; d.dir = toP; d.setFlipX(toP < 0);
+    const toP = Math.sign(p.x - d.x) || -1; if (d.state === 'lurk') d.dir = toP; d.setFlipX(d.dir < 0);
     const seen = d.hp <= d.max / 2;                                   // once wounded, God lets Rostam see it
-    if (seen && !this.dragonSeen) { this.dragonSeen = true; this.tweens.killTweensOf(d); d.setAlpha(1); banner('خدا', 'The dragon can hide no more'); hint('The dragon can hide no more. <b>Strike it whenever you can</b>, and jump its fire.'); }
+    if (seen && !this.dragonSeen) { this.dragonSeen = true; this.tweens.killTweensOf(d); d.setAlpha(1); banner('خدا', 'The dragon can hide no more'); hint('The dragon can hide no more. <b>Strike it whenever you can</b>, and jump its fire. Its <b>golden flash warns of a follow-up lunge</b>.'); }
     if (d.state === 'lurk') {
       d.setVelocityX(Math.abs(p.x - d.x) > 70 ? toP * (seen ? 62 : 46) : 0);   // it stalks Rostam through the dark
       if (d.tm <= 0) {
@@ -2171,8 +2193,9 @@ class Play extends Phaser.Scene {
       }
     } else if (d.state === 'reveal') {
       if (d.tm <= 0) {
-        if (Math.abs(p.x - d.x) < 150 || Math.random() < 0.55) { d.state = 'breath'; d.tm = 75; d.play('dragon-fire'); d.fired = false; }
-        else { d.state = 'lunge'; d.tm = 42; d.setVelocityX(toP * 250); }
+        const move = this.bossChoice(d, Math.abs(p.x - d.x) < 150 ? 'breath' : 'lunge', Math.abs(p.x - d.x) < 150 ? 'lunge' : 'breath');
+        if (move === 'breath') { d.state = 'breath'; d.tm = 75; d.play('dragon-fire'); d.fired = false; }
+        else { d.state = 'lunge'; d.tm = 42; d.setVelocityX(d.dir * 250); }
       }
     } else if (d.state === 'breath') {
       d.setVelocityX(0);
@@ -2182,7 +2205,9 @@ class Play extends Phaser.Scene {
         this.hazard(dir > 0 ? mx : mx - 120, my - 22, 120, 44, 950); sfx('roar'); this.cam.shake(500, 0.006);
         this.time.delayedCall(950, () => f.destroy());
       }
-      if (d.tm <= 0) { d.play('dragon-move'); d.state = 'exposed'; d.tm = seen ? 50 : 85; }
+      if (d.tm <= 0) { d.play('dragon-move'); if (seen) { d.state = 'coil'; d.tm = 36; d.anims.stop(); d.setFrame(0); d.setTint(0xffdc9a); } else { d.state = 'exposed'; d.tm = 85; } }
+    } else if (d.state === 'coil') {
+      d.setVelocityX(0); if (d.tm <= 0) { d.clearTint(); d.state = 'lunge'; d.tm = 36; d.play('dragon-move'); d.setVelocityX(d.dir * 250); }
     } else if (d.state === 'lunge') {
       if (d.tm <= 0 || d.body.blocked.left || d.body.blocked.right || d.hitKeep) { d.setVelocityX(0); d.state = 'exposed'; d.tm = seen ? 50 : 85; this.cam.shake(200, 0.01); }
     } else if (d.state === 'exposed') {
@@ -2222,9 +2247,9 @@ class Play extends Phaser.Scene {
   }
   witchAI() {
     const w = this.witch, p = this.player; if (!this.unmasked || w.state === undefined) return;
-    w.tm--; const toP = Math.sign(p.x - w.x) || -1; w.setFlipX(toP < 0);
+    w.tm -= this.bossStep(); const toP = Math.sign(p.x - w.x) || -1; w.setFlipX(toP < 0);
     const hurt = w.hp <= w.max / 2;
-    if (hurt && !w.summoned) { w.summoned = true; for (const dx of [-120, 120]) { const x = Phaser.Math.Clamp(w.x + dx, 113 * TS, this.levelW - 30); this.fx('poof', x, 13 * TS); this.spawnFoe('serpent', x, 14 * TS); } toast('The witch calls serpents from the roses!'); }
+    if (hurt && !w.summoned && w.state === 'float') { w.summoned = true; w.tm = Math.max(w.tm, 90); for (const dx of [-120, 120]) { const x = Phaser.Math.Clamp(w.x + dx, 113 * TS, this.levelW - 30); this.fx('poof', x, 13 * TS); this.spawnFoe('serpent', x, 14 * TS); } toast('The witch calls serpents from the roses!'); }
     const y = w.baseY + Math.sin(this.time.now * 0.004) * 8;
     if (w.state === 'float') {
       w.setVelocity((w.tx - w.x) * 1.6, (y - w.y) * 3);
@@ -2241,14 +2266,15 @@ class Play extends Phaser.Scene {
         sfx('swing');
       }
       if (w.tm <= 0) {
-        if (Math.random() < 0.45) { w.state = 'blink'; w.tm = 26; this.fx('poof', w.x, w.y + 10, { depth: 10 }); w.setAlpha(0); w.body.enable = false; }
+        w.casts = (w.casts || 0) + 1;
+        if (w.casts >= 2) { w.casts = 0; w.state = 'blink'; w.tm = 26; this.fx('poof', w.x, w.y + 10, { depth: 10 }); w.setAlpha(0); w.body.enable = false; }
         else { w.state = 'float'; w.tm = hurt ? 45 : 70; w.tx = Phaser.Math.Clamp(p.x + (Math.random() < 0.5 ? -1 : 1) * 110, 114 * TS, this.levelW - 40); }
       }
     } else if (w.state === 'blink') {
       if (w.tm <= 0) {
         const x = p.x < this.cam.scrollX + W / 2 ? this.cam.scrollX + W - 70 : this.cam.scrollX + 70;
-        w.setPosition(x, w.baseY); w.body.enable = true; this.fx('poof', x, w.y + 10, { depth: 10 });
-        this.tweens.add({ targets: w, alpha: 1, duration: 200 }); w.state = 'float'; w.tm = 30; w.tx = x;
+        w.body.reset(x, w.baseY); w.body.enable = true; this.fx('poof', x, w.y + 10, { depth: 10 });
+        this.tweens.add({ targets: w, alpha: 1, duration: 200 }); w.state = 'float'; w.tm = 54; w.tx = x;
       }
     }
   }
@@ -2267,11 +2293,11 @@ class Play extends Phaser.Scene {
     hint('Olad\'s <b>shield blocks you from the front</b>. When he <b>flashes, step back</b> from his sword; then he glows and lowers his guard: <b>strike!</b> Or <b>jump twice</b> over him and hit his back. Strike when the <b>gold arrow</b> shows.');
   }
   oladAI() {
-    const o = this.olad, p = this.player; o.tm--; const d = p.x - o.x;
-    if (o.state !== 'slash') { o.dir = Math.sign(d) || -1; o.setFlipX(o.dir < 0); }
+    const o = this.olad, p = this.player; o.tm -= this.bossStep(); const d = p.x - o.x;
+    if (o.state === 'walk' || o.state === 'guard') { o.dir = Math.sign(d) || -1; o.setFlipX(o.dir < 0); }
     if (o.state === 'walk') {
       o.setVelocityX(o.dir * 70); if (o.anims.currentAnim?.key !== 'olad-walk') o.play('olad-walk');
-      if (Math.abs(d) < 70 || o.tm <= 0) { o.state = 'ready'; o.tm = 26; o.setVelocityX(0); o.anims.stop(); o.setFrame(0); }
+      if (Math.abs(d) < 70 || o.tm <= 0) { o.comboLeft = o.hp <= o.max / 2 ? 1 : 0; o.state = 'ready'; o.tm = 32; o.setVelocityX(0); o.anims.stop(); o.setFrame(0); }
     } else if (o.state === 'ready') {
       // he draws back his sword, flashing: a moment to step out of reach
       o.setVelocityX(0); o.setTintFill(Math.floor(o.tm / 4) % 2 ? 0xffffff : 0xffe0a0); if (o.tm % 8 < 4) o.clearTint();
@@ -2279,7 +2305,8 @@ class Play extends Phaser.Scene {
     } else if (o.state === 'slash') {
       if (!o.hit && o.tm < 20) { o.hit = true; this.hazard(o.dir > 0 ? o.x + 4 : o.x - 46, o.body.top + 4, 42, 30, 140); }
       // after the swing his sword hangs low and he is open for a moment
-      if (o.tm <= 0) { o.state = 'open'; o.tm = 84; o.setVelocityX(0); o.anims.stop(); o.setFrame(0); o.setTint(0xffd0a0); hint('Olad\'s guard is down: <b>strike now!</b>'); }
+      if (o.tm <= 0 && o.comboLeft > 0) { o.comboLeft--; o.state = 'ready'; o.tm = 36; o.setVelocityX(0); o.anims.stop(); o.setFrame(0); hint('Olad draws back for a <b>second swing</b>. Keep clear, then strike!'); }
+      else if (o.tm <= 0) { o.state = 'open'; o.tm = 84; o.setVelocityX(0); o.anims.stop(); o.setFrame(0); o.setTint(0xffd0a0); hint('Olad\'s guard is down: <b>strike now!</b>'); }
     } else if (o.state === 'open') {
       o.setVelocityX(0); if (o.tm <= 0) { o.clearTint(); o.state = 'guard'; o.tm = 30 + Math.random() * 20;
         hint('Shield up again. When he <b>flashes, step back</b>, then <b>strike while he glows</b>, or leap over him and hit his back.'); }
@@ -2367,7 +2394,7 @@ class Play extends Phaser.Scene {
   }
   // he roams the middle, then strikes twice (a floor split, a sweep across the platforms, or both), then rests
   arzhangAI() {
-    const a = this.boss, p = this.player; a.tm--; const hurt = a.hp <= a.max / 2;
+    const a = this.boss, p = this.player; a.tm -= this.bossStep(); const hurt = a.hp <= a.max / 2;
     const up = p.body.bottom < 13 * TS;                                       // Rostam is up on a platform
     if (this.charge(a, 'arzhang-walk')) return;
     if (a.state === 'walk') {
@@ -2377,11 +2404,11 @@ class Play extends Phaser.Scene {
       if (a.tm <= 0) {
         // the first blow goes where Rostam is; the second often the other way, so he must switch
         const first = up ? 'sweep' : 'split', other = first === 'sweep' ? 'split' : 'sweep';
-        a.combo = [first, Math.random() < (hurt ? 0.75 : 0.6) ? other : first]; this.windUp(a, first === 'split' ? Math.max(hurt ? 70 : 80, this.reachT(127, 131)) : hurt ? 70 : 80);   // time to reach the platform
+        const preferred = Math.random() < (hurt ? 0.75 : 0.6) ? other : first; const follow = this.bossChoice(a, preferred, preferred === first ? other : first); a.combo = [first, follow]; this.windUp(a, first === 'split' ? Math.max(hurt ? 70 : 80, this.reachT(127, 131)) : hurt ? 70 : 80);   // time to reach the platform
       }
     } else if (a.state === 'raise') {
       const w = a.combo[0] === 'split' ? this.floorWarn : this.highWarn; w.setAlpha(0.18 + 0.32 * Math.abs(Math.sin(a.tm * 0.25)));
-      if (a.tm <= 0) { a.state = 'smash'; a.tm = 30; a.combo[0] === 'split' ? this.splitFloor(a) : this.sweepHigh(a); a.combo.shift(); }
+      if (a.tm <= 0) { a.state = 'smash'; a.tm = a.combo[0] === 'split' ? 34 : 30; a.combo[0] === 'split' ? this.splitFloor(a) : this.sweepHigh(a); a.combo.shift(); }
     } else if (a.state === 'smash') {
       if (a.tm <= 0) {
         if (a.combo.length) this.windUp(a, a.combo[0] === 'split' ? Math.max(hurt ? 52 : 60, this.reachT(127, 131)) : hurt ? 52 : 60);   // the second blow comes quicker
@@ -2428,7 +2455,7 @@ class Play extends Phaser.Scene {
   }
   // he may charge when Rostam stands on the floor at a distance and the cave lies open between them
   tryCharge(b) {
-    const p = this.player, d = p.x - b.x; b.chargeCd = (b.chargeCd ?? 240) - 1;
+    const p = this.player, d = p.x - b.x; b.chargeCd = (b.chargeCd ?? 240) - this.bossStep();
     if (b.chargeCd > 0 || Math.abs(d) < 100 || p.body.bottom < 13 * TS) return false;
     b.state = 'brace'; b.tm = 46; b.dir = Math.sign(d); b.setFlipX(b.dir < 0); b.anims.stop(); b.setFrame(0); sfx('roar');
     const x0 = b.x + b.dir * 30, x1 = b.dir > 0 ? this.cam.scrollX + W : this.cam.scrollX;
@@ -2483,16 +2510,19 @@ class Play extends Phaser.Scene {
     });
   }
   // on the ice ledge: a pale light marks the spot, and a second later an icicle spears down from the roof
-  iceStrike(x) {
+  iceStrike(x, owner = this.boss) {
+    const alive = () => !this.done && this.boss === owner && owner?.active && owner.hp > 0 && owner.body.enable;
+    if (!alive()) return;
     const r = this.groundAt(x); if (r == null) return; const y = r * TS;
     // drawn above the cave's darkness, so the warning is never hidden
     const mark = this.add.image(x, y - 2, 'glow').setScale(0.7, 0.3).setTint(0xbfe8ff).setBlendMode(Phaser.BlendModes.ADD).setDepth(12);
     const beam = this.add.rectangle(x, this.cam.scrollY, 18, y - this.cam.scrollY, 0xd8f2ff, 0.5).setOrigin(0.5, 0).setBlendMode(Phaser.BlendModes.ADD).setDepth(12);
     this.tweens.add({ targets: [mark, beam], alpha: 0.35, yoyo: true, repeat: 4, duration: 110 });
     this.time.delayedCall(1000, () => {
-      mark.destroy(); beam.destroy(); if (this.done) return;
+      mark.destroy(); beam.destroy(); if (!alive()) return;
       const ic = this.add.image(x, this.cam.scrollY - 20, 'icicle').setOrigin(0.5, 1).setDepth(12).setScale(1.4);
       this.tweens.add({ targets: ic, y: y + 4, duration: 140, ease: 'Quad.easeIn', onComplete: () => {
+        if (!alive()) { ic.destroy(); return; }
         this.hazard(x - 12, y - 46, 24, 46, 200); this.cam.shake(140, 0.008); sfx('shatter'); this.shatter(ic, { step: 1, power: 0.6 }); ic.destroy();
       } });
     });
@@ -2525,25 +2555,25 @@ class Play extends Phaser.Scene {
   // one clear loop: he stalks Rostam, raises his club (the floor glows), slams the whole floor of the cave, and his club
   // sticks in the ice: the opening. The ledges are safe from the slam, but stay on one too long and he hurls a boulder
   whiteAI() {
-    const w = this.boss, p = this.player; w.tm--; const mad = w.hp <= w.max / 2;
+    const w = this.boss, p = this.player; w.tm -= this.bossStep(); const mad = w.hp <= w.max / 2;
     if (mad && !w.mad) { w.mad = true; w.setTint(0xffd0d0); sfx('roar'); this.cam.shake(600, 0.012); banner('خشمِ دیو', 'The White Div rages'); }
-    const up = p.body.bottom < 13 * TS && p.body.blocked.down; this.ledgeT = up ? this.ledgeT + 1 : 0;
+    const up = p.body.bottom < 13 * TS && p.body.blocked.down; this.ledgeT = up ? this.ledgeT + this.bossStep() : 0;
     if (this.charge(w, 'whitediv-walk')) return;
     if (w.state === 'walk') {
-      this.stalk(w, p, 62, KEEP7, 173, mad ? 62 : 46, 'whitediv-walk'); w.throwCd--;
+      this.stalk(w, p, 62, KEEP7, 173, mad ? 62 : 46, 'whitediv-walk'); w.throwCd -= this.bossStep();
       if (w.tm > 20 && this.tryCharge(w)) return;
       if (up && this.ledgeT > 80 && w.throwCd <= 0) {
         // he roars at the roof and the ice comes down on the ledge: two marks, a moment apart
         w.setVelocityX(0); w.state = 'roar'; w.tm = 60; w.throwCd = mad ? 120 : 170; sfx('roar'); this.cam.shake(300, 0.008);
-        this.iceStrike(p.x); this.time.delayedCall(450, () => this.iceStrike(p.x + (p.x < 149.5 * TS ? 40 : -40)));
+        this.iceStrike(p.x); this.time.delayedCall(450, () => this.iceStrike(p.x + (p.x < 149.5 * TS ? 40 : -40), w));
         if (!this.toldIce) { this.toldIce = true; toast('He roars at the roof! Where the light shines, ice will fall. Move!'); }
       } else if (!up && w.throwCd <= 0 && Math.abs(p.x - w.x) > 150) { w.setVelocityX(0); w.state = 'throw'; w.tm = 50; w.play('whitediv-throw'); w.hit = false; }
       else if (w.tm <= 0) { w.state = 'raise'; w.tm = Math.max(mad ? 50 : 64, this.reachT(149, 153)); w.setVelocityX(0); w.play('whitediv-smash'); w.anims.pause(); w.setFrame(5); sfx('roar'); }   // the club swung back over his shoulder
     } else if (w.state === 'raise') {
       w.setVelocityX(0); this.floorWarn.setAlpha(0.15 + 0.35 * Math.abs(Math.sin(w.tm * 0.25)));
-      if (w.tm <= 0) { w.state = 'slam'; w.tm = 34; w.anims.resume(); w.hit = false; }
+      if (w.tm <= 0) { w.state = 'slam'; w.tm = 46; w.anims.resume(); w.hit = false; }
     } else if (w.state === 'slam') {
-      if (!w.hit && w.tm < 24) {
+      if (!w.hit && w.tm < 36) {
         // the whole floor of the cave shakes: only the ledges and the air are safe
         w.hit = true; const y = 14 * TS; this.floorWarn.setAlpha(0.9); this.tweens.add({ targets: this.floorWarn, alpha: 0, duration: 400 });
         this.hazard(146 * TS, y - 22, 30 * TS, 22, 520); this.groundIce(146, 176, w.x); this.fx('shock', w.x + w.dir * 40, y + 1, { depth: 8 }).setScale(1.6);
@@ -2821,7 +2851,7 @@ class Play extends Phaser.Scene {
     });
   }
   queenAI() {
-    const q = this.boss, p = this.player; q.tm--; q.stingCd--; q.spitCd--; const d = p.x - q.x, mad = q.hp <= q.max / 2;
+    const q = this.boss, p = this.player; q.diveAge = (q.diveAge || 0) + this.bossStep(); q.tm -= this.bossStep(); q.stingCd -= this.bossStep(); q.spitCd -= this.bossStep(); const d = p.x - q.x, mad = q.hp <= q.max / 2;
     const L = KEEP2 * TS + 4, R = 165 * TS, floorY = 14 * TS, onLedge = p.body.bottom < 12.5 * TS;
     // she belongs to the sand: pinned to the ground unless she is sinking into it or rising out of it
     q.body.setVelocityY(0); if (!q.sinking) q.y = q.groundY;
@@ -2830,12 +2860,13 @@ class Play extends Phaser.Scene {
     else if (q.state === 'walk') {
       q.setVelocityX(q.dir * (mad ? 80 : 60)); if (q.anims.currentAnim?.key !== 'queen-walk' || !q.anims.isPlaying) q.play('queen-walk');
       const ahead = d * q.dir, close = ahead > 10 && ahead < 124 && !onLedge;
-      if (close && q.stingCd <= 0) { q.state = 'aim'; q.tm = mad ? 28 : 38; q.setVelocityX(0); q.anims.stop(); q.setTexture('queen-sting', 0); sfx('roar'); }
+      if (q.diveAge >= (mad ? 600 : 780)) { q.diveAge = 0; q.state = 'dive'; q.tm = 44; q.setVelocityX(0); q.anims.stop(); this.sink(q, true, 700); sfx('hit'); }
+      else if (close && q.stingCd <= 0) { q.state = 'aim'; q.tm = mad ? 28 : 38; q.setVelocityX(0); q.anims.stop(); q.setTexture('queen-sting', 0); sfx('roar'); }
       else if (q.spitCd <= 0 && (onLedge || Math.abs(d) > 190)) { q.state = 'spit'; q.tm = 44; q.setVelocityX(0); q.dir = Math.sign(d) || q.dir; q.play('queen-spit'); q.spat = false; }
       else if ((q.dir < 0 && (q.x <= L || q.hitKeep)) || (q.dir > 0 && q.x >= R)) {
         // the end of a pass: turn back, or every few passes go under the sand and come out at the far side
         q.setVelocityX(0); q.passes++;
-        if (q.passes >= q.nextDive) { q.passes = 0; q.nextDive = mad ? 1 : 2 + (Math.random() < 0.5 ? 1 : 0); q.state = 'dive'; q.tm = 44; q.anims.stop(); this.sink(q, true, 700); sfx('hit'); }
+        if (q.passes >= q.nextDive) { q.passes = 0; q.diveAge = 0; q.nextDive = mad ? 1 : 2 + (Math.random() < 0.5 ? 1 : 0); q.state = 'dive'; q.tm = 44; q.anims.stop(); this.sink(q, true, 700); sfx('hit'); }
         else { q.state = 'turn'; q.tm = 18; q.anims.stop(); }
       }
     } else if (q.state === 'turn') {
@@ -2874,7 +2905,7 @@ class Play extends Phaser.Scene {
       }
     } else if (q.state === 'under') {
       if (!this.swirl?.active) {
-        const step = mad ? 4.4 : 3.4; q.x += Phaser.Math.Clamp(q.goal - q.x, -step, step); this.mound?.setPosition(q.x, floorY);
+        const step = (mad ? 4.4 : 3.4) * this.bossStep(); q.x += Phaser.Math.Clamp(q.goal - q.x, -step, step); this.mound?.setPosition(q.x, floorY);
         if (Math.abs(q.goal - q.x) < 1) {   // she has arrived: the sand swirls where she will rise
           this.mound?.destroy(); q.tm = mad ? 34 : 46;
           this.swirl = this.add.ellipse(q.x, floorY - 2, 70, 12).setStrokeStyle(2, 0xffd890, 1).setDepth(8);
@@ -2882,12 +2913,14 @@ class Play extends Phaser.Scene {
         }
       } else if (q.tm <= 0) {
         this.swirl.destroy(); this.swirl = null;
-        q.state = 'surfaced'; q.tm = mad ? 50 : 64; q.setAlpha(1); q.body.enable = true; q.setTexture('queen-walk', 0); this.sink(q, false, 260);
+        q.state = 'surfacing'; q.tm = 18; q.setAlpha(1); q.body.enable = true; q.setTexture('queen-walk', 0); this.sink(q, false, 260);
         q.dir = q.x < (L + R) / 2 ? 1 : -1;
         this.hazard(q.x - 36, floorY - 60, 72, 60, 260); this.cam.shake(420, 0.016); sfx('hit'); sfx('roar');
         for (let i = 0; i < 6; i++) this.fx('dust', q.x + (i - 2.5) * 16, floorY, { depth: 8 });
         this.stars = this.fx('stun', q.x, q.body.top - 4, { depth: 10, follow: q });
       }
+    } else if (q.state === 'surfacing') {
+      q.setVelocityX(0); if (q.tm <= 0) { q.state = 'surfaced'; q.tm = mad ? 50 : 64; }
     } else if (q.state === 'surfaced') {
       q.setVelocityX(0); this.stars?.setPosition(Math.round(q.x), Math.round(q.body.top - 4));
       if (q.tm <= 0) { this.stars?.destroy(); this.stars = null; q.state = 'walk'; q.stingCd = 30; q.play('queen-walk'); }
