@@ -1,0 +1,221 @@
+{
+  "provider": "ElevenLabs",
+  "voice": "Cave Monster - Deep Terrifying Monster",
+  "voice_id": "HASaEuIpR5CVuLzDK1E1",
+  "model": "Eleven v4",
+  "stability": 0.5,
+  "similarity": 0.75,
+  "format": "MP3 44.1 kHz, 128 kbps",
+  "recordings": [
+    {
+      "id": "khan1-intro",
+      "kind": "panel",
+      "text": "After a long day on the road to Mazandaran, Rostam slept among the reeds. Rakhsh grazed nearby, but in the darkness a lion watched. While the hero dreamed, his faithful horse stood guard.",
+      "duration": 14.994,
+      "sha256": "61299c8367cff3aa70b1973880401af51c9c7c5cc1c8e6c8bac8fe426b5fafb3"
+    },
+    {
+      "id": "khan1-outro",
+      "kind": "panel",
+      "text": "The lion of the reeds lay defeated. Rostam rested a hand on faithful Rakhsh, his companion through the night. Together they turned toward the desert, where a fiercer thirst awaited.",
+      "duration": 13.322,
+      "sha256": "8017bfce1ad56b40a7dfcc25879f1e755e8ea7843602213665c4c0883d93b07b"
+    },
+    {
+      "id": "khan2-intro",
+      "kind": "panel",
+      "text": "The sun burned over an endless waste. Rostam and Rakhsh pressed on without water, until strength began to leave them. The hero who had faced armies now bowed his head and prayed for a spring.",
+      "duration": 14.602,
+      "sha256": "9f12a965a16649d8380d6cc4fe9f625673eafd19887a1d187cd0af36620fad7e"
+    },
+    {
+      "id": "khan2-outro",
+      "kind": "panel",
+      "text": "The Scorpion Queen was defeated, and the hidden spring ran clear. Rostam drank, let Rakhsh drink, and gave thanks for the ram that had shown the way. Beyond the water, night and another labour awaited.",
+      "duration": 14.994,
+      "sha256": "54b6c0e571ffa14bfb0d7306b413f64b9fd9cc369ff9dcd916ce0d18c1bfc627"
+    },
+    {
+      "id": "khan3-intro",
+      "kind": "panel",
+      "text": "When darkness fell, Rostam lay down to rest. A terrible dragon came out of the night. Rakhsh stamped and cried to wake him, but each time the hero rose, the creature vanished into shadow.",
+      "duration": 14.602,
+      "sha256": "9ab10ef75a433653a55f9a0adc25c70f79544b11a6dbbcc7214a5d79d6b24713"
+    },
+    {
+      "id": "khan3-outro",
+      "kind": "panel",
+      "text": "At last Rostam saw the dragon. With Rakhsh beside him, he fought the monster and overcame it. Once more, courage alone had not been enough: the watchful horse had helped carry the hero through.",
+      "duration": 14.446,
+      "sha256": "135d630d0b2afb342b5df56ea5dab3473920c95db54cde2df8453c698728be9b"
+    },
+    {
+      "id": "khan4-intro",
+      "kind": "panel",
+      "text": "In a green garden, Rostam found a feast and a beautiful woman offering wine. After hunger and hardship, the welcome seemed a blessing. Yet beneath the sweetness lay an enchantment.",
+      "duration": 14.838,
+      "sha256": "457f21fd9416819b261e023fe3ba0ffff62cd9759df4fca3c07eb22165a412f9"
+    },
+    {
+      "id": "khan4-outro",
+      "kind": "panel",
+      "text": "When Rostam spoke the name of God, the disguise broke and the sorceress stood revealed. He overcame her enchantment and left the false garden behind. The road led deeper into Mazandaran.",
+      "duration": 13.557,
+      "sha256": "c7c7ebd39e34de1c453294127866319505407ef7587a132a28a099c1049b44c2"
+    },
+    {
+      "id": "khan5-intro",
+      "kind": "panel",
+      "text": "Beyond the wilderness lay fields guarded by Olad and his men. Rostam’s passage brought a challenge, and the warden rode out to confront the stranger. The road to the captive king would not open peacefully.",
+      "duration": 14.759,
+      "sha256": "23853d83aefc7ee053b785e1099856125a36ceb5ed8333b2b7bf2bb9c77cae02"
+    },
+    {
+      "id": "khan5-outro",
+      "kind": "panel",
+      "text": "Rostam defeated Olad and took him captive. In return for his life, Olad promised to show the way to the demons and their strongholds. Mercy had won the hero a guide for the trials ahead.",
+      "duration": 12.826,
+      "sha256": "703c390b7fd39a1269e45c8796cec095ab33b14ec8ae307df2c874d3b955089a"
+    },
+    {
+      "id": "khan6-intro",
+      "kind": "panel",
+      "text": "Olad led Rostam to the camp of Arzhang, a mighty demon chief. Fires glowed between the tents, and warriors gathered beneath dark banners. Beyond this camp lay the captive king and the final terror.",
+      "duration": 15.491,
+      "sha256": "13997eb48b8f8630009cd5bec248d1d82d4cf320d318850020b07b3711eedecf"
+    },
+    {
+      "id": "khan6-outro",
+      "kind": "panel",
+      "text": "Arzhang fell, and the demon host scattered. Rostam’s road opened at last toward Kay Kavus. But the king’s sight could be restored only after the White Div was overcome; the greatest labour remained.",
+      "duration": 14.759,
+      "sha256": "285a16fb6a0de671f8a6e92d4b15699656a2d0256f8f867aa609c99a0be6dde4"
+    },
+    {
+      "id": "khan7-intro",
+      "kind": "panel",
+      "text": "Beyond the mountains waited a cavern filled with darkness. Inside lay the White Div, whose sorcery had blinded Kay Kavus and his army. Rostam entered alone, knowing that the king’s hope rested on this final battle.",
+      "duration": 16.849,
+      "sha256": "2a43475b545c116329f1aeef98a8f4dc06b2b57373e51eead9a3f8d87fa6e9d3"
+    },
+    {
+      "id": "tale-1-1",
+      "kind": "tale",
+      "text": "The King in Chains\n\nKay Kavus, King of Iran, was proud and easily flattered. One day a Div disguised as a minstrel sang to him of Mazandaran, a land of endless gardens, rose-scented air and treasure without end. The king's heart caught fire, and against the warnings of his wisest men he marched his army north to take it.\n\nMazandaran was the realm of the Divs, and its master was the White Div, Div-e Sepid. In a single night he raised a storm of sorcery: hail and darkness fell upon the Iranian camp, and when it lifted, Kay Kavus and all his warriors were blind. The Divs led them away in chains.\n\nA messenger slipped through to Zabulistan, to old Zal, and to his son Rostam, the mightiest hero Iran had ever known.",
+      "duration": 55.249,
+      "sha256": "ce28290ecbd9cf3af5548f9ab0ee645b527068ec78e5bd5d17d783eb87e46a6c"
+    },
+    {
+      "id": "tale-1-2",
+      "kind": "tale",
+      "text": "Two Roads\n\nZal told his son there were two roads to Mazandaran. The long road was safe, but it would take six months, and the king might not live so long. The short road could be ridden in two weeks, but it passed through seven stages of terror: beasts, wastes, a dragon, sorcery and Divs. No one who had taken it had come back.\n\nRostam chose the short road. He put on his tiger-skin coat, the babr-e bayan, over his mail, took up his ox-headed mace, and mounted Rakhsh, the fiery horse no other rider could tame. These seven stages are remembered as the Haft Khan, the Seven Labours of Rostam.",
+      "duration": 44.513,
+      "sha256": "5669e5446e5deb1c75d203b48c8f88230b4110e12cc4bc01ad9d21a0bd89df1e"
+    },
+    {
+      "id": "tale-1-3",
+      "kind": "tale",
+      "text": "The Lion of the Reeds\n\nOn the first day Rostam rode hard. Hungry by evening, he ran down a wild ass, kindled a fire, roasted it whole and ate his fill. Then he unsaddled Rakhsh to graze, lay down among the tall reeds, and slept.\n\nBut those reeds were the lair of a great lion. In the dark it came out to hunt, and it saw a horse alone beside a sleeping man. It sprang for Rakhsh. The horse reared, struck the lion's head with his forehooves, then seized it in his teeth and dashed it against the ground until it moved no more.\n\nRostam woke to find the lion dead and Rakhsh trembling with rage. He was not grateful. \"Who told you to fight a lion alone?\" he scolded. \"Had it killed you, how would I have carried my helmet, my mace and my tiger-skin on foot all the way to Mazandaran? Next time, wake me.\"\n\nIn Ferdowsi's poem it is Rakhsh who kills the lion. In this game, Rostam is awake, and the fight is his.",
+      "duration": 70.034,
+      "sha256": "b59efc78d91d8567abb86d71ecbc4f2e680a19c4f39698d1353708a721ad699b"
+    },
+    {
+      "id": "tale-1-4",
+      "kind": "tale",
+      "text": "The Road Ahead\n\nThe Waterless Desert. Dying of thirst, Rostam prays, and a ram appears and leads him to a hidden spring.\n\nThe Dragon. Twice Rakhsh wakes him and twice the dragon vanishes into the dark; the third time, horse and hero slay it together.\n\nThe Witch. A sorceress takes the form of a beautiful woman at a feast, until Rostam speaks the name of God and her true face shows.\n\nOlad. In the fields of Mazandaran Rostam captures the warrior Olad and makes him his guide.\n\nThe Div Arzhang. Rostam strikes down the Div chieftain in front of his own army.\n\nThe White Div. In a cave dark as night Rostam fights the White Div and wins. The blood of the Div's heart restores the sight of the king and his army.",
+      "duration": 56.607,
+      "sha256": "7d4037786abffddbe59aa9ba8071cb727228c07dccafe8850404822076ffa6c0"
+    },
+    {
+      "id": "tale-1-5",
+      "kind": "tale",
+      "text": "The Book of Kings\n\nThe Shahnameh, the Book of Kings, was written by the poet Ferdowsi of Tus over some thirty years and completed around 1010 CE. It runs to about fifty thousand couplets, telling the history of Iran from the first king of the world to the fall of the Sasanian empire, and its Persian, nearly free of Arabic words, helped keep the language alive.\n\nRostam is its greatest hero, the son of Zal. When Zal was born with white hair, his father abandoned him on Mount Alborz, where the Simurgh, a vast and wise bird, raised him as her own. When he left her nest she gave him three of her feathers: burn one, she said, and I will come. That is why the Simurgh's feather is Rostam's reward here.",
+      "duration": 50.834,
+      "sha256": "264f39f0c3dc49774e5bef03bd676010edf571aa43e3fc241ae6edc1a293dbe5"
+    },
+    {
+      "id": "tale-3-1",
+      "kind": "tale",
+      "text": "The Dragon\n\nRested by the spring, Rostam lay down to sleep and told Rakhsh: \"Fight no beast alone. If an enemy comes, run to me and wake me.\" Then he slept, and in the middle of the night a dragon came out of the dark, a beast so vast that no elephant or lion dared cross that plain.\n\nRakhsh ran to his master, stamping and neighing, and Rostam woke. But the dragon had sunk back into the darkness, and Rostam saw nothing. Angry, he scolded the horse for waking him for nothing, and slept again.",
+      "duration": 37.329,
+      "sha256": "994cfefffe214619bebd2cbb354d8680fbe5e5182ee59fcda17f9ae91ef6ce3e"
+    },
+    {
+      "id": "tale-3-2",
+      "kind": "tale",
+      "text": "Rakhsh's Warning\n\nThe dragon came again, and again Rakhsh woke his master, and again it vanished. Rostam raged: \"Do that once more and I will cut off your head and walk to Mazandaran!\" The third time the dragon came, Rakhsh hardly dared to wake him; but he could not leave Rostam to die, and he stamped and screamed until Rostam rose.\n\nThis time God did not let the dragon hide. Rostam saw it, drew his sword, and they fought. When the dragon coiled about him, Rakhsh sprang in and tore its shoulder with his teeth, and Rostam struck off its head. Its blood ran like a river. Rostam praised God, and his horse.\n\nIn the game Rakhsh rears and neighs to reveal the dragon. Strike while you can see it.",
+      "duration": 51.644,
+      "sha256": "0d4f3d76b52435f8f989b0d696cace845edbb1d5eff1dcbed141dc2e2b5db7ab"
+    },
+    {
+      "id": "tale-4-1",
+      "kind": "tale",
+      "text": "The Witch\n\nRostam rode on until he came to a place of trees and running water, so green it might have been the garden of paradise. By a stream a feast was laid: a roasted deer, bread, salt and wine in a golden cup, and beside it a tanbur, a long-necked lute. Rostam sat, drank, took up the tanbur and sang of his own hard life: of deserts and dragons, and how seldom a wanderer like him finds a garden like this.\n\nThe feast belonged to a witch. Hearing his song, she made herself as lovely as spring, painted and scented, and came and sat beside him.",
+      "duration": 44.669,
+      "sha256": "3476ed1ba66e98925f338281d2c1f19d9704ef4b5b19eee252c954e6cded9550"
+    },
+    {
+      "id": "tale-4-2",
+      "kind": "tale",
+      "text": "The Name of God\n\nGlad of such company, Rostam gave thanks to God and put the cup of wine in her hand, speaking the name of the Lord of the World. At the name of God her face changed: the beauty fell away, and in her place sat a black and hideous hag.\n\nRostam saw what she was. He threw his lasso, caught her fast, and with one blow of his sword cut her in two. Then he rode on toward the land of Mazandaran.\n\nIn the game, strike beside the lady to speak the name of God, then fight the witch.",
+      "duration": 37.146,
+      "sha256": "cbbbe4b5ec074fb5c996b9824993957cd1f97319ecd8097371780c0b55791e5f"
+    },
+    {
+      "id": "tale-5-1",
+      "kind": "tale",
+      "text": "Olad\n\nOut of the darkness Rostam came into a bright land of green fields and streams. Tired, he took off his armour, turned Rakhsh loose in a wheat field to graze, and slept. The field-keeper found the horse trampling the crop and struck the sleeping hero with his staff, crying, \"Why have you let your horse into my field?\"\n\nRostam rose without a word, seized the man by the ears, and tore them off. The keeper ran, bleeding, to the warden of that land, a young champion named Olad, who rode out with his men to punish the stranger.",
+      "duration": 36.362,
+      "sha256": "aa38b7b26c44247367ae711ec2e42508c5b543891301c3be264e885f44f409d3"
+    },
+    {
+      "id": "tale-5-2",
+      "kind": "tale",
+      "text": "The Lasso\n\nRostam scattered Olad's men like a lion among sheep. Then he threw his coiled lasso, caught Olad, and pulled him from his horse.\n\n\"Tell me the truth,\" said Rostam, \"where the White Div lives, and where Kay Kavus is held, and you may yet rule Mazandaran. Lie to me, and you die.\" Olad swore to guide him truly, and led him through the night to the camp of Arzhang Div.\n\nIn the game Olad is beaten, not slain: Rostam's lasso binds him and he becomes the guide.",
+      "duration": 36.519,
+      "sha256": "b819f92096b99821bcce0c2e4d0aef4251b4007273b27db034424dee91284ea3"
+    },
+    {
+      "id": "tale-6-1",
+      "kind": "tale",
+      "text": "Arzhang Div\n\nOlad led Rostam through the night until they saw fires burning all across the plain, and heard drums and the cries of a host. \"That is the camp of Arzhang Div,\" said Olad, \"chief of the Divs of Mazandaran. The White Div's cave lies beyond it.\"\n\nRostam tied Olad to a tree and slept until dawn. When the sun rose he put on his tiger-skin, mounted Rakhsh and rode straight into the camp, roaring his own name like thunder.",
+      "duration": 31.399,
+      "sha256": "03855362113f9bc5790409b3ba5127096737b2f7a92a6d96fb6f25a19781eaa2"
+    },
+    {
+      "id": "tale-6-2",
+      "kind": "tale",
+      "text": "The Host Scatters\n\nArzhang came out of his tent at the noise. Rostam rode him down, seized him by the head, and tore it from his shoulders, then flung it among the Divs. At the sight the whole host lost heart; they fled, trampling one another, and the camp was empty before noon.\n\nRostam rode on to the city where Kay Kavus lay blind in chains. The king told him that the White Div waited in a cave beyond the seven mountains, and that only the blood of the White Div's heart could cure his eyes.\n\nIn the game the camp fights back: survive three waves of the horde, then face Arzhang himself.",
+      "duration": 40.908,
+      "sha256": "906ede5b648a238da4c7d38cc87f78f78aea1cf408da65e27f7c2eab2861afc9"
+    },
+    {
+      "id": "tale-7-1",
+      "kind": "tale",
+      "text": "The White Div\n\nRostam crossed the seven mountains and came to the cave of the White Div. Olad told him that the Divs sleep when the sun is hot, so Rostam waited for noon, then went down into a cave as dark as hell. At first he could see nothing at all; he rubbed his eyes and waited, until at last he made out a vast shape filling the cave, black of face and white of hair, like a mountain sleeping.\n\nRostam roared, and the White Div woke and came at him with a millstone. Rostam struck off one of its legs, and still they wrestled, tearing at one another, until the cave ran with blood and sweat. At last Rostam lifted the Div and dashed it to the ground, plunged his dagger into its side, and tore out its heart.",
+      "duration": 51.487,
+      "sha256": "6c7d3103ece7b7b2dc5041cb4c4f68ac53c2bd81b31bb61345011a94f1b95ef6"
+    },
+    {
+      "id": "tale-7-2",
+      "kind": "tale",
+      "text": "The King Sees Again\n\nRostam brought the heart to Kay Kavus, and they let three drops of its blood fall into the king's eyes. The darkness lifted: Kay Kavus could see again, and so could all his blinded warriors. The king embraced Rostam and wept, and Iran's army, free again, made Olad king of Mazandaran as Rostam had promised.\n\nSo ended the Seven Labours of Rostam: the lion, the desert, the dragon, the witch, Olad, Arzhang, and the White Div. Ferdowsi tells many more of his deeds, but none are sung more often than these.\n\nThank you for playing. The tale of every labour can be read again from the map of the Seven Labours.",
+      "duration": 47.804,
+      "sha256": "03cb15be5653b8f3469c537cb4e2de384eb191dd6e31774111779e1235cf09d9"
+    },
+    {
+      "id": "tale-2-1",
+      "kind": "tale",
+      "text": "The Waterless Desert\n\nFrom the reed-beds Rostam rode on into a desert where no bird flew and no grass grew. The sun hung over the sand like a burning shield; the ground was so hot that a man's feet would blister through his boots, and the very air shimmered.\n\nRakhsh slowed, and Rostam's tongue cracked with thirst. At last he could ride no further. He climbed down, and leaning on his spear he lifted his face to the sky and prayed: \"O Lord, You who give relief to every sorrow, I have come here only to free the king. Do not let me die of thirst in this wilderness.\"",
+      "duration": 45.557,
+      "sha256": "2927a9c43301d61d6e526d14ec5811a5625e094a356db1fb49d6d7fe1e3bf7e8"
+    },
+    {
+      "id": "tale-2-2",
+      "kind": "tale",
+      "text": "The Ram\n\nAs he prayed, a fine ram came walking across the sand before him. Rostam thought: \"Where does this ram drink? Surely there is water near.\" He rose, took his sword in hand and followed it.\n\nThe ram led him to a hidden spring, cool and clear among the rocks, and there it vanished. Rostam drank, and gave thanks, and blessed the ram as a gift from heaven. Then he washed Rakhsh, hunted an onager for his supper, and lay down to rest by the water, knowing that the dragon of the third labour waited in the night ahead.\n\nIn the game the desert burns, wells and water skins keep Rostam alive, and the ram leads him through a sandstorm to the spring.",
+      "duration": 47.569,
+      "sha256": "e2af468c1bc5710ce467cd17316de115756a027b56c38164c6b2229e359ed256"
+    }
+  ]
+}

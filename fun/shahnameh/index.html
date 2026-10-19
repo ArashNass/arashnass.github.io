@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="robots" content="noindex,nofollow">
 <meta name="theme-color" content="#0c1024">
 <meta name="description" content="Shahnameh: The Seven Labours of Rostam. A pixel-art platformer inspired by Ferdowsi's Book of Kings.">
@@ -28,9 +28,9 @@
 :root{--book:'EB Garamond',Georgia,serif;--lapis:#14286b;--lapis2:#1f3f9a;--gold:#e8c25a;--gold2:#f6dc8c;--turq:#2fa8b5;--ink:#fdf6e3;--panel:rgba(16,28,80,.9);--inkb:#24150a;--rubric:#9a2a1c;--lapisInk:#1d2f7c;--goldInk:#8a5a12}
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%;overflow:hidden;background:#070a18}
-body{font-family:Inter,system-ui,sans-serif;color:var(--ink);touch-action:none;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent}
+body{font-family:Inter,system-ui,sans-serif;color:var(--ink);touch-action:manipulation;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent}
 #game{position:fixed;inset:0;display:grid;place-items:center}
-#game canvas{image-rendering:pixelated}
+#game canvas{image-rendering:pixelated;touch-action:none}.tb{touch-action:none}
 button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
 .hidden{display:none!important}
 #hud{position:fixed;inset:0 0 auto 0;z-index:5;display:flex;justify-content:space-between;align-items:center;gap:8px;padding:max(10px,env(safe-area-inset-top)) max(12px,env(safe-area-inset-right)) 0 max(12px,env(safe-area-inset-left));pointer-events:none}
@@ -340,6 +340,7 @@ body.calm #banner.on{animation-name:banCalm}@keyframes banCalm{0%{opacity:0}15%,
 .cineOv{padding:0;background:#000;z-index:20;overflow:hidden}
 .cframe{position:absolute;inset:0;overflow:hidden}
 .cimg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;image-rendering:pixelated;opacity:0;transition:opacity 1.2s ease;will-change:transform,opacity}
+.backgrounded .cimg.on,.backgrounded .roll{animation-play-state:paused!important}
 .cimg.on{opacity:1;animation:burns var(--d,12s) linear forwards}
 @keyframes burns{from{transform:scale(var(--s0,1.08)) translate(var(--x0,0),var(--y0,0))}to{transform:scale(var(--s1,1.18)) translate(var(--x1,0),var(--y1,0))}}
 .cbar{position:absolute;left:0;right:0;top:0;height:8vh;background:#000;z-index:1}.cbar.bot{top:auto;bottom:0;height:min(30vh,230px);background:linear-gradient(transparent,#000 38%)}
@@ -435,7 +436,7 @@ body.calm #banner.on{animation-name:banCalm}@keyframes banCalm{0%{opacity:0}15%,
     <p class="kick">Khan I &middot; The Lion of the Reeds</p>
     <p class="story">King Kay Kavus lies captive in Mazandaran, land of the Divs. <em>Rostam</em> sets out on the shortest and most perilous road. On the first night, among the reeds, a great lion stirs&hellip;</p>
     <div class="btns"><button class="btn" id="playBtn">Begin</button><button class="btn2" data-map>The seven labours</button><button class="btn2" data-story>Read the tale</button><button class="btn2" data-guide>Book of Foes</button></div>
-    <div class="keys deskonly"><kbd>&larr;</kbd> <kbd>&rarr;</kbd> move &middot; <kbd>&uarr;</kbd>/<kbd>Space</kbd> jump (twice for a super jump) &middot; <kbd>X</kbd> strike with the ox-head mace</div>
+    <div class="keys deskonly"><kbd data-action-key="left">&larr;</kbd> <kbd data-action-key="right">&rarr;</kbd> move &middot; <kbd data-action-key="jump">&uarr; / Space</kbd> jump (twice for a super jump) &middot; <kbd data-action-key="attack">X</kbd> strike with the ox-head mace</div>
     <div class="keys touchonly">On-screen buttons to move, jump and strike.<br>Turn your phone sideways for the best view.</div>
   </div>
 </section>
@@ -481,11 +482,12 @@ body.calm #banner.on{animation-name:banCalm}@keyframes banCalm{0%{opacity:0}15%,
   <div class="page">
     <button class="x" id="storyClose" aria-label="Close the tale">&times;</button>
     <div class="leaf" id="leaf" tabindex="0"></div>
+    <div class="btns"><button class="btn2 sm" id="storyListen" aria-pressed="false">Listen to this page</button></div>
     <div class="pager"><button class="btn2" id="prevPg">&larr; Back</button><div class="dots" id="dots"></div><button class="btn2" id="nextPg">Next &rarr;</button></div>
   </div>
 </section>
 <div id="sub" aria-live="polite"></div>
-<section class="ov hidden cineOv" id="s-cine" aria-label="The tale told in pictures">
+<section class="ov hidden cineOv" id="s-cine" role="dialog" aria-modal="true" aria-label="The tale told in pictures">
   <div class="cframe"><img class="cimg" alt=""><img class="cimg" alt=""></div>
   <i class="cbar"></i><i class="cbar bot"></i>
   <button class="cnext" id="cineNext" aria-label="Next picture"></button>
@@ -530,11 +532,11 @@ body.calm #banner.on{animation-name:banCalm}@keyframes banCalm{0%{opacity:0}15%,
     <div class="fa">راهِ پهلوانی</div>
     <h2>How to Play</h2>
     <div class="helpGrid">
-      <section><h3>Moving</h3><p><kbd>&larr;</kbd> <kbd>&rarr;</kbd> run &middot; <kbd>&uarr;</kbd> or <kbd>Space</kbd> jump, and <b>jump again in the air</b> for a super jump. Land on a foe from above for a double blow.<span class="touch"> On a phone, use the buttons at the bottom of the screen.</span></p></section>
-      <section><h3>Fighting</h3><p><kbd>X</kbd> strike with the ox-head mace. <b>Three quick strikes</b> end in a hard finisher. <b>Keep holding</b> Strike after a swing until the mace glows, then let go for a <b>heavy blow</b>. <kbd>Shift</kbd> or <kbd>C</kbd> <b>dodges</b>: no blow can touch you mid-dash.</p></section>
+      <section><h3>Moving</h3><p><kbd data-action-key="left">&larr;</kbd> <kbd data-action-key="right">&rarr;</kbd> run &middot; <kbd data-action-key="jump">&uarr; / Space</kbd> jump, and <b>jump again in the air</b> for a super jump. Land on a foe from above for a double blow.<span class="touch"> On a phone, use the buttons at the bottom of the screen.</span></p></section>
+      <section><h3>Fighting</h3><p><kbd data-action-key="attack">X</kbd> strike with the ox-head mace. <b>Three quick strikes</b> end in a hard finisher. <b>Keep holding</b> Strike after a swing until the mace glows, then let go for a <b>heavy blow</b>. <kbd data-action-key="dodge">Shift / C</kbd> <b>dodges</b>: no blow can touch you mid-dash.</p></section>
       <section><h3>Bosses</h3><p>Each great foe has an opening. <b>When stars circle its head it is dazed: strike now</b>, and the boss bar flashes <b>Strike now!</b> Otherwise your blows glance off. Watch for the warning glow before its big attacks; the corner ledge is a refuge, but you must come down to win.</p></section>
-      <section><h3>Hearts and fires</h3><p>Roast lamb and glowing hearts restore you; in boss fights a heart appears in a corner now and then. Walk past a <b>fire altar</b> to light it: if you fall, you rise there. At a lit fire press <kbd>&darr;</kbd> (or tap <b>Offer</b>) for the <b>Fire Temple</b>.</p></section>
-      <section><h3>Provisions and Farr</h3><p>Provisions fill your purse, to spend at the Fire Temple on lasting gifts, and your golden <b>Farr</b>: when it is full press <kbd>F</kbd> and the Simurgh strikes every foe on screen. Gather eight in a labour and <b>Rakhsh</b> gallops in to kick the boss.</p></section>
+      <section><h3>Hearts and fires</h3><p>Roast lamb and glowing hearts restore you; in boss fights a heart appears in a corner now and then. Walk past a <b>fire altar</b> to light it: if you fall, you rise there. At a lit fire press <kbd data-action-key="offer">&darr;</kbd> (or tap <b>Offer</b>) for the <b>Fire Temple</b>.</p></section>
+      <section><h3>Provisions and Farr</h3><p>Provisions fill your purse, to spend at the Fire Temple on lasting gifts, and your golden <b>Farr</b>: when it is full press <kbd data-action-key="farr">F</kbd> and the Simurgh strikes every foe on screen. Gather eight in a labour and <b>Rakhsh</b> gallops in to kick the boss.</p></section>
       <section><h3>Simurgh feathers</h3><p>Three feathers glow on the <b>highest perches</b> of every labour. The map shows how many you have found. Find all <b>twenty-one</b> for the Simurgh's blessing: one more heart, for ever.</p></section>
       <section><h3>Gamepad</h3><p>Stick or D-pad move &middot; <b>A</b> jump &middot; <b>X</b> strike (hold for heavy) &middot; <b>B</b> dodge &middot; <b>Y</b> Farr &middot; <b>Start</b> menu. In menus the D-pad moves, A presses and B goes back.</p></section>
       <section><h3>Your way</h3><p>Choose the <b>Gentle road</b> on the home screen for more hearts and gentler bosses. In <b>Settings</b> set the volumes, turn off screen shake or flashes, and change any key.</p></section>
@@ -576,30 +578,30 @@ body.calm #banner.on{animation-name:banCalm}@keyframes banCalm{0%{opacity:0}15%,
     <p class="story" id="mapInfo"></p>
     <div class="btns"><button class="btn" id="rideBtn">Ride out</button><button class="btn2" id="mapTale">Read its tale</button><button class="btn2" data-guide>Book of Foes</button><button class="btn2" data-help>How to play</button><button class="btn2" data-settings>Settings</button><button class="btn2 hidden" id="rushBtn">Boss rush</button></div>
     <div class="diff" role="group" aria-label="Difficulty">Road <button data-diff="hero" aria-pressed="true">Hero's road</button><button data-diff="gentle" aria-pressed="false">Gentle road</button><button data-diff="legend" aria-pressed="false" title="Three hearts, stronger foes, no healing in the arenas">Legend's road</button></div>
-    <div class="keys deskonly home-only"><kbd>&larr;</kbd> <kbd>&rarr;</kbd> move &middot; <kbd>&uarr;</kbd>/<kbd>Space</kbd> jump (twice for a super jump) &middot; <kbd>X</kbd> strike &middot; <kbd>Esc</kbd> menu</div>
+    <div class="keys deskonly home-only"><kbd data-action-key="left">&larr;</kbd> <kbd data-action-key="right">&rarr;</kbd> move &middot; <kbd data-action-key="jump">&uarr; / Space</kbd> jump (twice for a super jump) &middot; <kbd data-action-key="attack">X</kbd> strike &middot; <kbd>Esc</kbd> menu</div>
     <div class="keys touchonly home-only">On-screen buttons to move, jump and strike. Turn your phone sideways for the best view.</div>
   </div>
 </section>
 <template id="tale-1">
-  <article>
+  <article data-voice="tale-1-1">
     <div class="fa">شاهنامه</div><h2>The King in Chains</h2><span class="kick">Prologue</span>
     <p>Kay Kavus, King of Iran, was proud and easily flattered. One day a Div disguised as a minstrel sang to him of Mazandaran, a land of endless gardens, rose-scented air and treasure without end. The king's heart caught fire, and against the warnings of his wisest men he marched his army north to take it.</p>
     <p>Mazandaran was the realm of the Divs, and its master was the White Div, Div-e Sepid. In a single night he raised a storm of sorcery: hail and darkness fell upon the Iranian camp, and when it lifted, Kay Kavus and all his warriors were blind. The Divs led them away in chains.</p>
     <p>A messenger slipped through to Zabulistan, to old Zal, and to his son Rostam, the mightiest hero Iran had ever known.</p>
   </article>
-  <article>
+  <article data-voice="tale-1-2">
     <div class="fa">دو راه</div><h2>Two Roads</h2><span class="kick">The choice</span>
     <p>Zal told his son there were two roads to Mazandaran. The long road was safe, but it would take six months, and the king might not live so long. The short road could be ridden in two weeks, but it passed through seven stages of terror: beasts, wastes, a dragon, sorcery and Divs. No one who had taken it had come back.</p>
     <p>Rostam chose the short road. He put on his tiger-skin coat, the <em>babr-e bayan</em>, over his mail, took up his ox-headed mace, and mounted Rakhsh, the fiery horse no other rider could tame. These seven stages are remembered as the <em>Haft Khan</em>, the Seven Labours of Rostam.</p>
   </article>
-  <article>
+  <article data-voice="tale-1-3">
     <div class="fa">خوانِ یکم</div><h2>The Lion of the Reeds</h2><span class="kick">The first labour</span>
     <p>On the first day Rostam rode hard. Hungry by evening, he ran down a wild ass, kindled a fire, roasted it whole and ate his fill. Then he unsaddled Rakhsh to graze, lay down among the tall reeds, and slept.</p>
     <p>But those reeds were the lair of a great lion. In the dark it came out to hunt, and it saw a horse alone beside a sleeping man. It sprang for Rakhsh. The horse reared, struck the lion's head with his forehooves, then seized it in his teeth and dashed it against the ground until it moved no more.</p>
     <p>Rostam woke to find the lion dead and Rakhsh trembling with rage. He was not grateful. "Who told you to fight a lion alone?" he scolded. "Had it killed you, how would I have carried my helmet, my mace and my tiger-skin on foot all the way to Mazandaran? Next time, wake me."</p>
     <p class="note">In Ferdowsi's poem it is Rakhsh who kills the lion. In this game, Rostam is awake, and the fight is his.</p>
   </article>
-  <article>
+  <article data-voice="tale-1-4">
     <div class="fa">هفت خوان</div><h2>The Road Ahead</h2><span class="kick">The six labours still to come</span>
     <ol>
       <li><b>The Waterless Desert.</b> Dying of thirst, Rostam prays, and a ram appears and leads him to a hidden spring.</li>
@@ -610,19 +612,19 @@ body.calm #banner.on{animation-name:banCalm}@keyframes banCalm{0%{opacity:0}15%,
       <li><b>The White Div.</b> In a cave dark as night Rostam fights the White Div and wins. The blood of the Div's heart restores the sight of the king and his army.</li>
     </ol>
   </article>
-  <article>
+  <article data-voice="tale-1-5">
     <div class="fa">فردوسی</div><h2>The Book of Kings</h2><span class="kick">About the Shahnameh</span>
     <p>The <em>Shahnameh</em>, the Book of Kings, was written by the poet Ferdowsi of Tus over some thirty years and completed around 1010 CE. It runs to about fifty thousand couplets, telling the history of Iran from the first king of the world to the fall of the Sasanian empire, and its Persian, nearly free of Arabic words, helped keep the language alive.</p>
     <p>Rostam is its greatest hero, the son of Zal. When Zal was born with white hair, his father abandoned him on Mount Alborz, where the Simurgh, a vast and wise bird, raised him as her own. When he left her nest she gave him three of her feathers: burn one, she said, and I will come. That is why the Simurgh's feather is Rostam's reward here.</p>
   </article>
 </template>
 <template id="tale-3">
-  <article>
+  <article data-voice="tale-3-1">
     <div class="fa">خوانِ سوم</div><h2>The Dragon</h2><span class="kick">The third labour</span>
     <p>Rested by the spring, Rostam lay down to sleep and told Rakhsh: "Fight no beast alone. If an enemy comes, run to me and wake me." Then he slept, and in the middle of the night a dragon came out of the dark, a beast so vast that no elephant or lion dared cross that plain.</p>
     <p>Rakhsh ran to his master, stamping and neighing, and Rostam woke. But the dragon had sunk back into the darkness, and Rostam saw nothing. Angry, he scolded the horse for waking him for nothing, and slept again.</p>
   </article>
-  <article>
+  <article data-voice="tale-3-2">
     <div class="fa">رخش</div><h2>Rakhsh's Warning</h2><span class="kick">The third time</span>
     <p>The dragon came again, and again Rakhsh woke his master, and again it vanished. Rostam raged: "Do that once more and I will cut off your head and walk to Mazandaran!" The third time the dragon came, Rakhsh hardly dared to wake him; but he could not leave Rostam to die, and he stamped and screamed until Rostam rose.</p>
     <p>This time God did not let the dragon hide. Rostam saw it, drew his sword, and they fought. When the dragon coiled about him, Rakhsh sprang in and tore its shoulder with his teeth, and Rostam struck off its head. Its blood ran like a river. Rostam praised God, and his horse.</p>
@@ -630,12 +632,12 @@ body.calm #banner.on{animation-name:banCalm}@keyframes banCalm{0%{opacity:0}15%,
   </article>
 </template>
 <template id="tale-4">
-  <article>
+  <article data-voice="tale-4-1">
     <div class="fa">خوانِ چهارم</div><h2>The Witch</h2><span class="kick">The fourth labour</span>
     <p>Rostam rode on until he came to a place of trees and running water, so green it might have been the garden of paradise. By a stream a feast was laid: a roasted deer, bread, salt and wine in a golden cup, and beside it a tanbur, a long-necked lute. Rostam sat, drank, took up the tanbur and sang of his own hard life: of deserts and dragons, and how seldom a wanderer like him finds a garden like this.</p>
     <p>The feast belonged to a witch. Hearing his song, she made herself as lovely as spring, painted and scented, and came and sat beside him.</p>
   </article>
-  <article>
+  <article data-voice="tale-4-2">
     <div class="fa">یزدان</div><h2>The Name of God</h2><span class="kick">Her true face</span>
     <p>Glad of such company, Rostam gave thanks to God and put the cup of wine in her hand, speaking the name of the Lord of the World. At the name of God her face changed: the beauty fell away, and in her place sat a black and hideous hag.</p>
     <p>Rostam saw what she was. He threw his lasso, caught her fast, and with one blow of his sword cut her in two. Then he rode on toward the land of Mazandaran.</p>
@@ -643,12 +645,12 @@ body.calm #banner.on{animation-name:banCalm}@keyframes banCalm{0%{opacity:0}15%,
   </article>
 </template>
 <template id="tale-5">
-  <article>
+  <article data-voice="tale-5-1">
     <div class="fa">خوانِ پنجم</div><h2>Olad</h2><span class="kick">The fifth labour</span>
     <p>Out of the darkness Rostam came into a bright land of green fields and streams. Tired, he took off his armour, turned Rakhsh loose in a wheat field to graze, and slept. The field-keeper found the horse trampling the crop and struck the sleeping hero with his staff, crying, "Why have you let your horse into my field?"</p>
     <p>Rostam rose without a word, seized the man by the ears, and tore them off. The keeper ran, bleeding, to the warden of that land, a young champion named Olad, who rode out with his men to punish the stranger.</p>
   </article>
-  <article>
+  <article data-voice="tale-5-2">
     <div class="fa">کمند</div><h2>The Lasso</h2><span class="kick">A guide for the road</span>
     <p>Rostam scattered Olad's men like a lion among sheep. Then he threw his coiled lasso, caught Olad, and pulled him from his horse.</p>
     <p>"Tell me the truth," said Rostam, "where the White Div lives, and where Kay Kavus is held, and you may yet rule Mazandaran. Lie to me, and you die." Olad swore to guide him truly, and led him through the night to the camp of Arzhang Div.</p>
@@ -656,12 +658,12 @@ body.calm #banner.on{animation-name:banCalm}@keyframes banCalm{0%{opacity:0}15%,
   </article>
 </template>
 <template id="tale-6">
-  <article>
+  <article data-voice="tale-6-1">
     <div class="fa">خوانِ ششم</div><h2>Arzhang Div</h2><span class="kick">The sixth labour</span>
     <p>Olad led Rostam through the night until they saw fires burning all across the plain, and heard drums and the cries of a host. "That is the camp of Arzhang Div," said Olad, "chief of the Divs of Mazandaran. The White Div's cave lies beyond it."</p>
     <p>Rostam tied Olad to a tree and slept until dawn. When the sun rose he put on his tiger-skin, mounted Rakhsh and rode straight into the camp, roaring his own name like thunder.</p>
   </article>
-  <article>
+  <article data-voice="tale-6-2">
     <div class="fa">رستم</div><h2>The Host Scatters</h2><span class="kick">A name like thunder</span>
     <p>Arzhang came out of his tent at the noise. Rostam rode him down, seized him by the head, and tore it from his shoulders, then flung it among the Divs. At the sight the whole host lost heart; they fled, trampling one another, and the camp was empty before noon.</p>
     <p>Rostam rode on to the city where Kay Kavus lay blind in chains. The king told him that the White Div waited in a cave beyond the seven mountains, and that only the blood of the White Div's heart could cure his eyes.</p>
@@ -669,12 +671,12 @@ body.calm #banner.on{animation-name:banCalm}@keyframes banCalm{0%{opacity:0}15%,
   </article>
 </template>
 <template id="tale-7">
-  <article>
+  <article data-voice="tale-7-1">
     <div class="fa">خوانِ هفتم</div><h2>The White Div</h2><span class="kick">The seventh labour</span>
     <p>Rostam crossed the seven mountains and came to the cave of the White Div. Olad told him that the Divs sleep when the sun is hot, so Rostam waited for noon, then went down into a cave as dark as hell. At first he could see nothing at all; he rubbed his eyes and waited, until at last he made out a vast shape filling the cave, black of face and white of hair, like a mountain sleeping.</p>
     <p>Rostam roared, and the White Div woke and came at him with a millstone. Rostam struck off one of its legs, and still they wrestled, tearing at one another, until the cave ran with blood and sweat. At last Rostam lifted the Div and dashed it to the ground, plunged his dagger into its side, and tore out its heart.</p>
   </article>
-  <article>
+  <article data-voice="tale-7-2">
     <div class="fa">کاووس</div><h2>The King Sees Again</h2><span class="kick">Epilogue</span>
     <p>Rostam brought the heart to Kay Kavus, and they let three drops of its blood fall into the king's eyes. The darkness lifted: Kay Kavus could see again, and so could all his blinded warriors. The king embraced Rostam and wept, and Iran's army, free again, made Olad king of Mazandaran as Rostam had promised.</p>
     <p>So ended the Seven Labours of Rostam: the lion, the desert, the dragon, the witch, Olad, Arzhang, and the White Div. Ferdowsi tells many more of his deeds, but none are sung more often than these.</p>
@@ -682,12 +684,12 @@ body.calm #banner.on{animation-name:banCalm}@keyframes banCalm{0%{opacity:0}15%,
   </article>
 </template>
 <template id="tale-2">
-  <article>
+  <article data-voice="tale-2-1">
     <div class="fa">خوانِ دوم</div><h2>The Waterless Desert</h2><span class="kick">The second labour</span>
     <p>From the reed-beds Rostam rode on into a desert where no bird flew and no grass grew. The sun hung over the sand like a burning shield; the ground was so hot that a man's feet would blister through his boots, and the very air shimmered.</p>
     <p>Rakhsh slowed, and Rostam's tongue cracked with thirst. At last he could ride no further. He climbed down, and leaning on his spear he lifted his face to the sky and prayed: "O Lord, You who give relief to every sorrow, I have come here only to free the king. Do not let me die of thirst in this wilderness."</p>
   </article>
-  <article>
+  <article data-voice="tale-2-2">
     <div class="fa">میش</div><h2>The Ram</h2><span class="kick">A sign in the sand</span>
     <p>As he prayed, a fine ram came walking across the sand before him. Rostam thought: "Where does this ram drink? Surely there is water near." He rose, took his sword in hand and followed it.</p>
     <p>The ram led him to a hidden spring, cool and clear among the rocks, and there it vanished. Rostam drank, and gave thanks, and blessed the ram as a gift from heaven. Then he washed Rakhsh, hunted an onager for his supper, and lay down to rest by the water, knowing that the dragon of the third labour waited in the night ahead.</p>
@@ -695,7 +697,11 @@ body.calm #banner.on{animation-name:banCalm}@keyframes banCalm{0%{opacity:0}15%,
   </article>
 </template>
 
-<script src="https://cdn.jsdelivr.net/npm/phaser@3.80.1/dist/phaser.min.js"></script>
-<script src="game.js?v=88"></script>
+<section class="ov hidden" id="boot-error" role="alertdialog" aria-modal="true" aria-label="Game loading problem" style="z-index:100">
+  <div class="page"><h2>The game could not load</h2><p class="story">Check your connection and try again. Your saved progress is kept.</p><div class="btns"><button class="btn" id="boot-retry">Try again</button></div></div>
+</section>
+<script src="boot.js?v=92"></script>
+<script src="assets/vendor/phaser-3.80.1.min.js" data-game-script="engine"></script>
+<script src="game.js?v=92" data-game-script="game"></script>
 </body>
 </html>
