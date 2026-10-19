@@ -39,6 +39,11 @@ try{
  {const sc=await load(6),B=sc.boss;sc.placeBoss(B);B.body.reset(B.x,1000);step();check('boss out-of-world recovery',B.body.bottom<300);}
  for(const n of [6,7]){const sc=await load(n),B=sc.boss;B.state=n===6?'raise':'raise';B.tm=1;if(n===6)B.combo=['split'];let opened=false;for(let i=0;i<150;i++){step();if(B.state===(n===6?'rest':'stuck')){opened=true;break;}}check(`boss ${n} floor hazard expires before opening`,opened&&sc.hazards.every(z=>z.until<=sc.time.now),{state:B.state,remaining:sc.hazards.map(z=>z.until-sc.time.now)});}
 
+
+ // Queen: turn toward a trailing player with a committed tell; never advertise an active eruption as safe.
+ {const sc=await load(2),B=sc.boss;B.state='walk';B.dir=1;B.think=999;B.diveAge=0;B.rearT=37;sc.player.body.reset(B.x-90,sc.player.y);sc.queenAI();check('Queen reacts to a player behind her',B.state==='turn'&&B.tm>=26&&B.turnDir===-1);sc.player.body.reset(B.x+90,sc.player.y);B.tm=0;sc.queenAI();check('Queen turn stays committed during warning',B.dir===-1&&B.state==='walk');}
+ {const sc=await load(2),B=sc.boss;sc.stars?.destroy();sc.stars=null;B.state='surfacing';B.tm=18;sc.queenAI();check('Queen eruption has no misleading stun stars',!sc.stars&&!B.calm());B.tm=0;sc.queenAI();check('Queen recovery displays stars only after eruption',B.calm()&&sc.stars?.active);}
+ {const sc=await load(2),B=sc.boss;B.state='under';B.underAge=241;B.goal=NaN;B.body.enable=false;B.setAlpha(0);sc.queenAI();check('Queen damaged burrow target recovers into warning',Number.isFinite(B.goal)&&sc.swirl?.active);}
  // Observe actual fights under three repeatable player strategies. These are not human fun scores.
  for(const policy of ['ground','jump','camp'])for(let n=1;n<=7;n++){
   dt=1000/60;const sc=await load(n),B=sc.boss;B.hp=Math.ceil(B.max/2);sc.inv=99999;
