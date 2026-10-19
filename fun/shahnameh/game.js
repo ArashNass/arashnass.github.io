@@ -3029,6 +3029,12 @@ class Play extends Phaser.Scene {
     else if (q.state === 'walk') {
       q.setVelocityX(q.dir * (mad ? 80 : 60)); if (q.anims.currentAnim?.key !== 'queen-walk' || !q.anims.isPlaying) q.play('queen-walk');
       const ahead = d * q.dir, close = ahead > 10 && ahead < 124 && !onLedge;
+      q.rearT = ahead < -55 ? (q.rearT || 0) + this.bossStep() : 0;
+      // Do not patrol an entire arena with Rostam following harmlessly behind.
+      if (q.rearT > 36) {
+        q.state = 'turn'; q.tm = 26; q.turnDir = Math.sign(d) || -q.dir;
+        q.rearT = 0; q.intent = 'The Queen turns: move around her'; q.setVelocityX(0); q.anims.stop(); return;
+      }
       let move = null;
       if (q.think <= 0) {
         move = this.bossTactic(q, [{ move: 'patrol', weight: 1 }, { move: 'sting', weight: close && q.stingCd <= 0 ? 4 : 0 }, { move: 'spit', weight: q.spitCd <= 0 && (onLedge || Math.abs(d) > 140) ? 3 + (read.camp > 2000 ? 2 : 0) : 0 }, { move: 'dive', weight: q.diveAge > 360 ? 1 + read.pressure * 3 : 0, cooldown: 6500 }]); q.think = 30 + Math.random() * 24;
@@ -3043,7 +3049,7 @@ class Play extends Phaser.Scene {
         else { q.state = 'turn'; q.tm = 18; q.anims.stop(); }
       }
     } else if (q.state === 'turn') {
-      q.setVelocityX(0); if (q.tm <= 0) { q.dir = q.x < (L + R) / 2 ? 1 : -1; q.state = 'walk'; }
+      q.setVelocityX(0); if (q.tm <= 0) { q.dir = q.turnDir || (q.x < (L + R) / 2 ? 1 : -1); q.turnDir = null; q.intent = ''; q.state = 'walk'; }
     } else if (q.state === 'aim') {
       // the stinger glows green: the strike is coming
       q.setVelocityX(0); Math.floor(q.tm / 4) % 2 ? q.setTint(0x9aff6a) : q.clearTint();
@@ -3065,18 +3071,21 @@ class Play extends Phaser.Scene {
     } else if (q.state === 'spit') {
       q.setVelocityX(0);
       if (!q.spat && q.tm < 26) { q.spat = true; sfx('fire');
-        for (let i = 0; i < (mad ? 3 : 2); i++) { const tx = (q.aimX ?? p.x) + (i - 0.5) * 44, t = 0.85 + i * 0.12, vx = (tx - q.x - q.dir * 40) / t, vy = -(0.5 * 700 * t) + ((q.aimY ?? p.y) - q.body.top - 10) / t;
+        const count = mad ? 3 : 2;
+        for (let i = 0; i < count; i++) { const tx = (q.aimX ?? p.x) + (i - (count - 1) / 2) * 44, t = 0.85 + i * 0.12, vx = (tx - q.x - q.dir * 40) / t, vy = -(0.5 * 700 * t) + ((q.aimY ?? p.y) - q.body.top - 10) / t;
           this.venom(q.x + q.dir * 40, q.body.top + 10, vx, vy, true); } }
       if (q.tm <= 0) { q.state = 'walk'; q.spitCd = mad ? 120 : 160; q.dir = q.x < (L + R) / 2 ? 1 : -1; }
     } else if (q.state === 'dive') {
       q.setVelocityX(0);
       if (q.tm <= 0) {   // under the sand: a trail of sand runs across the arena to the far side
-        q.state = 'under'; q.setAlpha(0); q.body.enable = false;
+        q.state = 'under'; q.underAge = 0; q.setAlpha(0); q.body.enable = false;
         q.goal = q.x < (L + R) / 2 ? R - 10 : L + 10;
         if ((mad || read.camp > 1800) && !onLedge) q.goal = Phaser.Math.Clamp(read.targetX, L + 10, R - 10);   // enraged, she may come up right under Rostam
         this.mound = this.add.particles(0, 0, 'sand', { x: 0, y: 0, speedX: { min: -50, max: 50 }, speedY: { min: -90, max: -30 }, gravityY: 300, lifespan: 600, frequency: 25, scale: { min: 1, max: 2 } }).setDepth(8);
       }
     } else if (q.state === 'under') {
+      q.underAge = (q.underAge || 0) + this.bossStep();
+      if (q.underAge > 240 || !Number.isFinite(q.goal)) q.goal = Phaser.Math.Clamp(q.x, L + 10, R - 10);
       if (!this.swirl?.active) {
         const step = (mad ? 4.4 : 3.4) * this.bossStep(); q.x += Phaser.Math.Clamp(q.goal - q.x, -step, step); this.mound?.setPosition(q.x, floorY);
         if (Math.abs(q.goal - q.x) < 1) {   // she has arrived: the sand swirls where she will rise
@@ -3090,10 +3099,9 @@ class Play extends Phaser.Scene {
         q.dir = q.x < (L + R) / 2 ? 1 : -1;
         this.hazard(q.x - 36, floorY - 60, 72, 60, 260); this.cam.shake(420, 0.016); sfx('hit'); sfx('roar');
         for (let i = 0; i < 6; i++) this.fx('dust', q.x + (i - 2.5) * 16, floorY, { depth: 8 });
-        this.stars = this.fx('stun', q.x, q.body.top - 4, { depth: 10, follow: q });
       }
     } else if (q.state === 'surfacing') {
-      q.setVelocityX(0); if (q.tm <= 0) { q.state = 'surfaced'; q.tm = mad ? 50 : 64; }
+      q.setVelocityX(0); if (q.tm <= 0) { q.state = 'surfaced'; q.tm = mad ? 50 : 64; this.stars?.destroy(); this.stars = this.fx('stun', q.x, q.body.top - 4, { depth: 10, follow: q }); }
     } else if (q.state === 'surfaced') {
       q.setVelocityX(0); this.stars?.setPosition(Math.round(q.x), Math.round(q.body.top - 4));
       if (q.tm <= 0) { this.stars?.destroy(); this.stars = null; q.state = 'walk'; q.stingCd = 30; q.play('queen-walk'); }
