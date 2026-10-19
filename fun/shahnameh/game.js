@@ -379,6 +379,19 @@ function routeCue(s, p) {
   if (beat > s.routeBeat) { s.routeBeat = beat; hint(cues[beat][1]); }
 }
 
+// Optional Simurgh trails: high routes with three sparks, a generous timer, and
+// no penalty for failing. Main-story triggers never depend on these challenges.
+const TRIALS = {
+  1: { name: 'Reeds of Gold', at: 35, seconds: 16, points: [[38.5,10],[44.5,6.5],[58.5,10]] },
+  2: { name: 'Above the Sands', at: 41, seconds: 18, points: [[44.5,9],[57.5,10],[69.5,10]] },
+  3: { name: 'Rakhsh in the Night', at: 50, seconds: 20, points: [[58.5,10],[79.5,9],[95.5,8]] },
+  4: { name: 'Lantern Dance', at: 40, seconds: 24, points: [[46.5,7],[72.5,8],[98.5,8]] },
+  5: { name: 'Wind over the Marches', at: 56, seconds: 22, points: [[56.5,8],[84.5,8],[104.5,8]] },
+  6: { name: 'Above the War Fires', at: 6, seconds: 20, points: [[9.5,8],[22.5,10],[39.5,8]] },
+  7: { name: 'Light in the Cave', at: 105, seconds: 20, points: [[111.5,11],[128.5,10],[135.5,10]] }
+};
+const trialRecords = () => { try { const r = JSON.parse(store.get('sh-trials') || '{}'); return r && typeof r === 'object' && !Array.isArray(r) ? r : {}; } catch { return {}; } };
+
 /* ----------------------------- foes ----------------------------- */
 // walking foes turn at walls and at the edge of a drop or thorns
 // another ground foe just ahead in this direction: they keep their distance rather than stand inside each other
@@ -386,8 +399,14 @@ function routeCue(s, p) {
 const onFloor = (b, t) => t.index % 4 !== 2;
 const FOE_GAP = 8;
 const groundFoe = f => f.active && f.body?.enable && f.body.allowGravity;
-const foeBusy = f => f.smash || f.cast || f.sting || f.thrust || f.leap ||
+const foeBusy = f => f.staggerUntil > f.scene.time.now || f.smash || f.cast || f.sting || f.thrust || f.leap ||
   (f.anims.isPlaying && /strike|smash|thrust|sting|throw|leap/.test(f.anims.currentAnim?.key || ''));
+const attackRole = f => ['bat', 'vulture', 'firediv'].includes(f.kind) ? 'ranged' : 'melee';
+function reserveAttack(s, f) {
+  const role = attackRole(f), nearby = s.foes.getChildren().filter(o => o !== f && o.active && o.body.enable && attackRole(o) === role && Math.abs(o.x - f.x) < 125);
+  if (nearby.some(o => foeBusy(o) || ['warn', 'dive'].includes(o.state) || s.time.now - (o.attackAt ?? -Infinity) < 360)) return false;
+  f.attackAt = s.time.now; f.attackId = (f.attackId || 0) + 1; return true;
+}
 function crowded(s, f, dir) {
   return s.foes.getChildren().some(o => {
     if (o === f || !groundFoe(o) || Math.abs(o.body.bottom - f.body.bottom) > 20) return false;
@@ -491,7 +510,7 @@ const FOES = {
       f.hopT -= k; if (!f.body.blocked.down) return;
       if (canHunt(s, f, p) && above(f, p)) { f.setVelocityX(0); if (f.hopT <= 0) { const post = postOf(s, f); f.dir = Math.abs(f.x - post) > TS ? Math.sign(post - f.x) : (Math.random() < 0.5 ? -1 : 1); f.setFlipX(f.dir < 0); f.setVelocity(hopVelocity(f, crowded(s, f, f.dir) ? 0 : f.dir * 50, 0.48), -200); f.hopT = 80 + Math.random() * 40; } return; }
       f.dir = Math.sign(p.x - f.x) || 1; f.setFlipX(f.dir < 0); f.setVelocityX(0);
-      if (canHunt(s, f, p) && f.hopT <= 0 && Math.abs(p.x - f.x) < 200) { f.setVelocity(hopVelocity(f, crowded(s, f, f.dir) ? 0 : f.dir * 70, 0.55), -230); f.hopT = 70; }
+      if (canHunt(s, f, p) && f.hopT <= 0 && Math.abs(p.x - f.x) < 200 && reserveAttack(s, f)) { f.setVelocity(hopVelocity(f, crowded(s, f, f.dir) ? 0 : f.dir * 70, 0.55), -230); f.hopT = 70; }
     }
   },
   // scorpions creep, then scuttle at Rostam when he comes close on the same level, and lash out with the sting
@@ -501,9 +520,9 @@ const FOES = {
       f.cool = (f.cool || 0) - k;
       if (f.sting) { f.setVelocityX(0); return; }
       const dx = p.x - f.x;
-      if (canHunt(s, f, p) && f.cool <= 0 && Math.abs(dx) < 46 && Math.abs(p.body.bottom - f.body.bottom) < 24 && f.body.blocked.down) {
-        f.sting = true; f.cool = 80; f.dir = Math.sign(dx) || 1; f.setFlipX(f.dir < 0); f.setVelocityX(0); f.anims.timeScale = 1; f.play('scorpion-sting');
-        s.time.delayedCall(250, () => { if (f.active && f.body.enable) { s.hazard(f.dir > 0 ? f.body.right - 4 : f.body.left - 26, f.body.top - 14, 30, f.body.height + 14, 140); sfx('swing'); } });
+      if (canHunt(s, f, p) && f.cool <= 0 && Math.abs(dx) < 46 && Math.abs(p.body.bottom - f.body.bottom) < 24 && f.body.blocked.down && reserveAttack(s, f)) {
+        const attackId = f.attackId; f.sting = true; f.cool = 80; f.dir = Math.sign(dx) || 1; f.setFlipX(f.dir < 0); f.setVelocityX(0); f.anims.timeScale = 1; f.play('scorpion-sting');
+        s.time.delayedCall(250, () => { if (f.active && f.body.enable && f.attackId === attackId) { s.hazard(f.dir > 0 ? f.body.right - 4 : f.body.left - 26, f.body.top - 14, 30, f.body.height + 14, 140); sfx('swing'); } });
         f.once('animationcomplete', () => { if (f.active) { f.sting = false; f.play('scorpion-crawl'); } });
         return;
       }
@@ -529,9 +548,9 @@ const FOES = {
         return;
       }
       f.turnT = undefined;
-      if (canHunt(s, f, p) && f.cool <= 0 && Math.abs(d) < 90 && Math.abs(p.body.bottom - f.body.bottom) < 30 && f.body.blocked.down) {
-        f.smash = true; f.setVelocityX(0); f.play('divwarrior-smash');
-        s.time.delayedCall(420, () => { if (!f.active || !f.body.enable) return; s.hazard(f.dir > 0 ? f.x + 8 : f.x - 48, f.body.top + 20, 40, 30, 160); s.fx('dust', f.x + f.dir * 30, f.body.bottom, { depth: 8 }); s.cam.shake(120, 0.006); sfx('hit'); });
+      if (canHunt(s, f, p) && f.cool <= 0 && Math.abs(d) < 90 && Math.abs(p.body.bottom - f.body.bottom) < 30 && f.body.blocked.down && reserveAttack(s, f)) {
+        const attackId = f.attackId; f.smash = true; f.setVelocityX(0); f.play('divwarrior-smash');
+        s.time.delayedCall(420, () => { if (!f.active || !f.body.enable || f.attackId !== attackId) return; s.hazard(f.dir > 0 ? f.x + 8 : f.x - 48, f.body.top + 20, 40, 30, 160); s.fx('dust', f.x + f.dir * 30, f.body.bottom, { depth: 8 }); s.cam.shake(120, 0.006); sfx('hit'); });
         f.once('animationcomplete', () => { if (!f.active) return; f.smash = false; f.cool = 90; f.play('divwarrior-walk'); });
         return;
       }
@@ -552,9 +571,9 @@ const FOES = {
       f.cool = (f.cool || 0) - k;
       if (f.thrust) { f.setVelocityX(0); return; }
       const d = p.x - f.x;
-      if (canHunt(s, f, p) && f.cool <= 0 && Math.abs(d) < 84 && Math.abs(p.body.bottom - f.body.bottom) < 24) {
-        f.thrust = true; f.dir = Math.sign(d) || 1; f.setFlipX(f.dir < 0); f.setVelocityX(0); f.play('spearman-thrust'); sfx('swing');
-        s.time.delayedCall(180, () => { if (f.active && f.body.enable) s.hazard(f.dir > 0 ? f.x + 6 : f.x - 50, f.body.top + 12, 44, 12, 160); });
+      if (canHunt(s, f, p) && f.cool <= 0 && Math.abs(d) < 84 && Math.abs(p.body.bottom - f.body.bottom) < 24 && reserveAttack(s, f)) {
+        const attackId = f.attackId; f.thrust = true; f.dir = Math.sign(d) || 1; f.setFlipX(f.dir < 0); f.setVelocityX(0); f.play('spearman-thrust'); sfx('swing');
+        s.time.delayedCall(180, () => { if (f.active && f.body.enable && f.attackId === attackId) s.hazard(f.dir > 0 ? f.x + 6 : f.x - 50, f.body.top + 12, 44, 12, 160); });
         f.once('animationcomplete', () => { if (!f.active) return; f.thrust = false; f.cool = 70; f.play('spearman-walk'); });
         return;
       }
@@ -565,11 +584,11 @@ const FOES = {
     tex: 'serpent', hp: 2,
     tick(s, f, k, p) {
       const d = p.x - f.x; f.setFlipX(d < 0); f.cool = (f.cool || 0) - k;
-      if (canHunt(s, f, p) && f.cool <= 0 && Math.abs(d) < 80 && Math.abs(p.body.bottom - f.body.bottom) < 30 && f.body.blocked.down) {
+      if (canHunt(s, f, p) && f.cool <= 0 && Math.abs(d) < 80 && Math.abs(p.body.bottom - f.body.bottom) < 30 && f.body.blocked.down && reserveAttack(s, f)) {
         // it rears back, then lunges with its jaws wide
-        const dir = Math.sign(d) || 1; f.cool = 100; f.setVelocityX(0); f.play('serpent-strike');
-        s.time.delayedCall(230, () => { if (f.active && f.body.enable) { f.setVelocity(hopVelocity(f, dir * 190, 0.32), -110); sfx('swing');
-          s.time.delayedCall(90, () => f.active && f.body.enable && s.hazard(dir > 0 ? f.body.right - 6 : f.body.left - 46, f.body.top - 10, 52, f.body.height + 14, 160)); } });   // the jaws snap shut a full lunge ahead
+        const attackId = f.attackId; const dir = Math.sign(d) || 1; f.cool = 100; f.setVelocityX(0); f.play('serpent-strike');
+        s.time.delayedCall(230, () => { if (f.active && f.body.enable && f.attackId === attackId) { f.setVelocity(hopVelocity(f, dir * 190, 0.32), -110); sfx('swing');
+          s.time.delayedCall(90, () => f.active && f.body.enable && f.attackId === attackId && s.hazard(dir > 0 ? f.body.right - 6 : f.body.left - 46, f.body.top - 10, 52, f.body.height + 14, 160)); } });   // the jaws snap shut a full lunge ahead
         f.once('animationcomplete', () => f.active && f.play('serpent'));
       } else if (f.body.blocked.down) f.setVelocityX(0);
     }
@@ -582,10 +601,10 @@ const FOES = {
       if (f.cast) { f.setVelocityX(0); return; }
       if (above(f, p)) { pace(s, f, 30); return; }
       const d = p.x - f.x, ad = Math.abs(d), face = Math.sign(d) || f.dir;
-      if (canHunt(s, f, p) && f.cool <= 0 && ad > 50 && ad < 270 && f.body.blocked.down) {
-        f.cast = true; f.dir = face; f.setFlipX(face < 0); f.setVelocityX(0); f.play('firediv-throw');
+      if (canHunt(s, f, p) && f.cool <= 0 && ad > 50 && ad < 270 && f.body.blocked.down && reserveAttack(s, f)) {
+        const attackId = f.attackId; f.cast = true; f.dir = face; f.setFlipX(face < 0); f.setVelocityX(0); f.play('firediv-throw');
         s.time.delayedCall(330, () => {
-          if (!f.active || !f.body.enable) return; const t = 0.85, y0 = f.body.top + 8;
+          if (!f.active || !f.body.enable || f.attackId !== attackId) return; const t = 0.85, y0 = f.body.top + 8;
           const b = s.shoot(f.x + face * 14, y0, (p.x - f.x) / t, -(0.5 * 700 * t) + (p.body.center.y - y0) / t, 'fireball', { gravity: 700, life: 2200, spin: 6 }); s.light(b, 0.5, 0.2); sfx('fire');
         });
         f.once('animationcomplete', () => { if (!f.active) return; f.cast = false; f.cool = 120 + Math.random() * 50; f.play('firediv-walk'); });
@@ -604,7 +623,7 @@ const FOES = {
       if (f.leap) { if (f.body.blocked.down && (f.leapT -= k) <= 0) { f.leap = false; f.cool = 80; f.play('ghul-crawl'); } return; }
       if (above(f, p)) { pace(s, f, 40); return; }
       const d = p.x - f.x, face = Math.sign(d) || f.dir;
-      if (canHunt(s, f, p) && f.cool <= 0 && Math.abs(d) < 120 && Math.abs(p.body.bottom - f.body.bottom) < 30 && f.body.blocked.down) {
+      if (canHunt(s, f, p) && f.cool <= 0 && Math.abs(d) < 120 && Math.abs(p.body.bottom - f.body.bottom) < 30 && f.body.blocked.down && reserveAttack(s, f)) {
         f.leap = true; f.leapT = 12; f.dir = face; f.setFlipX(face < 0); f.play('ghul-leap'); f.setVelocity(hopVelocity(f, face * 200, 0.6), -250); sfx('swing');
         return;
       }
@@ -625,7 +644,7 @@ function flyer(tex, { range, dive, rest, offY, speed = 0.012 }) {
       if (f.state === 'circle') {
         const tx = f.roam ? Phaser.Math.Clamp(f.home.x + Math.sin(f.t) * range, f.roam[0] + f.body.width / 2 + 1, f.roam[1] - f.body.width / 2 - 1) : f.home.x + Math.sin(f.t) * range, ty = f.home.y + Math.sin(f.t * 2) * 10;
         f.setVelocity((tx - f.x) * 2.2, (ty - f.y) * 2.2); f.setFlipX(Math.cos(f.t) < 0);
-        if (canHunt(s, f, p) && f.cool <= 0 && Math.abs(p.x - f.x) < 170 && p.y > f.y) {
+        if (canHunt(s, f, p) && f.cool <= 0 && Math.abs(p.x - f.x) < 170 && p.y > f.y && reserveAttack(s, f)) {
           f.state = 'warn'; f.tm = 18; f.aim = { x: p.body.center.x, y: p.body.center.y };
           f.setVelocity(0); f.setTint(0xffd27a); f.anims.timeScale = 0.4;
         }
@@ -1346,7 +1365,7 @@ let KEYMAP = {};
 function buildKeys() { KEYMAP = {}; for (const [a, ks] of Object.entries(SET.keys)) for (const k of ks) if (k) KEYMAP[k.length === 1 ? k.toLowerCase() : k] = a; refreshControlLabels(); }
 buildKeys();
 const keyOf = e => e.key.length === 1 ? e.key.toLowerCase() : e.key;
-const clearInput = () => { for (const k in keys) keys[k] = false; for (const k in pressed) pressed[k] = false; };
+const clearInput = () => { for (const k in keys) keys[k] = false; for (const k in pressed) pressed[k] = false; const sc = typeof game !== 'undefined' && game?.scene?.getScene('play'); if (sc) { sc.buf = sc.attackBuf = sc.dodgeBuf = sc.chargeT = 0; sc.chargeFull = false; sc.chargeGlow?.destroy(); sc.chargeGlow = null; if (sc.pose === 'rostam-heavy' && !sc.heavyGo) sc.pose = null; } };
 const gameplayInput = () => playing && !paused && !cine && !document.querySelector('.ov:not(.hidden)');
 const press = (k, down) => { if (down && !gameplayInput()) return; if (down && !keys[k] && k in pressed) pressed[k] = true; keys[k] = down; };
 addEventListener('keydown', e => {
@@ -1414,7 +1433,7 @@ class Play extends Phaser.Scene {
   create() {
     // the scene object is reused from labour to labour: forget whatever the last one left behind
     for (const k of ['dark', 'lights', 'lamp', 'wall', 'wallR', 'stars', 'pose', 'swingFx', 'witch', 'unmasked', 'olad', 'rakhsh', 'dragonSeen', 'horde', 'hordeDone',
-      'gates', 'hordeBat', 'toldRock', 'toldFarr', 'toldOffer', 'atAltar', 'bossT', 'maceHit', 'toldIce', 'chargeWarn', 'toldCharge', 'shards', 'shardG', 'mark', 'markGlow', 'markOpen', 'bossHeart', 'bossHeartT', 'floorWarn', 'highWarn', 'regrow', 'drums', 'sky', 'flashA', 'intro', 'fgReeds', 'mound', 'swirl', 'qx', 'puddles', 'combo', 'comboT', 'heavy', 'heavyGo', 'chargeT', 'chargeFull', 'chargeGlow', 'dodgeT', 'dodgeCd', 'dodgeDir', 'whiteDown', 'ended', 'mounted', 'prayed', 'drank', 'toldImmune', 'toldDeflect', 'toldVenom', 'cage', 'kavus', 'stones', 'puzzle', 'springOpen', 'pool', 'victory']) delete this[k];
+      'gates', 'hordeBat', 'toldRock', 'toldFarr', 'toldOffer', 'atAltar', 'bossT', 'maceHit', 'toldIce', 'chargeWarn', 'toldCharge', 'shards', 'shardG', 'mark', 'markGlow', 'markOpen', 'bossHeart', 'bossHeartT', 'floorWarn', 'highWarn', 'regrow', 'drums', 'sky', 'flashA', 'intro', 'fgReeds', 'mound', 'swirl', 'qx', 'puddles', 'combo', 'comboT', 'heavy', 'heavyGo', 'chargeT', 'chargeFull', 'chargeGlow', 'dodgeT', 'dodgeCd', 'dodgeDir', 'whiteDown', 'ended', 'mounted', 'prayed', 'drank', 'toldImmune', 'toldDeflect', 'toldVenom', 'cage', 'kavus', 'stones', 'puzzle', 'springOpen', 'pool', 'victory', 'attackBuf', 'dodgeBuf', 'counterT', 'counterStrike', 'dodgeRewarded', 'trial', 'nearTrial']) delete this[k];
     // turn loaded strips into square frames; anything missing falls back to placeholder art
     for (const k of ['decor-' + cur]) if (this.textures.exists(k) && this.textures.get(k).frameTotal < 3) { const t = this.textures.get(k), h = t.getSourceImage().height; for (let i = 0; i < Math.round(t.getSourceImage().width / h); i++) t.add(i, 0, i * h, 0, h, h); }
     for (const [k, f] of Object.entries(ART)) if (f && this.textures.exists(k)) {
@@ -1542,6 +1561,7 @@ class Play extends Phaser.Scene {
     this.physics.add.overlap(this.player, this.shots, (pl, sh) => { if (!sh.active || sh.back) return; this.hurt(sh.x); this.fx('hit', sh.x, sh.y, { depth: 10 }); sh.destroy(); });
     lv.create?.(this);
     setupEncounters(this);
+    this.setupTrial();
     if (rush) this.rushSetup();
     if (R) { lv.resume?.(this); toast(R.well ? 'Rostam rises again beside the well.' : 'Rostam rises again beside the sacred fire.'); }
   }
@@ -1550,6 +1570,63 @@ class Play extends Phaser.Scene {
     const h = this.pickup(x, y, 'heart-pick', 0, 'heart'); h.setScale(2); h.body.setSize(24, 24); h.setDepth(4);
     this.tweens.add({ targets: h, y: y - 3, yoyo: true, repeat: -1, duration: 900, ease: 'Sine.easeInOut' });   // a gentle bob, nothing more
     this.light(h, 0.5, 0.1); return h;
+  }
+  combatWord(text, color = '#ffe7a2') {
+    const p = this.player, word = this.add.text(p.x, p.body.top - 12, text, { fontFamily: 'Georgia, serif', fontSize: '10px', color, stroke: '#181125', strokeThickness: 3, resolution: 4 }).setOrigin(0.5, 1).setDepth(14);
+    this.tweens.add({ targets: word, y: word.y - 18, alpha: 0, delay: 250, duration: 650, onComplete: () => word.destroy() });
+  }
+  setupTrial() {
+    if (rush) return;
+    const cfg = TRIALS[cur], x = (cfg.at + 0.5) * TS, y = this.groundAt(x) * TS;
+    const glow = this.add.image(x, y - 27, 'glow').setScale(0.55).setTint(0xffdc87).setAlpha(0.65).setBlendMode(Phaser.BlendModes.ADD).setDepth(3);
+    const marker = this.add.image(x, y - 27, 'feather').setScale(0.2).setTint(0xffdf8d).setDepth(4);
+    this.tweens.add({ targets: [marker, glow], y: y - 32, yoyo: true, repeat: -1, duration: 1000, ease: 'Sine.easeInOut' });
+    const label = this.add.text(x, y - 80, 'Simurgh trial', { fontFamily: 'Georgia, serif', fontSize: '9px', color: '#ffe5a0', stroke: '#181125', strokeThickness: 3, resolution: 4 }).setOrigin(0.5, 1).setDepth(10);
+    const ribbonFrame = this.add.rectangle(W / 2, 39, 180, 16, 0x181125, 0.95).setStrokeStyle(1, 0xcaa65e).setScrollFactor(0).setDepth(13).setVisible(false);
+    const ribbon = this.add.text(W / 2, 39, '', { fontFamily: 'Georgia, serif', fontSize: '9px', color: '#ffe5a0', padding: { x: 6, y: 2 }, resolution: 4 }).setOrigin(0.5).setScrollFactor(0).setDepth(14).setVisible(false);
+    this.trial = { cfg, x, y, marker, glow, label, ribbon, ribbonFrame, state: 'ready', sparks: [], count: 0, best: trialRecords()[cur]?.best || 0 };
+  }
+  startTrial() {
+    const t = this.trial; if (!t || !['ready', 'complete'].includes(t.state) || this.frozen || this.bossOn) return;
+    t.state = 'running'; t.count = 0; t.layoutAt = 0; t.started = this.time.now; t.until = t.started + t.cfg.seconds * 1000;
+    t.marker.setAlpha(0.3); t.label.setVisible(false);
+    t.sparks = t.cfg.points.map(([c, r]) => {
+      const x = c * TS, y = r * TS, spark = this.coins.create(x, y, 'coin-spin', 0).play('coin-spin');
+      spark.kind = 'trial'; spark.setDepth(8); spark.body.setSize(12, 12);
+      spark.glow = this.add.image(x, y, 'glow').setScale(0.35).setTint(0xffdf8d).setBlendMode(Phaser.BlendModes.ADD).setDepth(7);
+      return spark;
+    });
+    toast(`${t.cfg.name}: gather three golden sparks without taking a hit. Optional — your journey continues either way.`);
+  }
+  finishTrial(success, reason = '') {
+    const t = this.trial; if (!t || t.state !== 'running') return;
+    for (const c of t.sparks) { c.glow?.destroy(); if (c.active) c.destroy(); }
+    t.sparks = []; t.ribbon.setVisible(false); t.ribbonFrame.setVisible(false); t.state = success ? 'complete' : 'ready'; t.marker.setAlpha(success ? 0.65 : 1); t.label.setText(success ? 'Trial complete' : 'Simurgh trial').setVisible(true);
+    if (!success) { if (reason) toast(reason); return; }
+    t.completed = true; t.elapsed = Math.max(1, Math.round(this.time.now - t.started));
+    const records = trialRecords(), previous = records[cur], first = !previous?.best;
+    records[cur] = { best: Math.min(previous?.best || Infinity, t.elapsed) }; t.best = records[cur].best; store.set('sh-trials', JSON.stringify(records));
+    if (first) { this.coinCount += 3; setPurse(purse() + 3); $('coins').textContent = purse(); this.gainFarr(30); if (this.coinCount >= FED && cur !== 3) this.rakhshFed = true; }
+    if (cur === 2) { this.water = Math.min(100, this.water + 30); this.renderWater(); }
+    this.sparkle(this.player.x, this.player.body.center.y, 0xffdf8d); this.combatWord('Trial complete'); sfx('coin');
+    toast(`${t.cfg.name} — ${(t.elapsed / 1000).toFixed(1)}s.${first ? ' Three provisions and golden Farr earned!' : t.elapsed < previous.best ? ' A new personal best!' : ' Trail mastered again.'}`);
+  }
+  tickTrial() {
+    const t = this.trial; if (!t) return;
+    if (t.state === 'running') {
+      if (this.bossOn || this.horde || this.done || this.player.x > (t.cfg.points.at(-1)[0] + 6) * TS || this.player.x < t.x - 6 * TS) { this.finishTrial(false); return; }
+      if (this.time.now >= t.until) { this.finishTrial(false, 'The sparks fade — try again at the feather.'); return; }
+      t.ribbon.setText(`${t.cfg.name}  ·  ${t.count}/3  ·  ${Math.ceil((t.until - this.time.now) / 1000)}s`).setVisible(true);
+      // Keep the trial strip below DOM hints even when the canvas is letterboxed.
+      if (!t.layoutAt || this.time.now >= t.layoutAt) {
+        const rect = this.game.canvas.getBoundingClientRect(), scale = Math.max(0.1, rect.width / W);
+        t.ribbon.setFontSize(Math.max(9, 12 / scale));
+        const h = Math.max(16, t.ribbon.height + 2), top = Math.max(rect.top + 8, $('hud').getBoundingClientRect().bottom + 8, $('hint').getBoundingClientRect().bottom + 8);
+        const y = Phaser.Math.Clamp((top - rect.top) / scale + h / 2, h / 2, H - 24);
+        t.ribbon.setY(y); t.ribbonFrame.setY(y); t.layoutAt = this.time.now + 250;
+      }
+      t.ribbonFrame.setSize(t.ribbon.width + 8, Math.max(16, t.ribbon.height + 2)).setVisible(true);
+    }
   }
   // light a fire altar (or drink at a well): the checkpoint
   kindle(a, quiet = false) {
@@ -1598,6 +1675,12 @@ class Play extends Phaser.Scene {
   }
   eat(c) {
     if (!c.active) return;
+    if (c.kind === 'trial') {
+      const t = this.trial; if (!t || t.state !== 'running') { c.glow?.destroy(); c.destroy(); return; }
+      if (this.time.now >= t.until) { this.finishTrial(false, 'The sparks fade — try again at the feather.'); return; }
+      c.glow?.destroy(); c.destroy(); t.count++; this.fx('pickup', this.player.x, this.player.body.center.y); sfx('coin');
+      if (t.count === 3) this.finishTrial(true); return;
+    }
     if (c.kind === 'sfeather') {
       const F = feathers(); F[c.fid] = 1; store.set('sh-feathers', JSON.stringify(F));
       c.spark?.destroy(); this.tweens.killTweensOf([c, c.glow]); c.body.enable = false;
@@ -1642,8 +1725,16 @@ class Play extends Phaser.Scene {
     const B = this.boss; if (B?.active && B.hp > 0 && B.body.enable) { this.fx('heal', B.x, B.body.bottom, { depth: 10 }); this.damage(B, 2, true); }
     if (!this.toldFarr) { this.toldFarr = true; toast('The Simurgh answers! Golden light strikes every foe around you.'); }
   }
-  hurt(fromX, thirst = false) {
-    if ((this.inv > 0 && !thirst) || this.done || this.frozen || (this.dodgeT > 0 && !thirst)) return;   // no harm during a cutscene or a dodge
+  hurt(fromX, thirst = false, cause = 'attack') {
+    if ((this.inv > 0 && !thirst) || this.done || this.frozen) return;
+    if (this.dodgeT > 0 && !thirst) {
+      if (cause === 'attack' && this.dodgeT > 9 && !this.dodgeRewarded) {
+        this.dodgeRewarded = true; this.counterT = 48; this.gainFarr(6);
+        this.sparkle(this.player.x, this.player.body.center.y, 0x8fe8ff); this.combatWord('Perfect dodge', '#b7f3ff');
+      }
+      return;
+    }
+    if (this.trial?.state === 'running') this.finishTrial(false, 'Hit taken — try again at the feather.');   // no harm during a cutscene or a dodge
     this.hp--; this.renderHearts(); this.inv = thirst ? 30 : gentle() ? 130 : legend() ? 70 : 90; sfx('hurt'); this.cam.shake(160, 0.008); this.cam.flash(120, 180, 40, 60);
     if (!thirst) this.player.setVelocity((this.player.x < fromX ? -1 : 1) * 160, -220);
     if (this.hp <= 0) {
@@ -1675,7 +1766,14 @@ class Play extends Phaser.Scene {
     if (f.immune?.() && !force) { this.fx('dust', f.x, f.body.center.y, { depth: 10 }); sfx('clang'); if (!this.toldImmune) { this.toldImmune = true; toast(f.immuneMsg || 'Your blow passes through shadow.'); } return false; }
     if (f === this.boss && !force && this.time.now < (f.hitReadyAt || 0)) return false;
     if (f === this.boss) f.hitReadyAt = this.time.now + (gentle() ? 240 : 320);
-    f.hp -= n; f.setTintFill(0xffffff); this.time.delayedCall(80, () => f.active && f.clearTint());
+    f.hp -= n;
+    if (f !== this.boss && f.hp > 0 && f.body.allowGravity && !force && (this.heavy || this.counterStrike)) {
+      f.attackId = (f.attackId || 0) + 1; f.staggerUntil = this.time.now + 420;
+      f.smash = f.cast = f.sting = f.thrust = f.leap = false; f.cool = Math.max(f.cool || 0, 45);
+      f.removeAllListeners('animationcomplete'); f.play(FOES[f.kind].tex, true);
+      f.staggerFx?.destroy(); f.staggerFx = this.fx('stun', f.x, f.body.top - 4, { depth: 8 }).setScale(0.55);
+    }
+    f.setTintFill(0xffffff); this.time.delayedCall(80, () => f.active && f.clearTint());
     const hx = Phaser.Math.Clamp(this.face > 0 ? f.body.left + 6 : f.body.right - 6, f.body.left, f.body.right);
     this.fx('hit', hx, f.body.center.y - 4, { depth: 10 }); sfx('hit'); this.cam.shake(80, 0.004);
     if (f === this.boss || this.heavy) this.fx('impact', hx, f.body.center.y - 4, { depth: 10 });
@@ -1686,7 +1784,7 @@ class Play extends Phaser.Scene {
     }
     if (f.hp <= 0) {
       if (f === this.boss) { f.onDown(); return true; }
-      this.kills++; f.body.enable = false; this.slay(f); this.gainFarr(4);
+      this.kills++; f.staggerFx?.destroy(); f.staggerFx = null; f.body.enable = false; this.slay(f); this.gainFarr(4);
     }
     return true;
   }
@@ -2064,6 +2162,7 @@ class Play extends Phaser.Scene {
     $('nextBtn').classList.toggle('hidden', cur >= LABOURS || !LEVELS[cur + 1]);
     $('winStats').innerHTML = `<div><b>${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}</b>time</div><div><b>${result.coins}</b>provisions</div><div><b>${result.kills}</b>foes</div><div><b>${result.hp}</b>hearts</div>`;
     $('winBest').textContent = !best || s < best ? 'A new best time!' : `Best time ${Math.floor(best / 60)}:${String(best % 60).padStart(2, '0')}`;
+    if (this.trial?.completed) $('winBest').textContent += ` · Simurgh trial ${(this.trial.elapsed / 1000).toFixed(1)}s`;
     const labour = cur, showWin = () => {
       music(false); $('s-win').classList.remove('hidden');
       (labour < LABOURS ? $('nextBtn') : $('againBtn')).focus();
@@ -2077,24 +2176,28 @@ class Play extends Phaser.Scene {
     this.lv.scroll(this, this.cam.scrollX, time); this.drawShards(delta); this.tickSky(delta / 16.67, time);
     if (!playing || this.done) { if (this.done && this.hp <= 0) p.setVelocityX(0); return; }
     this.inv = Math.max(0, this.inv - k); p.setAlpha(this.inv > 0 && Math.floor(this.inv / 5) % 2 ? 0.35 : 1);
-    if (this.frozen) { pressed.jump = pressed.attack = false; }
+    if (this.frozen) { pressed.jump = pressed.attack = false; this.buf = this.attackBuf = this.dodgeBuf = 0; }
     const dirX = this.frozen ? 0 : (keys.right ? 1 : 0) - (keys.left ? 1 : 0), ground = b.blocked.down;
     if (dirX) this.face = dirX;
-    const tv = dirX * (this.mounted ? 165 : 125); b.velocity.x += (tv - b.velocity.x) * (ground ? 0.3 : 0.15);   // Rakhsh outruns any man
-    this.coyote = ground ? 6 : this.coyote - 1;
+    const tv = dirX * (this.mounted ? 165 : 125); b.velocity.x += (tv - b.velocity.x) * (1 - Math.pow(ground ? 0.7 : 0.85, k));   // Rakhsh outruns any man
+    this.coyote = ground ? 6 : Math.max(0, this.coyote - k);
     if (pressed.jump) this.buf = 6; pressed.jump = false;
     if (ground) this.airJumps = 1;
-    if (this.buf-- > 0 && this.coyote > 0) { p.setVelocityY(-335); this.coyote = 0; this.buf = 0; sfx('jump'); this.fx('dust', p.x, b.bottom, { depth: 6 }); }
+    if (this.buf > 0 && this.coyote > 0) { p.setVelocityY(-335); this.coyote = 0; this.buf = 0; sfx('jump'); this.fx('dust', p.x, b.bottom, { depth: 6 }); }
     // the super jump: once in the air, jump again for a higher leap, in a burst of gold
     else if (this.buf > 0 && this.coyote <= 0 && this.airJumps > 0) {
       this.airJumps = 0; this.buf = 0; p.setVelocityY(upg().wings ? -460 : -400); sfx('jump'); sfx('swing');
       this.sparkle(p.x, b.bottom, 0xf6dc8c); this.fx('dust', p.x, b.bottom + 2, { depth: 6 });
     }
+    this.buf = Math.max(0, this.buf - k);
     if (ground && !this.wasGround && this.fallV > 200) this.fx('dust', p.x, b.bottom, { depth: 6 });
     this.wasGround = ground; this.fallV = b.velocity.y;
-    if (!keys.jump && b.velocity.y < -120) p.setVelocityY(b.velocity.y * 0.85);
+    if (!keys.jump && b.velocity.y < -120) p.setVelocityY(b.velocity.y * Math.pow(0.85, k));
     this.cool -= k;
-    if (pressed.attack && this.cool <= 0 && !(this.dodgeT > 0)) {
+    this.counterT = Math.max(0, (this.counterT || 0) - k);
+    this.attackBuf = pressed.attack && !this.frozen ? 7 : Math.max(0, (this.attackBuf || 0) - k);
+    if (this.attackBuf > 0 && this.cool <= 0 && !(this.dodgeT > 0) && !this.frozen) {
+      this.attackBuf = 0; this.counterStrike = this.counterT > 0; this.counterT = 0;
       // three quick blows make a combo: the third is a hard overhead finisher
       this.combo = this.comboT > 0 && !this.mounted ? (this.combo || 0) + 1 : 1; this.comboT = 46;
       this.heavy = this.combo >= 3 ? 'finish' : null; if (this.heavy) this.combo = 0;
@@ -2122,9 +2225,11 @@ class Play extends Phaser.Scene {
     }
     // the dodge: a low, fast dash that no blow can catch, with a short breath after it
     this.dodgeCd = (this.dodgeCd || 0) - k;
-    if (pressed.dodge) { pressed.dodge = false;
+    this.dodgeBuf = pressed.dodge && !this.frozen ? 7 : Math.max(0, (this.dodgeBuf || 0) - k);
+    pressed.dodge = false;
+    if (this.dodgeBuf > 0) {
       if (this.dodgeCd <= 0 && !this.mounted && !this.frozen && this.anims.exists('rostam-dodge')) {
-        this.dodgeT = 15; this.dodgeCd = 38; this.dodgeDir = dirX || this.face; this.face = this.dodgeDir; this.atk = 0; this.chargeT = 0; this.chargeGlow?.destroy(); this.chargeGlow = null;
+        this.dodgeBuf = 0; this.dodgeRewarded = false; this.dodgeT = 15; this.dodgeCd = 38; this.dodgeDir = dirX || this.face; this.face = this.dodgeDir; this.atk = 0; this.chargeT = 0; this.chargeGlow?.destroy(); this.chargeGlow = null;
         this.pose = 'rostam-dodge'; p.play('rostam-dodge', true); sfx('jump'); this.fx('dust', p.x - this.dodgeDir * 10, b.bottom, { flip: this.dodgeDir > 0, depth: 6 });
       } }
     if (this.dodgeT > 0) {
@@ -2152,22 +2257,29 @@ class Play extends Phaser.Scene {
         this.tweens.add({ targets: this.ringTip, y: this.ringTip.y - 3, yoyo: true, repeat: -1, duration: 500, ease: 'Sine.easeInOut' }); }
       if (!this.atAltar) { $('offerBtn').classList.toggle('hidden', bellAt < 0); $('offerBtn').innerHTML = '&#128276; Ring'; }
     }
-    if (pressed.offer) { pressed.offer = false; if (this.nearBell >= 0) this.ringBell(this.nearBell); else if (this.atAltar) openTemple(); }
+    const trial = this.trial;
+    this.nearTrial = ['ready', 'complete'].includes(trial?.state) && !this.bossOn && !this.frozen && ground && Math.abs(p.x - trial.x) < 26 && Math.abs(b.bottom - trial.y) < 12;
+    if (trial && ['ready', 'complete'].includes(trial.state)) { const best = trial.best; trial.label.setText(this.nearTrial ? (touch ? 'Tap Trial' : keyLabel('offer') + (best ? ' Retry trial' : ' Begin trial')) : best ? 'Simurgh trial · ' + (best / 1000).toFixed(1) + 's' : 'Simurgh trial'); }
+    if (!this.atAltar && bellAt < 0) { $('offerBtn').classList.toggle('hidden', !this.nearTrial); if (this.nearTrial) $('offerBtn').textContent = 'Trial'; }
+    $('offerBtn').setAttribute('aria-label', this.atAltar ? 'Make an offering at the sacred fire' : bellAt >= 0 ? 'Ring the bell' : this.nearTrial ? 'Begin the optional Simurgh trial' : 'Interact');
+    if (pressed.offer) { pressed.offer = false; if (this.nearBell >= 0) this.ringBell(this.nearBell); else if (this.atAltar) openTemple(); else if (this.nearTrial) this.startTrial(); }
+    this.tickTrial();
     if (this.atk > 0) {
       this.atk -= k;
       if (this.atk < 12 && this.atk > 3) {
         const box = this.strikeBox(this.heavy ? 22 : 0);
         const targets = [...this.foes.getChildren(), ...(this.boss && this.boss.active && this.boss.hp > 0 ? [this.boss] : [])];
         // the Mace of Sam: double against foes, and every other blow on a boss lands twice as hard
-        const mace = upg().mace, base = this.heavy === 'heavy' ? 3 : this.heavy ? 2 : 1, hit = f => (!mace ? 1 : f !== this.boss ? 2 : (this.maceHit = !this.maceHit) ? 2 : 1) * base;
+        const mace = upg().mace, base = (this.heavy === 'heavy' ? 3 : this.heavy ? 2 : 1) + (this.counterStrike ? 1 : 0), hit = f => (!mace ? 1 : f !== this.boss ? 2 : (this.maceHit = !this.maceHit) ? 2 : 1) * base;
         for (const f of targets) if (f.body.enable && !this.hitDone.has(f) && Phaser.Geom.Intersects.RectangleToRectangle(box, f.body)) { this.hitDone.add(f); const landed = this.damage(f, hit(f)); if (landed && f.hp > 0 && f.body.enable && !f.calm?.()) f.body.allowGravity ? f.setVelocity(this.face * (f === this.boss ? 60 : 140), f.kind === 'vulture' ? -60 : -120) : f === this.boss ? f.setVelocityX(this.face * 60) : f.setVelocity(this.face * 140, -60); }
         for (const sh of this.shots.getChildren()) if (sh.curse && !sh.back && Phaser.Geom.Intersects.RectangleToRectangle(box, sh.getBounds())) this.deflect(sh);
       }
     }
+    if (this.atk <= 0) this.counterStrike = false;
     // thorns and pits
     const tile = this.layer.getTileAtWorldXY(p.x, b.bottom - 2);
-    if (tile && tile.index % 4 === 3) { this.hurt(tile.pixelX + 8); p.setVelocityY(-300); }
-    if (p.y > ROWS * TS + 60) { this.inv = 0; this.hurt(p.x); if (this.hp > 0) { p.setPosition(this.respawn.x, this.respawn.y - 4 - 0.47 * p.displayHeight); p.setVelocity(0); this.inv = 80; } }
+    if (tile && tile.index % 4 === 3) { this.hurt(tile.pixelX + 8, false, 'terrain'); p.setVelocityY(-300); }
+    if (p.y > ROWS * TS + 60) { this.inv = 0; this.hurt(p.x, false, 'terrain'); if (this.hp > 0) { p.setPosition(this.respawn.x, this.respawn.y - 4 - 0.47 * p.displayHeight); p.setVelocity(0); this.inv = 80; } }
     // animation
     const M = this.mounted, swinging = p.anims.isPlaying && /attack|strike/.test(p.anims.currentAnim?.key || '');
     const anim = this.pose || (this.atk > 0 || (M && swinging) ? (M ? 'ride-strike' : 'rostam-attack') : M ? 'ride-gallop' : this.inv > 70 ? 'rostam-hurt' : !ground ? 'rostam-jump' : Math.abs(b.velocity.x) > 15 ? 'rostam-run' : 'rostam-idle');
@@ -2181,7 +2293,9 @@ class Play extends Phaser.Scene {
     // foes
     for (const f of this.foes.getChildren()) {
       if (!f.body.enable) continue;
-      FOES[f.kind].tick(this, f, k, p);
+      if (f.staggerUntil > time) { if (f.body.blocked.down) f.setVelocityX(0); }
+      else { f.staggerUntil = 0; f.staggerFx?.destroy(); f.staggerFx = null; FOES[f.kind].tick(this, f, k, p); }
+      f.staggerFx?.setPosition(f.x, f.body.top - 4);
       yieldFoe(this, f, k);
       containFoe(f, k);
       if (f.body.allowGravity && f.body.blocked.down && !f.smash && !f.cast && !f.sting && !f.thrust) {
@@ -2657,12 +2771,18 @@ class Play extends Phaser.Scene {
     toast(`Wave ${h.wave} of ${HORDE.length}: ${h.wave === 1 ? 'the Divs pour in!' : h.wave === HORDE.length ? 'the last of them!' : 'more come!'}`);
     list.forEach((k, i) => this.time.delayedCall(i * 420, () => {
       const side = i % 2 ? 1 : -1, sx = x + side * 10 * TS;
-      this.fx('poof', sx, 13 * TS + 8, { depth: 10 });
-      const f = this.spawnFoe({ w: 'divwarrior', f: 'firediv', g: 'ghul' }[k] || 'div', sx, 14 * TS); f.dir = -side; f.setFlipX(f.dir < 0);
+      const spawnX = Math.abs(this.player.x - sx) < 44 ? Phaser.Math.Clamp(sx + (this.player.x >= sx ? -52 : 52), x - 11 * TS, x + 11 * TS) : sx;
+      const mark = this.add.ellipse(spawnX, 14 * TS - 2, 34, 8, 0xffb84d, 0.45).setStrokeStyle(1, 0xffe7a2).setDepth(7);
+      this.tweens.add({ targets: mark, alpha: 0.15, yoyo: true, repeat: 2, duration: 75 });
+      this.time.delayedCall(450, () => {
+      mark.destroy(); if (this.horde !== h || this.done) return;
+      this.fx('poof', spawnX, 13 * TS + 8, { depth: 10 });
+      const f = this.spawnFoe({ w: 'divwarrior', f: 'firediv', g: 'ghul' }[k] || 'div', spawnX, 14 * TS); f.dir = -side; f.setFlipX(f.dir < 0);
       f.post = x + (i - (list.length - 1) / 2) * 4 * TS;          // spread out across the arena
       h.live.push(f);
+      });
     }));
-    h.spawning = this.time.now + list.length * 420 + 200;
+    h.spawning = this.time.now + list.length * 420 + 650;
   }
   hordeTick() {
     const h = this.horde;
@@ -3487,7 +3607,7 @@ function renderTemple() {
 function openTemple() { setPaused(true); $('s-pause').classList.add('hidden'); renderTemple(); $('s-temple').classList.remove('hidden'); $('templeDone').focus(); }
 function closeTemple() { $('s-temple').classList.add('hidden'); setPaused(false); }
 $('templeDone').onclick = closeTemple; $('templeClose').onclick = closeTemple;
-$('offerBtn').onclick = () => { if (!playing) return; const s = game.scene.getScene('play'); if (s?.nearBell >= 0) s.ringBell(s.nearBell); else openTemple(); };
+$('offerBtn').onclick = () => { if (!playing) return; const s = game.scene.getScene('play'); if (s?.nearBell >= 0) s.ringBell(s.nearBell); else if (s?.atAltar) openTemple(); else if (s?.nearTrial) s.startTrial(); };
 $('farrBtn').onclick = () => { const sc = game.scene.getScene('play'); if (playing && sc?.farr >= 100) sc.farrBlast(); };
 // The tale in pictures: the prologue, a painting before and after each labour, and the final ending and credits.
 const CINE = {
