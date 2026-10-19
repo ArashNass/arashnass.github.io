@@ -2274,6 +2274,7 @@ class Play extends Phaser.Scene {
     const d = this.physics.add.sprite(Math.min(this.dragonAt.x, 134 * TS), this.dragonAt.y - 60, 'dragon-move', 0).setDepth(4).setFlipX(true).setAlpha(0.05);
     this.fit(d, 'dragon'); d.play('dragon-move'); d.state = 'lurk'; d.tm = 170; d.dir = -1;
     this.light(d, 2.4, 0.04);                                         // when it shows itself, it can be seen
+    d.calm = () => d.state === 'exposed'; d.open = d.calm;
     d.immune = () => d.alpha < 0.5; d.immuneMsg = 'Your mace passes through shadow. Wait for Rakhsh to warn you!';
     d.keep = KEEP3; d.ai = () => this.dragonAI(); d.onDown = () => this.bossFall(d);
     this.arena(112 * TS, d, 12);
@@ -2282,9 +2283,9 @@ class Play extends Phaser.Scene {
   }
   dragonPlan(d) {
     const read = this.bossRead(d), move = this.bossTactic(d, [
-      { move: 'breath', weight: read.distance < 155 ? 3 : 1 },
-      { move: 'lunge', weight: read.air > 0.45 ? 0.8 : 2, cooldown: 2000 },
-      { move: 'embers', weight: read.ledge || read.camp > 2000 ? 4 : 1.2, cooldown: 3300 }
+      { move: 'breath', weight: read.distance < 155 ? 3 : 0.3 },
+      { move: 'lunge', weight: read.ledge || read.air > 0.45 ? 0.6 : read.distance > 90 ? 3 : 1, cooldown: 2000 },
+      { move: 'embers', weight: read.ledge || read.camp > 2000 || read.distance > 180 ? 4 : 1.2, cooldown: 3300 }
     ]);
     this.bossAim(d, { breath: 'Glowing throat: flame breath', lunge: 'Coiled body: a straight lunge', embers: 'Burning jaws: fireballs' }[move]);
     return move;
@@ -2296,7 +2297,11 @@ class Play extends Phaser.Scene {
     const seen = d.hp <= d.max / 2;                                   // once wounded, God lets Rostam see it
     if (seen && !this.dragonSeen) { this.dragonSeen = true; this.tweens.killTweensOf(d); d.setAlpha(1); banner('خدا', 'The dragon can hide no more'); hint('The dragon can hide no more. <b>Strike it whenever you can</b>, and jump its fire. Its <b>golden flash warns of a follow-up lunge</b>.'); }
     if (d.state === 'lurk') {
-      d.setVelocityX(Math.abs(p.x - d.x) > 70 ? toP * (seen ? 62 : 46) : 0);   // it stalks Rostam through the dark
+      // Reposition out of a boundary before stalking; do not walk against the keep line.
+      const left = d.keep * TS, right = this.wallR.x - 45;
+      if (!d.regroup && ((d.x < left + 10 && toP < 0) || (d.x > right - 10 && toP > 0))) d.regroup = d.x < left + 10 ? left + 65 : right - 65;
+      if (d.regroup && Math.abs(d.regroup - d.x) < 8) d.regroup = null;
+      d.setVelocityX(d.regroup ? Math.sign(d.regroup - d.x) * (seen ? 72 : 58) : Math.abs(p.x - d.x) > 70 ? toP * (seen ? 62 : 46) : 0);
       if (d.tm <= 0) {
         // Rakhsh rears and neighs: the dragon is revealed
         if (r) { r.play('rakhsh-rear'); r.once('animationcomplete', () => { r.anims.stop(); r.setFrame(0); }); } else this.rear(); sfx('neigh');
@@ -2327,17 +2332,17 @@ class Play extends Phaser.Scene {
       if (!d.fired && d.tm < 50) {
         d.fired = true; const dir = d.flipX ? -1 : 1, mx = d.x + dir * 46, my = d.body.top + 8;
         const f = this.fx('breath', mx, my, { flip: dir < 0, depth: 9 }); this.light(f, 1.4, 0.15);
-        this.hazard(dir > 0 ? mx : mx - 120, my - 22, 120, 44, 950); sfx('roar'); this.cam.shake(500, 0.006);
+        d.breathUntil = this.time.now + 950; this.hazard(dir > 0 ? mx : mx - 120, my - 22, 120, 44, 950); sfx('roar'); this.cam.shake(500, 0.006);
         this.time.delayedCall(950, () => f.destroy());
       }
-      if (d.tm <= 0) { d.play('dragon-move'); if (seen && this.bossTactic(d, [{ move: 'follow', weight: this.bossRead(d).distance > 80 ? 2 : 0.8 }, { move: 'recover', weight: 1 }]) === 'follow') { d.intent = 'Golden flash: follow-up lunge'; d.state = 'coil'; d.tm = 36; d.anims.stop(); d.setFrame(0); d.setTint(0xffdc9a); } else { d.state = 'exposed'; d.tm = 85; } }
+      if (d.tm <= 0 && this.time.now >= (d.breathUntil || 0)) { d.play('dragon-move'); if (seen && this.bossTactic(d, [{ move: 'follow', weight: this.bossRead(d).distance > 80 ? 2 : 0.8 }, { move: 'recover', weight: 1 }]) === 'follow') { this.bossAim(d, 'Golden flash: follow-up lunge'); d.state = 'coil'; d.tm = 36; d.anims.stop(); d.setFrame(0); d.setTint(0xffdc9a); } else { d.state = 'exposed'; d.tm = 85; } }
     } else if (d.state === 'coil') {
       d.setVelocityX(0); if (d.tm <= 0) { d.clearTint(); d.state = 'lunge'; d.tm = 36; d.play('dragon-move'); d.setVelocityX(d.dir * 250); }
     } else if (d.state === 'lunge') {
-      if (d.tm <= 0 || d.body.blocked.left || d.body.blocked.right || d.hitKeep) { d.setVelocityX(0); d.state = 'exposed'; d.tm = seen ? 50 : 85; this.cam.shake(200, 0.01); }
+      if (d.tm <= 0 || (d.dir < 0 ? d.body.blocked.left || d.hitKeep : d.body.blocked.right)) { d.setVelocityX(0); d.state = 'exposed'; d.tm = seen ? 50 : 85; this.cam.shake(200, 0.01); }
     } else if (d.state === 'exposed') {
       d.setVelocityX(0);
-      if (d.tm <= 0) { d.state = 'lurk'; d.tm = (seen ? 80 : 150) + Math.random() * 60; if (!seen) this.tweens.add({ targets: d, alpha: 0.05, duration: 600 }); }
+      if (d.tm <= 0) { d.state = 'lurk'; d.tm = (seen ? 55 : 95) + Math.random() * 30; if (!seen) this.tweens.add({ targets: d, alpha: 0.05, duration: 600 }); }
     }
   }
   // Rakhsh rears beneath his rider: the warning that reveals the dragon

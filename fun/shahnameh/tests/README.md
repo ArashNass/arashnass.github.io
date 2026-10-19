@@ -33,3 +33,5 @@ Run `python3 fun/shahnameh/tests/serve-lion-regression.py` and open <http://127.
 Require `LION REGRESSION COMPLETE`, all 19 probes passing, and no errors. Results are written to the system temporary directory as `shahnameh-lion-regression.json`. The accelerated runner raises player health and places the player according to each policy; it verifies mechanics and state progress rather than human enjoyment.
 
 For a normal-speed lion fight with normal health, open <http://127.0.0.1:8773/lion-play.html#debug> while this server is running. It skips the approach and starts in the lion arena, with audio disabled. This test route is local only.
+
+The normal-speed arena preview also accepts `?boss=2` through `?boss=7` before `#debug`, for example <http://127.0.0.1:8773/lion-play.html?boss=3#debug>. These local previews skip each labour's approach but retain normal player health and combat speed.
