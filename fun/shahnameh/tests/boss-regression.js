@@ -52,6 +52,10 @@ try{
  {const sc=await load(4),B=sc.boss;B.state='cast';B.tm=30;B.dir=-1;B.aimX=B.x-100;B.aimY=sc.player.y;sc.player.body.reset(B.x+100,sc.player.y);sc.witchAI();check('witch keeps committed cast facing',B.dir===-1&&B.flipX);}
  {const sc=await load(4),B=sc.boss;const hp=B.hp;B.onBack();check('reflected witch curse rewards a safe stagger',B.hp<hp&&B.state==='reel'&&B.calm()&&sc.stars?.active);step(75);check('witch resumes after a bounded parry stagger',B.state!=='reel'&&B.body.enable);}
  {const sc=await load(4),B=sc.boss;const x=B.x;B.state='blink';B.tm=0;B.body.enable=false;B.setAlpha(0);sc.witchAI();check('witch teleport changes position inside arena',Math.abs(B.x-x)>60&&B.x>=sc.wall.x+55&&B.x<=sc.wallR.x-55&&B.body.enable);}
+
+ {const sc=await load(5),B=sc.boss;B.state='walk';B.tm=0;B.body.reset(B.keep*16,B.y);sc.player.body.reset(B.x-100,sc.player.y);sc.oladAI();check('Olad makes room instead of walking into boundary',B.state==='walk'&&B.body.velocity.x>0);}
+ {const sc=await load(5),B=sc.boss;B.state='walk';B.tm=0;B.body.reset(124*16,B.y);sc.player.body.reset(B.x-70,160-1-.47*sc.player.displayHeight);B.brain={recent:[],ready:{knife:sc.time.now+10000}};sc.oladAI();check('Olad waits for a reachable ledge attack instead of slashing below it',['walk','retreat'].includes(B.state));}
+ {const sc=await load(5),B=sc.boss;B.state='retreat';B.tm=20;B.dir=1;B.body.blocked.right=true;B.body.blocked.left=false;sc.oladAI();check('Olad retreat ignores the wall he is leaving',B.state==='retreat');B.state='knife';B.tm=0;B.intent='Knife drawn';sc.oladAI();check('Olad clears attack warning during punish window',B.state==='open'&&B.intent==='');}
  // Observe actual fights under three repeatable player strategies. These are not human fun scores.
  for(const policy of ['ground','jump','camp'])for(let n=1;n<=7;n++){
   dt=1000/60;const sc=await load(n),B=sc.boss;B.hp=Math.ceil(B.max/2);sc.inv=99999;

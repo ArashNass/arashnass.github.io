@@ -2440,7 +2440,7 @@ class Play extends Phaser.Scene {
     o.immune = () => o.state !== 'open' && Math.sign(this.player.x - o.x) === o.dir && this.player.body.bottom > o.body.top + 12;
     o.calm = () => o.state === 'open';
     o.immuneMsg = 'Olad catches your blow on his shield! Dodge his swing, then strike while he glows. Or leap over him and strike his back.';
-    o.onBack = () => { this.damage(o, 1, true); if (o.hp > 0) { o.state = 'open'; o.tm = 75; o.setVelocityX(0); o.setTint(0xffd0a0); } };
+    o.onBack = () => { this.damage(o, 1, true); if (o.hp > 0) { o.state = 'open'; o.tm = 75; o.intent = ''; o.anims.stop(); o.setVelocityX(0); o.setTint(0xffd0a0); } };
     o.keep = KEEP5; o.lines = { intro: 'olad1' }; o.ai = () => this.oladAI(); o.onDown = () => this.oladYields();
     this.arena(112 * TS, o, 9); this.olad = o;
     toast('Olad rides out to meet you, sword drawn: "Who are you, to cross the marches of Mazandaran?"');
@@ -2450,13 +2450,18 @@ class Play extends Phaser.Scene {
     const o = this.olad, p = this.player; o.tm -= this.bossStep(); const d = p.x - o.x;
     if (o.state === 'walk' || o.state === 'guard') { o.dir = Math.sign(d) || -1; o.setFlipX(o.dir < 0); }
     if (o.state === 'walk') {
-      o.setVelocityX(o.dir * 70); if (o.anims.currentAnim?.key !== 'olad-walk') o.play('olad-walk');
-      if (Math.abs(d) < 70 || o.tm <= 0) { const read = this.bossRead(o); o.attackMove = this.bossTactic(o, [
-        { move: 'slash', weight: read.distance < 95 ? 3 : 0.5 },
+      const left = o.keep * TS, right = this.wallR.x - 45;
+      if (!o.regroup && ((o.x < left + 12 && o.dir < 0) || (o.x > right - 12 && o.dir > 0))) o.regroup = o.x < left + 12 ? left + 70 : right - 70;
+      if (o.regroup && Math.abs(o.regroup - o.x) < 8) { o.regroup = null; o.tm = Math.max(o.tm, 24); }
+      o.setVelocityX((o.regroup ? Math.sign(o.regroup - o.x) : o.dir) * 78);
+      if (o.anims.currentAnim?.key !== 'olad-walk' || !o.anims.isPlaying) o.play('olad-walk');
+      if (!o.regroup && (Math.abs(d) < 70 || o.tm <= 0)) { const read = this.bossRead(o), retreatRoom = o.dir < 0 ? right - o.x : o.x - left; o.attackMove = this.bossTactic(o, [
+        { move: 'slash', weight: read.ledge ? 0 : read.distance < 95 ? 3 : 0.5 },
         { move: 'knife', weight: read.ledge || read.camp > 2200 ? 5 : read.distance > 150 ? 2 : 0, cooldown: 3500 },
-        { move: 'thrust', weight: read.distance > 90 ? 4 : 1.1, cooldown: 2200 },
-        { move: 'retreat', weight: read.pressure > 0.2 && o.x < this.wallR.x - 70 ? 4 : 0.5, cooldown: 4000 }
+        { move: 'thrust', weight: read.ledge ? 0 : read.distance > 90 ? 4 : 1.1, cooldown: 2200 },
+        { move: 'retreat', weight: retreatRoom > 80 ? (read.ledge ? 2 : read.pressure > 0.2 ? 4 : 0.5) : 0, cooldown: 4000 }
       ]);
+      if (!o.attackMove) { o.tm = 24; return; }
       this.bossAim(o, o.attackMove === 'knife' ? 'Knife drawn: dodge or parry' : o.attackMove === 'thrust' ? 'Sword levelled: a long thrust' : o.attackMove === 'retreat' ? 'Olad gives ground' : 'Sword raised: watch the swing');
       o.comboLeft = o.hp <= o.max / 2 && Math.random() < 0.65 ? 1 : 0; o.state = o.attackMove === 'knife' ? 'knifeReady' : o.attackMove === 'retreat' ? 'retreat' : 'ready'; o.tm = o.attackMove === 'knife' ? 48 : o.attackMove === 'thrust' ? 42 : 34; o.setVelocityX(0); o.anims.stop(); o.setFrame(0); }
     } else if (o.state === 'knifeReady') {
@@ -2466,9 +2471,9 @@ class Play extends Phaser.Scene {
         const sh = this.shoot(x, y, Math.cos(a) * 180, Math.sin(a) * 180, 'knife', { life: 2400 }); sh.setRotation(a); sh.curse = true; sfx('swing');
       }
     } else if (o.state === 'knife') {
-      o.setVelocityX(0); if (o.tm <= 0) { o.state = 'open'; o.tm = 65; o.setTint(0xffd0a0); }
+      o.setVelocityX(0); if (o.tm <= 0) { o.state = 'open'; o.tm = 65; o.intent = ''; o.setTint(0xffd0a0); }
     } else if (o.state === 'retreat') {
-      o.setVelocityX(-o.dir * 105); if (o.tm <= 0 || o.body.blocked.left || o.body.blocked.right) { o.state = 'ready'; o.tm = 40; o.attackMove = 'thrust'; this.bossAim(o, 'Sword levelled: a long thrust'); o.setVelocityX(0); }
+      o.setVelocityX(-o.dir * 105); if (o.tm <= 0 || (o.dir > 0 ? o.body.blocked.left : o.body.blocked.right)) { const ledge = this.bossRead(o).ledge; o.state = ledge ? 'knifeReady' : 'ready'; o.tm = ledge ? 48 : 40; o.attackMove = ledge ? 'knife' : 'thrust'; this.bossAim(o, ledge ? 'Knife drawn: dodge or parry' : 'Sword levelled: a long thrust'); o.setVelocityX(0); }
     } else if (o.state === 'ready') {
       // he draws back his sword, flashing: a moment to step out of reach
       o.setVelocityX(0); o.setTintFill(Math.floor(o.tm / 4) % 2 ? 0xffffff : 0xffe0a0); if (o.tm % 8 < 4) o.clearTint();
@@ -2477,12 +2482,12 @@ class Play extends Phaser.Scene {
       if (!o.hit && o.tm < 20) { o.hit = true; const reach = o.attackMove === 'thrust' ? 68 : 42; this.hazard(o.dir > 0 ? o.x + 4 : o.x - reach - 4, o.body.top + 4, reach, 30, 140); }
       // after the swing his sword hangs low and he is open for a moment
       if (o.tm <= 0 && o.comboLeft > 0) { o.comboLeft--; o.attackMove = 'slash'; o.intent = 'Second swing: keep clear'; o.state = 'ready'; o.tm = 36; o.setVelocityX(0); o.anims.stop(); o.setFrame(0); hint('Olad draws back for a <b>second swing</b>. Keep clear, then strike!'); }
-      else if (o.tm <= 0) { o.state = 'open'; o.tm = 84; o.setVelocityX(0); o.anims.stop(); o.setFrame(0); o.setTint(0xffd0a0); hint('Olad\'s guard is down: <b>strike now!</b>'); }
+      else if (o.tm <= 0) { o.state = 'open'; o.tm = 84; o.intent = ''; o.setVelocityX(0); o.anims.stop(); o.setFrame(0); o.setTint(0xffd0a0); hint('Olad\'s guard is down: <b>strike now!</b>'); }
     } else if (o.state === 'open') {
       o.setVelocityX(0); if (o.tm <= 0) { o.clearTint(); o.state = 'guard'; o.tm = 30 + Math.random() * 20;
         hint('Shield up again. When he <b>flashes, step back</b>, then <b>strike while he glows</b>, or leap over him and hit his back.'); }
     } else if (o.state === 'guard') {
-      o.setVelocityX(0); if (o.tm <= 0) { o.state = 'walk'; o.tm = 90; if (Math.random() < 0.4) o.setVelocity(-o.dir * 150, -200); }
+      o.setVelocityX(0); if (o.tm <= 0) { o.state = 'walk'; o.tm = 90; const room = o.dir < 0 ? this.wallR.x - o.x : o.x - o.keep * TS; if (room > 90 && Math.random() < 0.25) o.setVelocity(-o.dir * 120, -170); }
     }
   }
   oladYields() {
