@@ -525,6 +525,31 @@ body.calm #banner.on{animation-name:banCalm}@keyframes banCalm{0%{opacity:0}15%,
 @media(max-width:760px){#s-map .journey-nav-link{font-size:12px;padding-left:6px;padding-right:6px}#s-map .journey-nav{justify-content:flex-start}#s-map .journey-brand h1{font-size:21px}}
 @media(max-height:520px){#s-map .journey-brand{max-width:315px}#s-map .journey-brand h1{font-size:17px!important}#s-map .journey-nav-link{font-size:11px;padding-left:4px;padding-right:4px}#s-map #mapInfo{font-size:14px}}
 @media(max-width:760px) and (min-height:521px){#s-map .journey-nav{display:grid;grid-template-columns:1fr 1fr auto;gap:8px}#s-map .journey-nav-link{justify-content:center}#s-map .journey-nav-link[data-settings]{grid-column:1;grid-row:2}#s-map .journey-nav-link[data-guide]{grid-column:2;grid-row:2}#s-map .journey-sound{grid-column:3;grid-row:1 / span 2;align-self:center}#s-map .journey-close{grid-column:3;grid-row:3}}
+
+/* One shared panel row: the map and selected chapter have identical outer bounds. */
+#s-map .journey-map-heading{margin:0;display:block}
+#s-map .journey-map-heading h2{font:700 clamp(21px,2vw,26px)/1.3 Georgia,'Times New Roman',serif;color:#f3e5ca;letter-spacing:0;margin:0;text-shadow:none}
+@media(min-width:761px) and (min-height:521px){
+ #s-map .journey-main{height:clamp(440px,calc(100dvh - 285px),640px);align-items:stretch}
+ #s-map .journey-map{height:100%;min-height:0;align-self:stretch;display:flex}
+ #s-map .map-scroll{width:100%;height:100%}
+ #s-map .journey-map .road{height:100%;min-height:0}
+ #s-map .journey-card{height:100%;min-height:0;display:flex;flex-direction:column}
+ #s-map .journey-art{flex:0 0 32%;height:auto}
+ #s-map .journey-card-body{flex:1;min-height:0;overflow:auto;display:flex;flex-direction:column}
+ #s-map .journey-actions{margin-top:auto}
+}
+@media(max-height:520px){
+ #s-map .page.journey-page,#s-map.home .page.journey-page{gap:10px}
+ #s-map .journey-map-heading h2{font-size:19px}
+ #s-map .journey-main{height:clamp(240px,calc(100dvh - 146px),380px);align-items:stretch}
+ #s-map .journey-map{height:100%;min-height:0;align-self:stretch;display:flex}
+ #s-map .map-scroll{width:100%;height:100%}
+ #s-map .journey-map .road{height:100%;min-height:0}
+ #s-map .journey-card{height:100%;min-height:0;display:flex;flex-direction:column}
+ #s-map .journey-art{flex:0 0 50px;height:50px}
+ #s-map .journey-card-body{flex:1;min-height:0;overflow:auto}
+}
 </style>
 </head>
 <body>
@@ -710,9 +735,9 @@ body.calm #banner.on{animation-name:banCalm}@keyframes banCalm{0%{opacity:0}15%,
         <button id="mapClose" class="journey-close" aria-label="Close">&times;</button>
       </nav>
     </header>
+    <div class="journey-map-heading"><div><h2>Your Journey to Mazandaran</h2></div></div>
     <div class="journey-main">
       <section class="journey-map" aria-label="The road to Mazandaran">
-        <div class="journey-map-heading"><div><h2>Your Journey to Mazandaran</h2></div></div>
         <div class="map-scroll" id="mapScroll" tabindex="0" aria-label="Journey map. Scroll sideways to explore all seven labours."><ol class="road" id="road"></ol></div>
 
       </section>
@@ -847,6 +872,6 @@ body.calm #banner.on{animation-name:banCalm}@keyframes banCalm{0%{opacity:0}15%,
 </section>
 <script src="boot.js?v=92"></script>
 <script src="assets/vendor/phaser-3.80.1.min.js" data-game-script="engine"></script>
-<script src="game.js?v=99" data-game-script="game"></script>
+<script src="game.js?v=100" data-game-script="game"></script>
 </body>
 </html>
