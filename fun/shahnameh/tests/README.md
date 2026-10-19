@@ -20,4 +20,8 @@ Coverage includes all seven bosses staying inside the arena for 30 simulated sec
 
 Seven additional scenarios defeat bosses through actual player strike-box collisions without forcing damage, changing immunity or forcing opening states. The bot moves the player into range and raises player health/invulnerability to isolate completion. These scenarios establish reachability and damage integration, not human difficulty or enjoyment.
 
-The harness uses the existing `#debug` interface and manually steps Phaser and tween clocks together. It never runs on the normal game page.
+The harness uses the existing `#debug` interface and manually steps Phaser and tween clocks together using Phaser’s headless step (scene/physics updates without rendering every simulated frame). It never runs on the normal game page.
+
+The boss suite also runs 21 seeded, 60-second behaviour profiles (seven bosses against ground pressure, repeated jumps, and stationary ledge play). Each must show at least two attack types and remain in bounds. It checks committed pounce targets, a real hit on a camping lion ledge, and the boss melee-impact cooldown. These checks describe decision variety and fair-mechanics integration; they do not score entertainment.
+
+The accelerated boss suite skips darkness compositing, which is cosmetic but expensive even in a headless step. The core and general suites still exercise normal rendering.
