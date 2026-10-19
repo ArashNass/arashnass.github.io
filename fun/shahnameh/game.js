@@ -204,8 +204,8 @@ function map2() {
   put(3, 13, 'P');
   [[23, 11], [44, 9], [100, 9], [116, 11], [132, 12]].forEach(([c, r]) => put(c, r, 'w'));
   [[9, 12], [11, 11], [13, 12], [28, 10], [29, 10], [47, 12], [57, 11], [74, 12], [77, 9], [78, 9], [89, 11], [94, 10], [109, 12], [121, 12], [138, 12]].forEach(([c, r]) => put(c, r, 'c'));
-  put(15, 13, 'j'); put(31, 12, 's'); put(48, 13, 's'); put(38, 7, 'v'); put(62, 13, 'j'); put(68, 6, 'v'); put(81, 13, 's');
-  put(90, 12, 's'); put(101, 6, 'v'); put(110, 13, 's'); put(125, 12, 's'); put(130, 7, 'v'); put(136, 13, 's'); put(146, 13, 's');
+  put(15, 13, 'j'); put(33, 12, 's'); put(48, 13, 's'); put(38, 7, 'v'); put(62, 13, 'j'); put(68, 6, 'v'); put(81, 13, 's');
+  put(90, 12, 's'); put(101, 6, 'v'); put(115, 12, 's'); put(120, 7, 'v'); // one storm encounter, then a clear path for the ram and bells
   put(57, 12, 'O'); put(107, 13, 'O');
   row(141, 144, 10, '=');                                  // the Scorpion Queen's arena (138 to 168): one short ledge on the left (KEEP2)
   for (const [a, b] of PLINTHS) ground(a, b, 12);          // the water and wind towers stand on plinths, which sink when she rises
@@ -226,7 +226,7 @@ function map3() {
   put(3, 13, 'P');
   [[8, 12], [19, 10], [29, 8], [38, 12], [47, 10], [61, 7], [70, 12], [79, 9], [86, 12], [95, 8], [102, 12]].forEach(([c, r]) => put(c, r, 'c'));
   put(13, 13, 'j'); put(24, 7, 'b'); put(36, 13, 'j'); put(53, 8, 'b'); put(60, 6, 'b'); put(68, 13, 'j'); put(74, 8, 'b');
-  put(85, 13, 'j'); put(95, 6, 'b'); put(101, 7, 'b');
+  put(88, 13, 'j'); put(95, 6, 'b'); // leave the fire at 84 and the final approach clear
   [[11, 11], [26, 10], [58, 8], [70, 10]].forEach(([c, r]) => put(c, r, 'm'));          // marsh lights, never beside an altar
   put(42, 13, 'F'); put(84, 13, 'F');
   put(117, 13, 'K'); put(146, 13, 'D');
@@ -246,7 +246,7 @@ function map4() {
   ground(73, 86, 14); ground(80, 83, 12); pit(87, 90); ground(91, 149, 14); row(96, 100, 10, '=');
   put(3, 13, 'P');
   [[10, 9], [11, 9], [22, 10], [30, 12], [37, 10], [45, 9], [46, 9], [55, 10], [62, 12], [69, 9], [72, 8], [81, 10], [94, 12], [98, 9]].forEach(([c, r]) => put(c, r, 'c'));
-  put(16, 13, 'n'); put(29, 13, 'n'); put(38, 7, 'b'); put(50, 13, 'n'); put(63, 13, 'n'); put(70, 6, 'b'); put(77, 13, 'n'); put(98, 13, 'n'); put(95, 7, 'b'); put(104, 13, 'n');   // serpents lie in the open, never in a pocket Rostam would have to drop into
+  put(16, 13, 'n'); put(29, 13, 'n'); put(38, 7, 'b'); put(42, 13, 'n'); put(63, 13, 'n'); put(70, 6, 'b'); put(77, 13, 'n'); put(99, 13, 'n'); put(96, 7, 'b');   // serpents lie in the open, never in a pocket Rostam would have to drop into
   [[6, 11], [28, 11], [64, 11], [78, 11], [132, 11], [146, 11]].forEach(([c, r]) => put(c, r, 'l'));   // lanterns, never beside an altar
   put(48, 13, 'F'); put(92, 13, 'F');
   put(120, 13, 'T'); put(128, 13, 'W');
@@ -266,8 +266,8 @@ function map5() {
   ground(85, 98, 14); ground(92, 95, 12); ground(99, 149, 14); row(102, 106, 9, '=');
   put(3, 13, 'P');
   [[9, 12], [10, 12], [25, 11], [30, 10], [40, 12], [47, 9], [56, 8], [57, 8], [65, 10], [73, 12], [84, 8], [90, 12], [94, 10], [104, 8]].forEach(([c, r]) => put(c, r, 'c'));
-  put(14, 13, 'q'); put(36, 13, 'q'); put(42, 13, 'j'); put(60, 13, 'q'); put(71, 13, 'q'); put(76, 13, 'j'); put(88, 13, 'q'); put(97, 13, 'q'); put(103, 13, 'q');   // the last spearman patrols clear of Olad's arena platform
-  put(52, 13, 'F');
+  put(14, 13, 'q'); put(36, 13, 'q'); put(42, 13, 'j'); put(60, 13, 'q'); put(71, 13, 'q'); put(76, 13, 'j'); put(88, 13, 'q'); put(99, 13, 'q');   // the last spearman patrols clear of Olad's arena platform
+  put(24, 12, 'F'); put(52, 13, 'F');
   put(130, 13, 'O');
   row(115, 118, 10, '=');                                  // Olad's arena (112 to 142): one short ledge on the left (KEEP5)
   return g;
@@ -292,7 +292,7 @@ function map6() {
   row(127, 130, 10, '=');
   put(3, 13, 'P');
   [[9, 8], [16, 7], [22, 10], [23, 10], [32, 12], [39, 8], [48, 12], [90, 10], [97, 7], [104, 12]].forEach(([c, r]) => put(c, r, 'c'));
-  put(26, 13, 'd'); put(30, 13, 'w'); put(46, 13, 'd'); put(52, 13, 'w'); put(102, 13, 'w'); put(110, 13, 'd');
+  put(15, 13, 'd'); put(30, 13, 'w'); put(49, 13, 'd'); put(53, 13, 'w'); put(112, 13, 'w');
   // war fires, kept well apart from each other and from the altars (44, 100, 118)
   [[12, 13], [28, 13], [67, 13], [134, 13]].forEach(([c, r]) => put(c, r, 'B'));
   put(44, 13, 'F'); put(100, 13, 'F');
@@ -331,11 +331,52 @@ function map7() {
   row(149, 152, 10, '=');
   put(3, 13, 'P');
   [[10, 12], [24, 8], [25, 8], [31, 11], [38, 8], [47, 11], [55, 9], [62, 12], [69, 9], [79, 11], [87, 9], [94, 12], [102, 7], [116, 12], [128, 10], [140, 12]].forEach(([c, r]) => put(c, r, 'c'));
-  put(14, 13, 'd'); put(30, 12, 'w'); put(37, 7, 'b'); put(48, 12, 'd'); put(61, 13, 'w'); put(70, 7, 'b'); put(78, 12, 'w'); put(92, 13, 'd'); put(101, 6, 'b');
-  put(108, 13, 'w'); put(124, 8, 'b'); put(131, 8, 'b'); put(139, 13, 'w');
+  put(14, 13, 'd'); put(30, 12, 'w'); put(37, 7, 'b'); put(49, 12, 'd'); put(61, 13, 'w'); put(70, 7, 'b'); put(78, 12, 'w'); put(91, 13, 'd'); put(101, 6, 'b');
+  put(117, 13, 'w'); put(124, 8, 'b'); put(139, 13, 'w');
   put(44, 12, 'F'); put(96, 13, 'F'); put(143, 13, 'F');
   put(176, 13, 'X'); put(193, 13, 'k');
   return g;
+}
+
+// Map encounters stop before rest areas and story triggers. Bounds are tile edges,
+// shared by deliberate pairs, and do not apply to boss summons or horde waves.
+const ENCOUNTERS = {
+  2: [[15,11,19],[33,31,36],[48,42,53],[38,34,43],[62,60,65],[68,65,72],[81,80,86],[90,86,92],[101,98,104],[115,114,119],[120,119,125]],
+  3: [[13,9,17],[24,22,32],[36,33,40],[53,49,57],[60,57,65],[68,64,74],[74,71,80],[88,87,93],[95,93,101]],
+  4: [[16,12,20],[29,25,35],[38,35,40],[42,40,46],[63,58,67],[70,67,73],[77,74,80],[99,96,104],[96,94,104]],
+  5: [[14,10,22],[36,33,45],[42,33,45],[60,56,63],[71,68,79],[76,68,79],[88,85,92],[99,96,104]],
+  6: [[15,11,20],[30,26,37],[49,48,57],[53,48,57],[112,109,116]],
+  7: [[14,10,19],[30,27,35],[37,35,41],[49,48,53],[61,57,67],[70,67,72],[78,74,85],[91,89,94],[101,99,105],[117,114,122],[124,121,131],[139,137,142]]
+};
+function setupEncounters(s) {
+  for (const f of s.foes.getChildren()) {
+    const area = ENCOUNTERS[cur]?.find(([c]) => Math.abs(f.home.x / TS - (c + 0.5)) < 0.1);
+    if (area) { f.roam = area.slice(1).map(c => c * TS); f.encounter = true; }
+  }
+  s.routeBeat = -1;
+}
+const nearRest = (s, x) => s.altars.some(a => Math.abs(a.x - x) < 3 * TS);
+const canHunt = (s, f, p) => !f.encounter || (!nearRest(s, p.x) && p.x >= f.roam[0] && p.x <= f.roam[1]);
+// Limit the next physics step instead of snapping sprites or moving an attack tell.
+function containFoe(f, k) {
+  if (!f.roam) return;
+  const b = f.body, dt = Math.min(k, 2) / 60, vx = b.velocity.x;
+  if (vx < 0 && b.left + vx * dt < f.roam[0]) f.setVelocityX(Math.max(vx, Math.min(Math.abs(vx), (f.roam[0] - b.left) / dt)));
+  if (vx > 0 && b.right + vx * dt > f.roam[1]) f.setVelocityX(Math.min(vx, Math.max(-Math.abs(vx), (f.roam[1] - b.right) / dt)));
+}
+const ROUTE_CUES = {
+  2: [[26,'<b>Scorpions ahead.</b> Bait the sting, step back, then strike.'],[53,'<b>A well ahead.</b> Refill your water before the next crossing.'],[65,'<b>Watch the sky.</b> A golden flash warns of a vulture dive. Keep a landing clear.'],[104,'<b>The second well.</b> Drink before entering the storm.']],
+  3: [[19,'<b>Bats in the dark.</b> A golden flash warns of a dive. Swing as they swoop low.'],[39,'<b>A fire ahead.</b> Rest before riding into the broken ground.'],[56,'<b>Thorns below.</b> Take the high ledges; jump again in the air.'],[81,'<b>Light the fire.</b> A jackal and a bat guard the final crossing.'],[103,'<b>The last fire.</b> Gather strength. Rakhsh senses something ahead.']],
+  4: [[25,'<b>A serpent waits.</b> Its raised head warns of a lunge. Step back, then strike.'],[45,'<b>The garden fire.</b> Rest before crossing the thorn beds.'],[66,'<b>Thorns and wings.</b> Watch the bat before committing to a jump.'],[91,'<b>Light the fire.</b> A serpent and a bat share the next clearing.'],[105,'<b>The final fire.</b> The feast waits beyond the quiet path.']],
+  5: [[21,'<b>A fire on the rise.</b> Light it before entering the spear patrol.'],[32,'<b>Two different threats.</b> Draw the jackal away from the spearman, then punish a missed thrust.'],[50,'<b>Rest at the fire.</b> The high provisions offer another route.'],[67,'<b>A mixed patrol.</b> Keep moving between the jackal and the spear; leave space to retreat.'],[85,'<b>Across the thorns.</b> Two separate spear posts guard the last stretch.'],[105,'<b>The last fire.</b> Prepare to meet the warden.']],
+  6: [[25,'<b>A Div warrior.</b> Bait the club, jump the blow, then strike its slow-turning back.'],[42,'<b>Light the fire.</b> A hopping Div and a warrior guard the camp entrance.'],[89,'<b>The gates are behind you.</b> Take the high crossing to the next fire.'],[109,'<b>One last guard.</b> Bait its club before reaching the final fire.'],[117,'<b>The last fire.</b> Gather strength before Arzhang.']],
+  7: [[27,'<b>A mountain guard.</b> Give its club room, then strike from behind.'],[41,'<b>A sheltered fire.</b> Rest here; lightning avoids the sacred fires.'],[57,'<b>Broken mountain paths.</b> Fight on solid ground before taking the next jump.'],[89,'<b>The next fire is near.</b> Draw the blue Div away from the crossing.'],[114,'<b>The cave mouth.</b> Pass the guard before following the bat into the dark.'],[132,'<b>A final thorn crossing.</b> Land first, then face the last guard.'],[142,'<b>The final fire.</b> The White Div waits beyond the darkness.']]
+};
+function routeCue(s, p) {
+  if (s.bossOn || s.horde || s.frozen || s.done || (cur === 2 && p.x >= 112 * TS)) return;
+  const cues = ROUTE_CUES[cur]; if (!cues) return;
+  let beat = -1; for (let i = 0; i < cues.length; i++) if (p.x >= cues[i][0] * TS) beat = i;
+  if (beat > s.routeBeat) { s.routeBeat = beat; hint(cues[beat][1]); }
 }
 
 /* ----------------------------- foes ----------------------------- */
@@ -360,7 +401,7 @@ const HORDE = [['d', 'g'], ['w', 'f'], ['g', 'd', 'g'], ['w', 'f'], ['f', 'g', '
 // Test the destination's leading edge and support before moving a grounded body.
 function foeStepFree(s, f, dx) {
   const b = f.body, x = dx > 0 ? b.right + dx : b.left + dx;
-  if (x < 0 || x >= s.levelW) return false;
+  if (x < 0 || x >= s.levelW || (f.roam && (x < f.roam[0] || x > f.roam[1]))) return false;
   for (const y of [b.top + 2, b.center.y, b.bottom - 2]) {
     if (s.layer.getTileAtWorldXY(x, y)?.collides) return false;
   }
@@ -436,9 +477,10 @@ function hopVelocity(f, vx, flight) {
   return Phaser.Math.Clamp((target - f.x) / flight, -Math.abs(vx), Math.abs(vx));
 }
 function patrol(s, f, speed) {
-  if (f.roam && ((f.dir < 0 && f.body.left - speed / 30 <= f.roam[0]) || (f.dir > 0 && f.body.right + speed / 30 >= f.roam[1]))) f.dir *= -1;
+  const bound = f.roam && ((f.dir < 0 && f.body.left - speed / 30 <= f.roam[0]) || (f.dir > 0 && f.body.right + speed / 30 >= f.roam[1]));
   const ahead = s.layer.getTileAtWorldXY(f.x + f.dir * 12, f.body.bottom + 4);
-  if (f.body.blocked.left || f.body.blocked.right || (f.body.blocked.down && (!ahead || ahead.index % 4 === 3))) f.dir *= -1;
+  const wall = f.dir < 0 ? f.body.blocked.left : f.body.blocked.right;
+  if (bound || wall || (f.body.blocked.down && (!ahead || ahead.index % 4 === 3))) f.dir *= -1;
   f.setVelocityX(f.dir * speed); f.setFlipX(f.dir < 0);
 }
 const FOES = {
@@ -447,9 +489,9 @@ const FOES = {
     tex: 'div-hop', hp: 2,
     tick(s, f, k, p) {
       f.hopT -= k; if (!f.body.blocked.down) return;
-      if (above(f, p)) { f.setVelocityX(0); if (f.hopT <= 0) { const post = postOf(s, f); f.dir = Math.abs(f.x - post) > TS ? Math.sign(post - f.x) : (Math.random() < 0.5 ? -1 : 1); f.setFlipX(f.dir < 0); f.setVelocity(hopVelocity(f, crowded(s, f, f.dir) ? 0 : f.dir * 50, 0.48), -200); f.hopT = 80 + Math.random() * 40; } return; }
+      if (canHunt(s, f, p) && above(f, p)) { f.setVelocityX(0); if (f.hopT <= 0) { const post = postOf(s, f); f.dir = Math.abs(f.x - post) > TS ? Math.sign(post - f.x) : (Math.random() < 0.5 ? -1 : 1); f.setFlipX(f.dir < 0); f.setVelocity(hopVelocity(f, crowded(s, f, f.dir) ? 0 : f.dir * 50, 0.48), -200); f.hopT = 80 + Math.random() * 40; } return; }
       f.dir = Math.sign(p.x - f.x) || 1; f.setFlipX(f.dir < 0); f.setVelocityX(0);
-      if (f.hopT <= 0 && Math.abs(p.x - f.x) < 200) { f.setVelocity(hopVelocity(f, crowded(s, f, f.dir) ? 0 : f.dir * 70, 0.55), -230); f.hopT = 70; }
+      if (canHunt(s, f, p) && f.hopT <= 0 && Math.abs(p.x - f.x) < 200) { f.setVelocity(hopVelocity(f, crowded(s, f, f.dir) ? 0 : f.dir * 70, 0.55), -230); f.hopT = 70; }
     }
   },
   // scorpions creep, then scuttle at Rostam when he comes close on the same level, and lash out with the sting
@@ -459,13 +501,13 @@ const FOES = {
       f.cool = (f.cool || 0) - k;
       if (f.sting) { f.setVelocityX(0); return; }
       const dx = p.x - f.x;
-      if (f.cool <= 0 && Math.abs(dx) < 46 && Math.abs(p.body.bottom - f.body.bottom) < 24 && f.body.blocked.down) {
+      if (canHunt(s, f, p) && f.cool <= 0 && Math.abs(dx) < 46 && Math.abs(p.body.bottom - f.body.bottom) < 24 && f.body.blocked.down) {
         f.sting = true; f.cool = 80; f.dir = Math.sign(dx) || 1; f.setFlipX(f.dir < 0); f.setVelocityX(0); f.anims.timeScale = 1; f.play('scorpion-sting');
         s.time.delayedCall(250, () => { if (f.active && f.body.enable) { s.hazard(f.dir > 0 ? f.body.right - 4 : f.body.left - 26, f.body.top - 14, 30, f.body.height + 14, 140); sfx('swing'); } });
         f.once('animationcomplete', () => { if (f.active) { f.sting = false; f.play('scorpion-crawl'); } });
         return;
       }
-      const near = Math.abs(p.x - f.x) < 130 && Math.abs(p.body.bottom - f.body.bottom) < 24;
+      const near  = canHunt(s, f, p) && Math.abs(p.x - f.x) < 130 && Math.abs(p.body.bottom - f.body.bottom) < 24;
       if (near && f.body.blocked.down) { const d = Math.sign(p.x - f.x) || 1; const ahead = s.layer.getTileAtWorldXY(f.x + d * 12, f.body.bottom + 4); if (ahead && ahead.index % 4 !== 3) { f.dir = d; f.setVelocityX(d * 78); f.setFlipX(d < 0); f.anims.timeScale = 1.8; return; } }
       f.anims.timeScale = 1; patrol(s, f, 28);
     }
@@ -487,7 +529,7 @@ const FOES = {
         return;
       }
       f.turnT = undefined;
-      if (f.cool <= 0 && Math.abs(d) < 90 && Math.abs(p.body.bottom - f.body.bottom) < 30 && f.body.blocked.down) {
+      if (canHunt(s, f, p) && f.cool <= 0 && Math.abs(d) < 90 && Math.abs(p.body.bottom - f.body.bottom) < 30 && f.body.blocked.down) {
         f.smash = true; f.setVelocityX(0); f.play('divwarrior-smash');
         s.time.delayedCall(420, () => { if (!f.active || !f.body.enable) return; s.hazard(f.dir > 0 ? f.x + 8 : f.x - 48, f.body.top + 20, 40, 30, 160); s.fx('dust', f.x + f.dir * 30, f.body.bottom, { depth: 8 }); s.cam.shake(120, 0.006); sfx('hit'); });
         f.once('animationcomplete', () => { if (!f.active) return; f.smash = false; f.cool = 90; f.play('divwarrior-walk'); });
@@ -510,7 +552,7 @@ const FOES = {
       f.cool = (f.cool || 0) - k;
       if (f.thrust) { f.setVelocityX(0); return; }
       const d = p.x - f.x;
-      if (f.cool <= 0 && Math.abs(d) < 84 && Math.abs(p.body.bottom - f.body.bottom) < 24) {
+      if (canHunt(s, f, p) && f.cool <= 0 && Math.abs(d) < 84 && Math.abs(p.body.bottom - f.body.bottom) < 24) {
         f.thrust = true; f.dir = Math.sign(d) || 1; f.setFlipX(f.dir < 0); f.setVelocityX(0); f.play('spearman-thrust'); sfx('swing');
         s.time.delayedCall(180, () => { if (f.active && f.body.enable) s.hazard(f.dir > 0 ? f.x + 6 : f.x - 50, f.body.top + 12, 44, 12, 160); });
         f.once('animationcomplete', () => { if (!f.active) return; f.thrust = false; f.cool = 70; f.play('spearman-walk'); });
@@ -523,10 +565,10 @@ const FOES = {
     tex: 'serpent', hp: 2,
     tick(s, f, k, p) {
       const d = p.x - f.x; f.setFlipX(d < 0); f.cool = (f.cool || 0) - k;
-      if (f.cool <= 0 && Math.abs(d) < 80 && Math.abs(p.body.bottom - f.body.bottom) < 30 && f.body.blocked.down) {
+      if (canHunt(s, f, p) && f.cool <= 0 && Math.abs(d) < 80 && Math.abs(p.body.bottom - f.body.bottom) < 30 && f.body.blocked.down) {
         // it rears back, then lunges with its jaws wide
         const dir = Math.sign(d) || 1; f.cool = 100; f.setVelocityX(0); f.play('serpent-strike');
-        s.time.delayedCall(230, () => { if (f.active && f.body.enable) { f.setVelocity(dir * 190, -110); sfx('swing');
+        s.time.delayedCall(230, () => { if (f.active && f.body.enable) { f.setVelocity(hopVelocity(f, dir * 190, 0.32), -110); sfx('swing');
           s.time.delayedCall(90, () => f.active && f.body.enable && s.hazard(dir > 0 ? f.body.right - 6 : f.body.left - 46, f.body.top - 10, 52, f.body.height + 14, 160)); } });   // the jaws snap shut a full lunge ahead
         f.once('animationcomplete', () => f.active && f.play('serpent'));
       } else if (f.body.blocked.down) f.setVelocityX(0);
@@ -540,7 +582,7 @@ const FOES = {
       if (f.cast) { f.setVelocityX(0); return; }
       if (above(f, p)) { pace(s, f, 30); return; }
       const d = p.x - f.x, ad = Math.abs(d), face = Math.sign(d) || f.dir;
-      if (f.cool <= 0 && ad > 50 && ad < 270 && f.body.blocked.down) {
+      if (canHunt(s, f, p) && f.cool <= 0 && ad > 50 && ad < 270 && f.body.blocked.down) {
         f.cast = true; f.dir = face; f.setFlipX(face < 0); f.setVelocityX(0); f.play('firediv-throw');
         s.time.delayedCall(330, () => {
           if (!f.active || !f.body.enable) return; const t = 0.85, y0 = f.body.top + 8;
@@ -562,8 +604,8 @@ const FOES = {
       if (f.leap) { if (f.body.blocked.down && (f.leapT -= k) <= 0) { f.leap = false; f.cool = 80; f.play('ghul-crawl'); } return; }
       if (above(f, p)) { pace(s, f, 40); return; }
       const d = p.x - f.x, face = Math.sign(d) || f.dir;
-      if (f.cool <= 0 && Math.abs(d) < 120 && Math.abs(p.body.bottom - f.body.bottom) < 30 && f.body.blocked.down) {
-        f.leap = true; f.leapT = 12; f.dir = face; f.setFlipX(face < 0); f.play('ghul-leap'); f.setVelocity(face * 200, -250); sfx('swing');
+      if (canHunt(s, f, p) && f.cool <= 0 && Math.abs(d) < 120 && Math.abs(p.body.bottom - f.body.bottom) < 30 && f.body.blocked.down) {
+        f.leap = true; f.leapT = 12; f.dir = face; f.setFlipX(face < 0); f.play('ghul-leap'); f.setVelocity(hopVelocity(f, face * 200, 0.6), -250); sfx('swing');
         return;
       }
       if (Math.abs(d) < 240) f.dir = face;
@@ -581,12 +623,14 @@ function flyer(tex, { range, dive, rest, offY, speed = 0.012 }) {
     tick(s, f, k, p) {
       f.t += speed * k; f.cool -= k;
       if (f.state === 'circle') {
-        const tx = f.home.x + Math.sin(f.t) * range, ty = f.home.y + Math.sin(f.t * 2) * 10;
+        const tx = f.roam ? Phaser.Math.Clamp(f.home.x + Math.sin(f.t) * range, f.roam[0] + f.body.width / 2 + 1, f.roam[1] - f.body.width / 2 - 1) : f.home.x + Math.sin(f.t) * range, ty = f.home.y + Math.sin(f.t * 2) * 10;
         f.setVelocity((tx - f.x) * 2.2, (ty - f.y) * 2.2); f.setFlipX(Math.cos(f.t) < 0);
-        if (f.cool <= 0 && Math.abs(p.x - f.x) < 170 && p.y > f.y) {
-          f.state = 'dive'; f.tm = 46; const a = Math.atan2(p.body.center.y - f.body.center.y, p.body.center.x - f.body.center.x);   // aim the body, not the picture: they sit apart
-          f.setVelocity(Math.cos(a) * dive, Math.sin(a) * dive); f.setFlipX(Math.cos(a) < 0); f.anims.timeScale = 0.4; sfx('swing');
+        if (canHunt(s, f, p) && f.cool <= 0 && Math.abs(p.x - f.x) < 170 && p.y > f.y) {
+          f.state = 'warn'; f.tm = 18; f.aim = { x: p.body.center.x, y: p.body.center.y };
+          f.setVelocity(0); f.setTint(0xffd27a); f.anims.timeScale = 0.4;
         }
+      } else if (f.state === 'warn') {
+        f.setVelocity(0); if ((f.tm -= k) <= 0) { const a = Math.atan2(f.aim.y - f.body.center.y, f.aim.x - f.body.center.x); f.clearTint(); f.state = 'dive'; f.tm = 46; f.setVelocity(Math.cos(a) * dive, Math.sin(a) * dive); f.setFlipX(Math.cos(a) < 0); sfx('swing'); }
       } else if (f.state === 'dive') { if ((f.tm -= k) <= 0 || f.body.blocked.down) { f.state = 'rise'; f.anims.timeScale = 1.4; } }
       else { f.setVelocity((f.home.x - f.x) * 1.5, (f.home.y - f.y) * 1.8); if (Math.abs(f.y - f.home.y) < 8) { f.state = 'circle'; f.cool = rest + Math.random() * 80; f.anims.timeScale = 1; f.t = Math.asin(Phaser.Math.Clamp((f.x - f.home.x) / range, -1, 1)); } }
     }
@@ -703,7 +747,7 @@ const LEVELS = {
       }
     },
     create(s) {
-      s.water = 100; s.thirstT = 0; s.stormOn = 0; s.prayed = false;
+      s.water = 100; s.thirstT = 0; s.stormOn = 0; s.stormHinted = false; s.prayed = false;
       $('waterPill').classList.remove('hidden'); s.renderWater();
       // the ram's riddle: four towers of the elements, earth, water, fire and wind, each with a bell in its arch
       s.ramStand = 164.5 * TS;   // the ram watches from the back, by the dry rock
@@ -727,7 +771,7 @@ const LEVELS = {
       s.storm.emitting = s.stormOn > 0.08; s.storm.frequency = 40 - s.stormOn * 30; s.haze.setAlpha(s.stormOn * 0.55);
       s.veil.setAlpha(s.stormOn * 0.9); s.veil.tilePositionX += 9 * k; s.veil.tilePositionY = Math.round(Math.sin(time * 0.002) * 6);
       if (s.stormOn > 0.1 && !s.frozen) b.velocity.x -= 9 * s.stormOn * k;          // the wind pushes back
-      if (s.stormOn > 0.3 && !s.prayed) hint('A <b>sandstorm</b>! The wind pushes you back and water drains twice as fast. <b>Keep pressing on</b>.');
+      if (s.stormOn > 0.3 && !s.prayed && !s.stormHinted) { s.stormHinted = true; hint('A <b>sandstorm</b>! The wind pushes you back and water drains twice as fast. <b>Keep pressing on</b>.'); }
       // thirst: water drains in the heat, twice as fast in the storm
       if (!s.frozen && !s.prayed && !s.bossOn) s.water = Math.max(0, s.water - k * (0.045 + s.stormOn * 0.045) * (gentle() ? 0.6 : legend() ? 1.3 : 1));
       if (s.water <= 0) { s.thirstT += k; if (s.thirstT > 150) { s.thirstT = 0; s.hurt(p.x, true); toast('Rostam is dying of thirst. Find water!'); } }
@@ -904,7 +948,7 @@ const LEVELS = {
       // lightning on the mountain path: a glow marks the ground, then the bolt falls
       if (p.x < (CAVE7 - 4) * TS && !s.frozen) {
         s.boltT -= k;
-        if (s.boltT <= 0) { s.boltT = 110 + Math.random() * 70; s.lightning(p.x + Phaser.Math.Between(-60, 140)); }
+        if (s.boltT <= 0) { s.boltT = 110 + Math.random() * 70; const x = p.x + Phaser.Math.Between(-60, 140); if (!nearRest(s, p.x) && !nearRest(s, x)) s.lightning(x); }
       }
       if (!s.bossOn && p.x > 148 * TS) s.startWhiteDiv();
       if (s.whiteDown && !s.ended && p.x > s.kavus.x - 46 && p.body.blocked.down) s.freeKing();
@@ -1497,6 +1541,7 @@ class Play extends Phaser.Scene {
     this.physics.add.collider(this.shots, this.layer, sh => sh.destroy());
     this.physics.add.overlap(this.player, this.shots, (pl, sh) => { if (!sh.active || sh.back) return; this.hurt(sh.x); this.fx('hit', sh.x, sh.y, { depth: 10 }); sh.destroy(); });
     lv.create?.(this);
+    setupEncounters(this);
     if (rush) this.rushSetup();
     if (R) { lv.resume?.(this); toast(R.well ? 'Rostam rises again beside the well.' : 'Rostam rises again beside the sacred fire.'); }
   }
@@ -2138,6 +2183,7 @@ class Play extends Phaser.Scene {
       if (!f.body.enable) continue;
       FOES[f.kind].tick(this, f, k, p);
       yieldFoe(this, f, k);
+      containFoe(f, k);
       if (f.body.allowGravity && f.body.blocked.down && !f.smash && !f.cast && !f.sting && !f.thrust) {
         const pinned = (f.body.blocked.left || f.body.blocked.right) && Math.abs(f.x - (f.wx ?? 0)) < 0.3;
         f.pinT = pinned ? (f.pinT || 0) + k : 0; f.wx = f.x;
@@ -2156,6 +2202,7 @@ class Play extends Phaser.Scene {
       h.away = near ? 0 : h.away + delta; if (h.away < 2000) return true;
       this.fx('heal', h.x, h.y + 12, { depth: 6 }); this.heart(h.x, h.y).regrow = true; return false;
     });
+    routeCue(this, p);
     this.lv.update?.(this, k, time, p, b);
     // projectiles expire; hazard zones (fire breath, shockwaves) hurt while they last
     for (const sh of this.shots.getChildren()) if (time > sh.die) sh.destroy(); else if (sh.spin) sh.angle += sh.spin * k;
@@ -2602,7 +2649,7 @@ class Play extends Phaser.Scene {
     this.cam.stopFollow(); this.tweens.add({ targets: this.cam, scrollX: Phaser.Math.Clamp(x - W / 2, 0, this.levelW - W), duration: 600, ease: 'Sine.easeInOut' });
     // one bat circles high over the platforms, to harry Rostam up there
     this.hordeBat = this.spawnFoe('bat', x, 4 * TS);
-    banner('سپاهِ دیوان', 'The Horde of the Divs'); hint('The gates are shut! <b>Survive three waves of Divs</b>. <b>Jump twice</b> to reach the high platform, drop behind a Div to strike, then leap back up.'); this.drums = this.time.addEvent({ delay: 420, loop: true, callback: () => sfx('drum') });
+    banner('سپاهِ دیوان', 'The Horde of the Divs'); hint('The gates are shut! <b>Defeat six waves of Divs</b>. <b>Jump twice</b> to reach the high platform, drop behind a Div to strike, then leap back up.'); this.drums = this.time.addEvent({ delay: 420, loop: true, callback: () => sfx('drum') });
     this.time.delayedCall(900, () => this.hordeWave());
   }
   hordeWave() {
