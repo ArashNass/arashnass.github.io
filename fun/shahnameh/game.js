@@ -2559,7 +2559,7 @@ class Play extends Phaser.Scene {
     // his hide turns every blow until he rests on his axe after his strikes: that is the opening
     a.immune = () => a.state !== 'rest' && a.state !== 'dazed'; a.calm = () => !a.immune(); a.contact = () => a.state === 'charge';
     a.immuneMsg = 'Arzhang shrugs off the blow. Dodge his two strikes, then hit him while he rests on his axe.';
-    a.faceRostam = true; a.lines = { intro: 'arzhang1', rage: 'arzhang2' }; a.ai = () => this.arzhangAI(); a.onDown = () => { this.floorWarn?.destroy(); this.highWarn?.destroy(); this.chargeWarn?.destroy(); this.stars?.destroy(); this.stars = null; this.bossFall(a); };
+    a.faceRostam = true; a.lines = { intro: 'arzhang1', rage: 'arzhang2' }; a.ai = () => this.arzhangAI(); a.onDown = () => { a.stompWarn?.destroy(); this.floorWarn?.destroy(); this.highWarn?.destroy(); this.chargeWarn?.destroy(); this.stars?.destroy(); this.stars = null; this.bossFall(a); };
     this.arena(124 * TS, a, 12); this.light(a, 2); sfx('roar'); this.cam.shake(500, 0.008);
     // red glows warn where the axe will fall: along the floor, or across the platforms
     const glow = (y, h) => this.add.rectangle(124 * TS, y, 30 * TS, h, 0xff3010, 1).setOrigin(0, 0.5).setBlendMode(Phaser.BlendModes.ADD).setAlpha(0).setDepth(3);
@@ -2576,18 +2576,18 @@ class Play extends Phaser.Scene {
     if (a.state === 'walk') {
       if (a.tm > 20 && this.tryCharge(a)) return;
       // he stalks Rostam to axe's reach (never near the platform) and plants his feet there
-      if (this.stalk(a, p, 80, KEEP6, 151, hurt ? 64 : 52, 'arzhang-walk')) a.tm = Math.min(a.tm, hurt ? 14 : 24);
+      if (this.stalk(a, p, 80, KEEP6, 151, hurt ? 64 : 52, 'arzhang-walk') || (a.x < KEEP6 * TS + 12 && p.x < a.x) || (a.x > 151 * TS - 12 && p.x > a.x)) a.tm = Math.min(a.tm, hurt ? 14 : 24);
       if (a.tm <= 0) {
         const read = this.bossRead(a), choice = this.bossTactic(a, [
-          { move: 'combo', weight: 3 }, { move: 'stomp', weight: read.distance < 120 && !read.ledge ? 3 + read.pressure * 3 : 0, cooldown: 3400 }
+          { move: 'combo', weight: 3 }, { move: 'stomp', weight: read.distance < 100 && !read.ledge ? 3 + read.pressure * 3 : 0, cooldown: 3400 }
         ]);
-        if (choice === 'stomp') { this.bossAim(a, 'Axe held low: jump the close shockwave'); a.state = 'stompReady'; a.tm = 46; a.setVelocityX(0); a.anims.stop(); a.setTint(0xffb070); return; }
+        if (choice === 'stomp') { this.bossAim(a, 'Axe held low: jump the close shockwave'); a.state = 'stompReady'; a.tm = 46; a.stompX = a.x; a.stompWarn?.destroy(); a.stompWarn = this.add.rectangle(a.stompX - 82, 14 * TS - 12, 164, 24, 0xff9a45, 0.3).setOrigin(0, 0.5).setDepth(3); a.setVelocityX(0); a.anims.stop(); a.setTint(0xffb070); return; }
         // the first blow goes where Rostam is; the second often the other way, so he must switch
         const first = this.bossTactic(a, [{ move: 'sweep', weight: up || read.air > 0.45 ? 4 : 1 }, { move: 'split', weight: up ? 1 : 4 }]), other = first === 'sweep' ? 'split' : 'sweep';
         const preferred = Math.random() < (hurt ? 0.75 : 0.6) ? other : first; const follow = this.bossChoice(a, preferred, preferred === first ? other : first); a.combo = hurt && Math.random() < 0.35 ? [first, follow, follow === 'split' ? 'sweep' : 'split'] : [first, follow]; a.intent = a.combo.length === 3 ? 'Three axe blows: watch each red band' : 'Two axe blows: watch each red band'; this.windUp(a, first === 'split' ? Math.max(hurt ? 70 : 80, this.reachT(127, 131)) : hurt ? 70 : 80);   // time to reach the platform
       }
     } else if (a.state === 'stompReady') {
-      a.setVelocityX(0); if (a.tm <= 0) { a.clearTint(); this.hazard(a.x - 82, 14 * TS - 25, 164, 25, 200); this.fx('shock', a.x, 14 * TS, { depth: 8 }); a.state = 'stomp'; a.tm = 18; sfx('hit'); }
+      a.setVelocityX(0); a.stompWarn?.setAlpha(0.18 + 0.3 * Math.abs(Math.sin(a.tm * 0.25))); if (a.tm <= 0) { a.stompWarn?.destroy(); a.stompWarn = null; a.clearTint(); this.hazard((a.stompX ?? a.x) - 82, 14 * TS - 25, 164, 25, 200); this.fx('shock', a.x, 14 * TS, { depth: 8 }); a.state = 'stomp'; a.tm = 18; sfx('hit'); }
     } else if (a.state === 'stomp') {
       if (a.tm <= 0) { a.state = 'rest'; a.tm = 80; a.intent = ''; a.setTint(0xffc0a0); this.stars = this.fx('stun', a.x, a.body.top - 4, { depth: 10, follow: a }); }
     } else if (a.state === 'raise') {
@@ -2610,7 +2610,7 @@ class Play extends Phaser.Scene {
   charge(b, walk) {
     const p = this.player;
     if (b.state === 'brace') {
-      b.setVelocityX(0); Math.floor(b.tm / 5) % 2 ? b.setTint(0xff7060) : b.clearTint(); b.x += Math.floor(b.tm / 3) % 2 ? 1 : -1;
+      b.setVelocityX(0); Math.floor(b.tm / 5) % 2 ? b.setTint(0xff7060) : b.clearTint();
       this.chargeWarn?.setAlpha(0.2 + 0.35 * Math.abs(Math.sin(b.tm * 0.3)));
       if (b.tm <= 0) { b.clearTint(); b.state = 'charge'; b.tm = 90; b.play(walk); b.anims.timeScale = 2.6; this.chargeWarn?.destroy(); this.chargeWarn = null; sfx('roar'); this.cam.shake(200, 0.006); }
       return true;
@@ -2622,12 +2622,12 @@ class Play extends Phaser.Scene {
         b.x = b.keep * TS; b.setVelocityX(0); b.anims.timeScale = 1; b.state = 'walk'; b.tm = 12; b.chargeCd = 300; b.throwCd = 0; this.ledgeT = 80;
         this.fx('dust', b.x - 24, b.body.bottom, { flip: true, depth: 8 }); this.cam.shake(160, 0.006); return true;
       }
-      if (b.body.blocked.left || b.body.blocked.right) {
+      if (b.dir < 0 ? b.body.blocked.left : b.body.blocked.right) {
         // into the wall: the cave shakes and he reels
         b.setVelocityX(0); b.anims.timeScale = 1; b.anims.stop(); b.setFrame(0); b.state = 'dazed'; b.tm = 110; b.setTint(0xffe0a0);
         this.cam.shake(450, 0.018); sfx('hit'); sfx('drum'); this.fx('dust', b.x + b.dir * 30, b.body.bottom, { depth: 8 });
         this.stars = this.fx('stun', b.x, b.body.top - 4, { depth: 10, follow: b }); hint('He crashed into the wall and is <b>dazed: strike him now!</b>');
-      } else if (b.tm <= 0) { b.anims.timeScale = 1; b.state = 'walk'; b.tm = 70; b.chargeCd = 360; }
+      } else if (b.tm <= 0) { b.setVelocityX(0); b.anims.timeScale = 1; b.state = 'walk'; b.tm = 70; b.chargeCd = 360; }
       return true;
     }
     if (b.state === 'dazed') {
@@ -2661,7 +2661,7 @@ class Play extends Phaser.Scene {
   }
   // frames Rostam needs to run to the platform between columns c0..c1 and leap onto it, with a little to spare
   reachT(c0, c1) { const x = this.player.x, d = x < c0 * TS ? c0 * TS - x : x > c1 * TS ? x - c1 * TS : 0; return d / 2.1 + 52; }   // the run there, and a double jump up
-  windUp(a, tm) { a.state = 'raise'; a.tm = tm; a.setVelocityX(0); a.play('arzhang-smash'); a.anims.pause(); a.setFrame(1); sfx('roar'); }
+  windUp(a, tm) { a.intent = (a.combo[0] === 'split' ? 'Ground split: climb or jump' : 'High sweep: drop to the floor') + ` · ${a.combo.length} blow${a.combo.length > 1 ? 's' : ''} left`; a.state = 'raise'; a.tm = tm; a.setVelocityX(0); a.play('arzhang-smash'); a.anims.pause(); a.setFrame(1); sfx('roar'); }
   // the floor split: a shockwave across the whole floor of the arena; only the platforms and the air are safe
   splitFloor(a) {
     a.anims.resume(); this.floorWarn.setAlpha(0.9); this.tweens.add({ targets: this.floorWarn, alpha: 0, duration: 400 });
