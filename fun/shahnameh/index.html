@@ -351,14 +351,23 @@ body.calm #banner.on{animation-name:banCalm}@keyframes banCalm{0%{opacity:0}15%,
 .ccap p{font:500 clamp(17px,2.6vh,24px)/1.45 var(--book);color:#f4ead2;text-shadow:0 2px 3px #000,0 0 12px #000;min-height:3em;margin:2px 0 6px}
 .chint{font:600 12px Inter,sans-serif;letter-spacing:.08em;color:rgba(232,214,174,.55);text-transform:uppercase;opacity:0;transition:opacity .5s}.ccap.done .chint{opacity:1}
 .cdots{position:absolute;top:calc(8vh + 12px);left:50%;transform:translateX(-50%);display:flex;gap:8px;z-index:4;padding:6px}.cdots i{width:8px;height:8px;transform:rotate(45deg);border:1px solid #e8c25a;display:block}.cdots i.on{background:#e8c25a}
-.cskip{position:absolute;top:calc(8vh + 6px);right:max(16px,env(safe-area-inset-right));z-index:4;height:34px;padding:0 16px;border-radius:17px;border:1.5px solid rgba(232,194,90,.7);background:rgba(10,8,4,.55);color:#f6dc8c;font:700 14px Cinzel,serif;letter-spacing:.06em}
+.cskip{position:absolute;top:calc(8vh + 6px);right:max(16px,env(safe-area-inset-right));z-index:6;height:34px;padding:0 16px;border-radius:17px;border:1.5px solid rgba(232,194,90,.7);background:rgba(10,8,4,.55);color:#f6dc8c;font:700 14px Cinzel,serif;letter-spacing:.06em}
 .cskip:hover,.cskip:focus-visible{background:rgba(232,194,90,.25);outline:2px solid #f6dc8c;outline-offset:2px}
 .credits{position:absolute;inset:0;z-index:5;background:radial-gradient(ellipse at center,#120c06,#000 75%);overflow:hidden}
-.roll{position:absolute;left:50%;top:100%;transform:translateX(-50%);width:min(90vw,640px);text-align:center;color:#e9dfc8;animation:roll 34s linear forwards}
+.roll{position:absolute;left:50%;top:60%;transform:translateX(-50%);width:min(90vw,640px);text-align:center;color:#e9dfc8;animation:roll var(--roll-duration,80s) linear forwards}
 @keyframes roll{to{top:0;transform:translate(-50%,-100%)}}
 .roll .fa{font-size:clamp(44px,8vh,72px);line-height:1.6;color:#f6c95a;margin:0 0 6px}.roll h2{color:#f6dc8c;font-size:clamp(24px,4vh,36px)}.roll h3{font:900 14px Cinzel,serif;letter-spacing:.2em;color:#c8a46a;margin:34px 0 6px;text-transform:uppercase}
 .roll p{font:500 clamp(17px,2.4vh,21px)/1.5 var(--book);margin:0}.roll img{width:min(70vw,360px);image-rendering:pixelated;margin:28px auto 8px;display:block;filter:drop-shadow(0 0 30px rgba(255,180,80,.3))}
-.roll .last{margin-top:60vh;padding-bottom:40vh}
+.roll .credit-hero{height:300px;object-fit:contain}
+.roll figure{margin:0;min-width:0}.roll figcaption{font:500 14px/1.4 var(--book);color:#dfc99c;margin-top:10px}
+.credit-cast{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px 12px;margin:22px 0 42px}
+.credit-actor{display:block;width:var(--actor-size);height:var(--actor-size);margin:auto;background-repeat:no-repeat;background-size:auto 100%;image-rendering:pixelated;filter:drop-shadow(0 0 16px #e8b76733);animation:creditActor var(--cycle) steps(var(--frames)) infinite}
+@keyframes creditActor{to{background-position-x:calc(-1 * var(--actor-size) * var(--frames))}}
+.roll .credit-painting{margin:42px 0}.roll .credit-painting img{display:block;width:100%;height:auto;aspect-ratio:3/2;object-fit:contain;margin:0;border:1px solid #b38a5059;border-radius:12px;filter:none}
+.credit-relics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;margin:24px 0 42px}.roll .credit-relics img{width:64px;height:72px;object-fit:contain;margin:0 auto;filter:drop-shadow(0 0 14px #e8b76733)}
+.roll .last{margin-top:18vh;padding-bottom:24vh}
+@media(max-width:480px){.credit-actor{--actor-size:80px!important}.credit-cast{gap:18px 6px}.credit-relics{grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}.roll figcaption{font-size:13px}}
+@media(prefers-reduced-motion:reduce){.credits{overflow-y:auto;overscroll-behavior:contain}.credits .roll{position:relative;left:auto;top:auto;transform:none;margin:90px auto 100px;animation:none}.credit-actor{animation:none}}
 @media (prefers-reduced-motion:reduce){.cimg.on{animation:none}}
 @media (max-aspect-ratio:4/3){.cimg{object-fit:contain;top:-6vh}.cimg.on{animation-name:burnsTall}@keyframes burnsTall{from{transform:scale(1)}to{transform:scale(1.06)}}}
 .prologue{display:none}#s-map.home .prologue{display:inline-flex;align-items:center;gap:8px;margin:2px auto 0;padding:5px 14px;border-radius:16px;border:1px solid rgba(232,194,90,.55);background:rgba(10,8,4,.45);color:#f6dc8c;font:700 13px Cinzel,serif;letter-spacing:.08em;transition:all .15s}
@@ -703,6 +712,6 @@ body.calm #banner.on{animation-name:banCalm}@keyframes banCalm{0%{opacity:0}15%,
 </section>
 <script src="boot.js?v=92"></script>
 <script src="assets/vendor/phaser-3.80.1.min.js" data-game-script="engine"></script>
-<script src="game.js?v=94" data-game-script="game"></script>
+<script src="game.js?v=95" data-game-script="game"></script>
 </body>
 </html>
