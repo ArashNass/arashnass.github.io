@@ -2356,6 +2356,13 @@ class Play extends Phaser.Scene {
   startWitch() {
     const w = this.witch = this.physics.add.sprite(this.witchAt.x, this.witchAt.y - 40, 'beauty-idle', 0).setDepth(4).setFlipX(true);
     this.fit(w, 'beauty'); w.play('beauty-idle'); w.immune = () => !this.unmasked || w.alpha < 0.5; w.noMark = () => !this.unmasked; w.immuneMsg = 'She only smiles. Speak the name of God: stand near her and strike.';
+    w.calm = () => w.state === 'reel'; w.open = w.calm;
+    w.onBack = () => {
+      this.damage(w, 1, true); if (w.hp <= 0) return;
+      w.state = 'reel'; w.tm = 70; w.intent = ''; w.setVelocity(0); w.setTint(0xffdfa0); w.anims.stop();
+      this.stars?.destroy(); this.stars = this.fx('stun', w.x, w.body.top - 4, { depth: 10, follow: w });
+      hint('Her curse rebounds! <b>She is dazed: close in and strike.</b>');
+    };
     w.lines = { intro: 'witch1' }; w.ai = () => this.witchAI(); w.onDown = () => this.bossFall(w);
     this.arena(112 * TS, w, 10); $('bossName').textContent = 'The Lady of the Garden';
     this.light(w, 1.2); banner('ضیافت', 'The Feast');
@@ -2377,12 +2384,13 @@ class Play extends Phaser.Scene {
   }
   witchAI() {
     const w = this.witch, p = this.player; if (!this.unmasked || w.state === undefined) return;
-    w.tm -= this.bossStep(); const toP = Math.sign(p.x - w.x) || -1; w.setFlipX(toP < 0);
+    w.tm -= this.bossStep(); const toP = Math.sign(p.x - w.x) || -1; if (w.state === 'float') w.dir = toP; w.setFlipX((w.dir || toP) < 0);
     const hurt = w.hp <= w.max / 2;
     if (hurt && !w.summoned && w.state === 'float') { w.summoned = true; w.tm = Math.max(w.tm, 90); for (const dx of [-120, 120]) { const x = Phaser.Math.Clamp(w.x + dx, 113 * TS, this.levelW - 30); this.fx('poof', x, 13 * TS); this.spawnFoe('serpent', x, 14 * TS); } toast('The witch calls serpents from the roses!'); }
     const y = w.baseY + Math.sin(this.time.now * 0.004) * 8;
     if (w.state === 'float') {
-      w.setVelocity((w.tx - w.x) * 1.6, (y - w.y) * 3);
+      const target = Number.isFinite(w.tx) ? Phaser.Math.Clamp(w.tx, this.wall.x + 55, this.wallR.x - 55) : w.x;
+      w.setVelocity(Phaser.Math.Clamp((target - w.x) * 1.6, -110, 110), (y - w.y) * 3);
       if (w.tm <= 0) {
         const read = this.bossRead(w), move = this.bossTactic(w, [
           { move: 'aimed', weight: read.camp > 1800 ? 4 : 2 },
@@ -2398,7 +2406,7 @@ class Play extends Phaser.Scene {
         w.cast = true; const n = w.castMove === 'fan' ? 3 : hurt ? 2 : 1;
         for (let i = 0; i < n; i++) {
           const a = Math.atan2((w.aimY ?? p.y) - 8 - w.y, (w.aimX ?? p.x) - w.x) + (i - (n - 1) / 2) * (w.castMove === 'fan' ? 0.4 : 0.18);
-          const sh = this.shoot(w.x + toP * 18, w.y - 6, Math.cos(a) * 125, Math.sin(a) * 125, 'fx-orb', { life: 3600 });
+          const sh = this.shoot(w.x + (w.dir || toP) * 18, w.y - 6, Math.cos(a) * 125, Math.sin(a) * 125, 'fx-orb', { life: 3600 });
           sh.play('fx-orb'); sh.setRotation(a); this.light(sh, 0.5); sh.curse = true;      // a curse: the mace can turn it back
         }
         sfx('swing');
@@ -2407,13 +2415,17 @@ class Play extends Phaser.Scene {
         w.state = 'float'; w.intent = ''; w.tm = (hurt ? 45 : 65) + Math.random() * 25;
         w.tx = Phaser.Math.Clamp(p.x + (Math.random() < 0.5 ? -1 : 1) * 125, this.wall.x + 55, this.wallR.x - 55);
       }
+    } else if (w.state === 'reel') {
+      w.setVelocity(0); this.stars?.setPosition(w.x, w.body.top - 4);
+      if (w.tm <= 0) { w.clearTint(); this.stars?.destroy(); this.stars = null; w.state = 'float'; w.tm = 54; w.tx = Phaser.Math.Clamp(p.x + (p.x < w.x ? 120 : -120), this.wall.x + 55, this.wallR.x - 55); }
     } else if (w.state === 'vanish') {
       w.setVelocity(0); w.setTint(0xd8a0ff);
       if (w.tm <= 0) { w.clearTint(); w.state = 'blink'; w.tm = 30; this.fx('poof', w.x, w.y + 10, { depth: 10 }); w.setAlpha(0); w.body.enable = false; }
     } else if (w.state === 'blink') {
       if (w.tm <= 0) {
-        const candidates = [this.cam.scrollX + 65, this.cam.scrollX + W / 2, this.cam.scrollX + W - 65].filter(x => Math.abs(x - p.x) > 105);
-        const x = candidates[Math.floor(Math.random() * candidates.length)] ?? (p.x < this.cam.scrollX + W / 2 ? this.cam.scrollX + W - 65 : this.cam.scrollX + 65);
+        const L = this.wall.x + 55, R = this.wallR.x - 55, spots = [L, (L + R) / 2, R];
+        const candidates = spots.filter(x => Math.abs(x - p.x) > 105 && Math.abs(x - w.x) > 60);
+        const x = candidates[Math.floor(Math.random() * candidates.length)] ?? spots.sort((a, b) => Math.abs(b - p.x) - Math.abs(a - p.x))[0];
         w.body.reset(x, w.baseY); w.body.enable = true; this.fx('poof', x, w.y + 10, { depth: 10 });
         this.tweens.add({ targets: w, alpha: 1, duration: 200 }); w.state = 'float'; w.tm = 54; w.tx = x;
       }

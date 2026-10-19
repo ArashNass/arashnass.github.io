@@ -48,6 +48,10 @@ try{
  {const sc=await load(3),B=sc.boss;B.state='lunge';B.tm=30;B.dir=-1;B.body.blocked.right=true;B.body.blocked.left=false;B.hitKeep=false;sc.dragonAI();check('dragon lunge ignores the wall behind it',B.state==='lunge');}
  {const sc=await load(3),B=sc.boss;B.state='breath';B.tm=0;B.fired=true;B.breathUntil=sc.time.now+100;sc.dragonAI();check('dragon recovery waits for flame hazard to expire',B.state==='breath');check('dragon does not signal a safe opening during flame breath',!B.open()&&!B.calm());step(8);check('dragon advances after its flame expires',B.state!=='breath');}
  {const sc=await load(3),B=sc.boss;B.state='lurk';B.tm=100;B.body.reset(B.keep*16,B.y);sc.player.body.reset(B.x-100,sc.player.y);sc.dragonAI();check('dragon moves out of a pinned boundary',B.body.velocity.x>0);}
+
+ {const sc=await load(4),B=sc.boss;B.state='cast';B.tm=30;B.dir=-1;B.aimX=B.x-100;B.aimY=sc.player.y;sc.player.body.reset(B.x+100,sc.player.y);sc.witchAI();check('witch keeps committed cast facing',B.dir===-1&&B.flipX);}
+ {const sc=await load(4),B=sc.boss;const hp=B.hp;B.onBack();check('reflected witch curse rewards a safe stagger',B.hp<hp&&B.state==='reel'&&B.calm()&&sc.stars?.active);step(75);check('witch resumes after a bounded parry stagger',B.state!=='reel'&&B.body.enable);}
+ {const sc=await load(4),B=sc.boss;const x=B.x;B.state='blink';B.tm=0;B.body.enable=false;B.setAlpha(0);sc.witchAI();check('witch teleport changes position inside arena',Math.abs(B.x-x)>60&&B.x>=sc.wall.x+55&&B.x<=sc.wallR.x-55&&B.body.enable);}
  // Observe actual fights under three repeatable player strategies. These are not human fun scores.
  for(const policy of ['ground','jump','camp'])for(let n=1;n<=7;n++){
   dt=1000/60;const sc=await load(n),B=sc.boss;B.hp=Math.ceil(B.max/2);sc.inv=99999;
