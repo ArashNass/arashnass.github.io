@@ -53,7 +53,7 @@ const FPS = { 'queen-walk': 10, 'queen-sting': 14, 'queen-spit': 12, 'queen-die'
 const SIZE = { queen: 150, rider: 124, rostam: 112, lion: 148, jackal: 108, div: 108, scorpion: 86, vulture: 92, ram: 86, dragon: 136, rakhsh: 104, bat: 108, serpent: 92, hag: 108, beauty: 108, spearman: 140, olad: 112, divwarrior: 100, arzhang: 136, whitediv: 204, firediv: 104, ghul: 100 };
 const BODY = { queen: [0.62, 0.42], rider: [0.3, 0.5], rostam: [0.143, 0.393], lion: [0.5, 0.36], jackal: [0.3, 0.22], div: [0.22, 0.34], scorpion: [0.4, 0.22], vulture: [0.33, 0.2], ram: [0.4, 0.4],
   dragon: [0.46, 0.42], rakhsh: [0.5, 0.5], bat: [0.32, 0.24], serpent: [0.31, 0.31], hag: [0.27, 0.42], beauty: [0.2, 0.47], spearman: [0.115, 0.386], olad: [0.17, 0.49], divwarrior: [0.31, 0.64], arzhang: [0.3, 0.7], whitediv: [0.2667, 0.3867], firediv: [0.2, 0.6], ghul: [0.5, 0.36] };
-const V = 91;
+const V = 92;
 const ZOOM = 2;                                                   // canvas pixels per world pixel   // bump to bust caches when assets change
 
 // PixelLab VFX strips in ./assets/fx: frame size, frame count, fps, and the effect's origin as a fraction of the frame
@@ -1195,6 +1195,7 @@ function cry() {
 }
 function setMuted(m) {
   A.muted = m; store.set('sh-muted', m ? '1' : '0'); if (A.master) A.master.gain.value = m || A.background ? 0 : 0.8; if (m) hush(true);
+  if (typeof storyReading !== 'undefined') refreshStoryListen();
   $('muteIco').setAttribute('d', m ? 'M4 9v6h4l5 4V5L8 9z M17 9l5 6 M22 9l-5 6' : 'M4 9v6h4l5 4V5L8 9z M16 9a4 4 0 0 1 0 6 M19 6a8 8 0 0 1 0 12');
   music(!m && game && game.scene.isActive('play') && playing);
 }
@@ -3143,7 +3144,7 @@ function rushElapsed() { return performance.now() - rush.t0 - rush.pausedMs - (r
 function startRush() { rush = { n: 1, t0: performance.now(), pausedMs: 0, pauseAt: null, hp: null, splits: [] }; begin(1, false, true); }
 // the narrator: recorded readings, one file per picture in assets/voice (open1.mp3 ... end3.mp3). A picture is read
 // aloud only if its name is in VOICED, so a missing recording never leaves a gap; the music sinks beneath the voice
-const VOICED = new Set(['open1', 'open2', 'open3', 'open4', 'open5', 'open6', 'end1', 'end2', 'end3', 'khan1', 'khan2', 'khan3', 'khan4', 'khan5', 'khan6', 'khan7', 'win1', 'win2', 'win3', 'win4', 'win5', 'win6', 'fall1', 'fall2', 'fall3', 'queen1', 'queen2', 'witch1', 'witch2', 'olad1', 'olad2', 'arzhang1', 'arzhang2', 'white1', 'white2', 'white3', 'kavus1']);
+const VOICED = new Set(['open1', 'open2', 'open3', 'open4', 'open5', 'open6', 'end1', 'end2', 'end3', 'khan1', 'khan2', 'khan3', 'khan4', 'khan5', 'khan6', 'khan7', 'win1', 'win2', 'win3', 'win4', 'win5', 'win6', 'fall1', 'fall2', 'fall3', 'queen1', 'queen2', 'witch1', 'witch2', 'olad1', 'olad2', 'arzhang1', 'arzhang2', 'white1', 'white2', 'white3', 'kavus1', 'khan1-intro', 'khan1-outro', 'khan2-intro', 'khan2-outro', 'khan3-intro', 'khan3-outro', 'khan4-intro', 'khan4-outro', 'khan5-intro', 'khan5-outro', 'khan6-intro', 'khan6-outro', 'khan7-intro', 'tale-1-1', 'tale-1-2', 'tale-1-3', 'tale-1-4', 'tale-1-5', 'tale-3-1', 'tale-3-2', 'tale-4-1', 'tale-4-2', 'tale-5-1', 'tale-5-2', 'tale-6-1', 'tale-6-2', 'tale-7-1', 'tale-7-2', 'tale-2-1', 'tale-2-2']);
 // the narrator's line as each labour begins, shown as a subtitle while he speaks
 const KHAN_LINES = {"khan1": "The first labour. Rostam lay down to sleep among the reeds, while Rakhsh grazed nearby… and in the thicket, a lion was watching.", "khan2": "The second labour: the burning desert. No water. No shade. Not a single bird in the sky… only the sand, and whatever waits beneath it.", "khan3": "The third labour. Night fell, and out of the dark came a dragon eighty cubits long: a beast that only Rakhsh could see.", "khan4": "The fourth labour. In a green garden a feast was laid, and a beautiful lady poured the wine. But in Mazandaran… beauty is rarely what it seems.", "khan5": "The fifth labour. Rostam rode into the lands of Olad: a warden who did not take kindly to strangers.", "khan6": "The sixth labour. At the gates of Mazandaran stood Arzhang, chief of the Divs, with an army of demons at his back.", "khan7": "The seventh labour. Beyond seven mountains, in a cave as dark as night… the White Div was waiting."};
 let sayId = 0, voiceEl = null;
@@ -3394,22 +3395,38 @@ function banner(fa, name, ep = '') {
   b.classList.remove('on'); void b.offsetWidth; b.classList.add('on');
 }
 // the tale, paged like a manuscript
-let pages = [], pg = 0, storyFrom = null;
+let pages = [], pg = 0, storyFrom = null, storyReading = false;
+function refreshStoryListen() {
+  const b = $('storyListen'), available = VOICED.has(pages[pg]?.dataset.voice);
+  b.disabled = !available || A.muted || !SET.voice;
+  b.textContent = storyReading ? 'Stop reading' : A.muted ? 'Sound is muted' : !SET.voice ? 'Narrator is off' : 'Listen to this page';
+  b.setAttribute('aria-pressed', String(storyReading));
+}
+function stopStoryReading() { if (storyReading) hush(); storyReading = false; refreshStoryListen(); }
+$('storyListen').onclick = () => {
+  if (storyReading) { stopStoryReading(); return; }
+  const key = pages[pg]?.dataset.voice;
+  if (!key || A.muted || !SET.voice) return;
+  storyReading = !!narrate(key, () => { storyReading = false; refreshStoryListen(); }); refreshStoryListen();
+};
 function showPage(i) {
+  stopStoryReading();
   pg = Phaser.Math.Clamp(i, 0, pages.length - 1);
   $('leaf').replaceChildren(pages[pg].cloneNode(true)); $('leaf').scrollTop = 0;
   $('dots').innerHTML = pages.map((_, k) => `<i class="${k === pg ? 'on' : ''}"></i>`).join('');
+  refreshStoryListen();
   $('prevPg').disabled = pg === 0; $('nextPg').textContent = pg === pages.length - 1 ? 'Close' : 'Next \u2192';
 }
 const turn = d => (pg === pages.length - 1 && d > 0 ? closeStory() : showPage(pg + d));
 function openStory(i = 0, n = cur) {
   music(A.want);
   if (playing) setPaused(true);
+  $('s-story').setAttribute('aria-label', 'The tale of ' + NAMES[n][0]);
   pages = [...(document.getElementById('tale-' + n) || $('tale-1')).content.querySelectorAll('article')];
   storyFrom = document.querySelector('.ov:not(.hidden):not(#s-story)');
   storyFrom?.classList.add('hidden'); $('s-story').classList.remove('hidden'); showPage(i); $('nextPg').focus();
 }
-function closeStory() { $('s-story').classList.add('hidden'); if (storyFrom) { storyFrom.classList.remove('hidden'); storyFrom.querySelector('.btn')?.focus(); } else openMap(false); }
+function closeStory() { stopStoryReading(); $('s-story').classList.add('hidden'); if (storyFrom) { storyFrom.classList.remove('hidden'); storyFrom.querySelector('.btn')?.focus(); } else openMap(false); }
 document.querySelectorAll('[data-story]').forEach(b => b.onclick = () => openStory(+b.dataset.story || 0, cur));
 $('prevPg').onclick = () => turn(-1); $('nextPg').onclick = () => turn(1); $('storyClose').onclick = closeStory;
 $('pauseBtn').onclick = () => setPaused(true); $('resumeBtn').onclick = () => setPaused(false);

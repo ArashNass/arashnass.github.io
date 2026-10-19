@@ -4,6 +4,7 @@ Run `python3 tests/serve.py` from any directory. Open these URLs one at a time a
 
 - http://127.0.0.1:8770/selftest.html#selftest — all seven bosses, enemy collisions, checkpoints and assets.
 - http://127.0.0.1:8770/regression.html#debug — controls, rewards, final save, audio, desert puzzle, normal-speed lion victory and rush timing.
+- http://127.0.0.1:8770/narration.html#debug — decode all new readings and check all tale pages, Listen/Stop, page changes and mute without audible output.
 - http://127.0.0.1:8770/audit.html#debug — story panels, progression, replay, checkpoints and rush transitions.
 - `/fail-engine.html`, `/fail-game.html`, `/fail-tiles.html` — each should show a loading error with Try again.
 

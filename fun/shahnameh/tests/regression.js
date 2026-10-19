@@ -36,9 +36,9 @@ try{
  for(const healthy of [false,true])for(const allFeathers of [false,true]){
   sc=await begin(1);let F=JSON.parse(localStorage.getItem('sh-feathers')||'{}');[0,1,2].forEach(k=>{if(allFeathers)F['1:'+k]=1;else delete F['1:'+k]});localStorage.setItem('sh-feathers',JSON.stringify(F));
   sc.hp=healthy?sc.maxHp:1;sc.t0-=2000;sc.win({destroy(){}});await until(()=>!ov.classList.contains('hidden'),'reward outro');skip.click();
-  const text=document.getElementById('winStars').textContent,count=document.querySelectorAll('#winStars i.on').length;
+  const text=document.getElementById('winStars').textContent.toLowerCase(),count=document.querySelectorAll('#winStars i.on').length;
   log(count===1+Number(healthy)+Number(allFeathers),'Correct star count: health='+healthy+', feathers='+allFeathers);
-  log((healthy||text.includes('Keep half your hearts'))&&(allFeathers||text.includes('find all three feathers'))&&(!allFeathers||!text.includes('find all three feathers')),'Correct missing-objective advice: health='+healthy+', feathers='+allFeathers);
+  log((healthy||text.includes('keep half your hearts'))&&(allFeathers||text.includes('find all three feathers'))&&(!allFeathers||!text.includes('find all three feathers')),'Correct missing-objective advice: health='+healthy+', feathers='+allFeathers);
  }
  // Actual final rescue saves before the first ending picture; presentation cannot re-award the result.
  sc=await begin(7);sc.t0-=2000;sc.freeKing();await until(()=>+localStorage.getItem('sh-best-7')>0,'save at restored sight',15000);
