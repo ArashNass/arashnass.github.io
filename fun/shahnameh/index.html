@@ -563,6 +563,26 @@ body.calm #banner.on{animation-name:banCalm}@keyframes banCalm{0%{opacity:0}15%,
 #s-map .journey-page #rideBtn:focus-visible,#s-map .journey-page #mapTale:focus-visible{outline:2px solid #f4d78e;outline-offset:3px}
 @media(max-width:760px) and (min-height:521px){#s-map .journey-page #rideBtn{width:calc(100% - 32px);height:54px;box-shadow:0 0 0 8px #080e17eb}}
 @media(max-height:520px){#s-map .journey-page #rideBtn,#s-map .journey-page #mapTale{height:40px;font-size:12px;border-width:10px 16px}}
+
+/* Keep measured content and actions in normal flow, including completed-labour records. */
+#s-map .journey-card-body>*{flex-shrink:0}
+#s-map .journey-actions{flex:none;display:grid;grid-template-columns:minmax(0,1fr);gap:12px;margin-top:0;padding:4px 0}
+#s-map #mapInfo{flex:none;margin-bottom:18px}
+#s-map #mapInfo .ftot{line-height:1.8;margin-top:14px}
+#s-map .journey-page #rideBtn,#s-map .journey-page #mapTale{position:static;inset:auto;width:100%;flex:none;min-height:48px;height:48px;box-shadow:none}
+#s-map .journey-options{flex:none;margin-top:14px}
+#s-map .journey-nav{gap:10px;align-items:center}
+#s-map .journey-nav-link{justify-content:center;min-width:104px}
+@media(max-width:760px) and (min-height:521px){
+ #s-map,#s-map.home{padding-bottom:24px}
+ #s-map .journey-nav{grid-template-columns:1fr 1fr;gap:10px}
+ #s-map .journey-nav-link[data-guide]{grid-column:1;grid-row:2}
+ #s-map .journey-nav-link[data-settings]{grid-column:2;grid-row:2}
+ #s-map .journey-sound{grid-column:2;grid-row:3;justify-self:end;min-height:32px}
+ #s-map .journey-close{grid-column:1;grid-row:3}
+ #s-map .journey-card .journey-actions{gap:12px}
+}
+@media(max-height:520px){#s-map .journey-nav{gap:6px}#s-map .journey-nav-link{min-width:0}#s-map .journey-page #rideBtn,#s-map .journey-page #mapTale{min-height:40px;height:40px}#s-map .journey-art{flex-basis:40px;height:40px}}
 </style>
 </head>
 <body>
@@ -740,8 +760,8 @@ body.calm #banner.on{animation-name:banCalm}@keyframes banCalm{0%{opacity:0}15%,
       <nav class="journey-nav" aria-label="Game menu">
         <button id="prologueBtn" class="journey-nav-link">Story scenes</button>
         <button class="journey-nav-link" data-help>Controls</button>
-        <button class="journey-nav-link" data-settings>Settings</button>
         <button class="journey-nav-link" data-guide>Book of Foes</button>
+        <button class="journey-nav-link" data-settings>Settings</button>
         <button id="journeySound" class="journey-sound" aria-label="Toggle sound" aria-pressed="false">Sound on</button>
         <button id="mapClose" class="journey-close" aria-label="Close">&times;</button>
       </nav>
@@ -883,6 +903,6 @@ body.calm #banner.on{animation-name:banCalm}@keyframes banCalm{0%{opacity:0}15%,
 </section>
 <script src="boot.js?v=92"></script>
 <script src="assets/vendor/phaser-3.80.1.min.js" data-game-script="engine"></script>
-<script src="game.js?v=102" data-game-script="game"></script>
+<script src="game.js?v=103" data-game-script="game"></script>
 </body>
 </html>
