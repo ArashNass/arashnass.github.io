@@ -342,22 +342,72 @@ function map7() {
 // another ground foe just ahead in this direction: they keep their distance rather than stand inside each other
 // bosses stand only on solid ground: the jump-through ledges are Rostam's, so a boss never lands on one or catches on its edge
 const onFloor = (b, t) => t.index % 4 !== 2;
+const FOE_GAP = 8;
+const groundFoe = f => f.active && f.body?.enable && f.body.allowGravity;
+const foeBusy = f => f.smash || f.cast || f.sting || f.thrust || f.leap ||
+  (f.anims.isPlaying && /strike|smash|thrust|sting|throw|leap/.test(f.anims.currentAnim?.key || ''));
 function crowded(s, f, dir) {
-  for (const o of s.foes.getChildren()) if (o !== f && o.active && o.body.enable && o.body.allowGravity && Math.sign(o.x - f.x) === dir && Math.abs(o.x - f.x) < 36 && Math.abs(o.y - f.y) < 30) return true;
-  return false;
+  return s.foes.getChildren().some(o => {
+    if (o === f || !groundFoe(o) || Math.abs(o.body.bottom - f.body.bottom) > 20) return false;
+    const dx = o.body.center.x - f.body.center.x;
+    const side = Math.sign(dx) || (o.spaceId > f.spaceId ? 1 : -1);
+    return side === dir && Math.abs(dx) < (o.body.width + f.body.width) / 2 + FOE_GAP + 2;
+  });
 }
 // the horde of Arzhang's camp: six small waves rather than three big ones. d blue Div, w Div warrior, f Fire Div, g Ghul
 const HORDE = [['d', 'g'], ['w', 'f'], ['g', 'd', 'g'], ['w', 'f'], ['f', 'g', 'd'], ['w', 'f', 'g']];
-// walkers never stand inside one another: any two that overlap are eased apart, each as far as the ground lets it go
-function separate(s) {
-  const fs = s.foes.getChildren().filter(f => f.active && f.body.enable && f.body.allowGravity);
-  for (let i = 0; i < fs.length; i++) for (let j = i + 1; j < fs.length; j++) {
-    const a = fs[i], b = fs[j], dx = b.x - a.x, need = (a.body.width + b.body.width) * 0.42;
+// Test the destination's leading edge and support before moving a grounded body.
+function foeStepFree(s, f, dx) {
+  const b = f.body, x = dx > 0 ? b.right + dx : b.left + dx;
+  if (x < 0 || x >= s.levelW) return false;
+  for (const y of [b.top + 2, b.center.y, b.bottom - 2]) {
+    if (s.layer.getTileAtWorldXY(x, y)?.collides) return false;
+  }
+  if (b.blocked.down) {
+    const floor = s.layer.getTileAtWorldXY(x, b.bottom + 3);
+    if (!floor?.collides || floor.index % 4 === 3) return false;
+  }
+  return true;
+}
+function slideFoe(s, f, dx) {
+  let moved = 0;
+  while (Math.abs(dx - moved) > 0.01) {
+    const step = Math.sign(dx) * Math.min(1, Math.abs(dx - moved));
+    if (!foeStepFree(s, f, step)) break;
+    // Preserve the physics step's delta: postUpdate must not apply this correction twice.
+    f.x += step; f.body.position.x += step; f.body.prev.x += step; f.body.prevFrame.x += step; f.body.updateCenter();
+    moved += step;
+  }
+  return moved;
+}
+function yieldFoe(s, f, k) {
+  if (!groundFoe(f) || !f.body.blocked.down || foeBusy(f)) { f.crowdWait = 0; f.yieldT = 0; return; }
+  if (f.yieldT > 0) {
+    f.yieldT -= k;
+    if (foeStepFree(s, f, f.yieldDir * 2)) { f.setVelocityX(f.yieldDir * 32); f.setFlipX(f.yieldDir < 0); return; }
+    f.yieldT = 0;
+  }
+  const dir = Math.sign(f.body.velocity.x);
+  if (!dir || !crowded(s, f, dir)) { f.crowdWait = 0; return; }
+  f.crowdWait = (f.crowdWait || 0) + k; f.setVelocityX(0);
+  if (f.crowdWait > 18 && foeStepFree(s, f, -dir * 2)) {
+    f.crowdWait = 0; f.yieldDir = -dir; f.yieldT = 24 + f.spaceId % 3 * 8;
+    f.setVelocityX(-dir * 32); f.setFlipX(dir > 0);
+  }
+}
+// Resolve full body overlap, including exact-center spawns and mixed-size packs.
+// A committed attack or airborne leap keeps its path; a grounded neighbour yields.
+function separate(s, k = 1) {
+  const fs = s.foes.getChildren().filter(groundFoe), cap = 3 * Math.min(k, 2);
+  for (let pass = 0; pass < 2; pass++) for (let i = 0; i < fs.length; i++) for (let j = i + 1; j < fs.length; j++) {
+    const a = fs[i], b = fs[j], dx = b.body.center.x - a.body.center.x;
+    const need = (a.body.width + b.body.width) / 2 + FOE_GAP;
     if (Math.abs(dx) >= need || Math.abs(a.body.bottom - b.body.bottom) > 20) continue;
-    const push = Math.min(3, (need - Math.abs(dx)) / 2), dir = Math.sign(dx) || (i % 2 ? 1 : -1);
-    const free = (f, d) => !(d > 0 ? f.body.blocked.right : f.body.blocked.left) && !s.layer.getTileAtWorldXY(f.x + d * (f.body.width / 2 + 2), f.body.bottom - 6)?.collides;
-    if (free(a, -dir)) a.x -= dir * push; else if (free(b, dir)) b.x += dir * push;
-    if (free(b, dir)) b.x += dir * push; else if (free(a, -dir)) a.x -= dir * push;
+    const dir = Math.sign(dx) || (b.spaceId > a.spaceId ? 1 : -1), overlap = need - Math.abs(dx);
+    const canA = a.body.blocked.down && !foeBusy(a), canB = b.body.blocked.down && !foeBusy(b);
+    const pushedA = canA ? Math.abs(slideFoe(s, a, -dir * Math.min(cap, overlap / 2))) : 0;
+    const pushedB = canB ? Math.abs(slideFoe(s, b, dir * Math.min(cap * 2, overlap - pushedA))) : 0;
+    if (canA && pushedB < overlap - pushedA) slideFoe(s, a, -dir * Math.min(cap, overlap - pushedA - pushedB));
   }
 }
 // Rostam stands above this foe (up on a platform): out of reach
@@ -1462,7 +1512,7 @@ class Play extends Phaser.Scene {
   }
   spawnFoe(kind, x, y) {
     const F = FOES[kind], f = this.foes.create(x, y - 20, F.tex, 0);
-    this.fit(f, kind); f.kind = kind; f.hp = F.hp; f.dir = -1; f.hopT = Math.random() * 60; f.home = { x, y: y - 20 };
+    this.fit(f, kind); f.kind = kind; f.spaceId = this.foeSerial = (this.foeSerial || 0) + 1; f.hp = F.hp; f.dir = -1; f.hopT = Math.random() * 60; f.home = { x, y: y - 20 };
     f.play(F.tex); F.init?.(this, f);
     // walkers stand with their feet on the floor of their cell; set any deeper and a tall one sinks through the ground
     if (f.body.allowGravity) { f.y = y - 1 - 0.47 * f.displayHeight; f.body.reset(x, f.y); f.home.y = f.y; }
@@ -2055,21 +2105,23 @@ class Play extends Phaser.Scene {
     if (anim === 'rostam-jump') p.setFrame(b.velocity.y < 0 ? 0 : 1);
     p.setFlipX(this.face < 0);
     this.cam.setFollowOffset(W / 2 - this.face * 30, H / 2);
+    // Resolve crowding before foes commit to new attack tells.
+    separate(this, k);
     // foes
     for (const f of this.foes.getChildren()) {
       if (!f.body.enable) continue;
       FOES[f.kind].tick(this, f, k, p);
+      yieldFoe(this, f, k);
       if (f.body.allowGravity && f.body.blocked.down && !f.smash && !f.cast && !f.sting && !f.thrust) {
         const pinned = (f.body.blocked.left || f.body.blocked.right) && Math.abs(f.x - (f.wx ?? 0)) < 0.3;
         f.pinT = pinned ? (f.pinT || 0) + k : 0; f.wx = f.x;
-        if (f.pinT > 45) { f.pinT = 0; f.dir = f.body.blocked.left ? 1 : -1; f.setFlipX(f.dir < 0); f.bored = 80; f.x += f.dir * 2; }
+        if (f.pinT > 45) { f.pinT = 0; f.dir = f.body.blocked.left ? 1 : -1; f.setFlipX(f.dir < 0); f.bored = 80; slideFoe(this, f, f.dir * 2); }
       }
       if (Phaser.Geom.Intersects.RectangleToRectangle(b, f.body)) {
         if (b.velocity.y > 60 && b.bottom - f.body.top < 12) { this.damage(f, 2); p.setVelocityY(keys.jump ? -330 : -230); }
         else this.hurt(f.x);
       }
     }
-    separate(this);
     // checkpoint
     for (const a of this.altars) if (!a.lit && p.x > a.x) { this.kindle(a); resumeAt = { n: cur, i: this.altars.indexOf(a), well: !!a.onLight }; }
     // a taken platform heart grows back once Rostam has been away from it for 2 s
