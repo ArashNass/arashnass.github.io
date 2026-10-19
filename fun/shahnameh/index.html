@@ -555,7 +555,7 @@ body.calm #banner.on{animation-name:banCalm}@keyframes banCalm{0%{opacity:0}15%,
 <body>
 <div id="game"></div>
 <div id="hud">
-  <div class="row"><a class="pill back" href="/fun/" aria-label="Back to the Funfair">&larr;<span class="t">&nbsp;Funfair</span></a><span class="pill" id="lbl">Khan I &middot; The Lion</span></div>
+  <div class="row"><span class="pill" id="lbl">Khan I &middot; The Lion</span></div>
   <div class="row">
     <span class="pill hidden" id="waterPill" title="Water"><img class="food" src="assets/ui/waterskin.png" alt="Water"><i class="wbar"><b id="water"></b></i></span>
     <button class="pill hidden" id="offerBtn" aria-label="Make an offering at the sacred fire">&#128293; Offer</button>
@@ -605,7 +605,6 @@ body.calm #banner.on{animation-name:banCalm}@keyframes banCalm{0%{opacity:0}15%,
     <div class="stats" id="winStats"></div>
     <p id="winBest"></p>
     <div class="menu"><button class="btn" id="nextBtn">Next labour</button><button class="btn2" id="againBtn">Play again</button><button class="btn2" data-map>The seven labours</button></div>
-    <a class="alt" href="/fun/">Back to the Funfair</a>
   </div>
 </section>
 <section class="ov hidden" id="s-dead">
@@ -623,13 +622,12 @@ body.calm #banner.on{animation-name:banCalm}@keyframes banCalm{0%{opacity:0}15%,
     <h2>Menu</h2>
     <div class="menu">
       <button class="btn" id="resumeBtn">Continue</button>
-      <button class="btn2" data-map>The seven labours</button>
+      <button class="btn2" data-map>Journey map</button>
       <button class="btn2" data-story>Read the tale</button>
       <button class="btn2" data-guide>Book of Foes</button>
       <button class="btn2" data-help>How to play</button>
       <button class="btn2" data-settings>Settings</button>
       <button class="btn2" id="restartBtn">Restart the labour</button>
-      <a class="btn2" href="/fun/">Leave for the Funfair</a>
     </div>
     <div class="keys deskonly"><kbd>Esc</kbd> or <kbd>P</kbd> to pause &middot; <kbd>M</kbd> sound</div>
   </div>
@@ -872,6 +870,6 @@ body.calm #banner.on{animation-name:banCalm}@keyframes banCalm{0%{opacity:0}15%,
 </section>
 <script src="boot.js?v=92"></script>
 <script src="assets/vendor/phaser-3.80.1.min.js" data-game-script="engine"></script>
-<script src="game.js?v=100" data-game-script="game"></script>
+<script src="game.js?v=101" data-game-script="game"></script>
 </body>
 </html>
