@@ -45,3 +45,9 @@ Run `python3 fun/shahnameh/tests/serve-enemy-regression.py` and open <http://127
 The runner uses actual Arcade bodies at 30/60 Hz: identical/mixed-size exact-center spawns, body/sprite synchronization, a wall, a pit edge, a committed attacker, active three-enemy packs, and attacks/damage against the player. Static separation scenarios temporarily freeze movement intent while keeping real physics active, so the movement policy cannot hide overlap bugs. Active pack and damage scenarios use normal enemy AI.
 
 For a muted normal-speed mixed-pack preview, open <http://127.0.0.1:8774/enemy-play.html#debug> with that server running. It places a deliberately overlapping trio on the first labour’s open ground and retains normal player health.
+
+## First-labour encounter pacing
+
+Run `python3 fun/shahnameh/tests/serve-labour-one.py` and open <http://127.0.0.1:8776/labour-one.html#debug>. All 13 probes must pass, ending with `FIRST LABOUR COMPLETE`; results are saved as `shahnameh-labour-one.json` in the system temporary directory. The isolated muted runner checks encounter grouping, three safe checkpoints, three optional feathers, quiet areas, healing placement, enemy roaming at 30/60 Hz, contextual cues, and a traversal from spawn through the lion victory using real movement/jump/strike inputs. Health is raised to isolate progression, so this is not a difficulty score.
+
+For a normal-health playthrough from the beginning, open <http://127.0.0.1:8776/labour-one-play.html#debug>. It skips the story introduction for testing but retains the normal map, enemies, pickups and player health. Audio remains disabled.
