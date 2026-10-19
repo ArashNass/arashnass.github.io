@@ -44,6 +44,10 @@ try{
  {const sc=await load(2),B=sc.boss;B.state='walk';B.dir=1;B.think=999;B.diveAge=0;B.rearT=37;sc.player.body.reset(B.x-90,sc.player.y);sc.queenAI();check('Queen reacts to a player behind her',B.state==='turn'&&B.tm>=26&&B.turnDir===-1);sc.player.body.reset(B.x+90,sc.player.y);B.tm=0;sc.queenAI();check('Queen turn stays committed during warning',B.dir===-1&&B.state==='walk');}
  {const sc=await load(2),B=sc.boss;sc.stars?.destroy();sc.stars=null;B.state='surfacing';B.tm=18;sc.queenAI();check('Queen eruption has no misleading stun stars',!sc.stars&&!B.calm());B.tm=0;sc.queenAI();check('Queen recovery displays stars only after eruption',B.calm()&&sc.stars?.active);}
  {const sc=await load(2),B=sc.boss;B.state='under';B.underAge=241;B.goal=NaN;B.body.enable=false;B.setAlpha(0);sc.queenAI();check('Queen damaged burrow target recovers into warning',Number.isFinite(B.goal)&&sc.swirl?.active);}
+
+ {const sc=await load(3),B=sc.boss;B.state='lunge';B.tm=30;B.dir=-1;B.body.blocked.right=true;B.body.blocked.left=false;B.hitKeep=false;sc.dragonAI();check('dragon lunge ignores the wall behind it',B.state==='lunge');}
+ {const sc=await load(3),B=sc.boss;B.state='breath';B.tm=0;B.fired=true;B.breathUntil=sc.time.now+100;sc.dragonAI();check('dragon recovery waits for flame hazard to expire',B.state==='breath');check('dragon does not signal a safe opening during flame breath',!B.open()&&!B.calm());step(8);check('dragon advances after its flame expires',B.state!=='breath');}
+ {const sc=await load(3),B=sc.boss;B.state='lurk';B.tm=100;B.body.reset(B.keep*16,B.y);sc.player.body.reset(B.x-100,sc.player.y);sc.dragonAI();check('dragon moves out of a pinned boundary',B.body.velocity.x>0);}
  // Observe actual fights under three repeatable player strategies. These are not human fun scores.
  for(const policy of ['ground','jump','camp'])for(let n=1;n<=7;n++){
   dt=1000/60;const sc=await load(n),B=sc.boss;B.hp=Math.ceil(B.max/2);sc.inv=99999;
