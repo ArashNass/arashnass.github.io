@@ -25,3 +25,11 @@ The harness uses the existing `#debug` interface and manually steps Phaser and t
 The boss suite also runs 21 seeded, 60-second behaviour profiles (seven bosses against ground pressure, repeated jumps, and stationary ledge play). Each must show at least two attack types and remain in bounds. It checks committed pounce targets, a real hit on a camping lion ledge, and the boss melee-impact cooldown. These checks describe decision variety and fair-mechanics integration; they do not score entertainment.
 
 The accelerated boss suite skips darkness compositing, which is cosmetic but expensive even in a headless step. The core and general suites still exercise normal rendering.
+
+## Lion movement audit
+
+Run `python3 fun/shahnameh/tests/serve-lion-regression.py` and open <http://127.0.0.1:8773/lion-fixes.html#debug>. This dedicated muted origin clears only its own local save. The runner checks corner repositioning, directional wall detection, an airborne timeout, and reachable ledge choices; then runs twelve seeded 45-second scenarios at 30/60 Hz covering both corners, close pressure, crossing, and ledge camping. It also defeats the lion using actual player strike collisions.
+
+Require `LION REGRESSION COMPLETE`, all 19 probes passing, and no errors. Results are written to the system temporary directory as `shahnameh-lion-regression.json`. The accelerated runner raises player health and places the player according to each policy; it verifies mechanics and state progress rather than human enjoyment.
+
+For a normal-speed lion fight with normal health, open <http://127.0.0.1:8773/lion-play.html#debug> while this server is running. It skips the approach and starts in the lion arena, with audio disabled. This test route is local only.
