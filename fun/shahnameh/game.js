@@ -1202,6 +1202,7 @@ function setMuted(m) {
   A.muted = m; store.set('sh-muted', m ? '1' : '0'); if (A.master) A.master.gain.value = m || A.background ? 0 : 0.8; if (m) hush(true);
   if (typeof storyReading !== 'undefined') refreshStoryListen();
   $('muteIco').setAttribute('d', m ? 'M4 9v6h4l5 4V5L8 9z M17 9l5 6 M22 9l-5 6' : 'M4 9v6h4l5 4V5L8 9z M16 9a4 4 0 0 1 0 6 M19 6a8 8 0 0 1 0 12');
+  if ($('journeySound')) { $('journeySound').textContent = m ? 'Sound off' : 'Sound on'; $('journeySound').setAttribute('aria-pressed', String(!m)); }
   music(!m && game && game.scene.isActive('play') && playing);
 }
 
@@ -1243,7 +1244,7 @@ addEventListener('keydown', e => {
   }
   if (!$('s-set').classList.contains('hidden')) { if (e.key === 'Escape') closeSettings(); return; }
   if (!$('s-clips').classList.contains('hidden')) { if (e.key === 'Escape') closeClips(); return; }
-  if (!$('s-map').classList.contains('hidden')) { if (e.key === 'Escape') closeMap(); return; }
+  if (!$('s-map').classList.contains('hidden')) { if (e.key === 'Escape') { const options = $('s-map').querySelector('details[open]'); if (options) options.open = false; else if (mapFrom) closeMap(); } return; }
   if (!$('s-help').classList.contains('hidden')) { if (e.key === 'Escape') closeHelp(); return; }
   if (!$('s-temple').classList.contains('hidden')) { if (e.key === 'Escape' || e.key === 'ArrowDown' || e.key === 's' || e.key === 'S') closeTemple(); return; }
   if (!$('s-guide').classList.contains('hidden')) {             // the Book of Foes: page through it
@@ -1254,7 +1255,7 @@ addEventListener('keydown', e => {
     if (e.key === 'ArrowRight') turn(1); else if (e.key === 'ArrowLeft') turn(-1); else if (e.key === 'Escape') closeStory();
     return;
   }
-  if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', ' '].includes(e.key) && e.target.tagName !== 'BUTTON') e.preventDefault();
+  if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', ' '].includes(e.key) && !e.target.closest?.('button, summary, a, input, select, textarea, #mapScroll')) e.preventDefault();
   if (e.key === 'Escape' || e.key === 'p' || e.key === 'P') { if (playing || paused) setPaused(!paused); return; }
   if (!gameplayInput() && (paused || document.querySelector('.ov:not(.hidden)'))) return;
   if (e.key === 'Enter' && !playing && !paused && e.target.tagName !== 'BUTTON') return begin();
@@ -3221,16 +3222,35 @@ function renderMap() {
   const path = MAP_AT.slice(1).map(([x, y]) => `${x},${y}`).join(' ');
   $('road').innerHTML = `<svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><polyline points="${path}" fill="none" stroke="#ffd890" stroke-opacity=".55" stroke-width="2" stroke-dasharray="1 6" stroke-linecap="round" vector-effect="non-scaling-stroke"/></svg>` +
     NAMES.slice(1).map(([name], i) => {
-      const n = i + 1, open = n <= u && LEVELS[n], done = n < u, [x, y] = MAP_AT[n];
+      const n = i + 1, open = n <= u && LEVELS[n], done = !!bestOf(n) || n < u, [x, y] = MAP_AT[n];
       const fc = [0, 1, 2].filter(k => F[n + ':' + k]).length, st = starsOf()[n] || 0, lg = legendsOf()[n];
-      return `<li style="left:${x}%;top:${y}%"><button data-n="${n}" class="${n === pick ? 'sel' : ''} ${done ? 'done' : ''}" ${open ? '' : 'disabled'} aria-label="Labour ${n}: ${name}${open ? '' : ' (locked)'}, ${fc} of 3 feathers${st ? `, ${st} of 3 stars` : ''}">${ROMAN[n]}</button>${open && st ? `<span class="st${lg ? ' lg' : ''}" aria-hidden="true">${'\u2605'.repeat(st)}${'\u2606'.repeat(3 - st)}</span>` : ''}${open ? `<span class="fc${fc === 3 ? ' all' : ''}" aria-hidden="true">${'<i></i>'.repeat(fc)}${'<i class="no"></i>'.repeat(3 - fc)}</span>` : ''}</li>`;
+      return `<li style="left:${x}%;top:${y}%"><button data-n="${n}" class="${n === pick ? 'sel' : ''} ${done ? 'done' : ''}" ${open ? '' : 'disabled'} aria-current="${n === pick ? 'step' : 'false'}" aria-label="Labour ${n}: ${name}${open ? '' : ' (locked)'}, ${fc} of 3 feathers${st ? `, ${st} of 3 stars` : ''}">${ROMAN[n]}</button><span class="pin-label" aria-hidden="true">${name}</span>${open && st ? `<span class="st${lg ? ' lg' : ''}" aria-hidden="true">${'\u2605'.repeat(st)}${'\u2606'.repeat(3 - st)}</span>` : ''}${open ? `<span class="fc${fc === 3 ? ' all' : ''}" aria-hidden="true">${'<i></i>'.repeat(fc)}${'<i class="no"></i>'.repeat(3 - fc)}</span>` : ''}</li>`;
     }).join('');
-  $('road').querySelectorAll('button').forEach(b => b.onclick = () => { pick = +b.dataset.n; renderMap(); });
+  $('road').querySelectorAll('button').forEach(b => {
+    b.onclick = () => { pick = +b.dataset.n; renderMap(); $('road').querySelector(`[data-n="${pick}"]`)?.focus({ preventScroll: true }); };
+    b.onkeydown = e => { if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(e.key)) return; e.preventDefault(); e.stopPropagation(); pick = e.key === 'Home' ? 1 : e.key === 'End' ? Math.min(u, LABOURS) : Phaser.Math.Clamp(pick + (e.key === 'ArrowRight' ? 1 : -1), 1, Math.min(u, LABOURS)); renderMap(); $('road').querySelector(`[data-n="${pick}"]`)?.focus({ preventScroll: true }); };
+  });
   const ready = !!LEVELS[pick] && pick <= u, best = bestOf(pick);
-  $('mapInfo').innerHTML = `<span class="pf">${NAMES[pick][1]}</span><em>Khan ${ROMAN[pick]}: ${NAMES[pick][0]}.</em> ${BLURB[pick]}${best ? ` <em>Best time ${Math.floor(best / 60)}:${String(best % 60).padStart(2, '0')}.</em>` : ''}${LEVELS[pick] ? '' : ' <br>This part of the road is still being built.'}<span class="ftot"><i></i> Simurgh feathers found: <b>${[0, 1, 2].filter(k => F[pick + ':' + k]).length} of 3</b> here, <b>${Object.keys(F).length} of 21</b> in all${Object.keys(F).length >= 21 ? ' &middot; <em>the Simurgh blesses you</em>' : ''}</span>`;
+  const found = [0, 1, 2].filter(k => F[pick + ':' + k]).length, finished = Array.from({ length: LABOURS }, (_, i) => i + 1).filter(n => bestOf(n)).length;
+  $('journeyTitle').textContent = NAMES[pick][0];
+  $('journeyChapter').textContent = `Khan ${ROMAN[pick]} · ${pick} of ${LABOURS}`;
+  $('journeyStatus').textContent = best ? 'A road already travelled' : pick === 1 ? 'The journey begins' : 'The next chapter awaits';
+  $('journeyProgress').textContent = `${finished} of ${LABOURS} completed · ${Object.keys(F).length} feathers`;
+  const art = $('journeyArt'), artPath = `assets/cine/khan${pick}-intro.png?v=${V}`;
+  if (art.getAttribute('src') !== artPath) art.src = artPath; art.alt = `${NAMES[pick][0]}: ${BLURB[pick]}`;
+  $('mapInfo').innerHTML = `${BLURB[pick]}<span class="ftot">Simurgh feathers <b>${found} / 3</b>${best ? `<br>Best time <b>${fmtTime(best * 1000)}</b>` : ''}${Object.keys(F).length >= 21 ? '<br>The Simurgh blesses you.' : ''}</span>`;
+  $('rideBtn').innerHTML = `${best ? 'Replay labour' : pick === 1 ? 'Begin journey' : 'Continue journey'} <span aria-hidden="true">→</span>`;
+  requestAnimationFrame(revealMapSelection);
   $('rushBtn').classList.toggle('hidden', !bestOf(LABOURS)); const rb = +(store.get('sh-rush') || 0); $('rushBtn').innerHTML = `Boss rush${rb ? ` <small>${fmtTime(rb)}</small>` : ''}`;
   $('rideBtn').disabled = !ready; $('mapTale').disabled = !document.getElementById('tale-' + pick);
 }
+function revealMapSelection() {
+  if ($('s-map').classList.contains('hidden')) return;
+  const pin = $('road').querySelector(`[data-n="${pick}"]`), viewport = $('mapScroll');
+  if (!pin) return; const box = pin.getBoundingClientRect(), view = viewport.getBoundingClientRect();
+  if (box.left < view.left + 35 || box.right > view.right - 35) viewport.scrollTo({ left: viewport.scrollLeft + box.left - view.left - view.width / 2 + box.width / 2, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+}
+addEventListener('resize', () => requestAnimationFrame(revealMapSelection));
 function openMap(e) {
   if (e !== false) music(A.want);                                  // a click: the menu theme may begin
   if (playing) setPaused(true);
@@ -3262,10 +3282,11 @@ function embers() {
   requestAnimationFrame(step);
 }
 // the road's difficulty, chosen on the home map: the gentle road (more hearts, weaker bosses) or the hero's road
-function renderDiff() { const d = store.get('sh-diff') || 'hero'; document.querySelectorAll('[data-diff]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.diff === d))); }
+function renderDiff() { const d = store.get('sh-diff') || 'hero'; $('journeyDifficulty').textContent = { gentle: 'Gentle road', hero: "Hero's road", legend: "Legend's road" }[d] || "Hero's road"; document.querySelectorAll('[data-diff]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.diff === d))); }
 document.querySelectorAll('[data-diff]').forEach(b => b.onclick = () => { store.set('sh-diff', b.dataset.diff); renderDiff(); sfx('coin'); });
-function closeMap() { $('s-map').classList.add('hidden'); if (mapFrom) mapFrom.classList.remove('hidden'); else openMap(false); }
+function closeMap() { $('s-map').classList.add('hidden'); if (mapFrom) { mapFrom.classList.remove('hidden'); mapFrom.querySelector('.btn')?.focus(); } else openMap(false); }
 document.querySelectorAll('[data-map]').forEach(b => b.onclick = openMap);
+$('journeySound').onclick = () => $('muteBtn').click();
 $('mapClose').onclick = closeMap; $('rideBtn').onclick = () => { if (pick === 1 && !store.get('sh-prologue')) { store.set('sh-prologue', '1'); cinema('opening', () => begin(1)); } else begin(pick); };
 $('mapTale').onclick = () => openStory(0, pick);
 // the Fire Temple: provisions offered for lasting gifts. The game waits while Rostam stands at the fire.
@@ -3394,8 +3415,8 @@ function cineAdvanceAfter(ms) {
   if (A.background) { c.auto = 0; c.autoRemaining = ms; return; }
   c.auto = setTimeout(() => { if (cine === c) { c.auto = 0; cineNext(); } }, ms);
 }
-function cinema(name, done, start = 0) {
-  const P = CINE[name]; if (!P) { done?.(); return; }
+function cinema(name, done, start = 0, panels = null) {
+  const P = panels || CINE[name]; if (!P) { done?.(); return; }
   const ov = $('s-cine'), imgs = ov.querySelectorAll('.cimg');
   const wasPlaying = playing, sceneActive = game?.scene.isActive('play');
   if (sceneActive) game.scene.pause('play');
@@ -3434,7 +3455,7 @@ function cineNext() {
   const c = cine; if (!c) return;
   if (c.typing) { clearInterval(c.typing); c.typing = 0; const cap = $('s-cine').querySelector('.ccap'); cap.querySelector('p').textContent = c.P[c.i][2]; cap.classList.add('done'); clearTimeout(c.auto); if (!c.speaking) cineAdvanceAfter(2600 + c.P[c.i][2].length * 32); return; }
   if (c.credits) return cineEnd();
-  if (++c.i >= c.P.length) return c.name === 'ending' ? rollCredits() : cineEnd();
+  if (++c.i >= c.P.length) return (c.name === 'ending' || c.name === 'all' && c.P.at(-1)[0] === 'end3') ? rollCredits() : cineEnd();
   cineShow(c.i); sfx('swing');
 }
 function rollCredits() {
@@ -3474,16 +3495,23 @@ const CLIP_NAMES = { open1: 'The minstrel at court', open2: 'The White Div’s s
   "khan7-intro": "The White Div — The road ahead",
 };
 function openClips() {
-  const won = bestOf(LABOURS) > 0, group = (name, title, locked) => `<h3>${title}${locked ? '' : `<button class="btn2 sm" data-play="${name}">&#9654; Play all</button>`}</h3><div class="clips">${CINE[name].map(([img], k) =>
-    `<button class="clip${locked ? ' locked' : ''}" ${locked ? 'aria-disabled="true" title="Free the king to unlock the ending"' : `data-play="${name}" data-k="${k}"`} aria-label="${CLIP_NAMES[img]}${locked ? ', locked' : ''}"><img src="assets/cine/${img}.png?v=${V}" alt="" loading="lazy"><span><b>${k + 1}</b>${locked ? 'Complete this part of the journey to see it' : CLIP_NAMES[img]}</span></button>`).join('')}</div>`;
-  $('clipList').innerHTML = group('opening', 'The Prologue', false) +
-    Array.from({ length: LABOURS }, (_, i) => { const n = i + 1;
-      return group('intro' + n, 'Khan ' + ROMAN[n] + ': ' + NAMES[n][0], n > unlocked()) +
-        (n < LABOURS ? group('outro' + n, 'After Khan ' + ROMAN[n], !bestOf(n)) : '');
-    }).join('') + group('ending', 'The Ending', !won);
+  const groups = [{ name: 'opening', title: 'The Prologue', locked: false }];
+  for (let n = 1; n <= LABOURS; n++) {
+    groups.push({ name: 'intro' + n, title: 'Khan ' + ROMAN[n] + ': ' + NAMES[n][0], locked: n > unlocked() });
+    if (n < LABOURS) groups.push({ name: 'outro' + n, title: 'After Khan ' + ROMAN[n], locked: !bestOf(n) });
+  }
+  groups.push({ name: 'ending', title: 'The Ending', locked: !bestOf(LABOURS) });
+  const playlist = groups.filter(g => !g.locked).flatMap(g => CINE[g.name]);
+  $('clipList').innerHTML = groups.map(({ name, title, locked }) => `<h3>${title}</h3><div class="clips">${CINE[name].map(([img], k) =>
+    `<button class="clip${locked ? ' locked' : ''}" ${locked ? 'aria-disabled="true" title="Complete this part of the journey to unlock"' : `data-play="${name}" data-k="${k}"`} aria-label="${CLIP_NAMES[img]}${locked ? ', locked' : ''}"><img src="assets/cine/${img}.png?v=${V}" alt="" loading="lazy"><span><b>${k + 1}</b>${locked ? 'Complete this part of the journey to see it' : CLIP_NAMES[img]}</span></button>`).join('')}</div>`).join('');
+  $('clipsSummary').textContent = `${playlist.length} unlocked scenes · Watch your story in order`;
+  $('clipsPlayAll').onclick = () => {
+    store.set('sh-prologue', '1'); $('s-clips').classList.add('hidden');
+    cinema('all', openClips, 0, playlist);
+  };
   $('clipList').querySelectorAll('[data-play]').forEach(b => b.onclick = () => { store.set('sh-prologue', '1'); $('s-clips').classList.add('hidden'); cinema(b.dataset.play, openClips, +(b.dataset.k || 0)); });
   document.querySelectorAll('.ov:not(.hidden)').forEach(o => o.id !== 's-clips' && o.classList.add('hidden'));
-  $('s-clips').classList.remove('hidden'); $('clipList').querySelector('.clip:not(.locked)')?.focus();
+  $('s-clips').classList.remove('hidden'); $('clipsPlayAll').focus();
 }
 const closeClips = () => { $('s-clips').classList.add('hidden'); openMap(false); };
 $('prologueBtn').onclick = openClips; $('clipClose').onclick = closeClips; $('clipDone').onclick = closeClips;
@@ -3534,7 +3562,7 @@ function padPoll() {
     const menu = document.querySelector('.ov:not(.hidden)');
     if (menu) {
       // menus: move focus among the visible buttons and controls, press with A, back with B
-      const items = [...menu.querySelectorAll('button:not(:disabled), a.btn2, input[type=range]')].filter(e => e.offsetParent);
+      const items = [...menu.querySelectorAll('button:not(:disabled), a[href], summary, input[type=range]')].filter(e => e.offsetParent);
       const i = items.indexOf(document.activeElement), ax = pad.axes[1] || 0, ay = pad.axes[0] || 0;
       const dir = b(12) || ax < -0.6 || b(14) || ay < -0.6 ? -1 : b(13) || ax > 0.6 || b(15) || ay > 0.6 ? 1 : 0;
       if (dir && Date.now() > padNav) { padNav = Date.now() + 180; const el = document.activeElement;
