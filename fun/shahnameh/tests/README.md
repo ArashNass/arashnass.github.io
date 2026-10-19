@@ -37,3 +37,11 @@ For a normal-speed lion fight with normal health, open <http://127.0.0.1:8773/li
 The normal-speed arena preview also accepts `?boss=2` through `?boss=7` before `#debug`, for example <http://127.0.0.1:8773/lion-play.html?boss=3#debug>. These local previews skip each labour's approach but retain normal player health and combat speed.
 
 The boss suite now includes 96 probes: Queen rear-player tracking and honest eruption cues; dragon directional lunges, pinned movement and flame-safe recovery; witch committed casting, reflected-curse stagger and bounded teleport placement; Olad boundary footwork, ledge choices and clear guard-down cues; directional Div charges, Arzhang's committed stomp and per-blow combo cues; and the White Div's post-ice punish window after actual hazards expire.
+
+## Regular-enemy crowding
+
+Run `python3 fun/shahnameh/tests/serve-enemy-regression.py` and open <http://127.0.0.1:8774/enemy-fixes.html#debug>. This isolated muted origin clears only its own test storage. Require `ENEMY REGRESSION COMPLETE`, all probes passing, and no errors. Results are saved in the system temporary directory as `shahnameh-enemy-regression.json`.
+
+The runner uses actual Arcade bodies at 30/60 Hz: identical/mixed-size exact-center spawns, body/sprite synchronization, a wall, a pit edge, a committed attacker, active three-enemy packs, and attacks/damage against the player. Static separation scenarios temporarily freeze movement intent while keeping real physics active, so the movement policy cannot hide overlap bugs. Active pack and damage scenarios use normal enemy AI.
+
+For a muted normal-speed mixed-pack preview, open <http://127.0.0.1:8774/enemy-play.html#debug> with that server running. It places a deliberately overlapping trio on the first labour’s open ground and retains normal player health.
