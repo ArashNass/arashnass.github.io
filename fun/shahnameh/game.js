@@ -2397,7 +2397,7 @@ class Play extends Phaser.Scene {
           { move: 'fan', weight: read.air > 0.35 ? 3 : 1.3, cooldown: 1600 },
           { move: 'escape', weight: read.distance < 100 || read.pressure > 0.2 ? 5 : 0.6, cooldown: 5000 }
         ]);
-        this.bossAim(w, move === 'escape' ? 'Gathering mist: she will vanish' : move === 'fan' ? 'Spread curse: find the gap' : 'Aimed curse: keep moving');
+        this.bossAim(w, move === 'escape' ? 'Gathering mist: she will vanish' : move === 'fan' ? 'Spread curse: find the gap' : 'Aimed curse: move, or strike it back');
         w.castMove = move; w.state = move === 'escape' ? 'vanish' : 'cast'; w.tm = move === 'escape' ? 32 : 46; w.play('hag-cast'); w.cast = false;
       }
     } else if (w.state === 'cast') {
@@ -2728,8 +2728,8 @@ class Play extends Phaser.Scene {
     const w = this.physics.add.sprite(Math.min(this.whiteAt.x, 171 * TS), this.whiteAt.y - 60, 'whitediv-walk', 0).setDepth(4).setFlipX(true);
     this.fit(w, 'whitediv'); w.play('whitediv-walk'); w.state = 'walk'; w.tm = 120; w.dir = -1; w.throwCd = 90; w.keep = KEEP7;
     // his hide of snow turns every blow, until his club is caught fast in the ice after a slam
-    w.immune = () => w.state !== 'stuck' && w.state !== 'dazed'; w.calm = () => !w.immune(); w.contact = () => w.state === 'charge';   // his blows hurt, not his hide
-    w.immuneMsg = 'The blow glances off his hide of snow. Strike while his club is stuck in the ice, or when he is dazed after a charge.';
+    w.immune = () => !['stuck', 'dazed', 'spent'].includes(w.state); w.calm = () => !w.immune(); w.contact = () => w.state === 'charge';   // his blows hurt, not his hide
+    w.immuneMsg = 'The blow glances off his hide of snow. Strike while his club is stuck, after a charge crashes, or while he recovers from calling ice.';
     w.faceRostam = true; w.lines = { intro: 'white1', rage: 'white2' }; w.ai = () => this.whiteAI(); w.onDown = () => { say('white3'); this.floorWarn?.destroy(); this.chargeWarn?.destroy(); this.stars?.destroy(); this.stars = null; this.bossFall(w, () => this.whiteFallen()); };
     this.arena(146 * TS, w, 12); this.light(w, 2.4); sfx('roar'); this.cam.shake(700, 0.01); this.ledgeT = 0;
     // a blue glow along the floor warns of the slam
@@ -2745,18 +2745,21 @@ class Play extends Phaser.Scene {
     const up = p.body.bottom < 13 * TS && p.body.blocked.down; this.ledgeT = up ? this.ledgeT + this.bossStep() : 0;
     if (this.charge(w, 'whitediv-walk')) return;
     if (w.state === 'walk') {
-      this.stalk(w, p, 62, KEEP7, 173, mad ? 62 : 46, 'whitediv-walk'); w.throwCd -= this.bossStep();
+      this.stalk(w, p, 62, KEEP7, 173, mad ? 62 : 46, 'whitediv-walk');
+      if ((w.x < KEEP7 * TS + 12 && p.x < w.x) || (w.x > 173 * TS - 12 && p.x > w.x)) w.tm = Math.min(w.tm, 35);
+      w.throwCd -= this.bossStep();
       if (w.tm > 20 && this.tryCharge(w)) return;
       const read = this.bossRead(w);
       let move = null;
       if ((w.tm <= 0 || (w.throwCd <= 0 && (up || read.distance > 150)))) {
         move = this.bossTactic(w, [{ move: 'slam', weight: up ? 1 : 3 }, { move: 'frost', weight: up || read.camp > 2000 ? 4 : mad ? 1.5 : 0.6, cooldown: 4500 }, { move: 'rock', weight: read.distance > 120 ? 3 : 0.7, cooldown: 3000 }]);
-        this.bossAim(w, move === 'frost' ? 'Eyes to the roof: marked ice will fall' : move === 'rock' ? 'Boulder raised: move from the target' : 'Blue floor: climb or leap');
+        this.bossAim(w, move === 'frost' ? 'Eyes to the roof: marked ice will fall' : move === 'rock' ? (mad ? 'Two boulders: keep moving after the first' : 'Boulder raised: move from the target') : 'Blue floor: climb or leap');
       }
       if (move === 'frost') {
         // he roars at the roof and the ice comes down on the ledge: two marks, a moment apart
         w.setVelocityX(0); w.state = 'roar'; w.tm = 120; w.throwCd = mad ? 120 : 170; sfx('roar'); this.cam.shake(300, 0.008);
-        const target = w.aimX; this.iceStrike(target, w); const second = Phaser.Math.Clamp(target + (read.vx >= 0 ? -64 : 64), this.wall.x + 25, this.wallR.x - 25); this.time.delayedCall(450, () => this.iceStrike(second, w));
+        w.frostUntil = this.time.now + 1800;
+        const target = w.aimX; this.iceStrike(target, w); const shift = Math.abs(read.vx) > 20 ? Math.sign(read.vx) * 64 : -w.dir * 64; const second = Phaser.Math.Clamp(target + shift, this.wall.x + 25, this.wallR.x - 25); this.time.delayedCall(450, () => this.iceStrike(second, w));
         if (!this.toldIce) { this.toldIce = true; toast('He roars at the roof! Where the light shines, ice will fall. Move!'); }
       } else if (move === 'rock') { w.setVelocityX(0); w.state = 'throw'; w.tm = 50; w.play('whitediv-throw'); w.hit = false; }
       else if (move === 'slam') { w.state = 'raise'; w.tm = Math.max(mad ? 50 : 64, this.reachT(149, 153)); w.setVelocityX(0); w.play('whitediv-smash'); w.anims.pause(); w.setFrame(5); sfx('roar'); }   // the club swung back over his shoulder
@@ -2791,7 +2794,15 @@ class Play extends Phaser.Scene {
       }
       if (w.tm <= 0) { w.state = 'walk'; w.tm = 55 + Math.random() * 30; w.throwCd = mad ? 110 : 160; }
     } else if (w.state === 'roar') {
-      w.setVelocityX(0); if (w.tm <= 0) { w.state = 'walk'; w.tm = 45 + Math.random() * 35; }
+      w.setVelocityX(0);
+      if (w.tm <= 0 && this.time.now >= (w.frostUntil || 0)) {
+        w.state = 'spent'; w.tm = mad ? 85 : 105; w.intent = ''; w.anims.stop(); w.setTint(0xbfe0ff);
+        this.stars?.destroy(); this.stars = this.fx('stun', w.x, w.body.top - 4, { depth: 10, follow: w });
+        hint('The ice has fallen. <b>He is spent: close in and strike!</b>');
+      }
+    } else if (w.state === 'spent') {
+      w.setVelocityX(0); this.stars?.setPosition(w.x, w.body.top - 4);
+      if (w.tm <= 0) { mad ? w.setTint(0xffd0d0) : w.clearTint(); this.stars?.destroy(); this.stars = null; w.state = 'walk'; w.tm = 80; w.throwCd = Math.max(w.throwCd, 70); w.play('whitediv-walk'); }
     }
   }
   whiteFallen() {
@@ -3191,7 +3202,7 @@ const GUIDE = [
     more: [['k3/bat-fly', 8, 108, 'Bat', 'Darts down at you. Swing as it swoops, even over your head.']] },
   { k: 4, fa: 'زنِ جادو', name: 'The Witch', art: ['k4/hag-cast', 8, 108],
     tale: 'In a green garden Rostam found wine, a lute and a feast. A beautiful woman came to share it, but when he spoke the name of God her face turned black. She was a witch, and the feast was a trap.',
-    how: ['At the feast, <b>stand by the lady and strike</b> to speak the name of God.', 'Unmasked, she flies and hurls <b>green curses</b>: <b>strike them to send them back</b> at her, or jump them.', '<b>Strike her when she is solid</b>. Purple mist warns that she will vanish; she leaves time to react after reappearing. She changes her curses if you stay still or keep jumping. Hurt, she calls up serpents.'],
+    how: ['At the feast, <b>stand by the lady and strike</b> to speak the name of God.', 'Unmasked, she flies and hurls <b>green curses</b>: <b>strike them to send them back</b> at her, or jump them.', '<b>Strike her when she is solid</b>. A reflected curse dazes her: close in and strike. Purple mist warns that she will vanish; she leaves time to react after reappearing. She changes her curses if you stay still or keep jumping. Hurt, she calls up serpents.'],
     more: [['k4/serpent', 8, 108, 'Serpent', 'Sways, then lunges. Hit it as it rears.'], ['k3/bat-fly', 8, 108, 'Bat', 'Strike it as it swoops.']] },
   { k: 5, fa: 'اولاد', name: 'Olad the Warden', art: ['k5/olad-slash', 6, 112],
     tale: 'In Mazandaran the warden Olad rode out with his men against the stranger. Rostam beat them, caught Olad with his lasso, and spared his life on one condition: that he show him the way to the Divs.',
@@ -3206,7 +3217,7 @@ const GUIDE = [
       ['k3/bat-fly', 8, 108, 'Bat', 'Pesters you on the high platform. Swing up at it.']] },
   { k: 7, fa: 'دیوِ سپید', name: 'The White Div', art: ['k7/whitediv-smash', 9, 204],
     tale: 'The White Div held King Kay Kavus captive in a cave as dark as night, beyond seven mountains. Only the blood of its heart could give the blinded king back his sight. Rostam fought it until the cave ran with blood and sweat.',
-    how: ['When <b>the floor glows blue</b> he raises his club: <b>jump onto the ice ledge</b>.', 'His slam shakes the whole floor, and his <b>club sticks in the ice</b>: <b>drop down and strike!</b>', 'Linger on the ledge and he roars: where <b>a light shines</b>, an <b>icicle falls</b> a second later. Move!', 'If he <b>stamps and flushes red</b>, he will <b>charge</b>: leap onto a ledge. If he hits the wall he is <b>dazed: strike!</b>'],
+    how: ['When <b>the floor glows blue</b> he raises his club: <b>jump onto the ice ledge</b>.', 'His slam shakes the whole floor, and his <b>club sticks in the ice</b>: <b>drop down and strike!</b>', 'Linger on the ledge and he roars: where <b>a light shines</b>, an <b>icicle falls</b> a second later. Move clear of both marks, then <b>strike while he is spent</b>!', 'If he <b>stamps and flushes red</b>, he will <b>charge</b>: leap onto a ledge. If he hits the wall he is <b>dazed: strike!</b>'],
     more: [['k6/divwarrior-smash', 8, 148, 'Div warrior', 'Three blows. Strike his back while he turns.'], ['k3/bat-fly', 8, 108, 'Bat', 'Swing up at it as it swoops.']] },
   { k: 0, tab: '\u2726', kick: 'Rostam\'s allies', fa: 'یاران', name: 'Rakhsh and the Simurgh', art: ['simurgh-fly', 9, 150],
     tale: 'Rostam never rides alone. Rakhsh, the rose-red horse no other rider could tame, carries him and fights beside him; and the Simurgh, the wise great bird who raised his father Zal, answers when a feather of hers is burned.',
