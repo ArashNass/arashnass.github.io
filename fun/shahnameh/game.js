@@ -1793,28 +1793,42 @@ class Play extends Phaser.Scene {
     if (mad && !l.mad) { l.mad = true; toast('The wounded lion circles warily. Watch its paws, not just its roar.'); }
     if (l.state === 'prowl') {
       // Give ground under melee pressure, close on a retreat, and intercept habitual jumps.
-      const backing = read.distance < 85 && read.pressure > 0.2 && l.x < this.wallR.x - 65;
-      l.dir = toP; l.setVelocityX((backing ? -toP : toP) * (mad ? 82 : 65));
+      const left = l.keep * TS, right = this.wallR.x - 45;
+      // Make room before attacking out of a corner, rather than cycling into the wall.
+      if (!l.regroup && ((l.x < left + 12 && toP < 0) || (l.x > right - 12 && toP > 0))) {
+        l.regroup = l.x < left + 12 ? left + 85 : right - 85;
+        l.tm = Math.max(l.tm, 45);
+      }
+      if (l.regroup && Math.abs(l.regroup - l.x) < 10) { l.regroup = null; l.tm = Math.max(l.tm, 30); }
+      const retreatRoom = toP < 0 ? right - l.x : l.x - left;
+      const backing = read.distance < 85 && read.pressure > 0.2 && retreatRoom > 70;
+      l.dir = l.regroup ? Math.sign(l.regroup - l.x) : backing ? -toP : toP;
+      l.setVelocityX(l.dir * (mad ? 98 : 82));
+      if (l.regroup && (l.body.blocked.left || l.body.blocked.right)) l.regroup = null;
       if (l.anims.currentAnim?.key !== 'lion-walk' || !l.anims.isPlaying) l.play('lion-walk');
-      if (l.tm <= 0) {
+      if (l.tm <= 0 && !l.regroup) {
+        const groundedTarget = !read.ledge && Math.abs(p.body.bottom - l.body.bottom) < 45;
+        const retreatRoom = toP < 0 ? right - l.x : l.x - left;
         const move = this.bossTactic(l, [
-          { move: 'roar', weight: read.distance > 130 ? 3 : 0.7 },
+          { move: 'roar', weight: read.ledge ? 0 : read.distance > 130 ? 3 : 0.45 },
           { move: 'crouch', weight: 1.2 + read.air * 3 + (read.ledge || read.camp > 2200 ? 3 : 0), cooldown: 1400 },
-          { move: 'pawReady', weight: read.distance < 115 ? 4 : 0, cooldown: 1700 },
-          { move: 'circle', weight: mad ? 1.5 + read.pressure * 2 : 0.6, cooldown: 4000 }
+          { move: 'pawReady', weight: groundedTarget && read.distance < 100 ? 4 : 0, cooldown: 1700 },
+          { move: 'circle', weight: retreatRoom > 90 ? (mad ? 1.5 + read.pressure * 2 : 0.6) : 0, cooldown: 4000 }
         ]);
+        if (!move) { l.tm = 8; return; }
         this.bossAim(l, { roar: 'Roar: a charge is coming', crouch: 'Low crouch: a hunting leap', pawReady: 'Raised paw: step clear', circle: 'The lion circles you' }[move]);
         l.state = move; l.tm = move === 'roar' ? 44 : move === 'circle' ? 30 : 36; l.setVelocityX(0); l.anims.stop(); l.setFrame(0);
         if (move === 'roar') { l.play('lion-roar'); sfx('roar'); this.roarRings(l); }
+        else if (move === 'circle') l.play('lion-walk');
       }
     } else if (l.state === 'roar') {
       l.setVelocityX(0); if (l.tm <= 0) { l.state = 'charge'; l.tm = 100; l.play('lion-run'); }
     } else if (l.state === 'charge') {
       l.setVelocityX(l.dir * (mad ? 265 : 235));
-      if (l.body.blocked.left || l.body.blocked.right || l.hitKeep || l.tm <= 0) this.lionOpening(l, 'stun', 86);
+      if ((l.dir < 0 ? l.body.blocked.left || l.hitKeep : l.body.blocked.right) || l.tm <= 0) this.lionOpening(l, 'stun', 86);
     } else if (l.state === 'circle') {
       l.setVelocityX(-l.dir * 70);
-      if (l.tm <= 0) { this.bossAim(l, read.distance < 90 ? 'Raised paw: step clear' : 'Low crouch: a hunting leap'); l.state = read.distance < 90 ? 'pawReady' : 'crouch'; l.tm = 38; l.setVelocityX(0); }
+      if (l.tm <= 0) { const swipe = !read.ledge && Math.abs(p.body.bottom - l.body.bottom) < 45 && read.distance < 90; this.bossAim(l, swipe ? 'Raised paw: step clear' : 'Low crouch: a hunting leap'); l.state = swipe ? 'pawReady' : 'crouch'; l.tm = 38; l.setVelocityX(0); }
     } else if (l.state === 'crouch') {
       l.setVelocityX(0); l.setTint(0xffdc9a);
       if (l.tm <= 0) {
@@ -1823,7 +1837,7 @@ class Play extends Phaser.Scene {
         l.dir = Math.sign(vx) || l.dir; l.setVelocity(vx, l.aimLedge ? -390 : -330); l.play('lion-run');
       }
     } else if (l.state === 'pounce') {
-      if (l.tm < 30 && l.body.blocked.down) this.lionOpening(l, 'recover', 55);
+      if ((l.tm < 30 && l.body.blocked.down) || l.tm < -35) this.lionOpening(l, 'recover', 55);
     } else if (l.state === 'pawReady') {
       l.setVelocityX(0); l.setTint(0xffad70);
       if (l.tm <= 0) { l.clearTint(); l.state = 'paw'; l.tm = 24; l.pawed = false; this.fx('swing', l.x + l.dir * 38, l.body.center.y, { flip: l.dir < 0 }); }
