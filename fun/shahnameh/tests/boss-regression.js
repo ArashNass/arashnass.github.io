@@ -56,6 +56,10 @@ try{
  {const sc=await load(5),B=sc.boss;B.state='walk';B.tm=0;B.body.reset(B.keep*16,B.y);sc.player.body.reset(B.x-100,sc.player.y);sc.oladAI();check('Olad makes room instead of walking into boundary',B.state==='walk'&&B.body.velocity.x>0);}
  {const sc=await load(5),B=sc.boss;B.state='walk';B.tm=0;B.body.reset(124*16,B.y);sc.player.body.reset(B.x-70,160-1-.47*sc.player.displayHeight);B.brain={recent:[],ready:{knife:sc.time.now+10000}};sc.oladAI();check('Olad waits for a reachable ledge attack instead of slashing below it',['walk','retreat'].includes(B.state));}
  {const sc=await load(5),B=sc.boss;B.state='retreat';B.tm=20;B.dir=1;B.body.blocked.right=true;B.body.blocked.left=false;sc.oladAI();check('Olad retreat ignores the wall he is leaving',B.state==='retreat');B.state='knife';B.tm=0;B.intent='Knife drawn';sc.oladAI();check('Olad clears attack warning during punish window',B.state==='open'&&B.intent==='');}
+
+ for(const n of [6,7]){const sc=await load(n),B=sc.boss;B.state='charge';B.tm=40;B.dir=1;B.body.blocked.left=true;B.body.blocked.right=false;sc.charge(B,n===6?'arzhang-walk':'whitediv-walk');check('Div '+n+' charge ignores the wall behind it',B.state==='charge');}
+ {const sc=await load(6),B=sc.boss;B.state='walk';B.tm=90;B.chargeCd=9999;B.body.reset(B.keep*16,B.y);sc.player.body.reset(B.x-160,sc.player.y);sc.arzhangAI();check('Arzhang changes tactics when pinned at keep line',B.tm<=24);B.combo=['split','sweep'];sc.windUp(B,60);check('Arzhang cue identifies the next axe blow and count',B.intent.includes('Ground split')&&B.intent.includes('2 blows'));}
+ {const sc=await load(6),B=sc.boss;B.state='stompReady';B.tm=1;B.stompX=B.x-20;B.stompWarn=sc.add.rectangle(B.x,200,164,24);sc.arzhangAI();check('Arzhang stomp removes warning and hits the committed area',!B.stompWarn&&sc.hazards.some(z=>Math.abs(z.r.x-(B.stompX-82))<1));}
  // Observe actual fights under three repeatable player strategies. These are not human fun scores.
  for(const policy of ['ground','jump','camp'])for(let n=1;n<=7;n++){
   dt=1000/60;const sc=await load(n),B=sc.boss;B.hp=Math.ceil(B.max/2);sc.inv=99999;
