@@ -3318,10 +3318,17 @@ const CINE = {
     ['end3', 'جهان‌پهلوان', 'In the hall of kings, Kay Kavus honoured Rostam before the whole court, and old Zal wept with pride. Seven labours. Seven terrors. And the hero had overcome them all. Here ends the tale… but the Book of Kings has many more.']
   ]
 };
+const creditActor = (key, name, frames, size = 96) => `<figure><span class="credit-actor" role="img" aria-label="${name}" style="--actor-size:${size}px;--frames:${frames};--cycle:${frames / (FPS[key] || 8)}s;background-image:url(assets/${ART[key]}?v=${V})"></span><figcaption>${name}</figcaption></figure>`;
+const creditPainting = (key, title) => `<figure class="credit-painting"><img src="assets/cine/${key}.png?v=${V}" alt="${title}" width="1536" height="1024"><figcaption>${title}</figcaption></figure>`;
 const CREDITS = `<div class="fa">هفت خوانِ رستم</div><h2>The Seven Labours of Rostam</h2><p>After the <em>Shahnameh</em>, the Book of Kings, by Ferdowsi of Tus (c. 1010 CE)</p>
-  <img src="assets/ui/title-rostam.png?v=${V}" alt="">
+  <img class="credit-hero" src="assets/ui/title-rostam.png?v=${V}" alt="Rostam in his tiger-skin coat" width="360" height="300">
   <h3>Made by</h3><p>Arash Nassirpour</p>
-  <h3>Pixel art</h3><p>Painted and animated with PixelLab<br>Selected story paintings refined with OpenAI</p>
+  <h3>Heroes of the road</h3><div class="credit-cast">${creditActor('rostam-idle', 'Rostam', 4)}${creditActor('rakhsh-gallop', 'Rakhsh', 8)}${creditActor('simurgh-fly', 'The Simurgh', 9)}</div>
+  ${creditPainting('khan2-intro', 'The burning desert')}
+  <h3>Seven great foes</h3><div class="credit-cast credit-foes">${creditActor('lion-roar', 'The Lion', 8)}${creditActor('queen-sting', 'The Scorpion Queen', 9)}${creditActor('dragon-fire', 'The Dragon', 8)}${creditActor('hag-cast', 'The Witch', 8)}${creditActor('olad-slash', 'Olad', 6)}${creditActor('arzhang-smash', 'Arzhang Div', 5)}${creditActor('whitediv-smash', 'The White Div', 9)}</div>
+  ${creditPainting('khan4-intro', 'The enchanted garden')}
+  <h3>Treasures of the journey</h3><div class="credit-relics">${[['feather.png', 'A feather of the Simurgh'], ['altar.png', 'The sacred fire'], ['ui/pomegranate.png', 'Provisions for the road'], ['ui/waterskin.png', 'Water in the desert']].map(([src, title]) => `<figure><img src="assets/${src}?v=${V}" alt="${title}" width="80" height="80"><figcaption>${title}</figcaption></figure>`).join('')}</div>
+  ${creditPainting('khan7-intro', 'The cave of the White Div')}
   <h3>Music and sound</h3><p>Recorded tracks and effects from Pixabay, among them<br>"Battle Boss Fight Game Music" by alex-morgan<br>Thunder, stone, metal and ice from "100 CC0 SFX #2" on OpenGameArt</p>
   <h3>Voices</h3><p>Narration and the voices of the foes made with ElevenLabs</p>
   <h3>Built with</h3><p>Phaser 3</p>
@@ -3397,7 +3404,7 @@ function cinema(name, done, start = 0) {
   for (const k in pressed) pressed[k] = false;
   cine = { P, i: start - 1, done, typing: 0, auto: 0, name, wasPlaying, sceneActive,
     from: document.querySelector('.ov:not(.hidden):not(#s-cine)') };
-  cine.from?.classList.add('hidden'); $('credits').classList.add('hidden');
+  cine.from?.classList.add('hidden'); $('credits').classList.add('hidden'); $('cineSkip').textContent = 'Skip ›';
   ov.querySelector('.cdots').innerHTML = P.map((_, k) => `<i title="Picture ${k + 1}" data-k="${k}"></i>`).join('');
   imgs.forEach(im => im.classList.remove('on'));
   ov.classList.remove('hidden'); music(true); P.forEach(([img]) => voiceBuf(img)?.catch(() => {})); cineNext(); $('cineNext').focus();
@@ -3431,9 +3438,12 @@ function cineNext() {
   cineShow(c.i); sfx('swing');
 }
 function rollCredits() {
-  const c = cine; clearTimeout(c.auto); c.credits = true; hush();
-  $('roll').innerHTML = CREDITS; const r = $('roll'); r.style.animation = 'none'; void r.offsetWidth; r.style.animation = '';
-  $('credits').classList.remove('hidden'); cineAdvanceAfter(34500);
+  const c = cine; clearTimeout(c.auto); c.auto = 0; c.autoRemaining = null; c.credits = true; hush();
+  const r = $('roll'); r.innerHTML = CREDITS; $('credits').classList.remove('hidden'); $('credits').scrollTop = 0;
+  $('cineSkip').textContent = 'Finish ›'; $('cineSkip').focus({ preventScroll: true });
+  const duration = Math.max(60000, (r.scrollHeight + innerHeight * 0.6) / 42 * 1000);
+  r.style.setProperty('--roll-duration', duration + 'ms'); r.style.animation = 'none'; void r.offsetWidth; r.style.animation = '';
+  if (!matchMedia('(prefers-reduced-motion: reduce)').matches) cineAdvanceAfter(duration + 500);
 }
 function cineEnd() {
   const c = cine; if (!c) return; hush(); cine = null; clearInterval(c.typing); clearTimeout(c.auto);
