@@ -3238,7 +3238,7 @@ function renderMap() {
   const art = $('journeyArt'), artPath = `assets/cine/khan${pick}-intro.png?v=${V}`;
   if (art.getAttribute('src') !== artPath) art.src = artPath; art.alt = `${NAMES[pick][0]}: ${BLURB[pick]}`;
   $('mapInfo').innerHTML = `${BLURB[pick]}<span class="ftot">Simurgh feathers <b>${found} / 3</b>${best ? `<br>Best time <b>${fmtTime(best * 1000)}</b>` : ''}${Object.keys(F).length >= 21 ? '<br>The Simurgh blesses you.' : ''}</span>`;
-  $('rideBtn').innerHTML = `${best ? 'Replay labour' : pick === 1 ? 'Begin journey' : 'Continue journey'} <span aria-hidden="true">→</span>`;
+  $('rideBtn').textContent = best ? 'Replay labour' : pick === 1 ? 'Begin journey' : 'Continue journey';
   requestAnimationFrame(revealMapSelection);
   $('rushBtn').classList.toggle('hidden', !bestOf(LABOURS)); const rb = +(store.get('sh-rush') || 0); $('rushBtn').innerHTML = `Boss rush${rb ? ` <small>${fmtTime(rb)}</small>` : ''}`;
   $('rideBtn').disabled = !ready; $('mapTale').disabled = !document.getElementById('tale-' + pick);
