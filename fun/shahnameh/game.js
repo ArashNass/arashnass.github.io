@@ -181,8 +181,9 @@ function buildMap() {
   for (const c of [33, 41]) { put(c, 12, '#'); put(c, 13, '#'); }
   put(3, 13, 'P');
   [[8, 12], [10, 11], [12, 12], [22, 11], [23, 10], [24, 11], [43, 9], [44, 8], [45, 9], [62, 9], [67, 8], [75, 8], [76, 8], [80, 5], [81, 5]].forEach(([c, r]) => put(c, r, 'c'));
-  put(16, 13, 'j'); put(30, 13, 'j'); put(45, 11, 'd'); put(55, 13, 'j'); put(72, 13, 'd'); put(80, 13, 'j');
-  put(52, 13, 'F'); put(110, 12, 'L');
+  // Learn the jackal, meet the Div alone, then combine them after the platforming stretch.
+  put(16, 13, 'j'); put(30, 13, 'j'); put(45, 11, 'd'); put(74, 13, 'd'); put(79, 13, 'j');
+  put(27, 13, 'F'); put(52, 13, 'F'); put(110, 12, 'L');
   // the lion's arena (86 to 116): one short ledge on the left, three tiles in from the wall and high enough to walk
   // beneath, to leap onto from its charge. The lion keeps out of mace reach of it (KEEP1): a charge stops at that line
   row(89, 92, 10, '=');
@@ -428,7 +429,14 @@ function pace(s, f, speed, range = 2 * TS) {
   }
   patrol(s, f, speed);
 }
+function hopVelocity(f, vx, flight) {
+  if (!f.roam) return vx;
+  const half = f.body.width / 2 + 2;
+  const target = Phaser.Math.Clamp(f.x + vx * flight, f.roam[0] + half, f.roam[1] - half);
+  return Phaser.Math.Clamp((target - f.x) / flight, -Math.abs(vx), Math.abs(vx));
+}
 function patrol(s, f, speed) {
+  if (f.roam && ((f.dir < 0 && f.body.left - speed / 30 <= f.roam[0]) || (f.dir > 0 && f.body.right + speed / 30 >= f.roam[1]))) f.dir *= -1;
   const ahead = s.layer.getTileAtWorldXY(f.x + f.dir * 12, f.body.bottom + 4);
   if (f.body.blocked.left || f.body.blocked.right || (f.body.blocked.down && (!ahead || ahead.index % 4 === 3))) f.dir *= -1;
   f.setVelocityX(f.dir * speed); f.setFlipX(f.dir < 0);
@@ -439,9 +447,9 @@ const FOES = {
     tex: 'div-hop', hp: 2,
     tick(s, f, k, p) {
       f.hopT -= k; if (!f.body.blocked.down) return;
-      if (above(f, p)) { f.setVelocityX(0); if (f.hopT <= 0) { const post = postOf(s, f); f.dir = Math.abs(f.x - post) > TS ? Math.sign(post - f.x) : (Math.random() < 0.5 ? -1 : 1); f.setFlipX(f.dir < 0); f.setVelocity(crowded(s, f, f.dir) ? 0 : f.dir * 50, -200); f.hopT = 80 + Math.random() * 40; } return; }
+      if (above(f, p)) { f.setVelocityX(0); if (f.hopT <= 0) { const post = postOf(s, f); f.dir = Math.abs(f.x - post) > TS ? Math.sign(post - f.x) : (Math.random() < 0.5 ? -1 : 1); f.setFlipX(f.dir < 0); f.setVelocity(hopVelocity(f, crowded(s, f, f.dir) ? 0 : f.dir * 50, 0.48), -200); f.hopT = 80 + Math.random() * 40; } return; }
       f.dir = Math.sign(p.x - f.x) || 1; f.setFlipX(f.dir < 0); f.setVelocityX(0);
-      if (f.hopT <= 0 && Math.abs(p.x - f.x) < 200) { f.setVelocity(crowded(s, f, f.dir) ? 0 : f.dir * 70, -230); f.hopT = 70; }
+      if (f.hopT <= 0 && Math.abs(p.x - f.x) < 200) { f.setVelocity(hopVelocity(f, crowded(s, f, f.dir) ? 0 : f.dir * 70, 0.55), -230); f.hopT = 70; }
     }
   },
   // scorpions creep, then scuttle at Rostam when he comes close on the same level, and lash out with the sting
@@ -617,12 +625,30 @@ const LEVELS = {
     food: (c, r, n) => (c === 44 && r === 8) || (c === 80 && r === 5) ? 'lamb' : FOOD[1 + (n % 3)],
     create(s) {
       for (const fx of [14, 37, 58, 76, 98, 118]) s.add.sprite(fx * TS, 160, 'fx-fireflies').play({ key: 'fx-fireflies', startFrame: fx % 16 }).setDepth(11).setAlpha(0.9);
-      hint(`Cross the reeds. <b>Strike</b> with ${touch ? 'the mace button' : keyHTML('attack')}, or land on foes from above. <b>Jump again in mid-air</b> for a higher leap. <b>Walk past a fire altar</b> to light it: you rise there if you fall.`);
+      s.khan1Beat = 0;
+      for (const f of s.foes.getChildren()) {
+        const c = f.home.x / TS;
+        f.roam = (c < 22 ? [12, 21] : c < 40 ? [29, 33] : c < 48 ? [42, 47.5] : f.kind === 'div' ? [70, 79] : [71, 81]).map(x => x * TS);
+      }
+      hint(`The reeds are yours to explore. <b>Strike</b> with ${touch ? 'the mace button' : keyHTML('attack')}, or <b>jump onto a foe</b>.`);
     },
     // the storm over each boss fight: veil and cloud colours, the sun or moon behind it, lightning colour and pace, and its weather
     sky: { veil: 0x3a0a06, cloud: 0xa8401c, glow: 0xff7a2a, sun: [0.76, 0.34], bolt: 0xffd0a0, every: [260, 420], edge: 0x6a1004, fx: 'dust', paint: 'bg/storm.png' },
-    fires: [82], hearts: [80],                       // a last fire and a heart before the lion's den
-    update(s, k, time, p) { if (!s.bossOn && p.x > 88 * TS) s.startBoss(); },
+    fires: [82], hearts: [85],                       // a last fire and a heart before the lion's den
+    update(s, k, time, p) {
+      if (s.bossOn) return;
+      if (p.x > 88 * TS) { s.startBoss(); return; }
+      const beat = p.x < 18 * TS ? 0 : p.x < 28 * TS ? 1 : p.x < 39 * TS ? 2 : p.x < 49 * TS ? 3 : p.x < 69 * TS ? 4 : p.x < 81 * TS ? 5 : 6;
+      if (beat <= s.khan1Beat) return;
+      s.khan1Beat = beat;
+      const cues = ['', '<b>A gap ahead.</b> Jump, then <b>jump again in the air</b>. Follow the provisions across.',
+        '<b>The fire remembers you.</b> If you fall, you return to the last fire you lit.',
+        '<b>A blue Div ahead.</b> Let it leap, then strike as it lands. The high provisions reward a second jump.',
+        '<b>Rest at the fire.</b> Thorns lie ahead: use the high ledges and your second jump.',
+        '<b>Two hunters ahead.</b> The jackal runs low; the Div leaps. Draw them apart and strike between their approaches.',
+        "<b>The last fire.</b> Gather your strength before entering the lion’s reeds."];
+      hint(cues[beat]);
+    },
     win: 'With the lion of the reeds slain, Rostam takes up a feather of the Simurgh. Ahead lies the waterless desert of the second labour.',
     tips: ['The lion\'s hide turns your blows. Leap its charge so it runs into the rocks, then strike while it is dazed and the stars circle its head.',
       'Land on a foe from above to strike it twice as hard.', 'Roast lamb restores a heart. Look for it on the high ledges.',
@@ -3843,7 +3869,7 @@ if (location.hash === '#selftest') (async () => {
       for (const f of all) { if (!f.active || !f.body.enable) continue;
         all.forEach(o => { if (o !== f && o.active) { o.body.enable = false; o.setVisible(false); } });
         const fly = !f.body.allowGravity, hx = f.home?.x ?? f.x, fr = fly ? null : Math.round(f.body.bottom / TS);
-        let px = null; for (const d of fly ? [-50, 50, -80, 80] : [-56, 56, -72, 72, -40, 40]) { const x = hx + d, r = top(x); if (r === 99 || !open(x, r)) continue;
+        let px = null; for (const d of fly ? [-50, 50, -80, 80] : [-56, 56, -72, 72, -40, 40, -24, 24]) { const x = hx + d; if (f.roam && (x < f.roam[0] + 8 || x > f.roam[1] - 8)) continue; const r = top(x); if (r === 99 || !open(x, r)) continue;
           if (!fly) { if (r !== fr) continue; let ok = true; for (let xx = Math.min(x, hx); xx <= Math.max(x, hx); xx += 8) if (top(xx) !== fr) ok = false; if (!ok) continue; } px = x; break; }
         if (px == null) skipped++;
         else { tested++; const r = top(px); s.player.body.reset(px, r * TS - 1 - 0.47 * s.player.displayHeight); s.player.setVelocity(0); hits = 0; if (f.state === 'rise') f.state = 'circle'; f.cool = 0;
@@ -3853,7 +3879,7 @@ if (location.hash === '#selftest') (async () => {
         all.forEach(o => { if (o.active) { o.body.enable = true; o.setVisible(true); } }); }
       delete s.hurt; say(!failed.length, `Khan ${ROMAN[n]}: ${tested} foes each reach Rostam and strike${skipped ? ` (${skipped} with no open ground beside them, skipped)` : ''}${failed.length ? ': ' + failed.join(', ') : ''}`); }
     // the boss: walk into the arena, wait for it, strike it down, and see the labour through
-    s.frozen = false; const ax = RUSH_AT[n] + 3, r = s.groundAt(ax * TS + 8) ?? 14; s.player.body.reset(ax * TS + 8, r * TS - 1 - 0.47 * s.player.displayHeight);
+    s.frozen = false; const ax = n === 1 ? 89 : RUSH_AT[n] + 3, r = s.groundAt(ax * TS + 8) ?? 14; s.player.body.reset(ax * TS + 8, r * TS - 1 - 0.47 * s.player.displayHeight);
     if (n === 2) { s.prayed = true; s.puzzle = { done: true }; s.startQueen(); }
     for (let i = 0; i < 120 && !(s.boss && s.boss.hp > 0 && !s.intro && s.boss.body.enable); i++) { step(10); await W8(5); }
     const B = s.boss; say(!!B, `Khan ${ROMAN[n]}: the boss appears${B ? ` (${B.texture.key.split('-')[0]})` : ''}`);
