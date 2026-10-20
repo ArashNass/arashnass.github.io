@@ -54,6 +54,7 @@ const SIZE = { queen: 150, rider: 124, rostam: 112, lion: 148, jackal: 108, div:
 const BODY = { queen: [0.62, 0.42], rider: [0.3, 0.5], rostam: [0.143, 0.393], lion: [0.5, 0.36], jackal: [0.3, 0.22], div: [0.22, 0.34], scorpion: [0.4, 0.22], vulture: [0.33, 0.2], ram: [0.4, 0.4],
   dragon: [0.46, 0.42], rakhsh: [0.5, 0.5], bat: [0.32, 0.24], serpent: [0.31, 0.31], hag: [0.27, 0.42], beauty: [0.2, 0.47], spearman: [0.115, 0.386], olad: [0.17, 0.49], divwarrior: [0.31, 0.64], arzhang: [0.3, 0.7], whitediv: [0.2667, 0.3867], firediv: [0.2, 0.6], ghul: [0.5, 0.36] };
 const V = 92;
+const storyArt = key => `assets/cine/${key === 'khan7-intro' ? 'khan7-intro-v2' : key}.png?v=${V}`;
 const ZOOM = 2;                                                   // canvas pixels per world pixel   // bump to bust caches when assets change
 
 // PixelLab VFX strips in ./assets/fx: frame size, frame count, fps, and the effect's origin as a fraction of the frame
@@ -3536,7 +3537,7 @@ function renderMap() {
   $('journeyTitle').textContent = NAMES[pick][0];
   $('journeyChapter').textContent = `Khan ${ROMAN[pick]}`;
   $('journeyStatus').textContent = best ? 'A road already travelled' : pick === 1 ? 'The journey begins' : 'The next chapter awaits';
-  const art = $('journeyArt'), artPath = `assets/cine/khan${pick}-intro.png?v=${V}`;
+  const art = $('journeyArt'), artPath = storyArt(`khan${pick}-intro`);
   if (art.getAttribute('src') !== artPath) art.src = artPath; art.alt = `${NAMES[pick][0]}: ${BLURB[pick]}`;
   $('mapInfo').innerHTML = `${BLURB[pick]}<span class="ftot">Simurgh feathers <b>${found} / 3</b>${best ? `<br>Best time <b>${fmtTime(best * 1000)}</b>` : ''}${Object.keys(F).length >= 21 ? '<br>The Simurgh blesses you.' : ''}</span>`;
   $('rideBtn').textContent = best ? 'Replay labour' : pick === 1 ? 'Begin journey' : 'Continue journey';
@@ -3639,7 +3640,7 @@ const CINE = {
     ['end3', 'جهان‌پهلوان', 'In the hall of kings, Kay Kavus honoured Rostam before the whole court, and old Zal wept with pride. Seven labours. Seven terrors. And the hero had overcome them all. Here ends the tale… but the Book of Kings has many more.']
   ]
 };
-const creditPainting = (key, title) => `<figure><img src="assets/cine/${key}.png?v=${V}" alt="${title}" width="1536" height="1024"><figcaption>${title}</figcaption></figure>`;
+const creditPainting = (key, title) => `<figure><img src="${storyArt(key)}" alt="${title}" width="1536" height="1024"><figcaption>${title}</figcaption></figure>`;
 const CREDITS = `<header class="credit-heading"><p class="credit-eyebrow">A journey through Ferdowsi’s Shahnameh</p><div class="fa" lang="fa">هفت خوانِ رستم</div><h2>The Seven Labours of Rostam</h2><p class="credit-thanks">Thank you for playing.</p></header>
   <img class="credit-hero" src="assets/ui/title-rostam.png?v=${V}" alt="Rostam in his tiger-skin coat" width="360" height="300">
   <div class="credit-gallery">${creditPainting('khan2-intro', 'The burning desert')}${creditPainting('khan4-intro', 'The enchanted garden')}${creditPainting('khan7-intro', 'The White Div’s mountain')}</div>
@@ -3726,7 +3727,7 @@ function cineShow(i) {
   const c = cine, [img, fa, text] = c.P[i], ov = $('s-cine'), imgs = ov.querySelectorAll('.cimg'), im = imgs[i % 2], old = imgs[(i + 1) % 2];
   // each painting drifts its own way: slowly in, across, or out
   const moves = [['1.06', '1.16', '-1%', '1%', '0', '-1%'], ['1.16', '1.06', '1%', '-1%', '0', '0'], ['1.1', '1.18', '1.5%', '-1.5%', '1%', '0']][i % 3];
-  im.src = `assets/cine/${img}.png?v=${V}`;
+  im.src = storyArt(img);
   im.style.cssText = `--s0:${moves[0]};--s1:${moves[1]};--x0:${moves[2]};--x1:${moves[3]};--y0:${moves[4]};--y1:${moves[5]};--d:14s`;
   im.classList.remove('on'); void im.offsetWidth; im.classList.add('on'); old.classList.remove('on');
   ov.querySelectorAll('.cdots i').forEach((d, k) => d.classList.toggle('on', k === i));
@@ -3794,7 +3795,7 @@ function openClips() {
   groups.push({ name: 'ending', title: 'The Ending', locked: !bestOf(LABOURS) });
   const playlist = groups.filter(g => !g.locked).flatMap(g => CINE[g.name]);
   $('clipList').innerHTML = groups.map(({ name, title, locked }) => `<h3>${title}</h3><div class="clips">${CINE[name].map(([img], k) =>
-    `<button class="clip${locked ? ' locked' : ''}" ${locked ? 'aria-disabled="true" title="Complete this part of the journey to unlock"' : `data-play="${name}" data-k="${k}"`} aria-label="${CLIP_NAMES[img]}${locked ? ', locked' : ''}"><img src="assets/cine/${img}.png?v=${V}" alt="" loading="lazy"><span><b>${k + 1}</b>${locked ? 'Complete this part of the journey to see it' : CLIP_NAMES[img]}</span></button>`).join('')}</div>`).join('');
+    `<button class="clip${locked ? ' locked' : ''}" ${locked ? 'aria-disabled="true" title="Complete this part of the journey to unlock"' : `data-play="${name}" data-k="${k}"`} aria-label="${CLIP_NAMES[img]}${locked ? ', locked' : ''}"><img src="${storyArt(img)}" alt="" loading="lazy"><span><b>${k + 1}</b>${locked ? 'Complete this part of the journey to see it' : CLIP_NAMES[img]}</span></button>`).join('')}</div>`).join('');
   $('clipsSummary').textContent = `${playlist.length} unlocked scenes · Watch your story in order`;
   $('clipsPlayAll').onclick = () => {
     store.set('sh-prologue', '1'); $('s-clips').classList.add('hidden');
@@ -4055,7 +4056,7 @@ if (location.hash === '#selftest') (async () => {
     say(errs.length === e0, `Khan ${ROMAN[n]}: no script errors${errs.length > e0 ? ': ' + errs.slice(e0).join('; ') : ''}`);
   }
   // every recording, effect and painting the game asks for is really there
-  const urls = [...[...VOICED].map(k => `assets/voice/${k}.mp3`), ...Object.keys(FX).map(k => `assets/fx/${k}.png`), ...Object.values(CINE).flat().map(([img]) => `assets/cine/${img}.png`), ...Object.values(SAMPLE).map(([f]) => `assets/sfx/${f}.m4a`)];
+  const urls = [...[...VOICED].map(k => `assets/voice/${k}.mp3`), ...Object.keys(FX).map(k => `assets/fx/${k}.png`), ...Object.values(CINE).flat().map(([img]) => storyArt(img)), ...Object.values(SAMPLE).map(([f]) => `assets/sfx/${f}.m4a`)];
   const missing = []; await Promise.all([...new Set(urls)].map(u => fetch(u, { method: 'HEAD' }).then(r => r.ok || missing.push(u)).catch(() => missing.push(u))));
   say(!missing.length, `${new Set(urls).size} sound and picture files load${missing.length ? `; missing: ${missing.join(', ')}` : ''}`);
 
