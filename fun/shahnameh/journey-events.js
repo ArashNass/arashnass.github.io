@@ -67,43 +67,6 @@
         return true;
       });
     }
-    stage1(time, dt) {
-      const s = this.s, p = s.player;
-      if (this.phase === 'approach' && p.x >= 8 * 16 && p.x < 27 * 16) {
-        this.phase = 'hunt'; this.next = time + 1500;
-        this.hunter = this.actor('lion-run', Math.max(16, p.x - 130), this.floor(p.x), 148);
-        this.target(this.hunter, () => new Phaser.Geom.Rectangle(this.hunter.x - 27, this.hunter.y - 65, 54, 65), () => {
-          this.hunter.x = Math.max(8, this.hunter.x - 52); this.next = s.time.now + 1500;
-          s.fx('impact', this.hunter.x + 25, this.hunter.y - 35, { depth: 8 }); if ((this.drivenBack = (this.drivenBack || 0) + 1) <= 3) {
-            s.gainFarr(2); s.combatWord(`Lion driven back ${this.drivenBack}/3`);
-            if (this.drivenBack === 3) { s.rakhshEarned = true; s.rakhshFed = true; this.api.toast('Rakhsh’s bond earned. He will help against the lion in its den.'); }
-          }
-        });
-        this.note('lion-pursuit', 'شیرِ نیستان', 'The reeds are moving', '<b>The lion follows!</b> Keep moving, leap the gap, or strike to drive it back. Reach Rakhsh by the fire. Drive the lion back three times to earn his help in the den.');
-      }
-      if (this.phase !== 'hunt') return;
-      const h = this.hunter;
-      h.x += Math.min(105 * dt, Math.max(0, p.x - 48 - h.x));
-      // Its committed leap follows the visible gap rather than walking through it.
-      const gap = h.x > 21 * 16 && h.x < 25 * 16;
-      h.y = gap ? 224 - Math.sin((h.x - 21 * 16) / (4 * 16) * Math.PI) * 65 : this.floor(h.x);
-      if (time >= this.next && p.x - h.x < 120 && !this.rest(p.x)) {
-        this.next = time + 2200; const x = p.x - 8, y = this.floor(x), m = this.mark(x, y, 42);
-        h.play('lion-roar', true);
-        this.later(850, () => { m.destroy(); if (this.phase !== 'hunt') return; this.zone(x - 20, y - 42, 40, 42, 180, 'attack'); if (h.active) h.play('lion-run'); });
-      }
-      if (p.x >= 27 * 16) {
-        this.phase = 'rescued'; this.hazards = []; this.marks.forEach(m => m.active && m.destroy());
-        const r = this.actor('rakhsh-gallop', p.x + 120, 224, 104, 6).setFlipX(true);
-        s.tweens.add({ targets: r, x: h.x + 48, duration: 600, onComplete: () => {
-          if (!this.live || this.closed || !r.active || !h.active) return;
-          r.play('rakhsh-rear'); s.fx('impact', h.x + 20, h.y - 35, { depth: 9 }); this.api.sfx('neigh');
-          s.tweens.add({ targets: h, x: h.x - 160, alpha: 0, duration: 750, onComplete: () => h.destroy() });
-          this.later(1200, () => { if (r.active) { r.play('rakhsh-gallop'); s.tweens.add({ targets: r, x: r.x - 300, alpha: 0, duration: 900, onComplete: () => r.destroy() }); } });
-        } });
-        this.note('rakhsh-rescue', 'رخش', 'Rakhsh holds the reeds', '<b>Rakhsh drives the lion back.</b> The sacred fire is your refuge. Its den still lies ahead.');
-      }
-    }
     stage2(time, dt) {
       const s = this.s, p = s.player;
       if (p.x < 70 * 16 || p.x > 104 * 16 || s.prayed) { this.surge?.o.destroy(); this.surge = null; return; }
@@ -286,7 +249,6 @@
     }
     getTip() {
       const x = this.s.player.x / 16;
-      if (this.n === 1 && this.phase === 'hunt') return 'Drive the pursuing lion back with your mace, leap the gap, and reach Rakhsh at the fire.';
       if (this.n === 2 && x >= 70 && x < 104) return 'A sand surge drains water on the low road. Jump over it or shelter on the raised rocks.';
       if (this.n === 3 && x >= 34) return 'The dragon marks the ground before its breath lands. Move through an opening or wait for the fire to fade.';
       if (this.n === 4 && x >= 25) return 'Violet bridges will vanish. Jump before they fade, or take the permanent high ledges.';
@@ -304,5 +266,5 @@
     }
     destroy() { this.stop(); this.live = false; }
   }
-  window.ShahnamehJourney = { create: (s, n, api) => new Journey(s, n, api) };
+  window.ShahnamehJourney = { create: (s, n, api) => n === 1 ? null : new Journey(s, n, api) };
 })();
