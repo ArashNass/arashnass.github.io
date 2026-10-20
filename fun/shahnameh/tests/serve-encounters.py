@@ -11,7 +11,7 @@ class Handler(SimpleHTTPRequestHandler):
   if name not in ['/encounters.html','/encounters-play.html']:return super().do_GET()
   s=(ROOT/'index.html').read_text().replace('<script src="boot.js','<script>localStorage.clear();localStorage.setItem("sh-muted","1");localStorage.setItem("sh-prologue","1");</script><script src="boot.js',1)
   script='encounters.js' if name=='/encounters.html' else 'encounters-play.js'
-  s=s.replace('game.js?v=118', 'game.js?v=118&test='+str(time.time_ns())).replace('</body>',f'<script src="tests/{script}?test={time.time_ns()}"></script></body>');data=s.encode()
+  s=s.replace('game.js?v=115', 'game.js?v=115&test='+str(time.time_ns())).replace('</body>',f'<script src="tests/{script}?test={time.time_ns()}"></script></body>');data=s.encode()
   self.send_response(200);self.send_header('Content-Type','text/html; charset=utf-8');self.send_header('Cache-Control','no-store');self.end_headers();self.wfile.write(data)
  def end_headers(self):
   self.send_header('Cache-Control','no-store');super().end_headers()

@@ -74,12 +74,9 @@
         this.hunter = this.actor('lion-run', Math.max(16, p.x - 130), this.floor(p.x), 148);
         this.target(this.hunter, () => new Phaser.Geom.Rectangle(this.hunter.x - 27, this.hunter.y - 65, 54, 65), () => {
           this.hunter.x = Math.max(8, this.hunter.x - 52); this.next = s.time.now + 1500;
-          s.fx('impact', this.hunter.x + 25, this.hunter.y - 35, { depth: 8 }); if ((this.drivenBack = (this.drivenBack || 0) + 1) <= 3) {
-            s.gainFarr(2); s.combatWord(`Lion driven back ${this.drivenBack}/3`);
-            if (this.drivenBack === 3) { s.rakhshEarned = true; s.rakhshFed = true; this.api.toast('Rakhsh’s bond earned. He will help against the lion in its den.'); }
-          }
+          s.fx('impact', this.hunter.x + 25, this.hunter.y - 35, { depth: 8 }); if ((this.drivenBack = (this.drivenBack || 0) + 1) <= 3) s.gainFarr(2);
         });
-        this.note('lion-pursuit', 'شیرِ نیستان', 'The reeds are moving', '<b>The lion follows!</b> Keep moving, leap the gap, or strike to drive it back. Reach Rakhsh by the fire. Drive the lion back three times to earn his help in the den.');
+        this.note('lion-pursuit', 'شیرِ نیستان', 'The reeds are moving', '<b>The lion follows!</b> Keep moving, leap the gap, or strike to drive it back. Reach Rakhsh by the fire.');
       }
       if (this.phase !== 'hunt') return;
       const h = this.hunter;
