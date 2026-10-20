@@ -47,3 +47,7 @@ Commits to `main` are published automatically by GitHub Pages. Note that `hazus/
 Copyright (C) 2026 Arash Nassirpour.
 
 Licensed under the GNU Affero General Public License v3.0 only (`AGPL-3.0-only`). See [LICENSE](LICENSE).
+
+## Search submissions
+
+`./indexnow.sh` reads canonical URLs directly from `sitemap.xml` and notifies IndexNow engines. Use `./indexnow.sh --dry-run` to inspect the payload, or pass paths such as `/fun/shahnameh/`. Non-HTTPS, foreign-host and query/fragment URLs are rejected; unsuccessful submissions return a nonzero exit code. A successful submission confirms receipt, not indexing.

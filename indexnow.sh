@@ -1,85 +1,35 @@
 #!/usr/bin/env bash
-# Push URLs to IndexNow (Bing, Yandex, Seznam, Naver, Yep) in one request.
-#
-# Setup, once:
-#   1. Generate a key in Bing Webmaster Tools -> IndexNow
-#   2. Save it below as KEY
-#   3. Commit <KEY>.txt to your repo root, containing only the key
-#
-# Usage:
-#   ./indexnow.sh                          # submit every page in the sitemap
-#   ./indexnow.sh /design-spectrum/        # submit just one or more paths
-
+# Notify IndexNow engines from sitemap.xml, or pass individual paths.
+# Use --dry-run to validate and inspect the payload without submitting.
 set -euo pipefail
-
-KEY="216bbb09bce249e1b48dd3d2826a7836"
-HOST="arashnassirpour.com"
-
-if [ "$KEY" = "PASTE_YOUR_32_CHAR_KEY_HERE" ]; then
-  echo "Edit this script and set KEY first." >&2
-  exit 1
-fi
-
-# All indexable pages. Keep in sync with sitemap.xml.
-ALL_PATHS=(
-  "/"
-  "/earthquake-rupture/"
-  "/world-faults/"
-  "/world-faults/stats/"
-  "/earthquake-dashboard/"
-  "/hazus/"
-  "/hazard-sequence-simulator/"
-  "/slope-seismic-vulnerability/"
-  "/rc-section-designer/"
-  "/modal-analysis/"
-  "/design-spectrum/"
-  "/performance-point-evaluator/"
-  "/ground-motion/"
-  "/building-response/"
-  "/material-behaviour-explorer/"
-  "/about/"
-  "/contact/"
-)
-
-if [ "$#" -gt 0 ]; then
-  PATHS=("$@")
-else
-  PATHS=("${ALL_PATHS[@]}")
-fi
-
-# Build the JSON url list
-URLS=""
-for p in "${PATHS[@]}"; do
-  [ -n "$URLS" ] && URLS="$URLS,"
-  URLS="$URLS\"https://$HOST$p\""
-done
-
-PAYLOAD=$(cat <<JSON
-{
-  "host": "$HOST",
-  "key": "$KEY",
-  "keyLocation": "https://$HOST/$KEY.txt",
-  "urlList": [$URLS]
-}
-JSON
-)
-
-echo "Submitting ${#PATHS[@]} URL(s) to IndexNow..."
-
-CODE=$(curl -s -o /tmp/indexnow_body -w "%{http_code}" \
-  -X POST "https://api.indexnow.org/IndexNow" \
-  -H "Content-Type: application/json; charset=utf-8" \
-  -d "$PAYLOAD")
-
-case "$CODE" in
-  200) echo "200 OK - accepted." ;;
-  202) echo "202 Accepted - received, key validation pending." ;;
-  400) echo "400 - bad request, check the JSON." ;;
-  403) echo "403 - key not valid. Is https://$HOST/$KEY.txt live and does it contain exactly the key?" ;;
-  422) echo "422 - URLs do not belong to the host, or the key does not match." ;;
-  429) echo "429 - too many requests, slow down." ;;
-  *)   echo "Unexpected response: $CODE" ;;
-esac
-
-[ -s /tmp/indexnow_body ] && cat /tmp/indexnow_body
-echo
+cd -- "$(dirname -- "$0")"
+exec python3 - "$@" <<'PYCODE'
+import json, sys, urllib.request, urllib.error
+import xml.etree.ElementTree as ET
+from pathlib import Path
+from urllib.parse import urlsplit
+host = 'arashnassirpour.com'
+key = Path('216bbb09bce249e1b48dd3d2826a7836.txt').read_text().strip()
+args = sys.argv[1:]
+dry = '--dry-run' in args
+args = [a for a in args if a != '--dry-run']
+urls = [('https://' + host + p) if p.startswith('/') else p for p in args] if args else [e.text for e in ET.parse('sitemap.xml').findall('.//{*}loc')]
+urls = list(dict.fromkeys(urls))
+if not urls or len(urls) > 10000:
+    sys.exit('Expected between 1 and 10000 URLs.')
+for url in urls:
+    parsed = urlsplit(url)
+    if parsed.scheme != 'https' or parsed.netloc != host or parsed.fragment or parsed.query:
+        sys.exit('Only canonical HTTPS URLs on ' + host + ' are accepted: ' + url)
+payload = {'host': host, 'key': key, 'keyLocation': 'https://' + host + '/' + key + '.txt', 'urlList': urls}
+if dry:
+    print(json.dumps(payload, indent=2)); sys.exit(0)
+request = urllib.request.Request('https://api.indexnow.org/IndexNow', data=json.dumps(payload).encode(), headers={'Content-Type': 'application/json; charset=utf-8'}, method='POST')
+try:
+    with urllib.request.urlopen(request, timeout=30) as response:
+        code = response.status
+        print(str(code) + (' OK — submission received.' if code == 200 else ' Accepted — key validation pending.'))
+        print('Submitted ' + str(len(urls)) + ' URLs. Receipt does not guarantee indexing.')
+except urllib.error.HTTPError as error:
+    sys.exit('IndexNow rejected submission: HTTP ' + str(error.code) + ' ' + error.read().decode('utf-8', 'replace'))
+PYCODE
