@@ -16,7 +16,7 @@ try{
   check(`${fps}Hz final hunters leave the last fire clear`,sc.foes.getChildren().filter(f=>f.home.x>69*16).every(f=>f.body.right<82*16));
  }
  dt=1000/60;
- {const sc=await load();const cues=[];for(const c of [3,19,28,40,50,70,82]){sc.player.body.reset(c*16,224-1-.47*sc.player.displayHeight);sc.player.setVelocity(0);step();cues.push(document.getElementById('hint').textContent);}check('context cues cover gap, Div, thorns, duo, and final fire',cues[1].includes('gap ahead')&&cues[3].includes('blue Div')&&cues[4].includes('Thorns')&&cues[5].includes('Two hunters')&&cues[6].includes('last fire'));}
+ {const sc=await load();const cues=[];for(const c of [3,19,28,40,50,70,82]){sc.player.body.reset(c*16,224-1-.47*sc.player.displayHeight);sc.player.setVelocity(0);step();cues.push(document.getElementById('hint').textContent);}check('context cues cover gap, Div, thorns, duo, and final fire',(cues[1].includes('gap ahead')||cues[1].includes('lion follows'))&&cues[3].includes('blue Div')&&cues[4].includes('Thorns')&&cues[5].includes('Two hunters')&&cues[6].includes('last fire'));}
  // Traverse from spawn using normal movement/jump/strike input, without teleporting through terrain.
  {const sc=await load();let frame=0, reached=false;const startX=sc.player.x;S.keys.jump=true;
   for(;frame<18000&&!sc.done;frame++){

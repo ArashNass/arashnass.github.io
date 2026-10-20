@@ -332,7 +332,7 @@ function map7() {
   put(3, 13, 'P');
   [[10, 12], [24, 8], [25, 8], [31, 11], [38, 8], [47, 11], [55, 9], [62, 12], [69, 9], [79, 11], [87, 9], [94, 12], [102, 7], [116, 12], [128, 10], [140, 12]].forEach(([c, r]) => put(c, r, 'c'));
   put(14, 13, 'd'); put(30, 12, 'w'); put(37, 7, 'b'); put(49, 12, 'd'); put(61, 13, 'w'); put(70, 7, 'b'); put(78, 12, 'w'); put(91, 13, 'd'); put(101, 6, 'b');
-  put(117, 13, 'w'); put(124, 8, 'b'); put(139, 13, 'w');
+  put(116, 13, 'w'); put(124, 8, 'b'); put(139, 13, 'w');
   put(44, 12, 'F'); put(96, 13, 'F'); put(143, 13, 'F');
   put(176, 13, 'X'); put(193, 13, 'k');
   return g;
@@ -346,7 +346,7 @@ const ENCOUNTERS = {
   4: [[16,12,20],[29,25,35],[38,35,40],[42,40,46],[63,58,67],[70,67,73],[77,74,80],[99,96,104],[96,94,104]],
   5: [[14,10,22],[36,33,45],[42,33,45],[60,56,63],[71,68,79],[76,68,79],[88,85,92],[99,96,104]],
   6: [[15,11,20],[30,26,37],[49,48,57],[53,48,57],[112,109,116]],
-  7: [[14,10,19],[30,27,35],[37,35,41],[49,48,53],[61,57,67],[70,67,72],[78,74,85],[91,89,94],[101,99,105],[117,114,122],[124,121,131],[139,137,142]]
+  7: [[14,10,19],[30,27,35],[37,35,41],[49,48,53],[61,57,67],[70,67,72],[78,74,85],[91,89,94],[101,99,105],[116,114,118],[124,121,131],[139,137,142]]
 };
 function setupEncounters(s) {
   for (const f of s.foes.getChildren()) {
@@ -962,7 +962,7 @@ const LEVELS = {
       hint('Lightning strikes <b>where the ground glows</b>: keep moving.');
     },
     sky: { veil: 0x061428, cloud: 0x6a9ad8, glow: 0x8ad8ff, sun: [0.7, 0.26], bolt: 0xa8ecff, every: [150, 280], edge: 0x08204a, fx: 'blizzard', cave: true, paint: 'k7/storm.png' },   // his arena is deep in the cave: no open sky
-    hearts: [100, 140],                              // one after the lightning, one at the cave's last fire
+    fires: [119], hearts: [100, 140],                              // one after the lightning, one at the cave's last fire
     update(s, k, time, p) {
       // lightning on the mountain path: a glow marks the ground, then the bolt falls
       if (p.x < (CAVE7 - 4) * TS && !s.frozen) {
@@ -1433,7 +1433,7 @@ class Play extends Phaser.Scene {
   create() {
     // the scene object is reused from labour to labour: forget whatever the last one left behind
     for (const k of ['dark', 'lights', 'lamp', 'wall', 'wallR', 'stars', 'pose', 'swingFx', 'witch', 'unmasked', 'olad', 'rakhsh', 'dragonSeen', 'horde', 'hordeDone',
-      'gates', 'hordeBat', 'toldRock', 'toldFarr', 'toldOffer', 'atAltar', 'bossT', 'maceHit', 'toldIce', 'chargeWarn', 'toldCharge', 'shards', 'shardG', 'mark', 'markGlow', 'markOpen', 'bossHeart', 'bossHeartT', 'floorWarn', 'highWarn', 'regrow', 'drums', 'sky', 'flashA', 'intro', 'fgReeds', 'mound', 'swirl', 'qx', 'puddles', 'combo', 'comboT', 'heavy', 'heavyGo', 'chargeT', 'chargeFull', 'chargeGlow', 'dodgeT', 'dodgeCd', 'dodgeDir', 'whiteDown', 'ended', 'mounted', 'prayed', 'drank', 'toldImmune', 'toldDeflect', 'toldVenom', 'cage', 'kavus', 'stones', 'puzzle', 'springOpen', 'pool', 'victory', 'attackBuf', 'dodgeBuf', 'counterT', 'counterStrike', 'dodgeRewarded', 'trial', 'nearTrial']) delete this[k];
+      'gates', 'hordeBat', 'toldRock', 'toldFarr', 'toldOffer', 'atAltar', 'bossT', 'maceHit', 'toldIce', 'chargeWarn', 'toldCharge', 'shards', 'shardG', 'mark', 'markGlow', 'markOpen', 'bossHeart', 'bossHeartT', 'floorWarn', 'highWarn', 'regrow', 'drums', 'sky', 'flashA', 'intro', 'fgReeds', 'mound', 'swirl', 'qx', 'puddles', 'combo', 'comboT', 'heavy', 'heavyGo', 'chargeT', 'chargeFull', 'chargeGlow', 'dodgeT', 'dodgeCd', 'dodgeDir', 'whiteDown', 'ended', 'mounted', 'prayed', 'drank', 'toldImmune', 'toldDeflect', 'toldVenom', 'cage', 'kavus', 'stones', 'puzzle', 'springOpen', 'pool', 'victory', 'attackBuf', 'dodgeBuf', 'counterT', 'counterStrike', 'dodgeRewarded', 'trial', 'nearTrial', 'journey']) delete this[k];
     // turn loaded strips into square frames; anything missing falls back to placeholder art
     for (const k of ['decor-' + cur]) if (this.textures.exists(k) && this.textures.get(k).frameTotal < 3) { const t = this.textures.get(k), h = t.getSourceImage().height; for (let i = 0; i < Math.round(t.getSourceImage().width / h); i++) t.add(i, 0, i * h, 0, h, h); }
     for (const [k, f] of Object.entries(ART)) if (f && this.textures.exists(k)) {
@@ -1562,6 +1562,8 @@ class Play extends Phaser.Scene {
     lv.create?.(this);
     setupEncounters(this);
     this.setupTrial();
+    if (!window.ShahnamehJourney) throw new Error('The journey encounters could not load.');
+    if (!rush) this.journey = window.ShahnamehJourney.create(this, cur, { hint, toast, banner, sfx, TS, W, H });
     if (rush) this.rushSetup();
     if (R) { lv.resume?.(this); toast(R.well ? 'Rostam rises again beside the well.' : 'Rostam rises again beside the sacred fire.'); }
   }
@@ -1740,7 +1742,7 @@ class Play extends Phaser.Scene {
     if (this.hp <= 0) {
       this.done = true; playing = false; music(false); document.body.classList.remove('playing'); hint(null);
       if (this.anims.exists('rostam-fall') && !this.mounted) { this.pose = 'rostam-fall'; this.player.anims.stop(); this.player.play('rostam-fall'); this.tweens.addCounter({ from: 255, to: 150, duration: 900, onUpdate: tw => { const c = Math.round(tw.getValue()); this.player.setTint((c << 16) | (c << 8) | c); } }); } else this.player.setTint(0x777777);
-      const t = this.lv.tips; $('deadTip').textContent = controlText(t[Math.floor(Math.random() * t.length)]);
+      const t = this.lv.tips; $('deadTip').textContent = controlText((!this.bossOn && this.journey?.getTip()) || t[Math.floor(Math.random() * t.length)]);
       const cp = resumeAt?.n === cur;
       if (cp) Object.assign(resumeAt, { coins: this.coinCount, kills: this.kills, t: this.time.now - this.t0 });
       $('retryBtn').textContent = rush ? 'Start the rush again' : cp ? (resumeAt.well ? 'Rise at the well' : 'Rise at the sacred fire') : 'Try again'; $('freshBtn').classList.toggle('hidden', !cp || !!rush);
@@ -2318,6 +2320,7 @@ class Play extends Phaser.Scene {
     });
     routeCue(this, p);
     this.lv.update?.(this, k, time, p, b);
+    this.journey?.tick(time, delta);
     // projectiles expire; hazard zones (fire breath, shockwaves) hurt while they last
     for (const sh of this.shots.getChildren()) if (time > sh.die) sh.destroy(); else if (sh.spin) sh.angle += sh.spin * k;
     this.hazards = this.hazards.filter(z => { if (time >= z.until) return false; if (z.move) z.r.x += z.move * k; if (Phaser.Geom.Intersects.RectangleToRectangle(b, z.r)) this.hurt(z.r.centerX); return time < z.until; });
@@ -3161,7 +3164,7 @@ class Play extends Phaser.Scene {
   }
   // the mace meets a curse and sends it back where it came from, faster
   deflect(sh) {
-    const B = this.boss, a = B?.active ? Math.atan2(B.y - 8 - sh.y, B.x - sh.x) : (this.face > 0 ? 0 : Math.PI);
+    const B = this.boss, target = sh.journeyTarget?.active ? sh.journeyTarget : B, a = target?.active ? Math.atan2((target === B ? target.y - 8 : target.y - 45) - sh.y, target.x - sh.x) : (this.face > 0 ? 0 : Math.PI);
     sh.back = true; sh.body.setAllowGravity(false); sh.setVelocity(Math.cos(a) * 280, Math.sin(a) * 280); sh.setRotation(a); sh.setTint(0xffe08a); sh.die = this.time.now + 2500;
     this.fx('hit', sh.x, sh.y, { depth: 10 }); sfx('hit'); this.hitStop(40);
     if (!this.toldDeflect) { this.toldDeflect = true; toast(cur === 2 ? 'Your mace knocks the venom back at the Queen!' : cur === 5 ? 'Your mace sends Olad\'s knife back at him!' : 'Your mace turns the curse back on the witch!'); }
@@ -3427,9 +3430,7 @@ function begin(n = cur, rise = false, keepRush = false, afterStory = false) {
 // the road of seven labours: pick any labour you have reached
 const fmtTime = ms => { const s = Math.round(ms / 1000); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`; };
 const NAMES = ['', ['The Lion', 'یکم'], ['The Desert', 'دوم'], ['The Dragon', 'سوم'], ['The Witch', 'چهارم'], ['Olad', 'پنجم'], ['Arzhang Div', 'ششم'], ['The White Div', 'هفتم']];
-const BLURB = ['', 'Among the reeds a great lion stirs in the dark.', 'A waterless desert under a burning sun. Find water, or die of thirst.',
-  'Night, a cave mouth, and a dragon that only Rakhsh can see.', 'A feast in a garden, and a beautiful hostess who is not what she seems.',
-  'A green land guarded by the warden Olad and his men.', 'The war camp of the Div chieftain Arzhang.', 'Seven mountains, a cave as dark as night, and the White Div.'];
+const BLURB = ['', 'Race through the reeds while Rakhsh holds back the lion.', 'Climb to shelter or brave the moving sand.', 'Ride through the dragon’s hunting ground and its marked fire.', 'A garden whose living bridges bloom and vanish.', 'Ride after Olad through his guarded marches and turn his knives back.', 'Silence the war drums and scatter the Div host.', 'Cross crumbling ledges and shatter the cave’s ice seal.'];
 let pick = cur, mapFrom = null;
 // the Book of Foes: a leaf for each labour, with its great foe (an animated miniature), its tale and how to beat it
 const GUIDE = [
