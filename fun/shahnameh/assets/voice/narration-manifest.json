@@ -187,7 +187,8 @@
       "kind": "tale",
       "text": "The Host Scatters\n\nArzhang came out of his tent at the noise. Rostam rode him down, seized him by the head, and tore it from his shoulders, then flung it among the Divs. At the sight the whole host lost heart; they fled, trampling one another, and the camp was empty before noon.\n\nRostam rode on to the city where Kay Kavus lay blind in chains. The king told him that the White Div waited in a cave beyond the seven mountains, and that only the blood of the White Div's heart could cure his eyes.\n\nIn the game the camp fights back: survive three waves of the horde, then face Arzhang himself.",
       "duration": 40.908,
-      "sha256": "906ede5b648a238da4c7d38cc87f78f78aea1cf408da65e27f7c2eab2861afc9"
+      "sha256": "906ede5b648a238da4c7d38cc87f78f78aea1cf408da65e27f7c2eab2861afc9",
+      "pending_correction": "The final gameplay note says three waves; current visible text correctly says six. Retake this recording in the original ElevenLabs voice when voice settings become available."
     },
     {
       "id": "tale-7-1",
