@@ -58,8 +58,8 @@ Gameplay-feel and optional-trial audit: `python3 fun/shahnameh/tests/serve-enter
 
 ## Main-route story encounters
 
-Run `python3 fun/shahnameh/tests/serve-journey.py`, then open `http://127.0.0.1:8779/journey.html#debug`. Require all 37 probes passing and no errors. Results are saved to the system temporary directory as `shahnameh-journey.json`. This isolated origin clears its own saves and starts muted.
+Run `python3 fun/shahnameh/tests/serve-journey.py`, then open `http://127.0.0.1:8779/journey.html#debug`. Require all 36 probes passing and no errors. Results are saved to the system temporary directory as `shahnameh-journey.json`. This isolated origin clears its own saves and starts muted.
 
-Coverage: early lion pursuit and Rakhsh rescue; low-road water loss versus sand shelter; warned dragon fire; real garden bridge collisions and lifecycle; mounted body alignment, actual knife parries and dismount; real strikes destroying war drums; crumbling ledges, warned ice, actual strikes opening the cave seal, checkpoint retries, and Boss Rush isolation. Focused tests position the player to isolate mechanics. The separate encounter suite traverses full routes using movement/jump/strike inputs with raised health; these tests do not establish human difficulty or enjoyment.
+Coverage: absence of added lion/horse spawns in the first labour opening; low-road water loss versus sand shelter; warned dragon fire; real garden bridge collisions and lifecycle; mounted body alignment, actual knife parries and dismount; real strikes destroying war drums; crumbling ledges, warned ice, actual strikes opening the cave seal, checkpoint retries, and Boss Rush isolation. Focused tests position the player to isolate mechanics. The separate encounter suite traverses full routes using movement/jump/strike inputs with raised health; these tests do not establish human difficulty or enjoyment.
 
 Paused normal-health previews: `/journey-play.html?level=1#debug` through `?level=7#debug`. Optional `&at=60` places the player at tile column 60. Audio remains disabled. Keep preview and automated suites on separate localhost origins.

@@ -3430,7 +3430,7 @@ function begin(n = cur, rise = false, keepRush = false, afterStory = false) {
 // the road of seven labours: pick any labour you have reached
 const fmtTime = ms => { const s = Math.round(ms / 1000); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`; };
 const NAMES = ['', ['The Lion', 'یکم'], ['The Desert', 'دوم'], ['The Dragon', 'سوم'], ['The Witch', 'چهارم'], ['Olad', 'پنجم'], ['Arzhang Div', 'ششم'], ['The White Div', 'هفتم']];
-const BLURB = ['', 'Race through the reeds while Rakhsh holds back the lion.', 'Climb to shelter or brave the moving sand.', 'Ride through the dragon’s hunting ground and its marked fire.', 'A garden whose living bridges bloom and vanish.', 'Ride after Olad through his guarded marches and turn his knives back.', 'Silence the war drums and scatter the Div host.', 'Cross crumbling ledges and shatter the cave’s ice seal.'];
+const BLURB = ['', 'Among the reeds a great lion stirs in the dark.', 'Climb to shelter or brave the moving sand.', 'Ride through the dragon’s hunting ground and its marked fire.', 'A garden whose living bridges bloom and vanish.', 'Ride after Olad through his guarded marches and turn his knives back.', 'Silence the war drums and scatter the Div host.', 'Cross crumbling ledges and shatter the cave’s ice seal.'];
 let pick = cur, mapFrom = null;
 // the Book of Foes: a leaf for each labour, with its great foe (an animated miniature), its tale and how to beat it
 const GUIDE = [
