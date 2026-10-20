@@ -352,7 +352,7 @@ body.calm #banner.on{animation-name:banCalm}@keyframes banCalm{0%{opacity:0}15%,
 .chint{font:600 12px Inter,sans-serif;letter-spacing:.08em;color:rgba(232,214,174,.55);text-transform:uppercase;opacity:0;transition:opacity .5s}.ccap.done .chint{opacity:1}
 .cdots{position:absolute;top:calc(8vh + 12px);left:50%;transform:translateX(-50%);display:flex;gap:8px;z-index:4;padding:6px}.cdots i{width:8px;height:8px;transform:rotate(45deg);border:1px solid #e8c25a;display:block}.cdots i.on{background:#e8c25a}
 .cskip{position:absolute;top:calc(8vh + 6px);right:max(16px,env(safe-area-inset-right));z-index:6;height:34px;padding:0 16px;border-radius:17px;border:1.5px solid rgba(232,194,90,.7);background:rgba(10,8,4,.55);color:#f6dc8c;font:700 14px Cinzel,serif;letter-spacing:.06em}
-.cskip:hover,.cskip:focus-visible{background:rgba(232,194,90,.25);outline:2px solid #f6dc8c;outline-offset:2px}
+.cvoice{left:max(16px,env(safe-area-inset-left));right:auto}.cskip:hover,.cskip:focus-visible{background:rgba(232,194,90,.25);outline:2px solid #f6dc8c;outline-offset:2px}
 .credits{position:absolute;inset:0;z-index:5;background:#0c1015;overflow-y:auto;overscroll-behavior:contain}
 .roll{position:relative;width:min(1120px,88vw);margin:0 auto;padding:90px 0 38px;color:#e7e3db;text-align:center}
 .credit-heading{margin:0 auto 34px;max-width:760px}.roll .credit-eyebrow{font:600 11px/1.6 Inter,sans-serif;letter-spacing:.18em;text-transform:uppercase;color:#bda779;margin:0 0 14px}
@@ -361,6 +361,7 @@ body.calm #banner.on{animation-name:banCalm}@keyframes banCalm{0%{opacity:0}15%,
 .credit-gallery{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:22px;margin:0 0 34px}.credit-gallery figure{margin:0;min-width:0}.credit-gallery img{display:block;width:100%;height:auto;aspect-ratio:3/2;object-fit:cover;border-radius:3px}.credit-gallery figcaption{font:400 11px/1.6 Inter,sans-serif;letter-spacing:.03em;color:#9ca1a8;text-align:left;margin-top:9px}
 .credit-details{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:32px;text-align:left;border-top:1px solid #ffffff16;padding-top:25px}.credit-details h3{font:600 10px/1.6 Inter,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#bda779;margin:0 0 7px}.credit-details h3:not(:first-child){margin-top:19px}.credit-details p{font:400 13px/1.8 Inter,sans-serif;color:#b9bdc3;margin:0}.credit-footer{font:400 12px/1.6 Inter,sans-serif;color:#818790;margin-top:30px}
 @media(max-width:600px){.roll{width:86vw;padding-top:85px}.credit-heading{margin-bottom:25px}.credit-gallery{grid-template-columns:1fr;gap:22px;max-width:400px;margin:0 auto 30px}.credit-details{grid-template-columns:1fr;gap:23px}.roll .credit-eyebrow{font-size:9px}}
+@media(max-width:600px){.cdots{top:calc(8vh + 48px)}}
 @media (prefers-reduced-motion:reduce){.cimg.on{animation:none}}
 @media (max-aspect-ratio:4/3){.cimg{object-fit:contain;top:-6vh}.cimg.on{animation-name:burnsTall}@keyframes burnsTall{from{transform:scale(1)}to{transform:scale(1.06)}}}
 .prologue{display:none}#s-map.home .prologue{display:inline-flex;align-items:center;gap:8px;margin:2px auto 0;padding:5px 14px;border-radius:16px;border:1px solid rgba(232,194,90,.55);background:rgba(10,8,4,.45);color:#f6dc8c;font:700 13px Cinzel,serif;letter-spacing:.08em;transition:all .15s}
@@ -673,7 +674,7 @@ body.calm #banner.on{animation-name:banCalm}@keyframes banCalm{0%{opacity:0}15%,
   <button class="cnext" id="cineNext" aria-label="Next picture"></button>
   <div class="ccap" aria-live="polite"><div class="fa"></div><p></p><span class="chint">Click, tap or press Space to go on</span></div>
   <div class="cdots" aria-hidden="true"></div>
-  <button class="cskip" id="cineSkip">Skip &rsaquo;</button>
+  <button class="cskip cvoice" id="cineNarrator" aria-pressed="true">Narrator on</button><button class="cskip" id="cineSkip">Skip &rsaquo;</button>
   <div class="credits hidden" id="credits"><div class="roll" id="roll"></div></div>
 </section>
 <section class="ov hidden" id="s-clips" role="dialog" aria-modal="true" aria-label="The tale in pictures">
@@ -694,7 +695,8 @@ body.calm #banner.on{animation-name:banCalm}@keyframes banCalm{0%{opacity:0}15%,
       <section><h3>Sound</h3>
         <label class="slide"><span>Music</span><input type="range" id="setMusic" min="0" max="100" step="5" aria-label="Music volume"><output id="setMusicV"></output></label>
         <label class="slide"><span>Effects</span><input type="range" id="setFx" min="0" max="100" step="5" aria-label="Effects volume"><output id="setFxV"></output></label>
-        <label class="slide"><span>Narrator</span><input type="range" id="setVoice" min="0" max="100" step="5" aria-label="Narrator volume (0 turns the voice off)"><output id="setVoiceV"></output></label>
+        <button class="sw" id="setNarrator" role="switch" aria-checked="true"><i></i><span><b>Narrator</b>Story readings and character voices.</span></button>
+        <label class="slide"><span>Voice volume</span><input type="range" id="setVoice" min="5" max="100" step="5" aria-label="Narrator volume"><output id="setVoiceV"></output></label>
         <h3>Comfort</h3>
         <button class="sw" id="setShake" role="switch" aria-checked="true"><i></i><span><b>Screen shake</b>The view jolts with heavy blows.</span></button>
         <button class="sw" id="setFlash" role="switch" aria-checked="false"><i></i><span><b>Reduce flashes</b>No white flashes or lightning glare.</span></button>
@@ -862,7 +864,7 @@ body.calm #banner.on{animation-name:banCalm}@keyframes banCalm{0%{opacity:0}15%,
     <div class="fa">رستم</div><h2>The Host Scatters</h2><span class="kick">A name like thunder</span>
     <p>Arzhang came out of his tent at the noise. Rostam rode him down, seized him by the head, and tore it from his shoulders, then flung it among the Divs. At the sight the whole host lost heart; they fled, trampling one another, and the camp was empty before noon.</p>
     <p>Rostam rode on to the city where Kay Kavus lay blind in chains. The king told him that the White Div waited in a cave beyond the seven mountains, and that only the blood of the White Div's heart could cure his eyes.</p>
-    <p class="note">In the game the camp fights back: survive three waves of the horde, then face Arzhang himself.</p>
+    <p class="note">In the game the camp fights back: survive six waves of the horde, then face Arzhang himself.</p>
   </article>
 </template>
 <template id="tale-7">
@@ -898,6 +900,6 @@ body.calm #banner.on{animation-name:banCalm}@keyframes banCalm{0%{opacity:0}15%,
 <script src="boot.js?v=92"></script>
 <script src="assets/vendor/phaser-3.80.1.min.js" data-game-script="engine"></script>
 <script src="journey-events.js?v=119" data-game-script="journey"></script>
-<script src="game.js?v=121" data-game-script="game"></script>
+<script src="game.js?v=122" data-game-script="game"></script>
 </body>
 </html>

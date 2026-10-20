@@ -31,6 +31,24 @@ try {
  A.muted=false;S.SET.voice=0;document.getElementById('storyClose').click();S.openStory(0,2);
  log(b.disabled&&b.textContent==='Narrator is off','Narrator volume zero prevents tale playback');
  document.getElementById('storyClose').click();log(document.getElementById('s-story').classList.contains('hidden'),'Closing the tale returns to its previous screen');
+
+ // Voice controls: use a suspended context and a zero master gain throughout.
+ S.SET.voice=55;S.SET.narrator=true;document.querySelector('#s-map [data-settings]').click();
+ const toggle=document.getElementById('setNarrator'),volume=document.getElementById('setVoice');
+ let starts=0;const original=ctx.createBufferSource.bind(ctx);ctx.createBufferSource=()=>{const src=original(),start=src.start.bind(src);src.start=(...args)=>{starts++;return start(...args)};return src;};
+ toggle.click();log(toggle.getAttribute('aria-checked')==='false'&&volume.disabled&&!S.SET.narrator,'Narrator Off has an explicit disabled-volume state');
+ log(JSON.parse(localStorage.getItem('sh-set')).narrator===false&&S.SET.voice===55,'Narrator preference persists without losing volume');
+ const before=starts;toggle.click();volume.value=65;volume.dispatchEvent(new Event('input'));volume.dispatchEvent(new Event('change'));await sleep(100);
+ log(starts===before&&S.SET.narrator&&S.SET.voice===65,'Enabling narrator and adjusting volume in Settings never plays a sample');
+ document.getElementById('setDone').click();S.cinema('intro1');document.getElementById('cineNarrator').click();await sleep(350);
+ log(!S.SET.narrator&&document.getElementById('cineNarrator').getAttribute('aria-pressed')==='false','Scene narrator switch cancels an in-flight reading');
+ const stopped=starts;await sleep(500);log(starts===stopped,'A cancelled asynchronous reading cannot start later');
+ document.getElementById('cineNext').click();document.getElementById('cineNext').click();log(document.getElementById('s-cine').classList.contains('hidden'),'Turning narration off does not trap the story scene');
+ S.openStory(0,1);log(b.disabled&&b.textContent==='Narrator is off','Narrator Off prevents tale playback even at nonzero volume');document.getElementById('storyClose').click();
+ document.querySelector('#s-map [data-settings]').click();toggle.click();document.getElementById('setDone').click();
+ S.openStory(0,1);b.click();await sleep(500);const playingStarts=starts;document.getElementById('storyClose').click();
+ log(playingStarts>stopped&&b.getAttribute('aria-pressed')==='false','Narrator can be enabled again for an explicit Listen request');
+ ctx.createBufferSource=original;
  log(ctx.state==='suspended'&&A.master.gain.value===0,'Narration validation stayed silent');
  log(!errors.length,'No runtime errors during narration checks');
 }catch(e){lines.push('FAIL '+e.message);}

@@ -1352,7 +1352,7 @@ const keys = { left: false, right: false, jump: false, attack: false, dodge: fal
 // settings, kept in the browser: volumes, screen shake, flashes, and the keys for each action (two per action)
 const KEY_DEF = { left: ['ArrowLeft', 'a'], right: ['ArrowRight', 'd'], jump: ['ArrowUp', ' '], attack: ['x', 'j'], dodge: ['Shift', 'c'], farr: ['f', ''], offer: ['ArrowDown', 's'] };
 const ACTIONS = [['left', 'Move left'], ['right', 'Move right'], ['jump', 'Jump (twice for a super jump)'], ['attack', 'Strike (hold for a heavy blow)'], ['dodge', 'Dodge roll'], ['farr', 'Call the Simurgh (Farr)'], ['offer', 'Offer at a fire']];
-const SET = (() => { let s = {}; try { s = JSON.parse(store.get('sh-set') || '{}'); } catch (e) {} return { music: 70, fx: 85, voice: 90, shake: true, flash: true, ...s, keys: JSON.parse(JSON.stringify({ ...KEY_DEF, ...(s.keys || {}) })) }; })();
+const SET = (() => { let s = {}; try { s = JSON.parse(store.get('sh-set') || '{}'); } catch (e) {} return { music: 70, fx: 85, shake: true, flash: true, ...s, voice: s.voice > 0 ? s.voice : 90, narrator: typeof s.narrator === 'boolean' ? s.narrator : s.voice !== 0, keys: JSON.parse(JSON.stringify({ ...KEY_DEF, ...(s.keys || {}) })) }; })();
 const saveSet = () => store.set('sh-set', JSON.stringify(SET));
 const keyName = k => ({ ' ': 'Space', ArrowLeft: '\u2190', ArrowRight: '\u2192', ArrowUp: '\u2191', ArrowDown: '\u2193', Shift: 'Shift', Control: 'Ctrl', Enter: 'Enter' })[k] || (k.length === 1 ? k.toUpperCase() : k);
 const keyLabel = action => SET.keys[action].filter(Boolean).map(keyName).join(' / ') || 'Unbound';
@@ -3661,6 +3661,25 @@ const VOICED = new Set(['open1', 'open2', 'open3', 'open4', 'open5', 'open6', 'e
 // the narrator's line as each labour begins, shown as a subtitle while he speaks
 const KHAN_LINES = {"khan1": "The first labour. Rostam lay down to sleep among the reeds, while Rakhsh grazed nearby… and in the thicket, a lion was watching.", "khan2": "The second labour: the burning desert. No water. No shade. Not a single bird in the sky… only the sand, and whatever waits beneath it.", "khan3": "The third labour. Night fell, and out of the dark came a dragon eighty cubits long: a beast that only Rakhsh could see.", "khan4": "The fourth labour. In a green garden a feast was laid, and a beautiful lady poured the wine. But in Mazandaran… beauty is rarely what it seems.", "khan5": "The fifth labour. Rostam rode into the lands of Olad: a warden who did not take kindly to strangers.", "khan6": "The sixth labour. At the gates of Mazandaran stood Arzhang, chief of the Divs, with an army of demons at his back.", "khan7": "The seventh labour. Beyond seven mountains, in a cave as dark as night… the White Div was waiting."};
 let sayId = 0, voiceEl = null;
+const narratorEnabled = () => SET.narrator && SET.voice > 0;
+function refreshNarratorControls() {
+  const on = narratorEnabled();
+  $('setNarrator').setAttribute('aria-checked', String(on));
+  $('setVoice').disabled = !on;
+  $('setVoiceV').textContent = on ? SET.voice + '%' : 'Off';
+  $('cineNarrator').textContent = on ? 'Narrator on' : 'Narrator off';
+  $('cineNarrator').setAttribute('aria-pressed', String(on));
+  refreshStoryListen();
+}
+function setNarrator(on, readScene = false) {
+  SET.narrator = on; if (on && !SET.voice) SET.voice = 90;
+  if (!on) { hush(true); $('sub').classList.remove('on'); storyReading = false; }
+  saveSet(); refreshNarratorControls();
+  // Only the explicit scene button starts the current reading. Settings never previews speech.
+  if (on && readScene && !A.muted && cine && !cine.credits) cineShow(cine.i);
+}
+$('setNarrator').onclick = () => setNarrator(!narratorEnabled());
+$('cineNarrator').onclick = () => setNarrator(!narratorEnabled(), true);
 // the readings play through the game's own sound engine (unlocked by the first click, so no browser blocks them),
 // each decoded once and kept
 const voiceBufs = {};
@@ -3675,14 +3694,14 @@ function hush(finish = false) {
   if (finish) h?.then?.();
 }
 function narrate(key, then) {
-  if (!VOICED.has(key) || A.muted || !SET.voice || !audio()) return false;
+  if (!VOICED.has(key) || A.muted || !narratorEnabled() || !audio()) return false;
   hush(); const id = sayId, h = voiceEl = { duration: 0, t0: 0, then };
   if (!A.vox) { A.vox = A.ctx.createGain(); A.vox.connect(A.master); }
   A.vox.gain.value = 1.15 * SET.voice / 100;
   if (A.music) A.music.gain.value = 0.7 * SET.music / 70 * 0.3;   // the music sinks beneath the voice
   const end = () => { if (id !== sayId) return; voiceEl = null; if (A.music) A.music.gain.value = 0.7 * SET.music / 70; then?.(); };
   voiceBuf(key).then(buf => {
-    if (id !== sayId) return;
+    if (id !== sayId || A.muted || !narratorEnabled()) return;
     const src = A.ctx.createBufferSource(); src.buffer = buf; src.connect(A.vox); src.onended = end; src.start();
     h.src = src; h.duration = buf.duration; h.t0 = A.ctx.currentTime * 1000;
   }).catch(end);
@@ -3722,7 +3741,7 @@ function cinema(name, done, start = 0, panels = null) {
   cine.from?.classList.add('hidden'); $('credits').classList.add('hidden'); $('cineSkip').textContent = 'Skip ›';
   ov.querySelector('.cdots').innerHTML = P.map((_, k) => `<i title="Picture ${k + 1}" data-k="${k}"></i>`).join('');
   imgs.forEach(im => im.classList.remove('on'));
-  ov.classList.remove('hidden'); music(true); P.forEach(([img]) => voiceBuf(img)?.catch(() => {})); cineNext(); $('cineNext').focus();
+  ov.classList.remove('hidden'); refreshNarratorControls(); music(true); P.forEach(([img]) => voiceBuf(img)?.catch(() => {})); cineNext(); $('cineNext').focus();
 }
 function cineShow(i) {
   const c = cine, [img, fa, text] = c.P[i], ov = $('s-cine'), imgs = ov.querySelectorAll('.cimg'), im = imgs[i % 2], old = imgs[(i + 1) % 2];
@@ -3816,6 +3835,7 @@ function applySettings() {
 }
 function renderSettings() {
   $('setMusic').value = SET.music; $('setFx').value = SET.fx; $('setMusicV').textContent = SET.music + '%'; $('setFxV').textContent = SET.fx + '%'; $('setVoice').closest('label').hidden = !VOICED.size; $('setVoice').value = SET.voice; $('setVoiceV').textContent = SET.voice ? SET.voice + '%' : 'Off';
+  refreshNarratorControls();
   $('setShake').setAttribute('aria-checked', String(SET.shake)); $('setFlash').setAttribute('aria-checked', String(!SET.flash));
   $('keyList').innerHTML = ACTIONS.map(([a, label]) => `<li><span>${label}</span>${[0, 1].map(i => `<button class="kb${rebind?.a === a && rebind.i === i ? ' wait' : ''}" data-a="${a}" data-i="${i}" aria-label="${label}, key ${i + 1}: ${SET.keys[a][i] ? keyName(SET.keys[a][i]) : 'none'}">${rebind?.a === a && rebind.i === i ? 'Press a key\u2026' : SET.keys[a][i] ? keyName(SET.keys[a][i]) : '\u2014'}</button>`).join('')}</li>`).join('');
   $('keyList').querySelectorAll('.kb').forEach(b => b.onclick = () => { rebind = { a: b.dataset.a, i: +b.dataset.i }; renderSettings(); $('keyList').querySelector('.kb.wait')?.focus(); });
@@ -3839,8 +3859,12 @@ document.querySelectorAll('[data-settings]').forEach(b => b.onclick = openSettin
 $('setMusic').oninput = e => { SET.music = +e.target.value; $('setMusicV').textContent = SET.music + '%'; applySettings(); saveSet(); };
 $('setFx').oninput = e => { SET.fx = +e.target.value; $('setFxV').textContent = SET.fx + '%'; applySettings(); saveSet(); };
 $('setFx').onchange = () => sfx('coin');
-$('setVoice').oninput = e => { SET.voice = +e.target.value; if (A.vox) A.vox.gain.value = 1.15 * SET.voice / 100; $('setVoiceV').textContent = SET.voice ? SET.voice + '%' : 'Off'; saveSet(); };
-$('setVoice').onchange = () => { const k = [...VOICED][0]; if (k && SET.voice && !A.muted) narrate(k); else hush(); };   // a sample of the voice
+$('setVoice').oninput = e => {
+  SET.voice = +e.target.value;
+  if (!SET.voice) { SET.narrator = false; hush(true); }
+  if (A.vox) A.vox.gain.value = narratorEnabled() ? 1.15 * SET.voice / 100 : 0;
+  refreshNarratorControls(); saveSet();
+};
 $('setShake').onclick = () => { SET.shake = !SET.shake; saveSet(); renderSettings(); };
 $('setFlash').onclick = () => { SET.flash = !SET.flash; saveSet(); applySettings(); renderSettings(); };
 $('keyReset').onclick = () => { SET.keys = JSON.parse(JSON.stringify(KEY_DEF)); saveSet(); buildKeys(); renderSettings(); };
@@ -3920,15 +3944,15 @@ function banner(fa, name, ep = '') {
 let pages = [], pg = 0, storyFrom = null, storyReading = false;
 function refreshStoryListen() {
   const b = $('storyListen'), available = VOICED.has(pages[pg]?.dataset.voice);
-  b.disabled = !available || A.muted || !SET.voice;
-  b.textContent = storyReading ? 'Stop reading' : A.muted ? 'Sound is muted' : !SET.voice ? 'Narrator is off' : 'Listen to this page';
+  b.disabled = !available || A.muted || !narratorEnabled();
+  b.textContent = storyReading ? 'Stop reading' : A.muted ? 'Sound is muted' : !narratorEnabled() ? 'Narrator is off' : 'Listen to this page';
   b.setAttribute('aria-pressed', String(storyReading));
 }
 function stopStoryReading() { if (storyReading) hush(); storyReading = false; refreshStoryListen(); }
 $('storyListen').onclick = () => {
   if (storyReading) { stopStoryReading(); return; }
   const key = pages[pg]?.dataset.voice;
-  if (!key || A.muted || !SET.voice) return;
+  if (!key || A.muted || !narratorEnabled()) return;
   storyReading = !!narrate(key, () => { storyReading = false; refreshStoryListen(); }); refreshStoryListen();
 };
 function showPage(i) {
