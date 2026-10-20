@@ -1,0 +1,13 @@
+const fs=require('fs'),vm=require('vm'),assert=require('assert/strict');
+const src=fs.readFileSync(require('node:path').join(__dirname,'../assets/engagement.js'),'utf8');let checks=0;
+function boot(overrides={}){let records=[],handlers={},timers=[];class Element{constructor(kind='input'){this.kind=kind;this.dataset={trackAction:'calculate_requested'};}closest(s){return s==='[data-track-action]'&&this.kind==='button'?this:null;}matches(){return this.kind==='input';}}let window={gtag:(...a)=>records.push(a)};const ctx={window,URL,Element,Date,Set,Map,Number,navigator:{},location:{hostname:'arashnassirpour.com',hash:'',search:'',origin:'https://arashnassirpour.com',pathname:'/modal-analysis/'},document:{querySelector:()=>({href:'https://arashnassirpour.com/modal-analysis/'}),addEventListener:(n,fn)=>handlers[n]=fn},setTimeout:fn=>(timers.push(fn),timers.length),clearTimeout:()=>{},...overrides};vm.runInNewContext(src,ctx);return {records,handlers,window:ctx.window,Element,flush:()=>{timers.splice(0).forEach(fn=>fn())}};}
+let b=boot();b.window.PlatformMetrics.complete();b.flush();assert.equal(b.records.length,0);checks++;
+b.handlers.input({isTrusted:true,target:new b.Element()});assert.equal(b.records[0][1],'tool_engaged');b.window.PlatformMetrics.complete();b.flush();assert.equal(b.records.at(-1)[1],'calculation_complete');checks+=2;
+b.window.PlatformMetrics.emit('purchase',{value:999});assert.equal(b.records.length,2);checks++;
+b.window.PlatformMetrics.emit('export_ready',{format:'csv',filename:'private.csv',email:'me@example.com',value:700000});let p=b.records.at(-1)[2];assert.equal(p.format,'csv');assert.equal(p.filename,undefined);assert.equal(p.email,undefined);assert.equal(p.value,undefined);checks+=4;
+b.window.PlatformMetrics.emit('contact_click',{method:'me@example.com'});assert.equal(b.records.at(-1)[2].method,undefined);checks++;
+b.window.PlatformMetrics.emit('web_vital',{metric_name:'LCP',metric_value:1234.5,metric_rating:'good'});assert.equal(b.records.at(-1)[2].metric_value,1234.5);checks++;
+for(const overrides of [{navigator:{doNotTrack:'1'}},{navigator:{globalPrivacyControl:true}},{location:{hostname:'localhost',hash:'',search:''}},{location:{hostname:'arashnassirpour.com',hash:'#debug',search:''}}]){let c=boot(overrides);c.window.PlatformMetrics.emit('tool_engaged');assert.equal(c.records.length,0);checks++;}
+let c=boot();c.handlers.click({isTrusted:false,target:new c.Element('button')});assert.equal(c.records.length,0);checks++;
+c=boot({window:{gtag:()=>{throw Error('blocked')}}});assert.doesNotThrow(()=>c.window.PlatformMetrics.emit('tool_engaged'));checks++;
+console.log('PASS '+checks+' meaningful metrics checks');

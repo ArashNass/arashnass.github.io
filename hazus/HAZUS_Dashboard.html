@@ -18,7 +18,7 @@
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Arash Nassirpour">
 <meta name="twitter:card" content="summary">
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-0WERZ6WKQY"></script><script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag("js",new Date());gtag("config","G-0WERZ6WKQY");</script>
+<script defer src="/assets/analytics.js?v=2"></script>
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -193,6 +193,10 @@ tbody tr:last-child td{border-bottom:none}
 /* phones: 16px form fields stop iOS Safari zooming the page in when one is tapped */
 @media (max-width:760px){input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=color]):not([type=file]),select,textarea{font-size:16px!important}}
 </style>
+
+<script defer src="/assets/engagement.js?v=1"></script>
+<script type="module" src="/assets/vitals.js?v=1"></script>
+<link rel="stylesheet" href="/assets/tool-guide.css?v=1">
 </head><body>
 <header class="site-hd"><style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
@@ -414,7 +418,7 @@ tbody tr:last-child td{border-bottom:none}
         <div class="tbl-hdr-row">
           <span class="tbl-label">Data values</span>
           <div class="btn-row">
-            <button class="icon-btn" onclick="exportPNG('fl-c','fl-title')">Save chart</button>
+            <button class="icon-btn" data-track-action="export_requested" onclick="exportPNG('fl-c','fl-title')">Save chart</button>
             <button class="copy-btn" id="fl-copy" onclick="flCopy()">Copy data</button>
           </div>
         </div>
@@ -509,7 +513,7 @@ tbody tr:last-child td{border-bottom:none}
         <div class="tbl-hdr-row">
           <span class="tbl-label">Data values</span>
           <div class="btn-row">
-            <button class="icon-btn" onclick="exportPNG('wi-c','wi-title')">Save chart</button>
+            <button class="icon-btn" data-track-action="export_requested" onclick="exportPNG('wi-c','wi-title')">Save chart</button>
             <button class="copy-btn" id="wi-copy" onclick="wiCopy()">Copy data</button>
           </div>
         </div>
@@ -616,7 +620,7 @@ tbody tr:last-child td{border-bottom:none}
         <div class="tbl-hdr-row">
           <span class="tbl-label">Data values</span>
           <div class="btn-row">
-            <button class="icon-btn" onclick="exportPNG('eq-c','eq-title')">Save chart</button>
+            <button class="icon-btn" data-track-action="export_requested" onclick="exportPNG('eq-c','eq-title')">Save chart</button>
             <button class="copy-btn" id="eq-copy" onclick="eqCopy()">Copy data</button>
           </div>
         </div>
@@ -691,7 +695,7 @@ tbody tr:last-child td{border-bottom:none}
         <div class="tbl-hdr-row">
           <span class="tbl-label">Data values</span>
           <div class="btn-row">
-            <button class="icon-btn" onclick="exportPNG('util-c','util-title')">Save chart</button>
+            <button class="icon-btn" data-track-action="export_requested" onclick="exportPNG('util-c','util-title')">Save chart</button>
             <button class="copy-btn" id="util-copy" onclick="utilCopy()">Copy data</button>
           </div>
         </div>
@@ -797,7 +801,7 @@ tbody tr:last-child td{border-bottom:none}
         </div>
         <div class="tbl-hdr-row"><span class="tbl-label">Data values</span>
           <div class="btn-row">
-            <button class="icon-btn" onclick="exportPNG('gem-c','gem-ct')">Save chart</button>
+            <button class="icon-btn" data-track-action="export_requested" onclick="exportPNG('gem-c','gem-ct')">Save chart</button>
             <button class="copy-btn" id="gem-copy" onclick="gemCopy()">Copy data</button>
           </div></div>
         <div class="tbl-wrap"><table>
@@ -857,7 +861,7 @@ tbody tr:last-child td{border-bottom:none}
         </div>
         <div class="tbl-hdr-row"><span class="tbl-label">Data values</span>
           <div class="btn-row">
-            <button class="icon-btn" onclick="exportPNG('jrc-c','jrc-ct')">Save chart</button>
+            <button class="icon-btn" data-track-action="export_requested" onclick="exportPNG('jrc-c','jrc-ct')">Save chart</button>
             <button class="copy-btn" id="jrc-copy" onclick="jrcCopy()">Copy data</button>
           </div></div>
         <div class="tbl-wrap"><table>
@@ -930,7 +934,7 @@ tbody tr:last-child td{border-bottom:none}
         </div>
         <div class="tbl-hdr-row"><span class="tbl-label">Data values</span>
           <div class="btn-row">
-            <button class="icon-btn" onclick="exportPNG('etris-c','etris-ct')">Save chart</button>
+            <button class="icon-btn" data-track-action="export_requested" onclick="exportPNG('etris-c','etris-ct')">Save chart</button>
             <button class="copy-btn" id="etris-copy" onclick="etrisCopy()">Copy data</button>
           </div></div>
         <div class="tbl-wrap"><table>
@@ -1021,7 +1025,7 @@ tbody tr:last-child td{border-bottom:none}
         </div>
         <div class="tbl-hdr-row"><span class="tbl-label">Data values</span>
           <div class="btn-row">
-            <button class="icon-btn" onclick="exportPNG('esrm-c','esrm-ct')">Save chart</button>
+            <button class="icon-btn" data-track-action="export_requested" onclick="exportPNG('esrm-c','esrm-ct')">Save chart</button>
             <button class="copy-btn" id="esrm-copy" onclick="esrmCopy()">Copy data</button>
           </div></div>
         <div class="tbl-wrap"><table>
@@ -1094,7 +1098,7 @@ tbody tr:last-child td{border-bottom:none}
         </div>
         <div class="tbl-hdr-row"><span class="tbl-label">Data values</span>
           <div class="btn-row">
-            <button class="icon-btn" onclick="exportPNG('ci-c','ci-ct')">Save chart</button>
+            <button class="icon-btn" data-track-action="export_requested" onclick="exportPNG('ci-c','ci-ct')">Save chart</button>
             <button class="copy-btn" id="ci-copy" onclick="ciCopy()">Copy data</button>
           </div></div>
         <div class="tbl-wrap"><table>
@@ -1140,6 +1144,7 @@ tbody tr:last-child td{border-bottom:none}
 
   <div id="wiz-results" style="margin-top:24px"></div>
 </div>
+<section class="platform-guide" aria-labelledby="platform-guide-title"><h2 id="platform-guide-title">Using hazus curve finder</h2><p>Filter the available Hazus functions by hazard, asset class and damage type. The plotted curves retain the units and assumptions of their original source.</p><details><summary>Try a worked example</summary><ol><li>Choose a hazard tab and an asset category.</li><li>Compare a structure curve with a contents curve only after checking their definitions.</li><li>Export the selected plot and retain its source and units with the result.</li></ol></details><nav aria-label="Related tools"><a href="/hazus/">Vulnerability functions</a><a href="/hazard-sequence-simulator/">Hazard sequence simulation</a></nav></section>
 <footer class="hazus-attr">
   <p>Powered by FEMA HAZUS 6.1 (public domain)</p>
 </footer>
@@ -1288,6 +1293,7 @@ function exportPNG(canvasId, titleId) {
   a.href = exp.toDataURL('image/png');
   a.download = (canvasId==='fl-c'?'flood':canvasId==='wi-c'?'wind':canvasId==='util-c'?'utility':'earthquake')+'_vulnerability.png';
   a.click();
+  window.PlatformMetrics?.emit('export_ready',{format:'png'});
 }
 
 // Remember selections across tab switches
