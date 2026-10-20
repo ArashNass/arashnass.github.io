@@ -3644,7 +3644,11 @@ const CINE = {
 };
 const creditPainting = (key, title) => `<figure><img src="${storyArt(key)}" alt="${title}" width="1536" height="1024"><figcaption>${title}</figcaption></figure>`;
 const CREDITS = `<header class="credit-heading"><p class="credit-eyebrow">A journey through Ferdowsi’s Shahnameh</p><div class="fa" lang="fa">هفت خوانِ رستم</div><h2>The Seven Labours of Rostam</h2><p class="credit-thanks">Thank you for playing.</p></header>
-  <img class="credit-hero" src="assets/ui/title-rostam.png?v=${V}" alt="Rostam in his tiger-skin coat" width="360" height="300">
+  <section class="credit-cast" aria-label="Legendary heroes">
+    <figure><img src="assets/ui/cast-sohrab.png?v=${V}" alt="Sohrab with his sword and shield" width="1020" height="1542"><figcaption>Sohrab</figcaption></figure>
+    <figure><img class="credit-hero" src="assets/ui/title-rostam.png?v=${V}" alt="Rostam in his tiger-skin coat" width="360" height="300"><figcaption>Rostam</figcaption></figure>
+    <figure><img src="assets/ui/cast-arash.png?v=${V}" alt="Arash the Archer with his bow and arrow" width="1020" height="1542"><figcaption>Arash the Archer</figcaption></figure>
+  </section>
   <div class="credit-gallery">${creditPainting('khan2-intro', 'The burning desert')}${creditPainting('khan4-intro', 'The enchanted garden')}${creditPainting('khan7-intro', 'The White Div’s mountain')}</div>
   <div class="credit-details"><section><h3>Created by</h3><p>Arash Nassirpour</p><h3>Inspired by</h3><p>Ferdowsi’s <em>Shahnameh</em><br>The Book of Kings, c. 1010 CE</p></section>
   <section><h3>Music &amp; sound</h3><p>Pixabay · alex-morgan<br>“Battle Boss Fight Game Music”<br>OpenGameArt · “100 CC0 SFX #2”</p></section>
