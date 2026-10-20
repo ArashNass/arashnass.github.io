@@ -54,7 +54,8 @@ const SIZE = { queen: 150, rider: 124, rostam: 112, lion: 148, jackal: 108, div:
 const BODY = { queen: [0.62, 0.42], rider: [0.3, 0.5], rostam: [0.143, 0.393], lion: [0.5, 0.36], jackal: [0.3, 0.22], div: [0.22, 0.34], scorpion: [0.4, 0.22], vulture: [0.33, 0.2], ram: [0.4, 0.4],
   dragon: [0.46, 0.42], rakhsh: [0.5, 0.5], bat: [0.32, 0.24], serpent: [0.31, 0.31], hag: [0.27, 0.42], beauty: [0.2, 0.47], spearman: [0.115, 0.386], olad: [0.17, 0.49], divwarrior: [0.31, 0.64], arzhang: [0.3, 0.7], whitediv: [0.2667, 0.3867], firediv: [0.2, 0.6], ghul: [0.5, 0.36] };
 const V = 92;
-const storyArt = key => `assets/cine/${key === 'khan7-intro' ? 'khan7-intro-v2' : key}.png?v=${V}`;
+const REVISED_STORY_ART = new Set(['khan1-intro', 'khan4-intro', 'khan4-outro', 'khan5-intro', 'khan5-outro', 'khan7-intro', 'end2']);
+const storyArt = key => `assets/cine/${key}${REVISED_STORY_ART.has(key) ? '-v2' : ''}.png?v=${V}`;
 const ZOOM = 2;                                                   // canvas pixels per world pixel   // bump to bust caches when assets change
 
 // PixelLab VFX strips in ./assets/fx: frame size, frame count, fps, and the effect's origin as a fraction of the frame
