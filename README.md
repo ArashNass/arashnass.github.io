@@ -51,3 +51,13 @@ Licensed under the GNU Affero General Public License v3.0 only (`AGPL-3.0-only`)
 ## Search submissions
 
 `./indexnow.sh` reads canonical URLs directly from `sitemap.xml` and notifies IndexNow engines. Use `./indexnow.sh --dry-run` to inspect the payload, or pass paths such as `/fun/shahnameh/`. Non-HTTPS, foreign-host and query/fragment URLs are rejected; unsuccessful submissions return a nonzero exit code. A successful submission confirms receipt, not indexing.
+
+## Engagement and field performance
+
+Shared `/assets/engagement.js` records input-free action names, successful user-triggered calculations, prepared exports, related-tool navigation and contact clicks. Initial defaults, local/debug/audit visits, DNT/GPC requests and untrusted synthetic interactions do not create engagement events. Numerical results, input values, uploaded filenames and contact addresses are never event parameters.
+
+`/assets/vitals.js` uses the vendored official `web-vitals` library to send actual LCP, INP and CLS field measurements to GA4. LCP/INP are milliseconds; CLS is a unitless score. These are measurements, not a Lighthouse score. The library version and license are in `assets/vendor/`.
+
+Tool guides are static HTML with a worked example and related links, styled by `/assets/tool-guide.css`. Child tool repositories load these shared assets from the domain root. Keep the shared assets deployed before updating a child repository. The earthquake dashboard injects its guide through the Python build template.
+
+Run metrics tests with `node tests/platform-metrics.cjs`. The canonical sitemap remains the source for IndexNow submissions.

@@ -412,8 +412,7 @@ body.theme-ec2 {
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Arash Nassirpour">
 <!-- Google Analytics -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-0WERZ6WKQY"></script>
-<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag("js",new Date());gtag("config","G-0WERZ6WKQY");</script>
+<script defer src="/assets/analytics.js?v=2"></script>
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -436,6 +435,10 @@ body.theme-ec2 {
 /* phones: 16px form fields stop iOS Safari zooming the page in when one is tapped */
 @media (max-width:760px){input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=color]):not([type=file]),select,textarea{font-size:16px!important}}
 </style>
+
+<script defer src="/assets/engagement.js?v=1"></script>
+<script type="module" src="/assets/vitals.js?v=1"></script>
+<link rel="stylesheet" href="/assets/tool-guide.css?v=1">
 </head>
 <body>
 <!-- shared site header -->
@@ -793,7 +796,7 @@ body.theme-ec2 {
   <div class="inp-row2">
     <div class="analyse-cell">
       <div class="error-box hidden" id="err-box"><span id="err-msg"></span></div>
-      <button class="analyse-btn" id="analyse-btn">
+      <button class="analyse-btn" id="analyse-btn" data-track-action="calculate_requested">
         <span id="btn-label">Analyse Section</span>
         <span id="btn-spin" class="spin hidden"></span>
       </button>
@@ -848,8 +851,8 @@ body.theme-ec2 {
         <div class="chart-export-row">
           <span class="export-row-label">Save:</span>
           <button class="chart-dl-btn" onclick="downloadChart('mn-chart','MN_Diagram')">PNG</button>
-          <button class="chart-dl-btn" id="dl-pdf" onclick="downloadPDF()">PDF Report</button>
-          <button class="chart-dl-btn" id="dl-xl" onclick="downloadExcel()">Excel Data</button>
+          <button class="chart-dl-btn" id="dl-pdf" data-track-action="export_requested" onclick="downloadPDF()">PDF Report</button>
+          <button class="chart-dl-btn" id="dl-xl" data-track-action="export_requested" onclick="downloadExcel()">Excel Data</button>
         </div>
       </div>
       <div class="kpi-row">
@@ -929,6 +932,7 @@ body.theme-ec2 {
 
 </div><!-- /page -->
 
+<section class="platform-guide" aria-labelledby="platform-guide-title"><h2 id="platform-guide-title">Using reinforced concrete sections</h2><p>Analyse axial–moment interaction, biaxial capacity and moment–curvature behaviour for a defined reinforced concrete section. Read the code selection and analysis checks alongside the plots.</p><details><summary>Try a worked example</summary><ol><li>Use the default section and wait for the calculation engine to become ready.</li><li>Run Analyse Section and inspect the interaction diagram and check summaries.</li><li>Change the reinforcement arrangement, rerun and compare the resulting capacity before exporting a report.</li></ol></details><nav aria-label="Related tools"><a href="/material-behaviour-explorer/">Material behaviour</a><a href="/performance-point-evaluator/">Performance point evaluation</a></nav></section>
 <footer class="footer">
   <span>Not a substitute for professional engineering judgement</span>
 </footer>
@@ -1651,6 +1655,7 @@ async function runAnalysis() {
     ["mn","biaxial","mc"].forEach(id =>
       document.getElementById(id+"-empty").style.display = "none");
     _analysisOK = true;
+    window.PlatformMetrics?.complete('calculate');
   } catch(e) {
     _analysisOK = false;
     document.getElementById("err-msg").textContent = "Error: " + e.message;
@@ -2305,6 +2310,7 @@ function downloadChart(canvasId, name) {
 function triggerDownload(blob, filename) {
   const url = URL.createObjectURL(blob);
   Object.assign(document.createElement("a"), {href: url, download: filename}).click();
+  window.PlatformMetrics?.emit('export_ready',{format:filename.split('.').pop().toLowerCase()});
   setTimeout(() => URL.revokeObjectURL(url), 2000);
 }
 
