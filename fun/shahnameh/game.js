@@ -399,7 +399,7 @@ const trialRecords = () => { try { const r = JSON.parse(store.get('sh-trials') |
 const onFloor = (b, t) => t.index % 4 !== 2;
 const FOE_GAP = 8;
 const groundFoe = f => f.active && f.body?.enable && f.body.allowGravity;
-const foeBusy = f => f.staggerUntil > f.scene.time.now || f.smash || f.cast || f.sting || f.thrust || f.leap ||
+const foeBusy = f => ['warn', 'rush', 'leap'].includes(f.l1state) || f.staggerUntil > f.scene.time.now || f.smash || f.cast || f.sting || f.thrust || f.leap ||
   (f.anims.isPlaying && /strike|smash|thrust|sting|throw|leap/.test(f.anims.currentAnim?.key || ''));
 const attackRole = f => ['bat', 'vulture', 'firediv'].includes(f.kind) ? 'ranged' : 'melee';
 function reserveAttack(s, f) {
@@ -502,11 +502,63 @@ function patrol(s, f, speed) {
   if (bound || wall || (f.body.blocked.down && (!ahead || ahead.index % 4 === 3))) f.dir *= -1;
   f.setVelocityX(f.dir * speed); f.setFlipX(f.dir < 0);
 }
+// First-labour combat: readable commitments, then a safe punish window.
+function firstTell(s, f, on) {
+  if (!on) { f.tell?.destroy(); f.tell = null; return; }
+  if (!f.tell?.active) {
+    f.tell = s.add.ellipse(f.x, f.body.top - 7, 12, 5, 0xffd279, 0.9).setStrokeStyle(1, 0xfff2cc).setDepth(12);
+    if (!f.tellBound) { f.tellBound = true; f.once('destroy', () => f.tell?.destroy()); }
+  }
+  f.tell.setPosition(f.x, f.body.top - 7).setScale(1 + Math.sin(s.time.now / 70) * 0.15);
+}
+function firstJackal(s, f, k, p) {
+  f.l1timer = (f.l1timer || 0) - k;
+  const state = f.l1state || 'stalk';
+  f.l1danger = state === 'rush';
+  firstTell(s, f, state === 'warn');
+  if (state === 'warn') {
+    f.setVelocityX(0);
+    if (f.l1timer <= 0) { f.l1state = 'rush'; f.l1timer = 24; f.l1danger = true; firstTell(s, f, false); }
+  } else if (state === 'rush') {
+    // The direction is locked at the tell; no tracking through a dodge or jump.
+    if (f.l1timer <= 0 || !foeStepFree(s, f, f.dir * 170 / 60 * k) || crowded(s, f, f.dir)) {
+      f.l1state = 'recover'; f.l1timer = 48; f.l1danger = false; f.setVelocityX(0);
+    } else f.setVelocityX(f.dir * 170);
+  } else if (state === 'recover') {
+    f.setVelocityX(0); if (f.l1timer <= 0) f.l1state = 'stalk';
+  } else {
+    if (!canHunt(s, f, p) || above(f, p)) { pace(s, f, 36); return; }
+    const dx = p.x - f.x; f.dir = Math.sign(dx) || f.dir;
+    if (Math.abs(dx) < 90 && Math.abs(p.body.bottom - f.body.bottom) < 25 && f.body.blocked.down && reserveAttack(s, f)) {
+      f.l1state = 'warn'; f.l1timer = 30; f.setVelocityX(0); firstTell(s, f, true);
+    } else f.setVelocityX(foeStepFree(s, f, f.dir * 3) && !crowded(s, f, f.dir) ? f.dir * 50 : 0);
+  }
+  f.setFlipX(f.dir < 0);
+}
+function firstDiv(s, f, k, p) {
+  f.hopT -= k;
+  if (f.l1state === 'warn') {
+    f.setVelocityX(0); firstTell(s, f, true); f.l1timer -= k;
+    if (f.l1timer <= 0) {
+      firstTell(s, f, false); f.l1state = 'leap'; f.leap = true;
+      f.setVelocity(hopVelocity(f, crowded(s, f, f.dir) ? 0 : f.dir * 82, 0.55), -230);
+    }
+  } else if (f.l1state === 'leap') {
+    if (f.body.blocked.down && f.body.velocity.y >= 0) { f.leap = false; f.l1state = 'recover'; f.l1timer = 38; f.setVelocityX(0); s.fx('dust', f.x, f.body.bottom, { depth: 6 }); }
+  } else if (f.l1state === 'recover') {
+    f.setVelocityX(0); f.l1timer -= k; if (f.l1timer <= 0) { f.l1state = 'stalk'; f.hopT = 12; }
+  } else if (f.body.blocked.down) {
+    if (!canHunt(s, f, p) || above(f, p)) { pace(s, f, 24); return; }
+    f.dir = Math.sign(p.x - f.x) || 1; f.setFlipX(f.dir < 0); f.setVelocityX(0);
+    if (f.hopT <= 0 && Math.abs(p.x - f.x) < 200 && reserveAttack(s, f)) { f.l1state = 'warn'; f.l1timer = 24; firstTell(s, f, true); }
+  }
+}
 const FOES = {
-  jackal: { tex: 'jackal-run', hp: 1, init: (s, f) => f.setVelocityX(-55), tick: (s, f) => patrol(s, f, 55) },
+  jackal: { tex: 'jackal-run', hp: 1, init: (s, f) => f.setVelocityX(-55), tick: (s, f, k, p) => cur === 1 ? firstJackal(s, f, k, p) : patrol(s, f, 55) },
   div: {
     tex: 'div-hop', hp: 2,
     tick(s, f, k, p) {
+      if (cur === 1) { firstDiv(s, f, k, p); return; }
       f.hopT -= k; if (!f.body.blocked.down) return;
       if (canHunt(s, f, p) && above(f, p)) { f.setVelocityX(0); if (f.hopT <= 0) { const post = postOf(s, f); f.dir = Math.abs(f.x - post) > TS ? Math.sign(post - f.x) : (Math.random() < 0.5 ? -1 : 1); f.setFlipX(f.dir < 0); f.setVelocity(hopVelocity(f, crowded(s, f, f.dir) ? 0 : f.dir * 50, 0.48), -200); f.hopT = 80 + Math.random() * 40; } return; }
       f.dir = Math.sign(p.x - f.x) || 1; f.setFlipX(f.dir < 0); f.setVelocityX(0);
@@ -693,7 +745,7 @@ const LEVELS = {
         const c = f.home.x / TS;
         f.roam = (c < 22 ? [12, 21] : c < 40 ? [29, 33] : c < 48 ? [42, 47.5] : f.kind === 'div' ? [70, 79] : [71, 81]).map(x => x * TS);
       }
-      hint(`The reeds are yours to explore. <b>Strike</b> with ${touch ? 'the mace button' : keyHTML('attack')}, or <b>jump onto a foe</b>.`);
+      hint(`Watch for a <b>golden tell</b>: jackals rush low; Divs leap. Let them miss, then <b>strike</b> with ${touch ? 'the mace button' : keyHTML('attack')}, or <b>jump onto a foe</b>.`);
     },
     // the storm over each boss fight: veil and cloud colours, the sun or moon behind it, lightning colour and pace, and its weather
     sky: { veil: 0x3a0a06, cloud: 0xa8401c, glow: 0xff7a2a, sun: [0.76, 0.34], bolt: 0xffd0a0, every: [260, 420], edge: 0x6a1004, fx: 'dust', paint: 'bg/storm.png' },
@@ -706,9 +758,9 @@ const LEVELS = {
       s.khan1Beat = beat;
       const cues = ['', '<b>A gap ahead.</b> Jump, then <b>jump again in the air</b>. Follow the provisions across.',
         '<b>The fire remembers you.</b> If you fall, you return to the last fire you lit.',
-        '<b>A blue Div ahead.</b> Let it leap, then strike as it lands. The high provisions reward a second jump.',
+        '<b>A blue Div ahead.</b> Its golden tell warns of a committed leap. Step aside, then strike as it lands. The high provisions reward a second jump.',
         '<b>Rest at the fire.</b> Thorns lie ahead: use the high ledges and your second jump.',
-        '<b>Two hunters ahead.</b> The jackal runs low; the Div leaps. Draw them apart and strike between their approaches.',
+        '<b>Two hunters ahead.</b> Gold warns of a rush or leap. Bait one, then strike during its recovery.',
         "<b>The last fire.</b> Gather your strength before entering the lion’s reeds."];
       hint(cues[beat]);
     },
@@ -1546,7 +1598,7 @@ class Play extends Phaser.Scene {
     this.cam.startFollow(this.player, true, 0.12, 0.12, W / 2, H / 2);
     this.cam.setRoundPixels(true);
     if (matchMedia('(prefers-reduced-motion: reduce)').matches) { this.cam.shake = () => this.cam; this.cam.flash = () => this.cam; }
-    this.maxHp = 5 + (upg().heart || 0) + (gentle() ? 2 : legend() ? -2 : 0) + (Object.keys(feathers()).length >= 21 ? 1 : 0); this.hp = this.maxHp; this.farr = +(store.get('sh-farr') || 0); this.rakhshFed = false; this.rakhshRode = false; this.coinCount = 0; this.kills = 0; this.wasGround = true; this.face = 1; this.inv = 0; this.atk = 0; this.cool = 0; this.coyote = 0; this.buf = 0; this.bossOn = false; this.done = false; this.t0 = this.time.now;
+    this.maxHp = 5 + (upg().heart || 0) + (gentle() ? 2 : legend() ? -2 : 0) + (Object.keys(feathers()).length >= 21 ? 1 : 0); this.hp = this.maxHp; this.farr = +(store.get('sh-farr') || 0); this.rakhshEarned = cur === 1 && !!R?.rakhshEarned; this.rakhshFed = this.rakhshEarned; this.rakhshRode = false; this.coinCount = 0; this.kills = 0; this.wasGround = true; this.face = 1; this.inv = 0; this.atk = 0; this.cool = 0; this.coyote = 0; this.buf = 0; this.bossOn = false; this.done = false; this.t0 = this.time.now;
     if (R) {
       this.coinCount = R.coins || 0; this.kills = R.kills || 0; this.t0 -= R.t || 0;
       for (const c of this.coins.getChildren().slice()) if (c.x < this.start.x) { c.glow?.destroy(); c.destroy(); }
@@ -1772,6 +1824,7 @@ class Play extends Phaser.Scene {
     if (f !== this.boss && f.hp > 0 && f.body.allowGravity && !force && (this.heavy || this.counterStrike)) {
       f.attackId = (f.attackId || 0) + 1; f.staggerUntil = this.time.now + 420;
       f.smash = f.cast = f.sting = f.thrust = f.leap = false; f.cool = Math.max(f.cool || 0, 45);
+      if (cur === 1) { firstTell(this, f, false); f.l1state = 'recover'; f.l1timer = 45; f.l1danger = false; }
       f.removeAllListeners('animationcomplete'); f.play(FOES[f.kind].tex, true);
       f.staggerFx?.destroy(); f.staggerFx = this.fx('stun', f.x, f.body.top - 4, { depth: 8 }).setScale(0.55);
     }
@@ -1786,7 +1839,7 @@ class Play extends Phaser.Scene {
     }
     if (f.hp <= 0) {
       if (f === this.boss) { f.onDown(); return true; }
-      this.kills++; f.staggerFx?.destroy(); f.staggerFx = null; f.body.enable = false; this.slay(f); this.gainFarr(4);
+      firstTell(this, f, false); this.kills++; f.staggerFx?.destroy(); f.staggerFx = null; f.body.enable = false; this.slay(f); this.gainFarr(4);
     }
     return true;
   }
@@ -1974,7 +2027,7 @@ class Play extends Phaser.Scene {
     this.cornerHeart(B.x, time);
     // a well-fed Rakhsh gallops in once: twelve seconds into the fight, or sooner if Rostam is hard pressed
     this.bossT = (this.bossT || 0) + this.bossStep();
-    if (this.rakhshFed && !this.rakhshRode && !this.mounted && !this.frozen && B.hp > 0 && B.body.enable && B.alpha > 0.5 && (B.kickable?.() ?? true) && (this.bossT > 720 || this.hp <= 2)) this.rakhshRides(B);
+    if (this.rakhshFed && !this.rakhshRode && !this.mounted && !this.frozen && B.hp > 0 && B.body.enable && B.alpha > 0.5 && (B.kickable?.() ?? true) && ((this.rakhshEarned && B === this.lion && B.calm() && this.bossT > 120) || this.bossT > 720 || this.hp <= 2)) this.rakhshRides(B);
   }
   rakhshRides(B) {
     // he always comes in from the left edge at a gallop, rears and kicks the boss, then gallops on and away off the right
@@ -2011,7 +2064,7 @@ class Play extends Phaser.Scene {
     const l = this.lion, p = this.player; if (!l?.active || l.hp <= 0) return;
     const read = this.bossRead(l), mad = l.hp <= l.max / 2, toP = Math.sign(p.x - l.x) || l.dir;
     l.tm -= this.bossStep();
-    if (mad && !l.mad) { l.mad = true; toast('The wounded lion circles warily. Watch its paws, not just its roar.'); }
+    if (mad && !l.mad) { l.mad = true; toast('The wounded lion swipes twice. Read each raised paw, then punish the recovery.'); }
     if (l.state === 'prowl') {
       // Give ground under melee pressure, close on a retreat, and intercept habitual jumps.
       const left = l.keep * TS, right = this.wallR.x - 45;
@@ -2038,7 +2091,7 @@ class Play extends Phaser.Scene {
         ]);
         if (!move) { l.tm = 8; return; }
         this.bossAim(l, { roar: 'Roar: a charge is coming', crouch: 'Low crouch: a hunting leap', pawReady: 'Raised paw: step clear', circle: 'The lion circles you' }[move]);
-        l.state = move; l.tm = move === 'roar' ? 44 : move === 'circle' ? 30 : 36; l.setVelocityX(0); l.anims.stop(); l.setFrame(0);
+        l.pawChain = 0; l.state = move; l.tm = move === 'roar' ? 44 : move === 'circle' ? 30 : 36; l.setVelocityX(0); l.anims.stop(); l.setFrame(0);
         if (move === 'roar') { l.play('lion-roar'); sfx('roar'); this.roarRings(l); }
         else if (move === 'circle') l.play('lion-walk');
       }
@@ -2049,7 +2102,7 @@ class Play extends Phaser.Scene {
       if ((l.dir < 0 ? l.body.blocked.left || l.hitKeep : l.body.blocked.right) || l.tm <= 0) this.lionOpening(l, 'stun', 86);
     } else if (l.state === 'circle') {
       l.setVelocityX(-l.dir * 70);
-      if (l.tm <= 0) { const swipe = !read.ledge && Math.abs(p.body.bottom - l.body.bottom) < 45 && read.distance < 90; this.bossAim(l, swipe ? 'Raised paw: step clear' : 'Low crouch: a hunting leap'); l.state = swipe ? 'pawReady' : 'crouch'; l.tm = 38; l.setVelocityX(0); }
+      if (l.tm <= 0) { const swipe = !read.ledge && Math.abs(p.body.bottom - l.body.bottom) < 45 && read.distance < 90; this.bossAim(l, swipe ? 'Raised paw: step clear' : 'Low crouch: a hunting leap'); l.pawChain = 0; l.state = swipe ? 'pawReady' : 'crouch'; l.tm = 38; l.setVelocityX(0); }
     } else if (l.state === 'crouch') {
       l.setVelocityX(0); l.setTint(0xffdc9a);
       if (l.tm <= 0) {
@@ -2064,7 +2117,12 @@ class Play extends Phaser.Scene {
       if (l.tm <= 0) { l.clearTint(); l.state = 'paw'; l.tm = 24; l.pawed = false; this.fx('swing', l.x + l.dir * 38, l.body.center.y, { flip: l.dir < 0 }); }
     } else if (l.state === 'paw') {
       if (!l.pawed && l.tm < 16) { l.pawed = true; this.hazard(l.dir > 0 ? l.x + 15 : l.x - 88, l.body.bottom - 48, 73, 48, 150); sfx('swing'); }
-      if (l.tm <= 0) this.lionOpening(l, 'recover', 58);
+      if (l.tm <= 0) {
+        if (mad && !l.pawChain) {
+          l.pawChain = 1; this.bossAim(l, 'Second raised paw: one more swipe');
+          l.state = 'pawReady'; l.tm = 36; l.setVelocityX(0);
+        } else { l.pawChain = 0; this.lionOpening(l, 'recover', mad ? 76 : 58); }
+      }
     } else if (l.calm()) {
       l.setVelocityX(0); this.stars?.setPosition(Math.round(l.x), Math.round(l.body.top - 6));
       if (l.tm <= 0) { l.clearTint(); l.anims.resume(); this.stars?.destroy(); this.stars = null; l.state = 'prowl'; l.tm = (mad ? 28 : 45) + Math.random() * 30; }
@@ -2307,11 +2365,11 @@ class Play extends Phaser.Scene {
       }
       if (Phaser.Geom.Intersects.RectangleToRectangle(b, f.body)) {
         if (b.velocity.y > 60 && b.bottom - f.body.top < 12) { this.damage(f, 2); p.setVelocityY(keys.jump ? -330 : -230); }
-        else this.hurt(f.x);
+        else if (cur !== 1 || (f.kind !== 'jackal' && f.kind !== 'div') || (f.kind === 'jackal' ? f.l1danger : f.l1state === 'leap')) this.hurt(f.x);
       }
     }
     // checkpoint
-    for (const a of this.altars) if (!a.lit && p.x > a.x) { this.kindle(a); resumeAt = { n: cur, i: this.altars.indexOf(a), well: !!a.onLight }; }
+    for (const a of this.altars) if (!a.lit && p.x > a.x) { this.kindle(a); resumeAt = { n: cur, i: this.altars.indexOf(a), well: !!a.onLight, rakhshEarned: !!this.rakhshEarned }; }
     // a taken platform heart grows back once Rostam has been away from it for 2 s
     this.regrow = this.regrow.filter(h => {
       const near = Math.abs(p.x - h.x) < 3 * TS && Math.abs(b.bottom - (h.y + 12)) < 10;
@@ -3436,7 +3494,7 @@ let pick = cur, mapFrom = null;
 const GUIDE = [
   { k: 1, fa: 'شیرِ نیستان', name: 'The Lion of the Reeds', art: ['lion-roar', 8, 148],
     tale: 'Rostam lay down to sleep among the reeds while Rakhsh grazed. In the night a great lion crept out of the thicket. In the old tale faithful Rakhsh trampled it; here Rostam must stand against it himself.',
-    how: ['The lion <b>roars before charging</b>, glows <b>gold before pouncing</b> and <b>orange before a paw swipe</b>. Its hide turns blows during attacks.', 'It watches repeated jumps, retreats from pressure and can <b>pounce onto your ledge</b>. Keep changing your spacing.', 'Dodge the committed attack, then <b>strike while the stars circle its head</b>. A missed pounce or swipe also leaves an opening. Hold Strike for a <b>heavy blow</b>.'],
+    how: ['The lion <b>roars before charging</b>, glows <b>gold before pouncing</b> and <b>orange before a paw swipe</b>. When wounded, it swipes twice before resting. Its hide turns blows during attacks.', 'It watches repeated jumps, retreats from pressure and can <b>pounce onto your ledge</b>. Keep changing your spacing.', 'Dodge the committed attack, then <b>strike while the stars circle its head</b>. A missed pounce or swipe also leaves an opening. Hold Strike for a <b>heavy blow</b>.'],
     more: [['jackal-run', 8, 108, 'Jackal', 'Runs straight at you. One blow.'], ['div-hop', 8, 108, 'Blue Div', 'Hops toward you. Strike as it lands.']] },
   { k: 2, fa: 'ملکهٔ کژدم', name: 'The Scorpion Queen', art: ['k2/queen-sting', 9, 150],
     tale: 'Beyond the reeds lay a desert where no bird flew. A ram led the dying Rostam to a hidden spring, and when its four bells rang the water burst from the rock; but the Queen of the scorpions had made that water her own.',
