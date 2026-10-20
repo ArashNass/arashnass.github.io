@@ -3636,6 +3636,7 @@ const CINE = {
     ['open6', 'هفت خوان', 'At dawn they rode out together, the hero and his horse. Seven labours lay between Rostam and his king. And this… is where your journey begins.']
   ],
   ending: [
+    ['khan7-outro', 'پایانِ هفت‌خان', 'The cavern fell silent. Seven labours lay behind Rostam; the king\'s sight remained to be restored.'],
     ['end1', 'خونِ دلِ دیو', 'And so the White Div fell. Rostam took the blood of the demon\'s heart and touched it to the eyes of the king. And light came flooding back: to Kay Kavus, and to every one of his warriors.'],
     ['end2', 'آزادی', 'Out of the dark, the army of Iran walked into the morning, and Rostam rode at its head. High above them the Simurgh turned in the sun, watching over the son of the child she had once raised.'],
     ['end3', 'جهان‌پهلوان', 'In the hall of kings, Kay Kavus honoured Rostam before the whole court, and old Zal wept with pride. Seven labours. Seven terrors. And the hero had overcome them all. Here ends the tale… but the Book of Kings has many more.']
@@ -3791,6 +3792,7 @@ $('s-cine').querySelector('.cdots').onclick = e => { const k = +e.target.dataset
 // the tale in pictures: every picture of the prologue and the ending, to watch from wherever the player likes. The
 // ending stays sealed until the White Div has fallen
 const CLIP_NAMES = { open1: 'The minstrel at court', open2: 'The White Div’s storm', open3: 'The messenger', open4: 'Two roads', open5: 'Rostam and Rakhsh', open6: 'Riding out',
+  'khan7-outro': 'The White Div — The labour completed',
   end1: 'The king sees again', end2: 'The army set free', end3: 'The hero of the world',
   "khan1-intro": "The Lion of the Reeds — The road ahead",
   "khan1-outro": "The Lion of the Reeds — The labour completed",

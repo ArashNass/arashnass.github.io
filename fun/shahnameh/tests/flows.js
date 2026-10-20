@@ -28,7 +28,9 @@ try{
    log(!document.getElementById('s-win').classList.contains('hidden'),'Khan '+n+' closing leads to results');
   }else{
    scene.freeKing();await until(()=>!document.getElementById('s-cine').classList.contains('hidden'),'ending after freeing king',20000);
-   log(document.querySelector('.cimg.on')?.getAttribute('src').includes('end1'),'Khan VII keeps the king-restoration ending');
+   log(document.querySelector('.cimg.on')?.getAttribute('src').includes('khan7-outro'),'Khan VII closes with the defeated White Div');
+   document.getElementById('cineNext').click();document.getElementById('cineNext').click();
+   log(document.querySelector('.cimg.on')?.getAttribute('src').includes('end1'),'The king-restoration scene follows the final labour closing');
    const before=localStorage.getItem('sh-best-7');
    issues.push({id:'final-save',beforeEnding:before,detail:'Seventh completion snapshot observed before the ending is dismissed.'});
    document.getElementById('cineSkip').click();await until(()=>!document.getElementById('s-win').classList.contains('hidden'),'final results');
@@ -37,7 +39,7 @@ try{
  }
  // Replay eligibility, return flow, and already completed level starts.
  S.openMap(false);document.getElementById('prologueBtn').click();
- log(document.querySelectorAll('#clipList .clip[data-play]').length===22,'Replay library includes 6 prologue, 13 labour, and 3 ending scenes');
+ log(document.querySelectorAll('#clipList .clip[data-play]').length===23,'Replay library includes 6 prologue, 13 labour, and 4 ending scenes');
  document.querySelector('#clipList [data-play="intro3"]').click();
  log(document.querySelector('.cimg.on')?.getAttribute('src').includes('khan3-intro'),'Replay selects the correct labour scene');
  document.getElementById('cineSkip').click();
