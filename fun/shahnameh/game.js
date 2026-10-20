@@ -4,6 +4,7 @@
 (() => {
 'use strict';
 const $ = id => document.getElementById(id);
+const trackGame = (name, params) => { try { window.shahnamehTrack?.(name, params); } catch (_) { /* Analytics must never interrupt play. */ } };
 const store = { get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }, set(k, v) { try { localStorage.setItem(k, v); } catch (e) {} } };
 // what the provisions are for. Every one goes into Rostam's purse, kept from labour to labour and spent at the fire
 // altars on lasting gifts; every one also feeds his Farr (divine glory), which when full can be unleashed; and eight
@@ -2147,6 +2148,7 @@ class Play extends Phaser.Scene {
     if (cur < LABOURS) store.set('sh-unlocked', Math.max(unlocked(), cur + 1));
     const bk = cur === 1 ? 'sh-best' : 'sh-best-' + cur, previousBest = +(store.get(bk) || 0);
     if (!previousBest || seconds < previousBest) store.set(bk, seconds);
+    trackGame('level_end', { level_name: String(cur), success: true, duration_seconds: seconds, stars });
     return this.victory = { seconds, stars, healthy, allFeathers, previousBest, legend: legend(), hp: this.hp, coins: this.coinCount, kills: this.kills };
   }
   win(f) {
@@ -3427,6 +3429,7 @@ function begin(n = cur, rise = false, keepRush = false, afterStory = false) {
   paused = false; if (game.scene.isPaused('play')) game.scene.resume('play');
   const changed = n !== cur; cur = n; store.set('sh-cur', n);
   if (sc.done || sc.started || changed) { $('toast').classList.remove('on'); hint(null); sc.scene.restart(); }   // a fresh scene brings its own hint
+  trackGame('level_start', { level_name: String(n), checkpoint_retry: !!rise, mode: keepRush ? 'boss_rush' : 'story' });
   sc.started = true; playing = true; music(true); document.body.classList.add('playing');
 }
 // the road of seven labours: pick any labour you have reached
