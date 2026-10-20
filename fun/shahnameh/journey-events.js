@@ -1,0 +1,305 @@
+/* Playable story encounters. Existing art, real terrain, committed warnings. */
+(() => {
+  'use strict';
+  class Journey {
+    constructor(s, n, api) {
+      this.s = s; this.n = n; this.api = api; this.live = true; this.closed = false;
+      this.objects = []; this.marks = []; this.hazards = []; this.targets = []; this.bridges = []; this.log = []; this.once = new Set();
+      this.next = 0; this.phase = 'approach';
+      s.events.once('shutdown', () => this.destroy());
+      if (n === 4) this.makeGarden();
+      if (n === 6) this.makeDrums();
+      if (n === 7) this.makeMountain();
+    }
+    own(o) { this.objects.push(o); return o; }
+    later(ms, fn) { this.s.time.delayedCall(ms, () => { if (this.live && !this.closed && !this.s.done) fn(); }); }
+    note(id, fa, title, text) {
+      if (this.once.has(id)) return; this.once.add(id); this.log.push({ id, at: this.s.time.now, x: this.s.player.x });
+      this.api.banner(fa, title); this.api.hint(text);
+    }
+    actor(tex, x, y, size, depth = 4) {
+      const a = this.own(this.s.add.sprite(x, y, tex, 0).setOrigin(0.5, 0.97).setDepth(depth));
+      a.setDisplaySize(size, size); if (this.s.anims.exists(tex)) a.play(tex); return a;
+    }
+    floor(x) { return (this.s.groundAt(x) ?? 14) * 16; }
+    rest(x, margin = 48) { return this.s.altars.some(a => Math.abs(a.x - x) < margin); }
+    mark(x, y, width, color = 0xffa75a) {
+      const a = this.own(this.s.add.ellipse(x, y - 2, width, 8, color, 0.48).setStrokeStyle(1, color).setDepth(12));
+      this.s.tweens.add({ targets: a, alpha: 0.15, yoyo: true, repeat: 3, duration: 110 });
+      this.marks.push(a); this.later(1800, () => a.destroy()); return a;
+    }
+    zone(x, y, width, height, ms, source = 'journey') {
+      this.hazards.push({ r: new Phaser.Geom.Rectangle(x, y, width, height), until: this.s.time.now + ms, source });
+    }
+    fireAt(x, delay = 900) {
+      if (this.rest(x)) return;
+      const y = this.floor(x), mark = this.mark(x, y, 36);
+      this.later(delay, () => {
+        mark.destroy(); const f = this.own(this.s.fx('fire', x, y + 2, { depth: 7 }).setScale(1.15));
+        this.s.light(f, 0.75, 0.08);
+        this.zone(x - 15, y - 32, 30, 32, 650, 'attack');
+        this.later(650, () => f.destroy());
+      });
+    }
+    target(o, bounds, hit) { const t = { o, bounds, hit, swing: null }; this.targets.push(t); return t; }
+    strikeTargets() {
+      const s = this.s;
+      if (!(s.atk > 3 && s.atk < 12) || !s.hitDone) return;
+      const box = s.strikeBox(s.heavy ? 22 : 0);
+      for (const t of this.targets) if (t.o.active && t.swing !== s.hitDone && Phaser.Geom.Intersects.RectangleToRectangle(box, t.bounds())) {
+        t.swing = s.hitDone; t.hit(s.heavy === 'heavy' ? 3 : s.heavy || s.counterStrike ? 2 : 1);
+      }
+    }
+    tick(time, delta) {
+      const s = this.s; if (!this.live) return;
+      if (s.bossOn || s.done) {
+        if (this.n === 4 && s.unmasked && !this.withering) this.wither();
+        this.stop(); return;
+      }
+      if (s.frozen || this.closed) return;
+      const dt = Math.min(delta, 50) / 1000;
+      if (time >= (this.gcAt || 0)) { this.objects = this.objects.filter(o => o.active); this.marks = this.marks.filter(o => o.active); this.gcAt = time + 5000; }
+      this['stage' + this.n](time, dt);
+      this.strikeTargets();
+      this.hazards = this.hazards.filter(h => {
+        if (time >= h.until) return false;
+        if (Phaser.Geom.Intersects.RectangleToRectangle(s.player.body, h.r)) s.hurt(h.r.centerX, false, h.source);
+        return true;
+      });
+    }
+    stage1(time, dt) {
+      const s = this.s, p = s.player;
+      if (this.phase === 'approach' && p.x >= 8 * 16 && p.x < 27 * 16) {
+        this.phase = 'hunt'; this.next = time + 1500;
+        this.hunter = this.actor('lion-run', Math.max(16, p.x - 130), this.floor(p.x), 148);
+        this.target(this.hunter, () => new Phaser.Geom.Rectangle(this.hunter.x - 27, this.hunter.y - 65, 54, 65), () => {
+          this.hunter.x = Math.max(8, this.hunter.x - 52); this.next = s.time.now + 1500;
+          s.fx('impact', this.hunter.x + 25, this.hunter.y - 35, { depth: 8 }); if ((this.drivenBack = (this.drivenBack || 0) + 1) <= 3) s.gainFarr(2);
+        });
+        this.note('lion-pursuit', 'شیرِ نیستان', 'The reeds are moving', '<b>The lion follows!</b> Keep moving, leap the gap, or strike to drive it back. Reach Rakhsh by the fire.');
+      }
+      if (this.phase !== 'hunt') return;
+      const h = this.hunter;
+      h.x += Math.min(105 * dt, Math.max(0, p.x - 48 - h.x));
+      // Its committed leap follows the visible gap rather than walking through it.
+      const gap = h.x > 21 * 16 && h.x < 25 * 16;
+      h.y = gap ? 224 - Math.sin((h.x - 21 * 16) / (4 * 16) * Math.PI) * 65 : this.floor(h.x);
+      if (time >= this.next && p.x - h.x < 120 && !this.rest(p.x)) {
+        this.next = time + 2200; const x = p.x - 8, y = this.floor(x), m = this.mark(x, y, 42);
+        h.play('lion-roar', true);
+        this.later(850, () => { m.destroy(); if (this.phase !== 'hunt') return; this.zone(x - 20, y - 42, 40, 42, 180, 'attack'); if (h.active) h.play('lion-run'); });
+      }
+      if (p.x >= 27 * 16) {
+        this.phase = 'rescued'; this.hazards = []; this.marks.forEach(m => m.active && m.destroy());
+        const r = this.actor('rakhsh-gallop', p.x + 120, 224, 104, 6).setFlipX(true);
+        s.tweens.add({ targets: r, x: h.x + 48, duration: 600, onComplete: () => {
+          if (!this.live || this.closed || !r.active || !h.active) return;
+          r.play('rakhsh-rear'); s.fx('impact', h.x + 20, h.y - 35, { depth: 9 }); this.api.sfx('neigh');
+          s.tweens.add({ targets: h, x: h.x - 160, alpha: 0, duration: 750, onComplete: () => h.destroy() });
+          this.later(1200, () => { if (r.active) { r.play('rakhsh-gallop'); s.tweens.add({ targets: r, x: r.x - 300, alpha: 0, duration: 900, onComplete: () => r.destroy() }); } });
+        } });
+        this.note('rakhsh-rescue', 'رخش', 'Rakhsh holds the reeds', '<b>Rakhsh drives the lion back.</b> The sacred fire is your refuge. Its den still lies ahead.');
+      }
+    }
+    stage2(time, dt) {
+      const s = this.s, p = s.player;
+      if (p.x < 70 * 16 || p.x > 104 * 16 || s.prayed) { this.surge?.o.destroy(); this.surge = null; return; }
+      this.note('sand-shelters', 'بادِ بیابان', 'The desert is on the move', '<b>Moving sand drains your water.</b> Jump the low surge, or take shelter on the high rocks.');
+      if (!this.surge && time >= this.next) {
+        this.next = time + 5200; const x = 71 * 16, y = 224, m = this.mark(x + 50, y, 110, 0xf4d185);
+        this.surge = { x, age: -0.8, hit: false, o: this.own(s.add.rectangle(x, y - 11, 32, 22, 0xe8b35d, 0.65).setDepth(7).setVisible(false)) };
+        this.later(800, () => m.destroy());
+      }
+      const v = this.surge; if (!v) return; v.age += dt;
+      if (v.age < 0) return;
+      v.x += 155 * dt; v.o.setX(v.x).setVisible(true).setAlpha(0.5 + Math.sin(time * 0.03) * 0.15);
+      if (!v.hit && !this.rest(p.x) && Phaser.Geom.Intersects.RectangleToRectangle(p.body, new Phaser.Geom.Rectangle(v.x - 16, 202, 32, 22))) {
+        v.hit = true; s.water = Math.max(0, s.water - 8); s.renderWater(); s.fx('dust', p.x, p.body.bottom, { depth: 8 });
+      }
+      if (v.x > 99 * 16) { v.o.destroy(); this.surge = null; }
+    }
+    stage3(time) {
+      const p = this.s.player;
+      for (const [at, positions] of [[12, []], [34, [36, 39]], [66, [70, 73]], [98, [100, 103]]]) {
+        if (p.x < at * 16 || p.x > (at + 10) * 16 || this.once.has('dragon-' + at)) continue;
+        this.note('dragon-' + at, 'اژدها', 'A shadow crosses the moon', '<b>Rakhsh senses the dragon.</b> The red marks show where its breath will fall. Ride through the openings or wait for the fire to fade.');
+        const shadow = this.actor('dragon-move', p.x + 310, 125, 165, 11.1).setTint(0x51416b).setAlpha(0.8);
+        this.s.tweens.add({ targets: shadow, x: p.x - 320, y: 75, duration: 2400, onComplete: () => shadow.destroy() });
+        positions.forEach((c, i) => this.fireAt((c + 0.5) * 16, 1000 + i * 350));
+        this.s.sparkle(p.x, p.body.bottom, 0xffdc8a);
+      }
+    }
+    makeGarden() {
+      for (const [a, b] of [[35,39],[67,72],[87,90]]) this.bridges.push({ a, b, row: 14, state: 'gone', next: 0, tiles: [] });
+    }
+    bridge(b, on) {
+      const layer = this.s.layer;
+      if (!layer?.scene) return;
+      if (on) {
+        for (let c = b.a; c <= b.b; c++) { const t = layer.putTileAt(2, c, b.row); t.setCollision(false, false, true, false); t.tint = 0x79d29a; t.alpha = 0.9; }
+      } else for (let c = b.a; c <= b.b; c++) layer.removeTileAt(c, b.row);
+    }
+    stage4(time) {
+      const p = this.s.player;
+      if (p.x >= 25 * 16) this.note('living-garden', 'باغِ افسون', 'The garden changes its mind', '<b>Green bridges bloom over the thorns.</b> Violet means they are about to vanish. Take the shortcut quickly, or use the permanent high ledges.');
+      for (const b of this.bridges) {
+        if (Math.abs(p.x - (b.a + b.b) * 8) > 26 * 16) continue;
+        if (b.state === 'gone' && time >= b.next) { this.bridge(b, true); b.state = 'bloom'; b.next = time + 4200; }
+        else if (b.state === 'bloom' && time >= b.next) {
+          b.state = 'fading'; b.next = time + 950;
+          for (let c = b.a; c <= b.b; c++) { const t = this.s.layer.getTileAt(c, b.row); if (t) t.tint = 0xc278ce; }
+          this.mark((b.a + b.b + 1) * 8, 224, (b.b - b.a + 1) * 16, 0xc278ce);
+        } else if (b.state === 'fading' && time >= b.next) { this.bridge(b, false); b.state = 'gone'; b.next = time + 2600; }
+      }
+    }
+    wither() {
+      this.withering = true;
+      for (const o of this.s.children.list) if (o.texture?.key === 'k4-far') this.s.tweens.add({ targets: o, alpha: 0.45, duration: 1600 });
+      this.s.mist?.setTint(0x704070);
+      this.api.toast('The garden withers. Its living bridges were part of the spell.');
+    }
+    mount(on) {
+      const s = this.s, p = s.player, body = p.body, foot = body.bottom, vx = body.velocity.x, vy = body.velocity.y;
+      p.x = body.x - p.scaleX * (body.offset.x - p.displayOriginX); p.y = body.y - p.scaleY * (body.offset.y - p.displayOriginY);
+      s.mounted = on; s.dodgeT = 0; s.dodgeBuf = 0; s.atk = 0; s.pose = null; s.chargeT = 0; s.chargeFull = false; s.chargeGlow?.destroy(); s.chargeGlow = null;
+      p.setTexture(on ? 'ride-gallop' : 'rostam-idle', 0); s.fit(p, on ? 'rider' : 'rostam');
+      body.updateFromGameObject(); p.y += foot - body.bottom; body.updateFromGameObject();
+      body.prev.copy(body.position); body.prevFrame.copy(body.position); body.autoFrame.copy(body.position);
+      p.setVelocity(vx, vy); p.play(on ? 'ride-gallop' : 'rostam-idle');
+      this.mountedByJourney = on;
+    }
+    stage5(time, dt) {
+      const s = this.s, p = s.player;
+      if (this.phase === 'approach' && p.x >= 50 * 16 && p.x < 106 * 16 && s.atk <= 0 && !s.heavyGo && !(s.dodgeT > 0)) {
+        this.phase = 'pursuit'; this.next = time + 1000; this.mount(true);
+        this.scout = this.actor('olad-walk', p.x + 155, this.floor(p.x + 155), 112, 5).setFlipX(false);
+        this.target(this.scout, () => new Phaser.Geom.Rectangle(this.scout.x - 18, this.scout.y - 75, 36, 75), () => {
+          this.next = s.time.now + 1500; this.scout.x += 35; s.fx('impact', this.scout.x - 20, this.scout.y - 35, { depth: 8 }); s.gainFarr(3);
+        });
+        this.note('olad-pursuit', 'اولاد', 'The warden retreats', '<b>Rakhsh carries you after Olad!</b> Ride over the rocks and strike from the saddle. Knock a flying knife back, or jump its committed path.');
+      }
+      if (this.phase !== 'pursuit') { if (this.mountedByJourney && p.body.blocked.down && s.atk <= 0) this.mount(false); return; }
+      const o = this.scout;
+      o.x += Math.min(100 * dt, Math.max(0, p.x + 120 - o.x)); o.y = this.floor(o.x); o.setFlipX(p.x < o.x);
+      if (time >= this.next && p.x < 103 * 16 && !this.rest(p.x)) {
+        this.next = time + 2400; const target = { x: p.body.center.x, y: p.body.center.y }, x = o.x - 20, y = o.y - 54;
+        const warning = this.own(s.add.line(0, 0, x, y, target.x, target.y, 0xffd28a, 0.65).setOrigin(0).setDepth(12)); warning.journeyWarning = true;
+        this.later(750, () => {
+          warning.destroy(); if (!o.active || this.phase !== 'pursuit') return;
+          const a = Math.atan2(target.y - y, target.x - x), sh = s.shoot(x, y, Math.cos(a) * 180, Math.sin(a) * 180, 'knife', { life: 2000 });
+          sh.curse = true; sh.journey = true; sh.journeyTarget = o; sh.setRotation(a);
+        });
+      }
+      for (const sh of s.shots.getChildren()) if (sh.active && sh.back && sh.journeyTarget === o && Phaser.Geom.Intersects.RectangleToRectangle(sh.getBounds(), new Phaser.Geom.Rectangle(o.x - 20, o.y - 75, 40, 75))) {
+        sh.destroy(); o.x += 45; this.next = time + 1800; s.gainFarr(8); s.combatWord('Turned back');
+      }
+      if (p.x >= 106 * 16) {
+        this.phase = 'escaped'; this.next = Infinity; for (const warning of this.objects) if (warning.active && warning.journeyWarning) warning.destroy(); if (p.body.blocked.down && s.atk <= 0) this.mount(false);
+        for (const sh of s.shots.getChildren()) if (sh.journey) sh.destroy();
+        s.tweens.add({ targets: o, x: o.x + 200, alpha: 0, duration: 750, onComplete: () => o.destroy() });
+        this.note('olad-stand', 'اولاد', 'The warden makes his stand', '<b>Light the last fire.</b> Olad has nowhere left to retreat.');
+      }
+    }
+    makeDrums() {
+      this.drums = [69,75].map(c => {
+        const g = this.own(this.s.add.container((c + 0.5) * 16, 144).setDepth(5));
+        g.add([this.s.add.rectangle(0, -13, 22, 25, 0x783c32).setStrokeStyle(2, 0xd7ae62), this.s.add.ellipse(0, -25, 23, 8, 0xf0d5a0).setStrokeStyle(1, 0x8a552e), this.s.add.rectangle(0, -10, 4, 23, 0xe7c279)]);
+        this.s.light(g, 0.65, 0.06);
+        const d = { g, hp: 2 };
+        this.target(g, () => new Phaser.Geom.Rectangle(g.x - 14, g.y - 32, 28, 32), amount => {
+          d.hp -= amount; this.s.fx('impact', g.x, g.y - 15, { depth: 8 });
+          if (d.hp <= 0) { g.destroy(); this.s.gainFarr(8); this.s.combatWord('War drum silenced'); }
+        }); return d;
+      });
+    }
+    stage6(time) {
+      const s = this.s; if (!s.horde || s.hordeDone) { this.hazards = []; for (const o of this.objects) if (o.active && o.journeyLane) o.destroy(); return; }
+      this.note('war-drums', 'کوسِ جنگ', 'Silence the war drums', '<b>Six waves.</b> Break the two drums on the high platform to stop their fire lanes. Red ground means jump or change sides.');
+      if (s.horde.wave < 2 || !this.drums.some(d => d.g.active) || time < this.next) return;
+      this.next = time + Math.max(2600, 4200 - s.horde.wave * 180);
+      const choices = this.drums.filter(d => d.g.active), d = choices[this.lane = ((this.lane ?? -1) + 1) % choices.length];
+      const left = d === this.drums[0], a = left ? 60 : 77, b = left ? 68 : 84, x = (a + b + 1) * 8;
+      const mark = this.mark(x, 224, (b - a + 1) * 16, 0xff7050); mark.journeyLane = true;
+      this.later(1000, () => {
+        mark.destroy(); if (!d.g.active || !s.horde || s.hordeDone) return;
+        const flames = [];
+        for (let c = a; c <= b; c += 2) { const f = this.own(s.fx('fire', (c + 0.5) * 16, 225, { depth: 7 })); f.journeyLane = true; flames.push(f); }
+        this.zone(a * 16, 204, (b - a + 1) * 16, 20, 650);
+        this.later(650, () => flames.forEach(f => f.destroy()));
+      });
+    }
+    makeMountain() {
+      this.crumble = [];
+      for (const [c, r] of [[100,10],[101,10],[103,9],[104,9],[134,11],[135,11]]) {
+        const tile = this.s.layer.getTileAt(c, r); if (tile) this.crumble.push({ c, r, index: tile.index, state: 'solid', until: 0 });
+      }
+      const x = 141.5 * 16;
+      if (this.s.start.x < x) {
+        this.seal = this.own(this.s.add.rectangle(x, 224, 15, 224, 0x9ddfff, 0.58).setOrigin(0.5, 1).setStrokeStyle(2, 0xd8f3ff).setDepth(12));
+        this.s.physics.add.existing(this.seal, true); this.s.physics.add.collider(this.s.player, this.seal);
+        this.seal.setAlpha(0);
+        this.sealArt = this.own(this.s.add.container(x, 0).setDepth(12));
+        for (const [dx, width, alpha] of [[-9,18,0.65],[7,19,0.7],[0,17,0.9]]) this.sealArt.add(this.s.add.image(dx, 0, 'icicle').setOrigin(0.5, 0).setDisplaySize(width, 224).setTint(0xbceaff).setAlpha(alpha));
+        this.sealRunes = [122,140,158].map(y => this.s.add.rectangle(0, y, 7, 7, 0xffe3a0).setRotation(Math.PI / 4).setStrokeStyle(1, 0xfff6d7));
+        this.sealArt.add(this.sealRunes); this.sealHp = 3;
+        this.target(this.seal, () => new Phaser.Geom.Rectangle(x - 12, 0, 24, 224), damage => {
+          this.sealHp -= damage; this.s.fx('impact', x, this.s.player.body.center.y, { depth: 9 }); this.s.cam.shake(100, 0.006);
+          if (this.sealHp <= 0) { this.seal.destroy(); this.s.tweens.add({ targets: this.sealArt, y: 20, alpha: 0, duration: 450, onComplete: () => this.sealArt.destroy() }); this.s.sparkle(x, 160, 0xb9ecff); this.s.gainFarr(10); this.phase = 'seal-broken'; this.api.toast('The ice seal shatters. The White Div waits beyond the last fire.'); }
+          else this.sealRunes.forEach((r, i) => r.setVisible(i < this.sealHp));
+        });
+      }
+    }
+    iceAt(c) {
+      const x = (c + 0.5) * 16; if (this.rest(x)) return;
+      const y = this.floor(x), m = this.mark(x, y, 25, 0xb9eaff);
+      const beam = this.own(this.s.add.rectangle(x, y - 80, 13, 160, 0xb9eaff, 0.18).setDepth(12));
+      this.later(1050, () => {
+        m.destroy(); beam.destroy(); const ice = this.own(this.s.add.image(x, y - 150, 'icicle').setOrigin(0.5, 1).setDepth(12));
+        this.s.tweens.add({ targets: ice, y: y + 3, duration: 220, onComplete: () => {
+          if (!this.live || this.closed) { ice.destroy(); return; }
+          this.zone(x - 11, y - 55, 22, 55, 200); this.s.fx('impact', x, y, { depth: 9 }); ice.destroy();
+        } });
+      });
+    }
+    stage7(time) {
+      const s = this.s, p = s.player;
+      if (p.x >= 89 * 16 && s.start.x < 99 * 16) this.note('crumbling-mountain', 'هفت کوه', 'The mountain gives way', '<b>Ice ledges crack beneath your feet.</b> Jump again before they fall. They reform if you need another attempt.');
+      for (const b of this.crumble) {
+        const t = s.layer.getTileAt(b.c, b.r);
+        if (b.state === 'solid' && p.body.blocked.down && Math.abs(p.body.bottom - b.r * 16) < 4 && p.body.right > b.c * 16 && p.body.left < (b.c + 1) * 16) {
+          b.state = 'cracking'; b.until = time + 900; if (t) t.tint = 0xe4b7eb;
+        } else if (b.state === 'cracking' && time >= b.until) { s.layer.removeTileAt(b.c, b.r); b.state = 'gone'; b.until = time + 2800; s.fx('dust', (b.c + 0.5) * 16, b.r * 16, { depth: 8 }); }
+        else if (b.state === 'gone' && time >= b.until) {
+          // Never reform a solid tile through the player's body.
+          const cell = new Phaser.Geom.Rectangle(b.c * 16, b.r * 16, 16, 16);
+          if (Phaser.Geom.Intersects.RectangleToRectangle(p.body, cell)) { b.until = time + 200; continue; }
+          const tile = s.layer.putTileAt(b.index, b.c, b.r); tile.setCollision(false, false, true, false); b.state = 'solid';
+        }
+      }
+      if (p.x >= 120 * 16 && p.x < 139 * 16) {
+        this.note('cave-ice', 'غارِ دیو', 'The cave awakens', '<b>Pale beams mark falling ice.</b> Keep clear of the marked column. Ahead, strike the ice seal: three blows, or one charged heavy blow.');
+        for (const c of [122,130,138]) if (p.x >= (c - 4) * 16 && p.x <= (c + 1) * 16 && !this.once.has('ice-' + c)) { this.once.add('ice-' + c); this.iceAt(c); }
+      }
+    }
+    getTip() {
+      const x = this.s.player.x / 16;
+      if (this.n === 1 && this.phase === 'hunt') return 'Drive the pursuing lion back with your mace, leap the gap, and reach Rakhsh at the fire.';
+      if (this.n === 2 && x >= 70 && x < 104) return 'A sand surge drains water on the low road. Jump over it or shelter on the raised rocks.';
+      if (this.n === 3 && x >= 34) return 'The dragon marks the ground before its breath lands. Move through an opening or wait for the fire to fade.';
+      if (this.n === 4 && x >= 25) return 'Violet bridges will vanish. Jump before they fade, or take the permanent high ledges.';
+      if (this.n === 5 && this.phase === 'pursuit') return 'Strike flying knives back at Olad from the saddle. He commits to the line he marked.';
+      if (this.n === 6 && this.s.horde) return 'Break the two war drums on the high platform to silence their fire lanes.';
+      if (this.n === 7) return x < 120 ? 'Cracking ledges fall after their warning and reform shortly. Keep your second jump for the crossing.' : 'Keep out of the pale ice columns. Break the cave seal with three strikes or one charged heavy blow.';
+      return null;
+    }
+    stop() {
+      if (this.closed) return; this.closed = true; this.hazards = [];
+      if (this.mountedByJourney && this.s.player?.active) this.mount(false);
+      for (const b of this.bridges) this.bridge(b, false);
+      for (const o of this.objects) if (o.active) o.destroy();
+      for (const sh of (this.s.shots?.children?.entries || []).slice()) if (sh.journey) sh.destroy();
+    }
+    destroy() { this.stop(); this.live = false; }
+  }
+  window.ShahnamehJourney = { create: (s, n, api) => new Journey(s, n, api) };
+})();
