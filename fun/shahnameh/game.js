@@ -180,12 +180,16 @@ function buildMap() {
   const put = (c, r, ch) => { g[r][c] = ch; };
   const row = (a, b, r, ch) => { for (let c = a; c <= b; c++) g[r][c] = ch; };
   ground(0, 21, 14); ground(25, 39, 14); ground(40, 47, 12); ground(48, 59, 14); ground(60, 68, 16); row(60, 68, 15, '^'); ground(69, 84, 14); ground(85, 127, 14);
-  row(61, 63, 11, '='); row(66, 68, 10, '='); row(74, 77, 10, '='); row(79, 82, 7, '=');
-  for (const c of [33, 41]) { put(c, 12, '#'); put(c, 13, '#'); }
+  row(61, 63, 11, '='); row(66, 68, 10, '='); row(74, 77, 10, '='); row(79, 82, 7, '=');   // the marsh ledges are reed rafts that sink
+  // the high road over the marsh: up from the first raft, along the reed tops, down onto the temple's high perch. The
+  // fire's clearing (48 to 59) stays open ground, so the pack can always reach Rostam there.
+  row(64, 65, 7, '='); row(68, 69, 5, '='); row(72, 73, 4, '=');
+  for (const c of [37, 41]) { put(c, 12, '#'); put(c, 13, '#'); }
   put(3, 13, 'P');
-  [[8, 12], [10, 11], [12, 12], [22, 11], [23, 10], [24, 11], [43, 9], [44, 8], [45, 9], [62, 9], [67, 8], [75, 8], [76, 8], [80, 5], [81, 5]].forEach(([c, r]) => put(c, r, 'c'));
-  // Learn the jackal, meet the Div alone, then combine them after the platforming stretch.
-  put(16, 13, 'j'); put(30, 13, 'j'); put(45, 11, 'd'); put(74, 13, 'd'); put(79, 13, 'j');
+  [[8, 12], [10, 11], [12, 12], [22, 11], [23, 10], [24, 11], [43, 9], [44, 8], [45, 9], [62, 9], [67, 8], [75, 8], [76, 8], [80, 5], [81, 5],
+    [64, 6], [65, 6], [68, 4], [69, 4], [72, 3]].forEach(([c, r]) => put(c, r, 'c'));
+  // A pair of jackals teaches the lunge, a second pair tests it, the Div comes alone, then a jackal and a Div together.
+  put(16, 13, 'j'); put(19, 13, 'j'); put(30, 13, 'j'); put(34, 13, 'j'); put(45, 11, 'd'); put(74, 13, 'd'); put(79, 13, 'j');
   put(27, 13, 'F'); put(52, 13, 'F'); put(110, 12, 'L');
   // the lion's arena (86 to 116): one short ledge on the left, three tiles in from the wall and high enough to walk
   // beneath, to leap onto from its charge. The lion keeps out of mace reach of it (KEEP1): a charge stops at that line
@@ -402,7 +406,7 @@ const trialRecords = () => { try { const r = JSON.parse(store.get('sh-trials') |
 const onFloor = (b, t) => t.index % 4 !== 2;
 const FOE_GAP = 8;
 const groundFoe = f => f.active && f.body?.enable && f.body.allowGravity;
-const foeBusy = f => f.staggerUntil > f.scene.time.now || f.smash || f.cast || f.sting || f.thrust || f.leap ||
+const foeBusy = f => f.staggerUntil > f.scene.time.now || f.smash || f.cast || f.sting || f.thrust || f.leap || f.js === 'crouch' || f.dw > 0 ||
   (f.anims.isPlaying && /strike|smash|thrust|sting|throw|leap/.test(f.anims.currentAnim?.key || ''));
 const attackRole = f => ['bat', 'vulture', 'firediv'].includes(f.kind) ? 'ranged' : 'melee';
 function reserveAttack(s, f) {
@@ -505,15 +509,57 @@ function patrol(s, f, speed) {
   if (bound || wall || (f.body.blocked.down && (!ahead || ahead.index % 4 === 3))) f.dir *= -1;
   f.setVelocityX(f.dir * speed); f.setFlipX(f.dir < 0);
 }
+// The jackal hunts in the open. It closes to striking distance and keeps it, then stops, edges back and drops its head
+// with a glint in its eyes before it lunges along a line it cannot change. After the lunge it stands panting, open to the
+// mace. Out of reach it paces its ground as before.
+function jackalHunt(s, f, k, p) {
+  f.jt = (f.jt || 0) - k;
+  if (f.js === 'lunge' && !f.leap) { f.js = 'recover'; f.jt = 40; }   // a heavy blow broke the lunge
+  if (f.js !== 'crouch' && f.glint) { f.glint.destroy(); f.glint = null; f.setAngle(0); }
+  if (f.js === 'crouch') {
+    f.setVelocityX(foeStepFree(s, f, -f.dir * 2) ? -f.dir * 16 : 0);
+    f.glint?.setPosition(f.x + f.dir * f.displayWidth * 0.3, f.body.top + 4);
+    if (f.jt <= 0) {
+      f.js = 'lunge'; f.jt = 40; f.leap = true; f.setAngle(0); f.anims.resume(); f.anims.timeScale = 1.7;
+      f.setVelocity(hopVelocity(f, f.dir * 215, 0.34), -150); s.fx('dust', f.x - f.dir * 10, f.body.bottom, { flip: f.dir < 0, depth: 6 });
+    }
+    return;
+  }
+  if (f.js === 'lunge') {
+    if (f.jt < 30 && f.body.blocked.down) { f.leap = false; f.js = 'recover'; f.jt = 46; f.setVelocityX(0); f.anims.timeScale = 0.5; s.fx('dust', f.x, f.body.bottom, { depth: 6 }); }
+    else if (f.jt < -40) { f.leap = false; f.js = 'recover'; f.jt = 30; }
+    return;
+  }
+  if (f.js === 'recover') { f.setVelocityX(0); if (f.jt <= 0) { f.js = 'stalk'; f.anims.timeScale = 1; f.jt = 24 + Math.random() * 36; } return; }
+  f.anims.timeScale = 1;
+  if (!canHunt(s, f, p) || above(f, p) || !f.body.blocked.down) { if (f.body.blocked.down) pace(s, f, 55); return; }
+  const dx = p.x - f.x, near = Math.abs(dx), level = Math.abs(p.body.bottom - f.body.bottom) < 24;
+  f.dir = Math.sign(dx) || f.dir; f.setFlipX(f.dir < 0);
+  if (level && near > 30 && near < 100 && f.jt <= 0 && reserveAttack(s, f)) {
+    f.js = 'crouch'; f.jt = s.mounted ? 24 : 28; f.setVelocityX(0); f.anims.pause(); f.setFrame(0); f.setAngle(f.dir * 10);
+    f.glint = s.add.image(f.x, f.body.top, 'glow').setTint(0xffcf6a).setScale(0.13).setBlendMode(Phaser.BlendModes.ADD).setDepth(f.depth + 0.1);
+    s.tweens.add({ targets: f.glint, scale: 0.2, alpha: 0.5, yoyo: true, repeat: -1, duration: 90 });
+    return;
+  }
+  // keep striking distance rather than running into the mace: close in from afar, give ground when crowded
+  const want = near > 78 ? f.dir : near < 42 ? -f.dir : 0, v = want * (near > 140 ? 90 : 62);
+  const free = v && foeStepFree(s, f, Math.sign(v) * 3) && !crowded(s, f, Math.sign(v));
+  f.setVelocityX(free ? v : 0); f.anims.timeScale = free ? 1 : 0.35;
+}
 const FOES = {
-  jackal: { tex: 'jackal-run', hp: 1, init: (s, f) => f.setVelocityX(-55), tick: (s, f) => patrol(s, f, 55) },
+  jackal: { tex: 'jackal-run', hp: 1, init: (s, f) => { f.setVelocityX(-55); f.once('destroy', () => f.glint?.destroy()); }, tick: (s, f, k, p) => jackalHunt(s, f, k, p) },
   div: {
     tex: 'div-hop', hp: 2,
     tick(s, f, k, p) {
       f.hopT -= k; if (!f.body.blocked.down) return;
-      if (canHunt(s, f, p) && above(f, p)) { f.setVelocityX(0); if (f.hopT <= 0) { const post = postOf(s, f); f.dir = Math.abs(f.x - post) > TS ? Math.sign(post - f.x) : (Math.random() < 0.5 ? -1 : 1); f.setFlipX(f.dir < 0); f.setVelocity(hopVelocity(f, crowded(s, f, f.dir) ? 0 : f.dir * 50, 0.48), -200); f.hopT = 80 + Math.random() * 40; } return; }
+      if (canHunt(s, f, p) && above(f, p)) { if (f.dw > 0) { f.dw = 0; f.setAngle(0); f.anims.resume(); } f.setVelocityX(0); if (f.hopT <= 0) { const post = postOf(s, f); f.dir = Math.abs(f.x - post) > TS ? Math.sign(post - f.x) : (Math.random() < 0.5 ? -1 : 1); f.setFlipX(f.dir < 0); f.setVelocity(hopVelocity(f, crowded(s, f, f.dir) ? 0 : f.dir * 50, 0.48), -200); f.hopT = 80 + Math.random() * 40; } return; }
       f.dir = Math.sign(p.x - f.x) || 1; f.setFlipX(f.dir < 0); f.setVelocityX(0);
-      if (canHunt(s, f, p) && f.hopT <= 0 && Math.abs(p.x - f.x) < 200 && reserveAttack(s, f)) { f.setVelocity(hopVelocity(f, crowded(s, f, f.dir) ? 0 : f.dir * 70, 0.55), -230); f.hopT = 70; }
+      if (f.dw > 0) {                                                // the wind-up: it sinks on its haunches, then springs
+        f.dw -= k; f.anims.pause(); f.setFrame(0); f.setAngle(Math.sin(s.time.now * 0.09) * 3);
+        if (f.dw <= 0) { f.dw = 0; f.setAngle(0); f.anims.resume(); f.setVelocity(hopVelocity(f, crowded(s, f, f.dir) ? 0 : f.dir * 70, 0.55), -230); f.hopT = 70; s.fx('dust', f.x, f.body.bottom, { depth: 6 }); }
+        return;
+      }
+      if (canHunt(s, f, p) && f.hopT <= 0 && Math.abs(p.x - f.x) < 200 && reserveAttack(s, f)) f.dw = 15;
     }
   },
   // scorpions creep, then scuttle at Rostam when he comes close on the same level, and lash out with the sting
@@ -662,6 +708,62 @@ function flyer(tex, { range, dive, rest, offY, speed = 0.012 }) {
 /* --------------------------- labours --------------------------- */
 // Each labour: its map, its backdrop and how the backdrop scrolls, what 'c' becomes, extra map
 // characters, and hooks that run on create and every frame. Shared systems live in the scene.
+// Khan I: the fire in the middle of the reeds draws the lion's pack. Burning reeds close the clearing on both sides and
+// three small waves come at Rostam: jackals, then a Div with them, then the pack's leader. J is that leader, larger and
+// three blows to kill.
+const SIEGE1 = [['j', 'j'], ['j', 'd', 'j'], ['d', 'J', 'j']];
+function reedSiege(s) {
+  const L = 48 * TS, R = 60 * TS;
+  // the burning reeds hold Rostam and the pack inside by position, not by a physics wall he could climb by jumping into it
+  const wall = (x, floor) => {
+    // a tapering column of flame, each tongue on its own beat so the reeds seem to burn rather than stack
+    const flames = [[0, 0, 1.5], [-5, 13, 1.3], [5, 24, 1.15], [-3, 36, 1], [3, 47, 0.85], [0, 57, 0.65]].map(([dx, up, sc], i) => {
+      const f = s.fx('fire', x + dx, floor - up, { depth: 7 - i * 0.01 }).setScale(sc).setAlpha(0);
+      f.anims.setProgress(Math.random()); f.anims.timeScale = 0.8 + Math.random() * 0.5;
+      s.tweens.add({ targets: f, alpha: 1 - i * 0.08, delay: i * 60, duration: 220 }); return f;
+    });
+    const glow = s.add.image(x, floor - 40, 'glow').setScale(1.6, 2.6).setTint(0xff8a3a).setBlendMode(Phaser.BlendModes.ADD).setDepth(6).setAlpha(0.7);
+    s.fx('dust', x, floor, { depth: 8 }); return { flames, glow };
+  };
+  s.siege = { wave: 0, live: [], L, R, next: s.time.now + 1300, walls: [wall(L, 12 * TS), wall(R, 14 * TS)] };
+  sfx('fire'); sfx('roar'); s.cam.shake(300, 0.008);
+  banner('آتشِ نیستان', 'Hold the fire');
+  hint(`The pack closes on the fire! When a jackal <b>drops its head</b>, ${touch ? 'dodge' : keyHTML('dodge') + ' dodge'} or jump the lunge, then strike while it pants.`);
+}
+function reedSiegeTick(s) {
+  const g = s.siege; if (!g) return;
+  const b = s.player.body;
+  if (b.left < g.L + 4) { b.x += g.L + 4 - b.left; if (b.velocity.x < 0) b.velocity.x = 0; }
+  if (b.right > g.R - 4) { b.x -= b.right - (g.R - 4); if (b.velocity.x > 0) b.velocity.x = 0; }
+  if (s.time.now < g.next) return;
+  if (g.live.some(f => f.active && f.body.enable)) return;
+  if (g.wave < SIEGE1.length) {
+    const list = SIEGE1[g.wave++]; g.live = []; g.next = s.time.now + list.length * 380 + 900;
+    toast(g.wave === SIEGE1.length ? 'The pack leader comes for the fire!' : `The pack comes: ${g.wave} of ${SIEGE1.length}`);
+    list.forEach((k, i) => s.time.delayedCall(i * 380, () => {
+      if (s.siege !== g || s.done) return;
+      const side = i % 2 ? 1 : -1, edge = side < 0 ? g.L + 26 : g.R - 26;
+      const x = Math.abs(s.player.x - edge) < 50 ? edge - side * 70 : edge, y = (s.groundAt(x) ?? 14) * TS;
+      const mark = s.add.ellipse(x, y - 2, 30, 7, 0xffb84d, 0.45).setStrokeStyle(1, 0xffe7a2).setDepth(7);
+      s.tweens.add({ targets: mark, alpha: 0.15, yoyo: true, repeat: 2, duration: 80 });
+      s.time.delayedCall(480, () => {
+        mark.destroy(); if (s.siege !== g || s.done) return;
+        s.fx('dust', x, y, { depth: 8 }); s.fx('poof', x, y - 8, { depth: 9 });
+        const f = s.spawnFoe(k === 'd' ? 'div' : 'jackal', x, y);
+        if (k === 'J') { f.hp = 3; f.setScale(f.scaleX * 1.22); f.setTint(0xd9a46a); f.y = y - 1 - 0.47 * f.displayHeight; f.body.reset(x, f.y); f.leader = true; }
+        f.roam = [g.L + 6, g.R - 6]; f.dir = -side; f.setFlipX(f.dir < 0); f.jt = 30 + i * 20; g.live.push(f);
+      });
+    }));
+    return;
+  }
+  // the pack is broken: the burning reeds die down, and from the far reeds the lion answers
+  s.siege = null; s.siegeDone = true;
+  for (const w of g.walls) { w.flames.forEach((f, i) => s.tweens.add({ targets: f, alpha: 0, delay: i * 60, duration: 300, onComplete: () => f.destroy() })); s.tweens.add({ targets: w.glow, alpha: 0, duration: 500, onComplete: () => w.glow.destroy() }); }
+  sfx('win'); s.gainFarr(30); banner('آتشِ نیستان', 'The fire holds'); hint(null);
+  const a = s.altars.find(a => Math.abs(a.x / TS - 52.5) < 1), drop = s.pickup(a.x + 18, a.y - 8, 'food', 0, 'lamb');
+  s.fx('pickup', drop.x, drop.y); toast('The pack scatters. Roast lamb lies by the fire.');
+  s.time.delayedCall(1500, () => { if (s.done) return; sfx('roar'); s.cam.shake(700, 0.006); toast('Far off in the reeds, the lion answers.'); });
+}
 const LEVELS = {
   1: {
     epithet: 'It hunts the reeds by night, and nothing that comes there leaves', hud: 'Khan I &middot; The Lion', winTitle: 'The lion is slain', name: 'The Lion of the Reeds', fa: 'شیرِ نیستان', tiles: 'tiles-1', map: buildMap,
@@ -694,29 +796,29 @@ const LEVELS = {
       s.khan1Beat = 0;
       for (const f of s.foes.getChildren()) {
         const c = f.home.x / TS;
-        f.roam = (c < 22 ? [12, 21] : c < 40 ? [29, 33] : c < 48 ? [42, 47.5] : f.kind === 'div' ? [70, 79] : [71, 81]).map(x => x * TS);
+        f.roam = (c < 22 ? [11, 21] : c < 40 ? [29.5, 36.5] : c < 48 ? [42, 47.5] : f.kind === 'div' ? [70, 79] : [71, 81]).map(x => x * TS);
       }
-      hint(`The reeds are yours to explore. <b>Strike</b> with ${touch ? 'the mace button' : keyHTML('attack')}, or <b>jump onto a foe</b>.`);
+      hint(`Night in the reeds. <b>Strike</b> with ${touch ? 'the mace button' : keyHTML('attack')}, or <b>jump onto a foe</b>.`);
     },
+    kindled(s, a) { if (Math.abs(a.x / TS - 52.5) < 1 && !rush && s.player.x < 59 * TS) { reedSiege(s); return true; } },
     // the storm over each boss fight: veil and cloud colours, the sun or moon behind it, lightning colour and pace, and its weather
     sky: { veil: 0x3a0a06, cloud: 0xa8401c, glow: 0xff7a2a, sun: [0.76, 0.34], bolt: 0xffd0a0, every: [260, 420], edge: 0x6a1004, fx: 'dust', paint: 'bg/storm.png' },
     fires: [82], hearts: [85],                       // a last fire and a heart before the lion's den
     update(s, k, time, p) {
       if (s.bossOn) return;
+      reedSiegeTick(s);
       if (p.x > 88 * TS) { s.startBoss(); return; }
-      const beat = p.x < 18 * TS ? 0 : p.x < 28 * TS ? 1 : p.x < 39 * TS ? 2 : p.x < 49 * TS ? 3 : p.x < 69 * TS ? 4 : p.x < 81 * TS ? 5 : 6;
+      if (!p.body.blocked.down && s.airJumps === 0) s.didDouble = true;
+      // a few words only where something new is asked of Rostam; the reeds and the fires speak for themselves
+      const beat = p.x < 17 * TS ? 0 : p.x < 25 * TS ? 1 : p.x < 60 * TS ? 2 : 3;
       if (beat <= s.khan1Beat) return;
       s.khan1Beat = beat;
-      const cues = ['', '<b>A gap ahead.</b> Jump, then <b>jump again in the air</b>. Follow the provisions across.',
-        '<b>The fire remembers you.</b> If you fall, you return to the last fire you lit.',
-        '<b>A blue Div ahead.</b> Let it leap, then strike as it lands. The high provisions reward a second jump.',
-        '<b>Rest at the fire.</b> Thorns lie ahead: use the high ledges and your second jump.',
-        '<b>Two hunters ahead.</b> The jackal runs low; the Div leaps. Draw them apart and strike between their approaches.',
-        "<b>The last fire.</b> Gather your strength before entering the lion’s reeds."];
-      hint(cues[beat]);
+      if (beat === 1 && !s.didDouble) hint('<b>A gap ahead.</b> Jump, then <b>jump again in the air</b>.');
+      else if (beat === 3) hint('<b>The rafts sink under you.</b> Keep moving, or take the high road over the reeds.');
+      else hint(null);
     },
     win: 'With the lion of the reeds slain, Rostam takes up a feather of the Simurgh. Ahead lies the waterless desert of the second labour.',
-    tips: ['The lion\'s hide turns your blows. Leap its charge so it runs into the rocks, then strike while it is dazed and the stars circle its head.',
+    tips: ['A jackal drops its head before it lunges. Dodge or jump the lunge, then strike while it pants.', 'At half strength the lion meets Rakhsh. Lure the lion into his charge.', 'The lion\'s hide turns your blows. Leap its charge so it runs into the rocks, then strike while it is dazed and the stars circle its head.',
       'Land on a foe from above to strike it twice as hard.', 'Roast lamb restores a heart. Look for it on the high ledges.',
       'Light the fire altars: if Rostam falls, he returns to the last sacred fire.', 'The blue Divs hop toward you. Strike as they land.',
       'Every provision fills your golden Farr. When it is full, press F (or tap the Farr) to call on the Simurgh: her light strikes every foe on screen.',
@@ -1436,7 +1538,7 @@ class Play extends Phaser.Scene {
   create() {
     // the scene object is reused from labour to labour: forget whatever the last one left behind
     for (const k of ['dark', 'lights', 'lamp', 'wall', 'wallR', 'stars', 'pose', 'swingFx', 'witch', 'unmasked', 'olad', 'rakhsh', 'dragonSeen', 'horde', 'hordeDone',
-      'gates', 'hordeBat', 'toldRock', 'toldFarr', 'toldOffer', 'atAltar', 'bossT', 'maceHit', 'toldIce', 'chargeWarn', 'toldCharge', 'shards', 'shardG', 'mark', 'markGlow', 'markOpen', 'bossHeart', 'bossHeartT', 'floorWarn', 'highWarn', 'regrow', 'drums', 'sky', 'flashA', 'intro', 'fgReeds', 'mound', 'swirl', 'qx', 'puddles', 'combo', 'comboT', 'heavy', 'heavyGo', 'chargeT', 'chargeFull', 'chargeGlow', 'dodgeT', 'dodgeCd', 'dodgeDir', 'whiteDown', 'ended', 'mounted', 'prayed', 'drank', 'toldImmune', 'toldDeflect', 'toldVenom', 'cage', 'kavus', 'stones', 'puzzle', 'springOpen', 'pool', 'victory', 'attackBuf', 'dodgeBuf', 'counterT', 'counterStrike', 'dodgeRewarded', 'trial', 'nearTrial', 'journey']) delete this[k];
+      'gates', 'hordeBat', 'toldRock', 'toldFarr', 'toldOffer', 'atAltar', 'bossT', 'maceHit', 'toldIce', 'chargeWarn', 'toldCharge', 'shards', 'shardG', 'mark', 'markGlow', 'markOpen', 'bossHeart', 'bossHeartT', 'floorWarn', 'highWarn', 'regrow', 'drums', 'sky', 'flashA', 'intro', 'fgReeds', 'mound', 'swirl', 'qx', 'puddles', 'combo', 'comboT', 'heavy', 'heavyGo', 'chargeT', 'chargeFull', 'chargeGlow', 'dodgeT', 'dodgeCd', 'dodgeDir', 'whiteDown', 'ended', 'mounted', 'prayed', 'drank', 'toldImmune', 'toldDeflect', 'toldVenom', 'cage', 'kavus', 'stones', 'puzzle', 'springOpen', 'pool', 'victory', 'attackBuf', 'dodgeBuf', 'counterT', 'counterStrike', 'dodgeRewarded', 'trial', 'nearTrial', 'journey', 'siege', 'siegeDone', 'ally', 'phase2', 'streak', 'didDouble']) delete this[k];
     // turn loaded strips into square frames; anything missing falls back to placeholder art
     for (const k of ['decor-' + cur]) if (this.textures.exists(k) && this.textures.get(k).frameTotal < 3) { const t = this.textures.get(k), h = t.getSourceImage().height; for (let i = 0; i < Math.round(t.getSourceImage().width / h); i++) t.add(i, 0, i * h, 0, h, h); }
     for (const [k, f] of Object.entries(ART)) if (f && this.textures.exists(k)) {
@@ -1557,7 +1659,7 @@ class Play extends Phaser.Scene {
       this.inv = 120;
     }
     if (this.coinCount >= FED && cur !== 3) this.rakhshFed = true;
-    this.renderHearts(); $('coins').textContent = purse(); this.renderFarr(); hint(null);
+    this.renderHearts(); $('coins').textContent = purse(); this.renderFarr(); hint(null); this.streak = 0; this.renderStreak();
     this.parts = this.add.particles(0, 0, 'coin-spin', { frame: 0, speed: { min: 30, max: 90 }, lifespan: 450, scale: { start: 0.8, end: 0 }, gravityY: 120, emitting: false }).setDepth(9);
     this.shots = this.physics.add.group({ allowGravity: false }); this.hazards = [];
     this.physics.add.collider(this.shots, this.layer, sh => sh.destroy());
@@ -1641,6 +1743,7 @@ class Play extends Phaser.Scene {
     this.tweens.add({ targets: g, alpha: 0.6, yoyo: true, repeat: -1, duration: 700, ease: 'Sine.easeInOut' });
     if (quiet) return;
     sfx('fire'); this.fx('fire', a.x, a.y - 20, { depth: 3 }); this.fx('pickup', a.x, a.y - 18);
+    if (this.lv.kindled?.(this, a)) return;
     toast('The sacred fire is lit. If Rostam falls, he will rise again here.');
   }
   // a hidden Simurgh feather: glowing and turning slowly; one already found is only a faint shimmer
@@ -1704,15 +1807,31 @@ class Play extends Phaser.Scene {
     }
     const heal = c.kind === 'lamb' && this.hp < this.maxHp;
     if (c.kind === 'skin') { c.destroy(); this.water = Math.min(100, this.water + 30); this.renderWater(); sfx('coin'); this.fx('splash', c.x, c.y + 4); toast('A water skin! Rostam drinks.'); return; }
-    c.destroy(); this.coinCount++; setPurse(purse() + 1); $('coins').textContent = purse(); sfx('coin');
+    c.destroy(); this.gather(1); sfx('coin');
     this.gainFarr(c.kind === 'lamb' ? 25 : 12.5);
-    if (this.coinCount === FED && cur !== 3 && !this.rakhshFed) { this.rakhshFed = true; toast('Rakhsh is well fed! He will gallop to your aid when you face the boss.'); }
     this.fx('pickup', c.x, c.y + 6);
     if (c.kind === 'lamb') { if (heal) { this.hp++; this.renderHearts(); } this.fx('heal', this.player.x, this.player.body.bottom - 4, { depth: 6 }); sfx('fire'); }
   }
   sparkle(x, y, tint) { this.parts.setParticleTint(tint); this.parts.explode(8, x, y); }
   renderHearts() { $('hearts').innerHTML = Array.from({ length: this.maxHp }, (_, i) => `<img src="assets/ui/heart${i < this.hp ? '' : '-off'}.png?v=${V}" alt="">`).join(''); $('hearts').setAttribute('aria-label', `${this.hp} of ${this.maxHp} hearts`); }
   // the Farr: a golden bar that fills as Rostam gathers provisions and slays foes
+  gather(n) {
+    const was = this.coinCount; this.coinCount += n; setPurse(purse() + n); $('coins').textContent = purse();
+    if (was < FED && this.coinCount >= FED && cur !== 3 && !this.rakhshFed) { this.rakhshFed = true; toast(cur === 1 ? 'Rakhsh is well fed! He will charge more often when he joins the fight.' : 'Rakhsh is well fed! He will gallop to your aid when you face the boss.'); }
+  }
+  // the unbroken run: every blow that lands without Rostam being hurt in between adds to it, and every fifth pays out
+  streakHit() {
+    const n = ++this.streak; this.renderStreak(true);
+    if (n % 5) return;
+    if (n === 10 && this.hp < this.maxHp) { this.hp++; this.renderHearts(); this.fx('heal', this.player.x, this.player.body.bottom - 4, { depth: 6 }); this.combatWord(`Unbroken ×${n}: a heart`, '#ffd0d8'); }
+    else { this.gather(n >= 15 ? 3 : 2); this.combatWord(`Unbroken ×${n}: +${n >= 15 ? 3 : 2} provisions`); }
+    this.gainFarr(n >= 15 ? 15 : 8); sfx('coin'); this.sparkle(this.player.x, this.player.body.top, 0xffe08a);
+  }
+  renderStreak(bump) {
+    const el = $('streakPill'); if (!el) return;
+    el.classList.toggle('hidden', !(this.streak >= 2)); $('streak').textContent = this.streak;
+    if (bump) { el.classList.remove('bump'); void el.offsetWidth; el.classList.add('bump'); }
+  }
   gainFarr(n) {
     const was = this.farr >= 100; this.farr = Math.min(100, this.farr + n); store.set('sh-farr', this.farr); this.renderFarr();
     if (!was && this.farr >= 100) { sfx('fire'); toast(`Your Farr is full! Press ${keyLabel('farr')}, or tap the golden Farr, to call on the Simurgh.`); }
@@ -1740,6 +1859,8 @@ class Play extends Phaser.Scene {
       return;
     }
     if (this.trial?.state === 'running') this.finishTrial(false, 'Hit taken — try again at the feather.');   // no harm during a cutscene or a dodge
+    if (this.streak >= 5) this.combatWord(`Run broken at ${this.streak}`, '#ffb0a0');
+    this.streak = 0; this.renderStreak();
     this.hp--; this.renderHearts(); this.inv = thirst ? 30 : gentle() ? 130 : legend() ? 70 : 90; sfx('hurt'); this.cam.shake(160, 0.008); this.cam.flash(120, 180, 40, 60);
     if (!thirst) this.player.setVelocity((this.player.x < fromX ? -1 : 1) * 160, -220);
     if (this.hp <= 0) {
@@ -1771,7 +1892,7 @@ class Play extends Phaser.Scene {
     if (f.immune?.() && !force) { this.fx('dust', f.x, f.body.center.y, { depth: 10 }); sfx('clang'); if (!this.toldImmune) { this.toldImmune = true; toast(f.immuneMsg || 'Your blow passes through shadow.'); } return false; }
     if (f === this.boss && !force && this.time.now < (f.hitReadyAt || 0)) return false;
     if (f === this.boss) f.hitReadyAt = this.time.now + (gentle() ? 240 : 320);
-    f.hp -= n;
+    f.hp -= n; if (!force) this.streakHit();
     if (f !== this.boss && f.hp > 0 && f.body.allowGravity && !force && (this.heavy || this.counterStrike)) {
       f.attackId = (f.attackId || 0) + 1; f.staggerUntil = this.time.now + 420;
       f.smash = f.cast = f.sting = f.thrust = f.leap = false; f.cool = Math.max(f.cool || 0, 45);
@@ -1909,7 +2030,7 @@ class Play extends Phaser.Scene {
     this.physics.add.collider(l, this.layer, null, onFloor); this.physics.add.collider(l, [this.wall, this.wallR]);
     sfx('roar'); this.roarRings(l);
     $('boss').classList.remove('hidden'); this.bossBar(); this.bossIntro(l);
-    hint('Watch the lion: <b>roar means charge, a low golden crouch means pounce, an orange paw means swipe</b>. It hunts repeated jumps and ledge camping. Dodge, then <b>strike during the stars</b>.');
+    hint('<b>Roar:</b> it will charge, leap it so it hits the rocks. <b>Gold crouch:</b> a pounce. <b>Orange paw:</b> a swipe. Strike while the stars circle its head.');
   }
   // Keep frame-authored patterns in real time, independent of render/update frequency.
   bossStep() { return this.bossDelta ?? 1; }
@@ -1977,7 +2098,7 @@ class Play extends Phaser.Scene {
     this.cornerHeart(B.x, time);
     // a well-fed Rakhsh gallops in once: twelve seconds into the fight, or sooner if Rostam is hard pressed
     this.bossT = (this.bossT || 0) + this.bossStep();
-    if (this.rakhshFed && !this.rakhshRode && !this.mounted && !this.frozen && B.hp > 0 && B.body.enable && B.alpha > 0.5 && (B.kickable?.() ?? true) && (this.bossT > 720 || this.hp <= 2)) this.rakhshRides(B);
+    if (this.rakhshFed && cur !== 1 && !this.rakhshRode && !this.mounted && !this.frozen && B.hp > 0 && B.body.enable && B.alpha > 0.5 && (B.kickable?.() ?? true) && (this.bossT > 720 || this.hp <= 2)) this.rakhshRides(B);
   }
   rakhshRides(B) {
     // he always comes in from the left edge at a gallop, rears and kicks the boss, then gallops on and away off the right
@@ -2014,7 +2135,8 @@ class Play extends Phaser.Scene {
     const l = this.lion, p = this.player; if (!l?.active || l.hp <= 0) return;
     const read = this.bossRead(l), mad = l.hp <= l.max / 2, toP = Math.sign(p.x - l.x) || l.dir;
     l.tm -= this.bossStep();
-    if (mad && !l.mad) { l.mad = true; toast('The wounded lion circles warily. Watch its paws, not just its roar.'); }
+    if (mad && !l.mad && ['prowl', 'stun', 'recover'].includes(l.state)) { l.mad = true; this.lionMeetsRakhsh(l); return; }   // never in the middle of an attack
+    if (this.ally) this.allyTick(l);
     if (l.state === 'prowl') {
       // Give ground under melee pressure, close on a retreat, and intercept habitual jumps.
       const left = l.keep * TS, right = this.wallR.x - 45;
@@ -2037,16 +2159,23 @@ class Play extends Phaser.Scene {
           { move: 'roar', weight: read.ledge ? 0 : read.distance > 130 ? 3 : 0.45 },
           { move: 'crouch', weight: 1.2 + read.air * 3 + (read.ledge || read.camp > 2200 ? 3 : 0), cooldown: 1400 },
           { move: 'pawReady', weight: groundedTarget && read.distance < 100 ? 4 : 0, cooldown: 1700 },
-          { move: 'circle', weight: retreatRoom > 90 ? (mad ? 1.5 + read.pressure * 2 : 0.6) : 0, cooldown: 4000 }
+          { move: 'circle', weight: retreatRoom > 90 ? (mad ? 1.5 + read.pressure * 2 : 0.6) : 0, cooldown: 4000 },
+          { move: 'quake', weight: mad && groundedTarget ? 1.6 : 0, cooldown: 5200 }
         ]);
         if (!move) { l.tm = 8; return; }
-        this.bossAim(l, { roar: 'Roar: a charge is coming', crouch: 'Low crouch: a hunting leap', pawReady: 'Raised paw: step clear', circle: 'The lion circles you' }[move]);
-        l.state = move; l.tm = move === 'roar' ? 44 : move === 'circle' ? 30 : 36; l.setVelocityX(0); l.anims.stop(); l.setFrame(0);
+        this.bossAim(l, { roar: 'Roar: a charge is coming', crouch: 'Low crouch: a hunting leap', pawReady: 'Raised paw: step clear', circle: 'The lion circles you', quake: 'It rears: jump the shockwave' }[move]);
+        l.state = move; l.tm = move === 'roar' ? 44 : move === 'circle' ? 30 : move === 'quake' ? 50 : 36; l.setVelocityX(0); l.anims.stop(); l.setFrame(0);
         if (move === 'roar') { l.play('lion-roar'); sfx('roar'); this.roarRings(l); }
+        else if (move === 'quake') { l.play('lion-roar'); l.setTint(0xffe2a8); l.quaked = false; }
         else if (move === 'circle') l.play('lion-walk');
       }
     } else if (l.state === 'roar') {
       l.setVelocityX(0); if (l.tm <= 0) { l.state = 'charge'; l.tm = 100; l.play('lion-run'); }
+    } else if (l.state === 'quake') {
+      // the wounded lion rears and brings its forepaws down: a shockwave runs along the ground both ways
+      l.setVelocityX(0); l.y += Math.sin(this.time.now * 0.08) * 0.3;
+      if (!l.quaked && l.tm <= 14) { l.quaked = true; l.clearTint(); this.shockwave(l.x, l.body.bottom); sfx('roar'); }
+      if (l.tm <= 0) this.lionOpening(l, 'recover', 44);
     } else if (l.state === 'charge') {
       l.setVelocityX(l.dir * (mad ? 265 : 235));
       if ((l.dir < 0 ? l.body.blocked.left || l.hitKeep : l.body.blocked.right) || l.tm <= 0) this.lionOpening(l, 'stun', 86);
@@ -2074,6 +2203,44 @@ class Play extends Phaser.Scene {
     }
     l.setFlipX(l.dir < 0);
   }
+  // The legend's turn: at half strength the lion meets Rakhsh. He gallops in and stays. Every few seconds he rears and
+  // charges the length of the arena, and a lion caught in his path is thrown down, dazed: lure it into the charge.
+  lionMeetsRakhsh(l) {
+    this.phase2 = true; this.intro = true; this.frozen = true; this.player.setVelocityX(0);
+    l.setVelocityX(0); l.clearTint(); l.play('lion-roar'); sfx('roar'); this.roarRings(l); this.cam.shake(500, 0.01);
+    const y = 14 * TS + 2, post = this.cam.scrollX + 4 * TS;
+    const r = this.ally = this.add.sprite(this.cam.scrollX - 70, y, 'rakhsh-gallop', 0).setOrigin(0.5, 0.97).setDepth(4.5).setScale(SIZE.rakhsh / 229).play('rakhsh-gallop');
+    r.post = post; r.state = 'enter'; r.next = 0;
+    this.time.delayedCall(600, () => { sfx('neigh'); banner('رخش', 'Rakhsh comes to fight'); });
+    const dust = this.time.addEvent({ delay: 110, loop: true, callback: () => r.active && r.state !== 'post' && r.state !== 'rear' && this.fx('dust', r.x - (r.flipX ? -26 : 26), y - 1, { depth: 6, flip: r.flipX }) });
+    r.once('destroy', () => dust.remove());
+    this.tweens.add({ targets: r, x: post, duration: 1100, ease: 'Sine.easeOut', onComplete: () => {
+      if (!r.active) return; r.state = 'post'; r.anims.stop(); r.setFrame(0); r.next = this.time.now + 1800;
+      this.intro = false; if (!this.done) this.frozen = false;
+      l.state = 'prowl'; l.tm = 50;
+      hint('<b>Rakhsh fights at your side!</b> When he rears, lure the lion into his charge, then strike it while it is down.');
+    } });
+  }
+  allyTick(l) {
+    const r = this.ally; if (!r?.active || this.intro) return;
+    const now = this.time.now, y = 14 * TS + 2, left = this.cam.scrollX + 4 * TS, right = left + W * 0.55;   // his charge spans the left of the arena: the lion must be drawn into it
+    const fighting = this.player.body.blocked.down && this.player.body.bottom > 13 * TS;   // he charges for a Rostam who fights on the ground, not one waiting on the ledge
+    if (r.state === 'post' && now >= r.next && fighting && !l.calm() && l.state !== 'pounce' && l.body.blocked.down) {
+      r.state = 'rear'; r.setFlipX(false); r.play('rakhsh-rear'); sfx('neigh'); this.cam.shake(160, 0.006);
+      r.once('animationcomplete', () => { if (!r.active || r.state !== 'rear') return; r.state = 'charge'; r.hit = false; r.play('rakhsh-gallop'); });
+    } else if (r.state === 'charge') {
+      r.x += 5.6 * this.bossStep();
+      if (!r.hit && l.hp > 0 && l.body.enable && Math.abs(l.x - r.x) < 38 && l.body.bottom > y - 30) {
+        r.hit = true; this.fx('impact', l.x - 10, l.body.center.y, { depth: 10 }); this.fx('hit', l.x, l.body.center.y, { depth: 10 });
+        this.cam.shake(320, 0.014); sfx('hit'); this.hitStop(90); this.combatWord('Rakhsh!', '#ffe0a0');
+        this.damage(l, 1, true); if (l.hp > 0) { l.dir = -1; l.setFlipX(true); this.lionOpening(l, 'stun', 120); }
+      }
+      if (r.x >= right) { r.state = 'return'; r.setFlipX(true); }
+    } else if (r.state === 'return') {
+      r.x -= 3 * this.bossStep();
+      if (r.x <= left) { r.x = left; r.state = 'post'; r.setFlipX(false); r.anims.stop(); r.setFrame(0); r.next = now + (this.rakhshFed ? 4200 : 6200); }
+    }
+  }
   lionOpening(l, state, frames) {
     l.state = state; l.tm = frames; l.intent = ''; l.setVelocityX(0); l.play('lion-walk'); l.anims.pause(); l.setTint(0xffd8a0);
     this.stars?.destroy(); this.stars = this.fx('stun', l.x, l.body.top - 6, { depth: 10, follow: l });
@@ -2081,6 +2248,7 @@ class Play extends Phaser.Scene {
   }
   lionDown() {
     const l = this.lion; this.stars?.destroy(); this.stars = null; const at = this.bossDeath(l);
+    const r = this.ally; if (r?.active) { r.state = 'leave'; this.time.delayedCall(at + 400, () => { if (!r.active) return; r.setFlipX(false); r.play('rakhsh-gallop'); this.tweens.add({ targets: r, x: r.x + 60, duration: 600, onComplete: () => { r.anims.stop(); r.setFrame(0); } }); }); }
     $('boss').classList.add('hidden'); this.wall.destroy(); this.wallR?.destroy();
     this.time.delayedCall(at + 900, () => this.reward(l.x));
     this.cam.startFollow(this.player, true, 0.12, 0.12, W / 2, H / 2);
@@ -2092,7 +2260,7 @@ class Play extends Phaser.Scene {
     // onto a ring of light beyond the fallen foe. Rostam walks to it to end the labour.
     const cx = this.cam.scrollX, cy = this.cam.scrollY, away = this.player.x < nearX ? 1 : -1;
     let fx = nearX + away * 50; if (fx < cx + 30 || fx > cx + W - 30) fx = nearX - away * 70; fx = Phaser.Math.Clamp(fx, cx + 30, cx + W - 30);
-    const fy = (this.groundAt(fx) ?? 14) * TS - 22, from = away > 0 ? -1 : 1;           // she flies in from behind Rostam
+    const fy = this.bossFloorAt(fx) - 22, from = away > 0 ? -1 : 1;           // she flies in from behind Rostam; the feather settles on the ground, never on a ledge
     const x0 = from < 0 ? cx - 180 : cx + W + 180, x1 = from < 0 ? cx + W + 180 : cx - 180, dur = 3600;
     const bird = this.add.sprite(x0, cy + 70, this.textures.exists('simurgh-fly') ? 'simurgh-fly' : 'feather', 0).setDepth(2.5).setScale(1.05).setFlipX(from > 0);
     if (this.anims.exists('simurgh-fly')) bird.play({ key: 'simurgh-fly', repeat: -1 });
@@ -2487,7 +2655,7 @@ class Play extends Phaser.Scene {
   }
   // invisible walls at both edges of the locked screen, so Rostam and the boss stay in view
   arenaWalls(x0) {
-    const left = Math.min(this.levelW - W, x0), wall = x => { const w = this.add.rectangle(x, 0, 8, ROWS * TS, 0, 0).setOrigin(0.5, 0); this.physics.add.existing(w, true); this.physics.add.collider(this.player, w); return w; };
+    const left = Math.min(this.levelW - W, x0), wall = x => { const w = this.add.rectangle(x, -400, 8, ROWS * TS + 400, 0, 0).setOrigin(0.5, 0); this.physics.add.existing(w, true); this.physics.add.collider(this.player, w); return w; };
     this.wall = wall(Math.max(x0, left + 6) - 4); this.wallR = wall(left + W - 2);
     const pb = this.player.body, dx = this.wall.x + 6 - pb.left; if (dx > 0) pb.reset(this.player.x + dx, this.player.y);   // a wall closing on Rostam would push him out of the arena
   }
@@ -2758,7 +2926,7 @@ class Play extends Phaser.Scene {
     // gates of fire close behind and before Rostam while the Divs come in waves
     this.horde = { wave: 0, live: [] }; const x = this.hordeAt.x;
     this.gates = [x - 13 * TS, x + 13 * TS].map((gx, i) => {
-      const r = this.add.rectangle(gx, 0, 12, ROWS * TS, 0, 0).setOrigin(0.5, 0); this.physics.add.existing(r, true); this.physics.add.collider(this.player, r); this.physics.add.collider(this.foes, r);
+      const r = this.add.rectangle(gx, -400, 12, ROWS * TS + 400, 0, 0).setOrigin(0.5, 0); this.physics.add.existing(r, true); this.physics.add.collider(this.player, r); this.physics.add.collider(this.foes, r);
       // the gate drops from above and slams into the ground, shaking the camp
       const im = this.add.image(gx, -10, 'gate').setOrigin(0.5, 1).setDepth(6);
       this.tweens.add({ targets: im, y: 14 * TS + 2, duration: 380, delay: i * 160, ease: 'Bounce.easeOut', onStart: () => sfx('swing'),
@@ -3442,7 +3610,7 @@ const GUIDE = [
   { k: 1, fa: 'شیرِ نیستان', name: 'The Lion of the Reeds', art: ['lion-roar', 8, 148],
     tale: 'Rostam lay down to sleep among the reeds while Rakhsh grazed. In the night a great lion crept out of the thicket. In the old tale faithful Rakhsh trampled it; here Rostam must stand against it himself.',
     how: ['The lion <b>roars before charging</b>, glows <b>gold before pouncing</b> and <b>orange before a paw swipe</b>. Its hide turns blows during attacks.', 'It watches repeated jumps, retreats from pressure and can <b>pounce onto your ledge</b>. Keep changing your spacing.', 'Dodge the committed attack, then <b>strike while the stars circle its head</b>. A missed pounce or swipe also leaves an opening. Hold Strike for a <b>heavy blow</b>.'],
-    more: [['jackal-run', 8, 108, 'Jackal', 'Runs straight at you. One blow.'], ['div-hop', 8, 108, 'Blue Div', 'Hops toward you. Strike as it lands.']] },
+    more: [['jackal-run', 8, 108, 'Jackal', 'Stalks you, drops its head, then lunges. Dodge or jump it, and strike while it pants. One blow.'], ['div-hop', 8, 108, 'Blue Div', 'Hops toward you. Strike as it lands.']] },
   { k: 2, fa: 'ملکهٔ کژدم', name: 'The Scorpion Queen', art: ['k2/queen-sting', 9, 150],
     tale: 'Beyond the reeds lay a desert where no bird flew. A ram led the dying Rostam to a hidden spring, and when its four bells rang the water burst from the rock; but the Queen of the scorpions had made that water her own.',
     how: ['She <b>patrols</b> the sand from side to side, and her armour turns every blow. <b>Jump over her</b> as she passes.', 'If you stand in her path her <b>stinger glows green</b>: <b>step back</b>. The sting sprays <b>venom</b> that burns where it lands, then <b>sticks in the sand</b>: <b>strike now</b>.', 'At the end of a pass she may <b>burrow</b>: a trail of sand runs under the arena and the <b>sand swirls</b> where she will rise. Keep clear, then strike while she is dazed.', 'Hide on the corner ledge and she <b>spits venom</b> at it. Your water does not drain while you fight her.'],

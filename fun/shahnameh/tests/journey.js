@@ -12,7 +12,7 @@ try{
  const load=async(n,rise=false)=>{keys();const old=S.scene().player,first=!S.scene().started&&S.scene().lv===S.LEVELS[n];S.begin(n,rise,false,true);for(let i=0;i<500;i++){step(2);await sleep(3);if(S.scene().player?.active&&(first||S.scene().player!==old)&&S.scene().lv===S.LEVELS[n])break;}const sc=S.scene();sc.drawDark=()=>{};sc.hp=sc.maxHp=999;sc.inv=99999;sc.water=100;sc.hordeDone=true;return sc;};
  const place=(s,c,r)=>{const x=c*16,foot=(r??s.groundAt(x)??14)*16;s.player.body.reset(x,foot-1-.47*s.player.displayHeight);s.player.body.updateFromGameObject();s.player.body.prev.copy(s.player.body.position);s.player.body.prevFrame.copy(s.player.body.position);s.player.setVelocity(0);};
  {const sc=await load(1);sc.foes.clear(true,true);place(sc,8);step(120);
-  check('First labour has no added pursuit director',!sc.journey);
+  check('First labour has no pursuit: the lion only watches until the fire has held',!sc.journey?.hunter&&sc.journey?.phase==='approach'&&!sc.journey?.lion);
   check('Opening contains no spawned lion or horse',!sc.children.list.some(o=>o.texture&&/lion|rakhsh/.test(o.texture.key))&&!sc.bossOn);
   place(sc,28);step(170);check('First refuge does not spawn a horse or start the boss',!sc.children.list.some(o=>o.texture&&/lion|rakhsh/.test(o.texture.key))&&!sc.bossOn);
  }
