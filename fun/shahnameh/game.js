@@ -3764,14 +3764,14 @@ const starsOf = () => { try { return JSON.parse(store.get('sh-stars') || '{}'); 
 const legendsOf = () => { try { return JSON.parse(store.get('sh-legend') || '{}'); } catch (e) { return {}; } };
 const bestOf = n => +(store.get(n === 1 ? 'sh-best' : 'sh-best-' + n) || 0);
 function renderMap() {
-  const u = unlocked(), F = feathers();
-  const path = MAP_AT.slice(1).map(([x, y]) => `${x},${y}`).join(' ');
-  $('road').innerHTML = `<svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><polyline points="${path}" fill="none" stroke="#ffd890" stroke-opacity=".55" stroke-width="2" stroke-dasharray="1 6" stroke-linecap="round" vector-effect="non-scaling-stroke"/></svg>` +
-    NAMES.slice(1).map(([name], i) => {
+  const u = unlocked(), F = feathers(), road = $('road'), opening = $('s-map').classList.contains('hidden');
+  road.querySelectorAll(':scope > :not(.road-fx)').forEach(e => e.remove());   // the living map layer stays between renders
+  road.insertAdjacentHTML('beforeend', NAMES.slice(1).map(([name], i) => {
       const n = i + 1, open = n <= u && LEVELS[n], done = !!bestOf(n) || n < u, [x, y] = MAP_AT[n];
-      const fc = [0, 1, 2].filter(k => F[n + ':' + k]).length, st = starsOf()[n] || 0, lg = legendsOf()[n];
-      return `<li style="left:${x}%;top:${y}%"><button data-n="${n}" class="${n === pick ? 'sel' : ''} ${done ? 'done' : ''}" ${open ? '' : 'disabled'} aria-current="${n === pick ? 'step' : 'false'}" aria-label="Labour ${n}: ${name}${open ? '' : ' (locked)'}, ${fc} of 3 feathers${st ? `, ${st} of 3 stars` : ''}">${ROMAN[n]}</button><span class="pin-label" aria-hidden="true">${name}</span>${open && st ? `<span class="st${lg ? ' lg' : ''}" aria-hidden="true">${'\u2605'.repeat(st)}${'\u2606'.repeat(3 - st)}</span>` : ''}${open ? `<span class="fc${fc === 3 ? ' all' : ''}" aria-hidden="true">${'<i></i>'.repeat(fc)}${'<i class="no"></i>'.repeat(3 - fc)}</span>` : ''}</li>`;
-    }).join('');
+      const fc = [0, 1, 2].filter(k => F[n + ':' + k]).length, st = starsOf()[n] || 0, lg = legendsOf()[n], best = bestOf(n);
+      const tip = open ? `${st ? `<i class="${lg ? 'lg' : ''}">${'\u2605'.repeat(st)}${'\u2606'.repeat(3 - st)}</i>` : done ? '' : 'The road lies open<br>'}Simurgh feathers ${fc} / 3${best ? `<br>Best time ${fmtTime(best * 1000)}` : ''}` : `Win Khan ${ROMAN[n - 1]} to open this road`;
+      return `<li style="left:${x}%;top:${y}%"><button data-n="${n}" class="${n === pick ? 'sel' : ''} ${done ? 'done' : ''} ${open && !done ? 'next' : ''}" ${open ? '' : 'disabled'} aria-current="${n === pick ? 'step' : 'false'}" aria-label="Labour ${n}: ${name}${open ? '' : ' (locked)'}, ${fc} of 3 feathers${st ? `, ${st} of 3 stars` : ''}${best ? `, best time ${fmtTime(best * 1000)}` : ''}">${ROMAN[n]}</button><span class="pin-label" aria-hidden="true">${name}</span>${open && st ? `<span class="st${lg ? ' lg' : ''}" aria-hidden="true">${'\u2605'.repeat(st)}${'\u2606'.repeat(3 - st)}</span>` : ''}${open ? `<span class="fc${fc === 3 ? ' all' : ''}" aria-hidden="true">${'<i></i>'.repeat(fc)}${'<i class="no"></i>'.repeat(3 - fc)}</span>` : ''}<span class="pin-tip${x < 20 ? ' at-l' : x > 80 ? ' at-r' : ''}" aria-hidden="true"><b>Khan ${ROMAN[n]} &middot; ${name}</b>${tip}</span></li>`;
+    }).join(''));
   $('road').querySelectorAll('button').forEach(b => {
     b.onclick = () => { pick = +b.dataset.n; renderMap(); $('road').querySelector(`[data-n="${pick}"]`)?.focus({ preventScroll: true }); };
     b.onkeydown = e => { if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(e.key)) return; e.preventDefault(); e.stopPropagation(); pick = e.key === 'Home' ? 1 : e.key === 'End' ? Math.min(u, LABOURS) : Phaser.Math.Clamp(pick + (e.key === 'ArrowRight' ? 1 : -1), 1, Math.min(u, LABOURS)); renderMap(); $('road').querySelector(`[data-n="${pick}"]`)?.focus({ preventScroll: true }); };
@@ -3782,12 +3782,13 @@ function renderMap() {
   $('journeyChapter').textContent = `Khan ${ROMAN[pick]}`;
   $('journeyStatus').textContent = best ? 'A road already travelled' : pick === 1 ? 'The journey begins' : 'The next chapter awaits';
   const art = $('journeyArt'), artPath = storyArt(`khan${pick}-intro`);
-  if (art.getAttribute('src') !== artPath) art.src = artPath; art.alt = `${NAMES[pick][0]}: ${BLURB[pick]}`;
+  cardArt(art, artPath); art.alt = `${NAMES[pick][0]}: ${BLURB[pick]}`;
   $('mapInfo').innerHTML = `${BLURB[pick]}<span class="ftot">Simurgh feathers <b>${found} / 3</b>${best ? `<br>Best time <b>${fmtTime(best * 1000)}</b>` : ''}${Object.keys(F).length >= 21 ? '<br>The Simurgh blesses you.' : ''}</span>`;
   $('rideBtn').textContent = best ? 'Replay labour' : pick === 1 ? 'Begin journey' : 'Continue journey';
   requestAnimationFrame(revealMapSelection);
   $('rushBtn').classList.toggle('hidden', !bestOf(LABOURS)); const rb = +(store.get('sh-rush') || 0); $('rushBtn').innerHTML = `Boss rush${rb ? ` <small>${fmtTime(rb)}</small>` : ''}`;
   $('rideBtn').disabled = !ready; $('mapTale').disabled = !document.getElementById('tale-' + pick);
+  try { mapSync(u, opening); } catch (_) { /* The living map is decoration and must never block the menu. */ }
 }
 function revealMapSelection() {
   if ($('s-map').classList.contains('hidden')) return;
@@ -3796,6 +3797,210 @@ function revealMapSelection() {
   if (box.left < view.left + 35 || box.right > view.right - 35) viewport.scrollTo({ left: viewport.scrollLeft + box.left - view.left - view.width / 2 + box.width / 2, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
 }
 addEventListener('resize', () => requestAnimationFrame(revealMapSelection));
+// The painted road on assets/ui/map-night.png, traced from the artwork (percent of the map). ROAD_PATH[0] rides in from
+// the river bank to the first labour and ROAD_PATH[k] runs from labour k to labour k + 1, up the dragon's trail and in
+// through the garden gate, so Rostam keeps to the road and the travelled stretch glows where it is painted.
+const ROAD_PATH = [[[4.36,51.04],[5.67,50.9],[6.25,51.27],[7.7,51.3],[9.45,50.79],[11.34,52.08],[12.05,51.96],[12.5,51.04]],[[12.5,51.04],[14.83,51.01],[16.57,49.6],[17.59,49.25],[22.67,49.25],[23.84,50.03],[25.53,53.12],[25.71,54.43],[25.0,55.99]],[[25.0,55.99],[25.58,54.46],[26.16,54.29],[26.97,55.73],[27.6,58.59],[27.6,62.76],[25.65,66.67],[25.44,68.75],[25.73,69.76],[26.74,70.8],[30.09,70.8],[32.12,68.61],[33.72,68.11],[36.56,63.02],[36.61,61.72],[35.66,58.07],[35.63,56.77],[36.41,54.69],[36.32,53.65],[36.61,52.84],[36.7,50.0],[37.5,48.53],[39.08,46.76],[39.45,45.84],[39.03,44.01],[38.1,42.45],[38.01,41.7],[38.52,41.0],[39.97,40.1]],[[39.97,40.1],[38.66,40.49],[38.01,41.67],[38.01,42.16],[38.9,43.75],[39.46,46.09],[38.37,47.17],[37.57,48.47],[37.43,51.56],[36.36,53.65],[36.35,54.95],[35.63,56.77],[35.77,59.11],[36.61,61.98],[36.56,63.02],[33.76,68.2],[38.23,68.32],[39.24,69.3],[41.13,72.79],[44.48,74.97],[45.78,75.26],[49.13,75.14],[50.01,73.44],[49.86,72.4],[49.84,62.76],[48.63,60.15],[48.29,57.82],[48.55,57.23],[48.98,57.03]],[[48.98,57.03],[48.55,57.23],[48.29,57.82],[48.63,60.15],[49.64,62.27],[49.84,63.54],[49.87,72.66],[50.87,74.74],[52.62,76.04],[59.3,76.04],[59.74,75.75],[62.16,71.35],[63.08,67.45],[63.06,61.46],[61.68,58.07],[61.06,55.73],[61.11,52.86],[62.05,51.04],[62.21,50.26],[62.19,44.53],[61.85,42.71],[61.48,41.93]],[[61.48,41.93],[62.01,43.75],[62.13,45.57],[63.81,48.61],[64.39,49.19],[66.13,49.51],[68.6,50.64],[70.93,52.96],[72.97,56.39],[73.55,56.22],[75.74,52.28],[76.45,52.08]],[[76.45,52.08],[75.87,52.03],[75.15,52.9],[73.18,56.51],[73.13,67.45],[75.15,71.32],[76.6,72.53],[77.47,72.91],[80.23,72.88],[81.68,70.57],[82.35,69.01],[83.16,63.8],[85.9,59.15],[86.77,58.65],[87.79,57.29],[91.12,51.04],[91.44,49.74],[92.44,47.92]]];
+// lights painted on the same map, in its own pixels: castle windows and garden lamps [x, y, w, h], camp fires
+// [x, y, strength], its brightest stars [x, y, size], and faint stars added to the empty sky
+const MAP_PX = [688, 384];
+const MAP_LIGHTS = {
+  windows: [[404, 76, 1, 5], [444, 76, 1, 5], [415, 94, 3, 6], [424, 94, 1, 6], [431, 94, 3, 6], [444, 95, 2, 3], [376, 108, 2, 3], [399, 127, 2, 4], [448, 127, 1, 4]],
+  lamps: [[356, 201, 2, 3], [330, 203, 3, 4], [356, 206, 3, 1], [383, 209, 2, 4], [307, 210, 2, 1], [331, 234, 2, 8], [355, 234, 3, 8], [328, 249, 3, 3], [358, 250, 3, 2],
+    [330, 300, 5, 3], [354, 300, 4, 3], [343, 349, 2, 2], [389, 358, 2, 5], [342, 359, 3, 4]],
+  fires: [[526, 196, 1], [531, 248, 0.5], [521, 318, 0.5]],
+  stars: [[643, 4, 1], [636, 22, 1], [111, 25, 2], [533, 28, 1], [655, 48, 1], [681, 55, 1], [605, 60, 1]],
+  faint: [[124, 12], [148, 19], [169, 7], [175, 32], [208, 30], [246, 17], [286, 10], [312, 26], [339, 5], [385, 15], [408, 3],
+    [426, 18], [451, 12], [466, 28], [483, 13], [515, 25], [548, 7], [579, 21], [605, 7], [626, 24], [648, 4], [667, 26]]
+};
+const stillMotion = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
+// The living map: the road travelled so far glows, mist hangs over the lands not yet reached, Rostam rides to the chosen
+// labour and the painted fires, lamps, stars and snow stir. All of it sits on one aria-hidden layer under the pins, and
+// its loop runs only while the map is on screen.
+const MF = { layer: null, geo: null, ctx: null, to: 1, u: 1, r: null, face: 1, ride: null, glow: null, prog: 0, fresh: 0, want: null, run: 0, last: 0, life: 0, parts: [], flies: null, trail: -1 };
+function mapLayer(road) {
+  if (MF.layer?.isConnected) return;
+  const li = document.createElement('li'); li.className = 'road-fx'; li.setAttribute('aria-hidden', 'true');
+  li.innerHTML = `<div class="road-mist"></div><svg class="road-trail"><path class="trail-halo"/><path class="trail-core"/><path class="trail-spark"/></svg>` +
+    `<canvas class="road-life" width="${MAP_PX[0]}" height="${MAP_PX[1]}"></canvas><i class="road-rider"><b></b></i>`;
+  road.prepend(li); MF.layer = li; MF.ctx = li.querySelector('canvas').getContext('2d'); MF.geo = null; MF.r = null;
+  if (window.ResizeObserver) new ResizeObserver(() => { MF.geo = null; mapKick(); }).observe(road);
+}
+// the road in screen pixels, with the distance along it to every labour's pin
+function mapGeom() {
+  if (MF.geo) return MF.geo;
+  const road = $('road'), w = road.clientWidth, h = road.clientHeight; if (!w || !h) return null;
+  const pts = [], stops = [0]; let len = 0;
+  ROAD_PATH.forEach((seg, k) => {
+    seg.forEach(([x, y], i) => {
+      if (k && !i) return;
+      const p = [x * w / 100, y * h / 100], q = pts[pts.length - 1];
+      if (q) len += Math.hypot(p[0] - q[0], p[1] - q[1]);
+      pts.push([p[0], p[1], len]);
+    });
+    stops.push(len);
+  });
+  const fit = Math.min(h * 0.15, w * 0.085), size = Math.round(Phaser.Math.Clamp(fit, 46, 76));
+  MF.layer.querySelector('.road-rider').classList.toggle('cramped', fit < 40);   // on a map too small for him the pins come first
+  MF.layer.querySelector('svg').setAttribute('viewBox', `0 0 ${w} ${h}`); MF.layer.style.setProperty('--rs', size + 'px');
+  MF.trail = -1; return (MF.geo = { w, h, pts, stops, size, rest: [] });
+}
+function roadAt(g, d) {
+  const P = g.pts; d = Phaser.Math.Clamp(d, 0, P[P.length - 1][2]);
+  let i = 1; while (i < P.length - 1 && P[i][2] < d) i++;
+  const a = P[i - 1], b = P[i], t = (d - a[2]) / ((b[2] - a[2]) || 1);
+  return [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, b[0] - a[0]];
+}
+// positions are kept in labours (2.5 is halfway from the second pin to the third), so a resize never loses the rider
+const roadDist = (g, r) => { const k = Phaser.Math.Clamp(Math.floor(r), 0, LABOURS - 1); return g.stops[k] + (g.stops[k + 1] - g.stops[k]) * (r - k); };
+function roadR(g, d) {
+  for (let k = 0; k < LABOURS; k++) if (d <= g.stops[k + 1]) return k + (d - g.stops[k]) / ((g.stops[k + 1] - g.stops[k]) || 1);
+  return LABOURS;
+}
+// Rostam waits on the road short of a labour's pin, at the nearest spot where he hides no pin and no name
+function restR(g, n) {
+  if (g.rest[n] != null) return g.rest[n];
+  const s = g.size, end = g.stops[n], far = end - (end - g.stops[n - 1]) * 0.85;
+  const hit = (a, b) => a[0] < b[2] && b[0] < a[2] && a[1] < b[3] && b[1] < a[3];
+  const keep = MAP_AT.slice(1).flatMap(([x, y]) => { const px = x * g.w / 100, py = y * g.h / 100; return [[px - 28, py - 40, px + 28, py + 28], [px - 50, py + 38, px + 50, py + 64]]; });   // pins with their stars, and their labels
+  const clear = d => { const [x, y] = roadAt(g, d), me = [x - s * 0.28, y - s * 0.8, x + s * 0.28, y]; return keep.every(k => !hit(me, k)); };
+  let d = end - s * 0.4; while (d > far && !clear(d)) d -= 3;
+  if (d <= far) d = end - Math.min(s * 0.75, (end - g.stops[n - 1]) * 0.6);   // no clear spot on a short road: wait just short of the pin
+  return (g.rest[n] = roadR(g, d));
+}
+const mistAt = n => n >= LABOURS ? 100 : (MAP_AT[n][0] + MAP_AT[n + 1][0]) / 2 - 2;
+// called by renderMap: a newly opened map shows any road won since it was last seen, a new choice sends Rostam riding
+function mapSync(u, opening) {
+  mapLayer($('road'));
+  let seen = +(store.get('sh-map-seen') || 0);
+  if (!seen || seen > u) { seen = u; store.set('sh-map-seen', u); }   // a new save, or progress cleared: nothing to reveal
+  MF.u = u; MF.to = pick;
+  if (opening || MF.r == null) MF.want = { seen };
+  else if (!MF.ride || MF.ride.n !== pick) MF.ride = { r0: MF.r, n: pick, t0: performance.now(), dur: null };
+  mapKick();
+}
+function mapKick() { if (!MF.run) MF.run = requestAnimationFrame(mapTick); }
+document.addEventListener('visibilitychange', () => { if (!document.hidden) mapKick(); });
+function mapTick(now) {
+  MF.run = 0;
+  if ($('s-map').classList.contains('hidden') || document.hidden || !MF.layer) { MF.last = 0; return; }   // resumes when the map is opened again
+  const g = mapGeom(); if (!g) return;   // not laid out yet: the resize observer calls again once it is
+  const calm = stillMotion(), dt = MF.last ? Math.min(0.05, (now - MF.last) / 1000) : 0; MF.last = now;
+  if (MF.want) {
+    const { seen } = MF.want, reveal = !calm && seen < MF.u; MF.want = null;
+    if (seen < MF.u) store.set('sh-map-seen', MF.u);
+    MF.glow = reveal ? { p0: seen, p1: MF.u, t0: now + 350, dur: 1500 } : null; MF.prog = reveal ? seen : MF.u;
+    MF.fresh = reveal ? MF.u : 0;
+    MF.r = restR(g, reveal ? seen : MF.to); MF.face = Math.sign(roadAt(g, roadDist(g, MF.r) + 1)[2]) || 1;
+    MF.ride = reveal && MF.to !== seen ? { r0: MF.r, n: MF.to, t0: now + 2050, dur: null } : null;
+    MF.layer.querySelector('.road-rider').classList.add('on'); mapEdges();
+    // on a phone the focused Begin button scrolls into view; start from the map's heading instead whenever both fit
+    const sm = $('s-map'), top = sm.querySelector('.journey-map-heading').getBoundingClientRect().top - 12;
+    if (innerWidth <= 760 && top < 0 && $('rideBtn').getBoundingClientRect().bottom - top <= innerHeight - 8) sm.scrollTop += top;
+  }
+  // the light runs along the newly won road, then the new labour's pin wakes
+  if (MF.glow) {
+    const k = Phaser.Math.Clamp((now - MF.glow.t0) / MF.glow.dur, 0, 1);
+    MF.prog = MF.glow.p0 + (MF.glow.p1 - MF.glow.p0) * (k < 0.5 ? 2 * k * k : 1 - (-2 * k + 2) ** 2 / 2);
+    if (k >= 1) {
+      MF.glow = null; MF.prog = MF.u;
+      const pin = $('road').querySelector(`[data-n="${MF.fresh}"]`); MF.fresh = 0;
+      if (pin) { pin.classList.add('fresh'); setTimeout(() => pin.classList.remove('fresh'), 2300); }
+    }
+  } else MF.prog = MF.u;
+  // the ride: eased along the road at a steady pace, facing the way he goes
+  let r = restR(g, MF.to), moving = false;
+  if (MF.ride) {
+    const R = MF.ride, a = roadDist(g, R.r0), b = roadDist(g, restR(g, R.n));
+    if (R.dur == null) R.dur = calm ? 0 : Phaser.Math.Clamp(Math.abs(b - a) / 0.42, 320, 2400);
+    const k = R.dur ? (now - R.t0) / R.dur : 1;
+    if (k >= 1) MF.ride = null;
+    else {
+      const e = Math.max(0, k), d = a + (b - a) * (e < 0.5 ? 2 * e * e : 1 - (-2 * e + 2) ** 2 / 2);
+      r = roadR(g, d); moving = k > 0;
+      const dx = roadAt(g, d + Math.sign(b - a))[0] - roadAt(g, d)[0]; if (moving && Math.abs(dx) > 0.05) MF.face = dx > 0 ? 1 : -1;
+    }
+  }
+  if (!moving && !MF.ride) { const d = roadDist(g, r), dx = roadAt(g, d + 2)[0] - roadAt(g, d)[0]; if (Math.abs(dx) > 0.3) MF.face = dx > 0 ? 1 : -1; }
+  MF.r = r;
+  const [x, y] = roadAt(g, roadDist(g, r)), rider = MF.layer.querySelector('.road-rider');
+  rider.style.transform = `translate(${x.toFixed(1)}px,${y.toFixed(1)}px) translate(-50%,-94%) scaleX(${MF.face})`;
+  rider.classList.toggle('gallop', moving);
+  // the travelled road and the mist beyond it
+  const pd = roadDist(g, MF.prog);
+  if (Math.abs(pd - MF.trail) > 0.5) {
+    let s = ''; for (const p of g.pts) { if (p[2] > pd) break; s += (s ? 'L' : 'M') + p[0].toFixed(1) + ' ' + p[1].toFixed(1); }
+    const e = roadAt(g, pd); s += pd > 0 ? 'L' + e[0].toFixed(1) + ' ' + e[1].toFixed(1) : '';
+    for (const p of MF.layer.querySelectorAll('.road-trail path')) p.setAttribute('d', s);
+    MF.trail = pd;
+  }
+  const k = Math.floor(MF.prog), f = MF.prog - k;
+  MF.layer.querySelector('.road-mist').style.transform = `translateX(${(mistAt(k) + (mistAt(Math.min(LABOURS, k + 1)) - mistAt(k)) * f).toFixed(2)}%)`;
+  if (calm) MF.ctx.clearRect(0, 0, MAP_PX[0], MAP_PX[1]);
+  else if (now - MF.life > 33) { mapLife((now - (MF.life || now)) / 1000, now / 1000); MF.life = now; }
+  if (!calm || MF.ride || MF.glow) mapKick();
+}
+// the painted world stirring, drawn in the map's own pixels: embers over the Div camp, snow on the White Div's peaks,
+// fireflies in the reeds, guttering windows and lamps, and twinkling stars
+function mapLife(dt, t) {
+  const c = MF.ctx, L = MAP_LIGHTS, P = MF.parts, rnd = (a, b) => a + Math.random() * (b - a);
+  dt = Math.min(dt, 0.1); c.clearRect(0, 0, MAP_PX[0], MAP_PX[1]);
+  for (const [fx, fy, k] of L.fires) if (Math.random() < dt * 12 * k) P.push({ k: 0, x: fx + rnd(-3, 3), y: fy - 2, vx: rnd(-2, 2), vy: -rnd(9, 20), age: 0, max: rnd(1.4, 3), w: rnd(0, 6.3) });
+  if (P.filter(p => p.k === 1).length < 42 && Math.random() < dt * 16) P.push({ k: 1, x: rnd(570, 700), y: -2, vx: -rnd(1, 4), vy: rnd(6, 12), age: 0, max: 60, w: rnd(0, 6.3) });
+  MF.flies ||= Array.from({ length: 10 }, () => ({ x: rnd(14, 84), y: rnd(190, 360), w: rnd(0, 6.3), s: rnd(0.4, 0.9) }));
+  c.globalCompositeOperation = 'lighter';
+  const glow = (x, y, r, col, a) => { const gr = c.createRadialGradient(x, y, 0, x, y, r); gr.addColorStop(0, `rgba(${col},${a.toFixed(3)})`); gr.addColorStop(1, `rgba(${col},0)`); c.fillStyle = gr; c.fillRect(x - r, y - r, 2 * r, 2 * r); };
+  L.windows.concat(L.lamps).forEach(([x, y, w, h], i) => {
+    const f = 0.55 + 0.45 * Math.sin(t * (1.1 + (i % 5) * 0.31) + i * 2.1) * Math.sin(t * 0.63 + i);
+    glow(x + w / 2, y + h / 2, 4 + Math.max(w, h) / 2, '255,176,80', 0.16 + f * 0.2);
+  });
+  for (const [x, y, k] of L.fires) { const f = 0.75 + 0.25 * Math.sin(t * 8.3 + x) * Math.sin(t * 5.1 + y); glow(x, y, 16 * k + 6, '255,128,48', 0.3 * k * f + 0.06); }
+  for (const [x, y, s] of L.stars) {
+    const f = Math.sin(t * 1.7 + x * 0.37) ** 8;
+    if (f > 0.2) { c.fillStyle = `rgba(214,224,255,${(0.45 * f).toFixed(3)})`; c.fillRect(x - 1, y + (s - 1) / 2, s + 2, 1); c.fillRect(x + (s - 1) / 2, y - 1, 1, s + 2); }
+  }
+  for (const [x, y] of L.faint) { const f = 0.5 + 0.5 * Math.sin(t * (0.6 + (x % 7) * 0.13) + y); c.fillStyle = `rgba(200,212,255,${(0.08 + 0.42 * f * f).toFixed(3)})`; c.fillRect(x, y, 1, 1); }
+  for (const fl of MF.flies) {
+    fl.w += dt * fl.s; fl.x += Math.cos(fl.w * 1.3) * dt * 4; fl.y += Math.sin(fl.w) * dt * 3;
+    const a = Math.max(0, Math.sin(fl.w * 2.2)) ** 2;
+    if (a > 0.02) { glow(fl.x, fl.y, 3.5, '200,255,120', 0.35 * a); c.fillStyle = `rgba(236,255,170,${(0.9 * a).toFixed(3)})`; c.fillRect(Math.round(fl.x), Math.round(fl.y), 1, 1); }
+  }
+  c.globalCompositeOperation = 'source-over';
+  for (let i = P.length - 1; i >= 0; i--) {
+    const p = P[i]; p.age += dt; p.w += dt * 2;
+    p.x += (p.vx + Math.sin(p.w) * (p.k ? 3 : 5)) * dt; p.y += p.vy * dt;
+    if (p.age > p.max || p.y > MAP_PX[1] || (p.k && p.x < 540)) { P.splice(i, 1); continue; }
+    const life = p.age / p.max;
+    c.fillStyle = p.k ? 'rgba(236,246,255,.78)' : life < 0.3 ? `rgba(255,236,160,${(1 - life).toFixed(3)})` : `rgba(255,${Math.round(170 - life * 90)},60,${(1 - life).toFixed(3)})`;
+    c.fillRect(Math.round(p.x), Math.round(p.y), 1, 1);
+  }
+}
+// soft edges on the journey map whenever more of it lies off to either side
+function mapEdges() {
+  const v = $('mapScroll'), max = v.scrollWidth - v.clientWidth;
+  v.parentNode.classList.toggle('more-l', v.scrollLeft > 4); v.parentNode.classList.toggle('more-r', v.scrollLeft < max - 4);
+}
+$('mapScroll').addEventListener('scroll', mapEdges, { passive: true }); addEventListener('resize', mapEdges);
+// the chapter painting crossfades: the old one stays until the new one is ready, so the card never goes blank
+function cardArt(art, src) {
+  if (art.getAttribute('src') === src) return;
+  const box = art.parentNode;
+  if (!box.querySelector('.journey-art-old:not(.out)') && art.complete && art.naturalWidth) {
+    const old = art.cloneNode(); old.removeAttribute('id'); old.removeAttribute('fetchpriority'); old.alt = ''; old.className = 'journey-art-old'; art.after(old);
+  }
+  box.classList.toggle('loading', !box.querySelector('.journey-art-old:not(.out)'));
+  art.src = src;
+  const shown = () => {
+    if (art.getAttribute('src') !== src) return;
+    box.classList.remove('loading');
+    for (const o of box.querySelectorAll('.journey-art-old:not(.out)')) { o.classList.add('out'); setTimeout(() => o.remove(), 400); }
+  };
+  if (art.decode) art.decode().then(shown, shown);
+  else { art.addEventListener('load', shown, { once: true }); art.addEventListener('error', shown, { once: true }); }
+}
+// on a phone the four menu links fold into one Menu button
+$('journeyMenu').onclick = () => { const open = $('journeyMenu').getAttribute('aria-expanded') !== 'true'; $('journeyMenu').setAttribute('aria-expanded', String(open)); $('journeyMenu').parentNode.classList.toggle('open', open); };
+$('journeyMenu').parentNode.addEventListener('click', e => { if (e.target.closest('.journey-nav-link:not(#journeyMenu)')) { $('journeyMenu').setAttribute('aria-expanded', 'false'); $('journeyMenu').parentNode.classList.remove('open'); } });
 function openMap(e) {
   if (e !== false) music(A.want);                                  // a click: the menu theme may begin
   if (playing) setPaused(true);
