@@ -179,17 +179,16 @@ function buildMap() {
   const ground = (a, b, top) => { for (let c = a; c <= b; c++) for (let r = top; r < ROWS; r++) g[r][c] = '#'; };
   const put = (c, r, ch) => { g[r][c] = ch; };
   const row = (a, b, r, ch) => { for (let c = a; c <= b; c++) g[r][c] = ch; };
-  ground(0, 21, 14); ground(25, 39, 14); ground(40, 47, 12); ground(48, 59, 14); ground(60, 68, 16); row(60, 68, 15, '^'); ground(69, 84, 14); ground(85, 127, 14);
+  ground(0, 21, 14); ground(25, 59, 14); ground(60, 68, 16); row(60, 68, 15, '^'); ground(69, 84, 14); ground(85, 127, 14);
   row(61, 63, 11, '='); row(66, 68, 10, '='); row(74, 77, 10, '='); row(79, 82, 7, '=');   // the marsh ledges are reed rafts that sink
   // the high road over the marsh: up from the first raft, along the reed tops, down onto the temple's high perch. The
   // fire's clearing (48 to 59) stays open ground, so the pack can always reach Rostam there.
   row(64, 65, 7, '='); row(68, 69, 5, '='); row(72, 73, 4, '=');
-  for (const c of [37, 41]) { put(c, 12, '#'); put(c, 13, '#'); }
   put(3, 13, 'P');
-  [[8, 12], [10, 11], [12, 12], [22, 11], [23, 10], [24, 11], [43, 9], [44, 8], [45, 9], [62, 9], [67, 8], [75, 8], [76, 8], [80, 5], [81, 5],
+  [[8, 12], [10, 11], [12, 12], [22, 11], [23, 10], [24, 11], [43, 10], [44, 9], [45, 10], [62, 9], [67, 8], [75, 8], [76, 8], [80, 5], [81, 5],
     [64, 6], [65, 6], [68, 4], [69, 4], [72, 3]].forEach(([c, r]) => put(c, r, 'c'));
   // One jackal teaches the lunge, a pair tests it, the Div comes alone, then a jackal and a Div together.
-  put(16, 13, 'j'); put(30, 13, 'j'); put(34, 13, 'j'); put(45, 11, 'd'); put(74, 13, 'd'); put(79, 13, 'j');
+  put(16, 13, 'j'); put(30, 13, 'j'); put(34, 13, 'j'); put(45, 13, 'd'); put(74, 13, 'd'); put(79, 13, 'j');
   put(27, 13, 'F'); put(52, 13, 'F'); put(110, 12, 'L');
   // the lion's arena (86 to 116): one short ledge on the left, three tiles in from the wall and high enough to walk
   // beneath, to leap onto from its charge. The lion keeps out of mace reach of it (KEEP1): a charge stops at that line
@@ -740,7 +739,7 @@ function flyer(tex, { range, dive, rest, offY, speed = 0.012 }) {
 // three blows to kill.
 const SIEGE1 = [['j', 'j'], ['j', 'd', 'j'], ['d', 'J', 'j']];
 function reedSiege(s) {
-  const L = 48 * TS, R = 60 * TS;
+  const L = 40 * TS, R = 60 * TS;   // twenty tiles of open ground: room for the pack to circle
   // the burning reeds hold Rostam and the pack inside by position, not by a physics wall he could climb by jumping into it
   const wall = (x, floor) => {
     // a tapering column of flame, each tongue on its own beat so the reeds seem to burn rather than stack
@@ -752,7 +751,7 @@ function reedSiege(s) {
     const glow = s.add.image(x, floor - 40, 'glow').setScale(1.6, 2.6).setTint(0xff8a3a).setBlendMode(Phaser.BlendModes.ADD).setDepth(6).setAlpha(0.7);
     s.fx('dust', x, floor, { depth: 8 }); return { flames, glow };
   };
-  s.siege = { wave: 0, live: [], L, R, next: s.time.now + 1300, walls: [wall(L, 12 * TS), wall(R, 14 * TS)] };
+  s.siege = { wave: 0, live: [], L, R, next: s.time.now + 1300, walls: [wall(L, 14 * TS), wall(R, 14 * TS)] };
   sfx('fire'); sfx('roar'); s.cam.shake(300, 0.008);
   banner('آتشِ نیستان', 'Hold the fire');
   hint(`The pack closes on the fire! When a jackal <b>drops its head</b>, ${touch ? 'dodge' : keyHTML('dodge') + ' dodge'} or jump the lunge, then strike while it pants.`);
@@ -885,11 +884,11 @@ const LEVELS = {
       s.khan1Beat = 0;
       for (const f of s.foes.getChildren()) {
         const c = f.home.x / TS;
-        f.roam = (c < 22 ? [11, 21] : c < 40 ? [29.5, 36.5] : c < 48 ? [42, 47.5] : f.kind === 'div' ? [70, 79] : [71, 81]).map(x => x * TS);
+        f.roam = (c < 22 ? [11, 21] : c < 40 ? [28.5, 39] : c < 48 ? [41.5, 47] : f.kind === 'div' ? [70, 79] : [71, 81]).map(x => x * TS);
       }
       hint(`Night in the reeds. <b>Strike</b> with ${touch ? 'the mace button' : keyHTML('attack')}, or <b>jump onto a foe</b>.`);
     },
-    kindled(s, a) { if (Math.abs(a.x / TS - 52.5) < 1 && !rush && s.player.x < 59 * TS) { reedSiege(s); return true; } },
+    kindled(s, a) { if (Math.abs(a.x / TS - 52.5) < 1 && !rush && s.player.x < 59 * TS) { for (const f of s.foes.getChildren()) if (f.active && f.x > 40 * TS && f.x < 60 * TS) f.roam = [40 * TS + 6, 60 * TS - 6]; reedSiege(s); return true; } },
     // the storm over each boss fight: veil and cloud colours, the sun or moon behind it, lightning colour and pace, and its weather
     sky: { veil: 0x3a0a06, cloud: 0xa8401c, glow: 0xff7a2a, sun: [0.76, 0.34], bolt: 0xffd0a0, every: [260, 420], edge: 0x6a1004, fx: 'dust', paint: 'bg/storm.png' },
     fires: [82], hearts: [85],                       // a last fire and a heart before the lion's den
@@ -2318,14 +2317,14 @@ class Play extends Phaser.Scene {
   lionMeetsRakhsh(l) {
     this.phase2 = true; this.intro = true; this.frozen = true; this.player.setVelocityX(0);
     l.setVelocityX(0); l.clearTint(); l.play('lion-roar'); sfx('roar'); this.roarRings(l); this.cam.shake(500, 0.01);
-    const y = 14 * TS + 2, post = this.cam.scrollX + 4 * TS;
-    const r = this.ally = this.add.sprite(this.cam.scrollX - 70, y, 'rakhsh-gallop', 0).setOrigin(0.5, 0.97).setDepth(4.5).setScale(SIZE.rakhsh / 229).play('rakhsh-gallop');
+    const y = 14 * TS + 2, post = this.cam.scrollX + 7 * TS;
+    const r = this.ally = this.add.sprite(this.cam.scrollX - 70, y, 'rakhsh-gallop', 0).setOrigin(0.5, 0.97).setDepth(3.6).play('rakhsh-gallop');   // behind the fight; his full size, as when he rides to the rescue in the other labours
     r.post = post; r.state = 'enter'; r.next = 0;
     this.time.delayedCall(600, () => { sfx('neigh'); banner('رخش', 'Rakhsh comes to fight'); });
     const dust = this.time.addEvent({ delay: 110, loop: true, callback: () => r.active && r.state !== 'post' && r.state !== 'rear' && this.fx('dust', r.x - (r.flipX ? -26 : 26), y - 1, { depth: 6, flip: r.flipX }) });
     r.once('destroy', () => dust.remove());
     this.tweens.add({ targets: r, x: post, duration: 1100, ease: 'Sine.easeOut', onComplete: () => {
-      if (!r.active) return; r.state = 'post'; r.anims.stop(); r.setFrame(0); r.next = this.time.now + 1800;
+      if (!r.active) return; r.state = 'post'; this.allyRest(r); r.next = this.time.now + 1800;
       this.intro = false; if (!this.done) this.frozen = false;
       l.state = 'prowl'; l.tm = 50;
       hint('<b>Rakhsh fights at your side!</b> When he rears, lure the lion into his charge, then strike it while it is down.');
@@ -2333,24 +2332,37 @@ class Play extends Phaser.Scene {
   }
   allyTick(l) {
     const r = this.ally; if (!r?.active || this.intro) return;
-    const now = this.time.now, y = 14 * TS + 2, left = this.cam.scrollX + 4 * TS, right = left + W * 0.55;   // his charge spans the left of the arena: the lion must be drawn into it
+    const now = this.time.now, y = 14 * TS + 2, home = this.cam.scrollX + 7 * TS, lo = this.cam.scrollX + 40, hi = this.cam.scrollX + W - 40;
     const fighting = this.player.body.blocked.down && this.player.body.bottom > 13 * TS;   // he charges for a Rostam who fights on the ground, not one waiting on the ledge
     if (r.state === 'post' && now >= r.next && fighting && !l.calm() && l.state !== 'pounce' && l.body.blocked.down) {
-      r.state = 'rear'; r.setFlipX(false); r.play('rakhsh-rear'); sfx('neigh'); this.cam.shake(160, 0.006);
+      // he rears, then charges at the lion, whichever side of him it is, and runs on past it
+      r.cdir = Math.sign(l.x - r.x) || 1; r.end = Phaser.Math.Clamp(l.x + r.cdir * 90, lo, hi);
+      r.state = 'rear'; r.setFlipX(r.cdir < 0); this.allyWake(r); r.play('rakhsh-rear'); sfx('neigh'); this.cam.shake(160, 0.006);
       r.once('animationcomplete', () => { if (!r.active || r.state !== 'rear') return; r.state = 'charge'; r.hit = false; r.play('rakhsh-gallop'); });
     } else if (r.state === 'charge') {
-      r.x += 5.6 * this.bossStep();
-      if (!r.hit && l.hp > 0 && l.body.enable && Math.abs(l.x - r.x) < 38 && l.body.bottom > y - 30) {
-        r.hit = true; this.fx('impact', l.x - 10, l.body.center.y, { depth: 10 }); this.fx('hit', l.x, l.body.center.y, { depth: 10 });
+      r.x += r.cdir * 5.6 * this.bossStep();
+      if (!r.hit && l.hp > 0 && l.body.enable && Math.abs(l.x - r.x) < 60 && l.body.bottom > y - 30) {
+        r.hit = true; this.fx('impact', l.x - r.cdir * 10, l.body.center.y, { depth: 10 }); this.fx('hit', l.x, l.body.center.y, { depth: 10 });
         this.cam.shake(320, 0.014); sfx('hit'); this.hitStop(90); this.combatWord('Rakhsh!', '#ffe0a0');
-        this.damage(l, 1, true); if (l.hp > 0) { l.dir = -1; l.setFlipX(true); this.lionOpening(l, 'stun', 120); }
+        this.damage(l, 1, true); if (l.hp > 0) { l.dir = -r.cdir; l.setFlipX(l.dir < 0); this.lionOpening(l, 'stun', 120); }
       }
-      if (r.x >= right) { r.state = 'return'; r.setFlipX(true); }
+      if ((r.cdir > 0 && r.x >= r.end) || (r.cdir < 0 && r.x <= r.end)) { r.state = 'return'; r.setFlipX(home < r.x); r.anims.timeScale = 0.6; }
     } else if (r.state === 'return') {
-      r.x -= 3 * this.bossStep();
-      if (r.x <= left) { r.x = left; r.state = 'post'; r.setFlipX(false); r.anims.stop(); r.setFrame(0); r.next = now + (this.rakhshFed ? 4200 : 6200); }
+      const d = Math.sign(home - r.x); r.x += d * 3 * this.bossStep();
+      if (!d || Math.sign(home - r.x) !== d) { r.x = home; r.state = 'post'; r.setFlipX(false); this.allyRest(r); r.next = now + (this.rakhshFed ? 4200 : 6200); }
     }
   }
+  // standing, Rakhsh is never a frozen stride: he breathes, and now and then stamps a hoof and tosses his head
+  allyRest(r) {
+    this.allyWake(r); r.anims.stop(); r.setFrame(0);
+    r.breath = this.tweens.add({ targets: r, scaleY: r.scaleY * 1.025, yoyo: true, repeat: -1, duration: 900, ease: 'Sine.easeInOut' });
+    r.stamp = this.time.addEvent({ delay: 2600, loop: true, callback: () => {
+      if (!r.active || r.anims.isPlaying) return;
+      r.setFrame(1); this.time.delayedCall(160, () => r.active && !r.anims.isPlaying && r.setFrame(0));
+      this.fx('dust', r.x + (r.flipX ? -22 : 22), r.y, { depth: 6, flip: r.flipX }).setScale(0.6);
+    } });
+  }
+  allyWake(r) { r.breath?.remove(); r.breath = null; r.stamp?.remove(); r.stamp = null; r.anims.timeScale = 1; r.setScale(r.scaleX); }
   lionOpening(l, state, frames) {
     l.state = state; l.tm = frames; l.intent = ''; l.setVelocityX(0); l.play('lion-walk'); l.anims.pause(); l.setTint(0xffd8a0);
     this.stars?.destroy(); this.stars = this.fx('stun', l.x, l.body.top - 6, { depth: 10, follow: l });
@@ -2358,7 +2370,12 @@ class Play extends Phaser.Scene {
   }
   lionDown() {
     const l = this.lion; this.stars?.destroy(); this.stars = null; const at = this.bossDeath(l);
-    const r = this.ally; if (r?.active) { r.state = 'leave'; this.time.delayedCall(at + 400, () => { if (!r.active) return; r.setFlipX(false); r.play('rakhsh-gallop'); this.tweens.add({ targets: r, x: r.x + 60, duration: 600, onComplete: () => { r.anims.stop(); r.setFrame(0); } }); }); }
+    // Rakhsh comes to Rostam's side and stands with him
+    const r = this.ally; if (r?.active) { r.state = 'leave'; this.time.delayedCall(at + 400, () => {
+      if (!r.active) return; this.allyWake(r); const p = this.player, side = p.x - r.x > 0 ? -1 : 1, to = p.x + side * 54;
+      r.setFlipX(to < r.x); r.play('rakhsh-gallop'); sfx('neigh');
+      this.tweens.add({ targets: r, x: to, duration: Math.max(300, Math.abs(to - r.x) / 0.22), onComplete: () => { if (!r.active) return; r.setFlipX(p.x < r.x); this.allyRest(r); } });
+    }); }
     $('boss').classList.add('hidden'); this.wall.destroy(); this.wallR?.destroy();
     this.time.delayedCall(at + 900, () => this.reward(l.x));
     this.cam.startFollow(this.player, true, 0.12, 0.12, W / 2, H / 2);
