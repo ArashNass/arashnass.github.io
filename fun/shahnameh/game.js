@@ -188,8 +188,8 @@ function buildMap() {
   put(3, 13, 'P');
   [[8, 12], [10, 11], [12, 12], [22, 11], [23, 10], [24, 11], [43, 9], [44, 8], [45, 9], [62, 9], [67, 8], [75, 8], [76, 8], [80, 5], [81, 5],
     [64, 6], [65, 6], [68, 4], [69, 4], [72, 3]].forEach(([c, r]) => put(c, r, 'c'));
-  // A pair of jackals teaches the lunge, a second pair tests it, the Div comes alone, then a jackal and a Div together.
-  put(16, 13, 'j'); put(19, 13, 'j'); put(30, 13, 'j'); put(34, 13, 'j'); put(45, 11, 'd'); put(74, 13, 'd'); put(79, 13, 'j');
+  // One jackal teaches the lunge, a pair tests it, the Div comes alone, then a jackal and a Div together.
+  put(16, 13, 'j'); put(30, 13, 'j'); put(34, 13, 'j'); put(45, 11, 'd'); put(74, 13, 'd'); put(79, 13, 'j');
   put(27, 13, 'F'); put(52, 13, 'F'); put(110, 12, 'L');
   // the lion's arena (86 to 116): one short ledge on the left, three tiles in from the wall and high enough to walk
   // beneath, to leap onto from its charge. The lion keeps out of mace reach of it (KEEP1): a charge stops at that line
@@ -211,8 +211,9 @@ function map2() {
   put(3, 13, 'P');
   [[23, 11], [44, 9], [100, 9], [116, 11], [132, 12]].forEach(([c, r]) => put(c, r, 'w'));
   [[9, 12], [11, 11], [13, 12], [28, 10], [29, 10], [47, 12], [57, 11], [74, 12], [77, 9], [78, 9], [89, 11], [94, 10], [109, 12], [121, 12], [138, 12]].forEach(([c, r]) => put(c, r, 'c'));
-  put(15, 13, 'j'); put(33, 12, 's'); put(48, 13, 's'); put(38, 7, 'v'); put(62, 13, 'j'); put(68, 6, 'v'); put(81, 13, 's');
-  put(90, 12, 's'); put(101, 6, 'v'); put(115, 12, 's'); put(120, 7, 'v'); // one storm encounter, then a clear path for the ram and bells
+  // 'a' is a scorpion buried in the sand: a mound and a stir of grains, until Rostam comes near
+  put(15, 13, 'j'); put(33, 12, 's'); put(48, 13, 'a'); put(38, 7, 'v'); put(62, 13, 'j'); put(68, 6, 'v'); put(81, 13, 'a'); put(84, 13, 'a');
+  put(90, 12, 's'); put(101, 6, 'v'); put(115, 12, 'a'); put(120, 7, 'v'); // one storm encounter, then a clear path for the ram and bells
   put(57, 12, 'O'); put(107, 13, 'O');
   row(141, 144, 10, '=');                                  // the Scorpion Queen's arena (138 to 168): one short ledge on the left (KEEP2)
   for (const [a, b] of PLINTHS) ground(a, b, 12);          // the water and wind towers stand on plinths, which sink when she rises
@@ -348,7 +349,7 @@ function map7() {
 // Map encounters stop before rest areas and story triggers. Bounds are tile edges,
 // shared by deliberate pairs, and do not apply to boss summons or horde waves.
 const ENCOUNTERS = {
-  2: [[15,11,19],[33,31,36],[48,42,53],[38,34,43],[62,60,65],[68,65,72],[81,80,86],[90,86,92],[101,98,104],[115,114,119],[120,119,125]],
+  2: [[15,11,19],[33,31,36],[48,42,53],[38,34,43],[62,60,65],[68,65,72],[81,80,86],[84,80,86],[90,86,92],[101,98,104],[115,114,119],[120,119,125]],
   3: [[13,9,17],[24,22,32],[36,33,40],[53,49,57],[60,57,65],[68,64,74],[74,71,80],[88,87,93],[95,93,101]],
   4: [[16,12,20],[29,25,35],[38,35,40],[42,40,46],[63,58,67],[70,67,73],[77,74,80],[99,96,104],[96,94,104]],
   5: [[14,10,22],[36,33,45],[42,33,45],[60,56,63],[71,68,79],[76,68,79],[88,85,92],[99,96,104]],
@@ -520,7 +521,7 @@ function jackalHunt(s, f, k, p) {
     f.setVelocityX(foeStepFree(s, f, -f.dir * 2) ? -f.dir * 16 : 0);
     f.glint?.setPosition(f.x + f.dir * f.displayWidth * 0.3, f.body.top + 4);
     if (f.jt <= 0) {
-      f.js = 'lunge'; f.jt = 40; f.leap = true; f.setAngle(0); f.anims.resume(); f.anims.timeScale = 1.7;
+      f.js = 'lunge'; f.jt = 40; f.leap = true; f.bit = false; f.setAngle(0); f.anims.resume(); f.anims.timeScale = 1.7;
       f.setVelocity(hopVelocity(f, f.dir * 215, 0.34), -150); s.fx('dust', f.x - f.dir * 10, f.body.bottom, { flip: f.dir < 0, depth: 6 });
     }
     return;
@@ -536,7 +537,7 @@ function jackalHunt(s, f, k, p) {
   const dx = p.x - f.x, near = Math.abs(dx), level = Math.abs(p.body.bottom - f.body.bottom) < 24;
   f.dir = Math.sign(dx) || f.dir; f.setFlipX(f.dir < 0);
   if (level && near > 30 && near < 100 && f.jt <= 0 && reserveAttack(s, f)) {
-    f.js = 'crouch'; f.jt = s.mounted ? 24 : 28; f.setVelocityX(0); f.anims.pause(); f.setFrame(0); f.setAngle(f.dir * 10);
+    f.js = 'crouch'; f.jt = s.mounted ? 24 : cur === 1 ? 34 : 28;   // the first labour gives the longest look at the tell f.setVelocityX(0); f.anims.pause(); f.setFrame(0); f.setAngle(f.dir * 10);
     f.glint = s.add.image(f.x, f.body.top, 'glow').setTint(0xffcf6a).setScale(0.13).setBlendMode(Phaser.BlendModes.ADD).setDepth(f.depth + 0.1);
     s.tweens.add({ targets: f.glint, scale: 0.2, alpha: 0.5, yoyo: true, repeat: -1, duration: 90 });
     return;
@@ -546,8 +547,32 @@ function jackalHunt(s, f, k, p) {
   const free = v && foeStepFree(s, f, Math.sign(v) * 3) && !crowded(s, f, Math.sign(v));
   f.setVelocityX(free ? v : 0); f.anims.timeScale = free ? 1 : 0.35;
 }
+// A scorpion buried in the sand shows only a low mound and, now and then, a stir of grains. When Rostam comes near the
+// mound shudders for half a second, then the scorpion bursts out beside him with its sting already raised. Under the
+// sand it can neither hurt nor be hurt (the Simurgh's light still finds it).
+function bury(s, f) {
+  f.buried = true; f.setAlpha(0); f.harmless = () => f.buried; f.immune = () => f.buried; f.immuneMsg = 'It is under the sand. Wait for it to rise.';
+  f.mound = s.add.ellipse(f.x, f.body.bottom - 1, 24, 7, 0xd9a35c, 0.9).setStrokeStyle(1, 0xf3cf8a, 0.8).setDepth(3);
+  f.once('destroy', () => f.mound?.destroy()); f.mt = Math.random() * 60;
+}
+function buriedTick(s, f, k, p) {
+  f.setVelocityX(0); f.mound?.setPosition(f.x, f.body.bottom - 1); f.mt -= k;
+  if (f.mt <= 0 && !f.stir) { f.mt = 80 + Math.random() * 70; s.fx('dust', f.x, f.body.bottom, { depth: 3 }).setScale(0.45).setAlpha(0.7); }
+  const near = canHunt(s, f, p) && Math.abs(p.x - f.x) < 72 && Math.abs(p.body.bottom - f.body.bottom) < 30;
+  if (near && !f.stir) unearth(s, f, 30);
+  if (f.stir && (f.stir -= k) <= 0) {
+    f.buried = false; f.stir = 0; f.setAlpha(1); f.mound?.destroy(); f.mound = null; f.cool = 6; sfx('rock'); s.cam.shake(120, 0.004);
+    s.fx('poof', f.x, f.body.bottom - 6, { depth: 8 }); s.fx('dust', f.x - 12, f.body.bottom, { depth: 8, flip: true }); s.fx('dust', f.x + 12, f.body.bottom, { depth: 8 });
+    f.dir = Math.sign(p.x - f.x) || 1; f.setFlipX(f.dir < 0); f.setVelocityY(-150);
+  }
+}
+function unearth(s, f, frames) {
+  if (!f.buried || f.stir) return; f.stir = frames;
+  s.tweens.add({ targets: f.mound, scaleX: 1.35, scaleY: 1.8, yoyo: true, repeat: 2, duration: 85 });
+  s.fx('dust', f.x, f.body.bottom, { depth: 3 }).setScale(0.7);
+}
 const FOES = {
-  jackal: { tex: 'jackal-run', hp: 1, init: (s, f) => { f.setVelocityX(-55); f.once('destroy', () => f.glint?.destroy()); }, tick: (s, f, k, p) => jackalHunt(s, f, k, p) },
+  jackal: { tex: 'jackal-run', hp: 1, init: (s, f) => { f.setVelocityX(-55); f.once('destroy', () => f.glint?.destroy()); f.harmless = () => f.js === 'recover' || (f.js === 'lunge' && f.bit); }, tick: (s, f, k, p) => jackalHunt(s, f, k, p) },
   div: {
     tex: 'div-hop', hp: 2,
     tick(s, f, k, p) {
@@ -566,6 +591,7 @@ const FOES = {
   scorpion: {
     tex: 'scorpion-crawl', hp: 2,
     tick(s, f, k, p) {
+      if (f.buried) { buriedTick(s, f, k, p); return; }
       f.cool = (f.cool || 0) - k;
       if (f.sting) { f.setVelocityX(0); return; }
       const dx = p.x - f.x;
@@ -764,6 +790,34 @@ function reedSiegeTick(s) {
   s.fx('pickup', drop.x, drop.y); toast('The pack scatters. Roast lamb lies by the fire.');
   s.time.delayedCall(1500, () => { if (s.done) return; sfx('roar'); s.cam.shake(700, 0.006); toast('Far off in the reeds, the lion answers.'); });
 }
+// Khan II: the sandstorm rolls loose rocks along the ground with the wind. A plume of dust at the edge of sight comes
+// first, then the rock tumbles in, bouncing. Jump it, dodge through it, or smash it with the mace.
+function stormRocks(s, k) {
+  const p = s.player;
+  s.rockT = (s.rockT ?? 80) - k;
+  if (s.rockT <= 0 && s.stormOn > 0.45 && !s.prayed && !s.bossOn && !s.frozen && p.x < (s.ramAt?.x ?? Infinity) - 2 * TS) {
+    s.rockT = 115 + Math.random() * 70;
+    const x0 = s.cam.scrollX + W + 14, plume = s.fx('dust', x0 - 22, s.bossFloorAt(x0 - 22), { depth: 8, flip: true }); plume.setScale(1.5); sfx('rock');
+    s.time.delayedCall(520, () => {
+      if (s.done || s.prayed || s.bossOn) return;
+      const r = s.add.image(x0, s.bossFloorAt(x0) - 10, 'boulder').setDepth(6).setScale(2).setTint(0xd8b48a);
+      r.vx = -(185 + Math.random() * 55); r.t = 0; (s.rocks ||= []).push(r);
+    });
+  }
+  const smash = r => { s.fx('dust', r.x, r.y + 6, { depth: 8 }); s.fx('hit', r.x, r.y, { depth: 9 }); sfx('rock'); r.destroy(); };
+  s.rocks = (s.rocks || []).filter(r => {
+    if (!r.active) return false;
+    if (s.frozen) return true;
+    r.t += k; r.x += r.vx * k / 60; r.angle -= 8 * k;
+    const floor = s.bossFloorAt(r.x), hop = Math.abs(Math.sin(r.t * 0.085)); r.y = floor - 11 - hop * 20;
+    if (hop < 0.12 && !r.landed) { r.landed = true; s.fx('dust', r.x + 6, floor, { depth: 7 }).setScale(0.8); } else if (hop > 0.3) r.landed = false;   // a puff each time it strikes the ground
+    const box = new Phaser.Geom.Rectangle(r.x - 11, r.y - 11, 22, 22);
+    if (s.atk > 3 && s.atk < 12 && Phaser.Geom.Intersects.RectangleToRectangle(s.strikeBox(), box)) { smash(r); s.combatWord('Smashed'); s.gainFarr(3); return false; }
+    if (Phaser.Geom.Intersects.RectangleToRectangle(p.body, box)) { s.hurt(r.x); if (!(s.dodgeT > 0)) { smash(r); return false; } }
+    if (r.x < s.cam.scrollX - 40 || s.prayed || s.bossOn) { r.destroy(); return false; }
+    return true;
+  });
+}
 const LEVELS = {
   1: {
     epithet: 'It hunts the reeds by night, and nothing that comes there leaves', hud: 'Khan I &middot; The Lion', winTitle: 'The lion is slain', name: 'The Lion of the Reeds', fa: 'شیرِ نیستان', tiles: 'tiles-1', map: buildMap,
@@ -862,6 +916,7 @@ const LEVELS = {
     parse(s, ch, x, y) {
       if (ch === 'w') s.pickup(x, y - 6, 'props', 0, 'skin');
       else if (ch === 's') s.spawnFoe('scorpion', x, y);
+      else if (ch === 'a') bury(s, s.spawnFoe('scorpion', x, y));
       else if (ch === 'v') s.spawnFoe('vulture', x, y);
       else if (ch === 'O') { const a = s.add.image(x, y, 'well').setOrigin(0.5, 1).setDepth(2); a.onLight = () => s.drinkAt(a); s.altars.push(a); }
       else if (ch === 'R') s.ramAt = { x, y };
@@ -895,7 +950,8 @@ const LEVELS = {
       s.storm.emitting = s.stormOn > 0.08; s.storm.frequency = 40 - s.stormOn * 30; s.haze.setAlpha(s.stormOn * 0.55);
       s.veil.setAlpha(s.stormOn * 0.9); s.veil.tilePositionX += 9 * k; s.veil.tilePositionY = Math.round(Math.sin(time * 0.002) * 6);
       if (s.stormOn > 0.1 && !s.frozen) b.velocity.x -= 9 * s.stormOn * k;          // the wind pushes back
-      if (s.stormOn > 0.3 && !s.prayed && !s.stormHinted) { s.stormHinted = true; hint('A <b>sandstorm</b>! The wind pushes you back and water drains twice as fast. <b>Keep pressing on</b>.'); }
+      if (s.stormOn > 0.3 && !s.prayed && !s.stormHinted) { s.stormHinted = true; hint('A <b>sandstorm</b>! The wind pushes you back, water drains twice as fast, and it rolls <b>rocks</b> at you: jump them or smash them.'); }
+      stormRocks(s, k);
       // thirst: water drains in the heat, twice as fast in the storm
       if (!s.frozen && !s.prayed && !s.bossOn) s.water = Math.max(0, s.water - k * (0.045 + s.stormOn * 0.045) * (gentle() ? 0.6 : legend() ? 1.3 : 1));
       if (s.water <= 0) { s.thirstT += k; if (s.thirstT > 150) { s.thirstT = 0; s.hurt(p.x, true); toast('Rostam is dying of thirst. Find water!'); } }
@@ -906,7 +962,7 @@ const LEVELS = {
       if (s.springOpen && !s.drank && p.x > s.springAt.x - 6 && b.blocked.down) s.reachSpring();
     },
     win: 'Rostam drinks from the spring the ram revealed and gives thanks. Refreshed, he rides on toward the dragon of the third labour.',
-    tips: ['Water drains in the heat. Water skins refill a little; the wells refill it all.', 'Vultures circle, then dive. Strike them as they swoop low.',
+    tips: ['Mounds in the sand hide scorpions. When one shudders, step back: it bursts out with its sting raised.', 'In the sandstorm, jump the rolling rocks or smash them with your mace.', 'Water drains in the heat. Water skins refill a little; the wells refill it all.', 'Vultures circle, then dive. Strike them as they swoop low.',
       'Scorpions take two blows, and lash out with their sting up close. Jump on them, or strike twice and step back.', 'In the sandstorm the wind pushes you back. Keep moving forward.', 'At the bell towers, watch the order the ram rings them, then stand at each tower and press Down (or tap Ring) in that order.', 'If your water runs dry you lose a heart every few seconds.']
   },
   3: {
@@ -1538,7 +1594,7 @@ class Play extends Phaser.Scene {
   create() {
     // the scene object is reused from labour to labour: forget whatever the last one left behind
     for (const k of ['dark', 'lights', 'lamp', 'wall', 'wallR', 'stars', 'pose', 'swingFx', 'witch', 'unmasked', 'olad', 'rakhsh', 'dragonSeen', 'horde', 'hordeDone',
-      'gates', 'hordeBat', 'toldRock', 'toldFarr', 'toldOffer', 'atAltar', 'bossT', 'maceHit', 'toldIce', 'chargeWarn', 'toldCharge', 'shards', 'shardG', 'mark', 'markGlow', 'markOpen', 'bossHeart', 'bossHeartT', 'floorWarn', 'highWarn', 'regrow', 'drums', 'sky', 'flashA', 'intro', 'fgReeds', 'mound', 'swirl', 'qx', 'puddles', 'combo', 'comboT', 'heavy', 'heavyGo', 'chargeT', 'chargeFull', 'chargeGlow', 'dodgeT', 'dodgeCd', 'dodgeDir', 'whiteDown', 'ended', 'mounted', 'prayed', 'drank', 'toldImmune', 'toldDeflect', 'toldVenom', 'cage', 'kavus', 'stones', 'puzzle', 'springOpen', 'pool', 'victory', 'attackBuf', 'dodgeBuf', 'counterT', 'counterStrike', 'dodgeRewarded', 'trial', 'nearTrial', 'journey', 'siege', 'siegeDone', 'ally', 'phase2', 'streak', 'didDouble']) delete this[k];
+      'gates', 'hordeBat', 'toldRock', 'toldFarr', 'toldOffer', 'atAltar', 'bossT', 'maceHit', 'toldIce', 'chargeWarn', 'toldCharge', 'shards', 'shardG', 'mark', 'markGlow', 'markOpen', 'bossHeart', 'bossHeartT', 'floorWarn', 'highWarn', 'regrow', 'drums', 'sky', 'flashA', 'intro', 'fgReeds', 'mound', 'swirl', 'qx', 'puddles', 'combo', 'comboT', 'heavy', 'heavyGo', 'chargeT', 'chargeFull', 'chargeGlow', 'dodgeT', 'dodgeCd', 'dodgeDir', 'whiteDown', 'ended', 'mounted', 'prayed', 'drank', 'toldImmune', 'toldDeflect', 'toldVenom', 'cage', 'kavus', 'stones', 'puzzle', 'springOpen', 'pool', 'victory', 'attackBuf', 'dodgeBuf', 'counterT', 'counterStrike', 'dodgeRewarded', 'trial', 'nearTrial', 'journey', 'siege', 'siegeDone', 'ally', 'phase2', 'streak', 'didDouble', 'rocks', 'rockT']) delete this[k];
     // turn loaded strips into square frames; anything missing falls back to placeholder art
     for (const k of ['decor-' + cur]) if (this.textures.exists(k) && this.textures.get(k).frameTotal < 3) { const t = this.textures.get(k), h = t.getSourceImage().height; for (let i = 0; i < Math.round(t.getSourceImage().width / h); i++) t.add(i, 0, i * h, 0, h, h); }
     for (const [k, f] of Object.entries(ART)) if (f && this.textures.exists(k)) {
@@ -1668,7 +1724,7 @@ class Play extends Phaser.Scene {
     setupEncounters(this);
     this.setupTrial();
     if (!window.ShahnamehJourney) throw new Error('The journey encounters could not load.');
-    if (!rush) this.journey = window.ShahnamehJourney.create(this, cur, { hint, toast, banner, sfx, TS, W, H });
+    if (!rush) this.journey = window.ShahnamehJourney.create(this, cur, { hint, toast, banner, sfx, unearth, TS, W, H });
     if (rush) this.rushSetup();
     if (R) { lv.resume?.(this); toast(R.well ? 'Rostam rises again beside the well.' : 'Rostam rises again beside the sacred fire.'); }
   }
@@ -2450,6 +2506,12 @@ class Play extends Phaser.Scene {
       }
     }
     if (this.atk <= 0) this.counterStrike = false;
+    // the ends of the world, arena walls and horde gates hold Rostam by position: pressed into a thin physics wall
+    // while jumping, the separation lifts him a little every frame until he climbs over it
+    const lo = Math.max(2, this.wall?.active ? this.wall.x + 4 : -Infinity, ...(this.gates || []).filter(g => g.r.active && g.r.x < p.x).map(g => g.r.x + 6));
+    const hi = Math.min(this.levelW - 2, this.wallR?.active ? this.wallR.x - 4 : Infinity, ...(this.gates || []).filter(g => g.r.active && g.r.x > p.x).map(g => g.r.x - 6));
+    if (b.left < lo) { b.x += lo - b.left; if (b.velocity.x < 0) b.velocity.x = 0; }
+    if (b.right > hi) { b.x -= b.right - hi; if (b.velocity.x > 0) b.velocity.x = 0; }
     // thorns and pits
     const tile = this.layer.getTileAtWorldXY(p.x, b.bottom - 2);
     if (tile && tile.index % 4 === 3) { this.hurt(tile.pixelX + 8, false, 'terrain'); p.setVelocityY(-300); }
@@ -2479,7 +2541,7 @@ class Play extends Phaser.Scene {
       }
       if (Phaser.Geom.Intersects.RectangleToRectangle(b, f.body)) {
         if (b.velocity.y > 60 && b.bottom - f.body.top < 12) { this.damage(f, 2); p.setVelocityY(keys.jump ? -330 : -230); }
-        else this.hurt(f.x);
+        else { if (!f.harmless?.()) this.hurt(f.x); if (f.js === 'lunge') f.bit = true; }   // a lunge bites once: dodged through, it is spent
       }
     }
     // checkpoint
@@ -2655,7 +2717,7 @@ class Play extends Phaser.Scene {
   }
   // invisible walls at both edges of the locked screen, so Rostam and the boss stay in view
   arenaWalls(x0) {
-    const left = Math.min(this.levelW - W, x0), wall = x => { const w = this.add.rectangle(x, -400, 8, ROWS * TS + 400, 0, 0).setOrigin(0.5, 0); this.physics.add.existing(w, true); this.physics.add.collider(this.player, w); return w; };
+    const left = Math.min(this.levelW - W, x0), wall = x => { const w = this.add.rectangle(x, -400, 8, ROWS * TS + 400, 0, 0).setOrigin(0.5, 0); this.physics.add.existing(w, true); return w; };   // Rostam is held by position in update(), the boss by this body
     this.wall = wall(Math.max(x0, left + 6) - 4); this.wallR = wall(left + W - 2);
     const pb = this.player.body, dx = this.wall.x + 6 - pb.left; if (dx > 0) pb.reset(this.player.x + dx, this.player.y);   // a wall closing on Rostam would push him out of the arena
   }
@@ -2926,7 +2988,7 @@ class Play extends Phaser.Scene {
     // gates of fire close behind and before Rostam while the Divs come in waves
     this.horde = { wave: 0, live: [] }; const x = this.hordeAt.x;
     this.gates = [x - 13 * TS, x + 13 * TS].map((gx, i) => {
-      const r = this.add.rectangle(gx, -400, 12, ROWS * TS + 400, 0, 0).setOrigin(0.5, 0); this.physics.add.existing(r, true); this.physics.add.collider(this.player, r); this.physics.add.collider(this.foes, r);
+      const r = this.add.rectangle(gx, -400, 12, ROWS * TS + 400, 0, 0).setOrigin(0.5, 0); this.physics.add.existing(r, true); this.physics.add.collider(this.foes, r);
       // the gate drops from above and slams into the ground, shaking the camp
       const im = this.add.image(gx, -10, 'gate').setOrigin(0.5, 1).setDepth(6);
       this.tweens.add({ targets: im, y: 14 * TS + 2, duration: 380, delay: i * 160, ease: 'Bounce.easeOut', onStart: () => sfx('swing'),
@@ -3427,7 +3489,7 @@ class Play extends Phaser.Scene {
     // her own venom, knocked back by the mace, stuns her: an opening as good as a stuck sting
     q.onBack = () => { if (q.state === 'under' || !q.body.enable) return; this.damage(q, 1, true); if (q.hp <= 0) return;
       q.state = 'stuck'; q.tm = 110; q.setVelocityX(0); q.anims.stop(); q.setTexture('queen-sting', 5); q.setTint(0xb8ff90); this.stars?.destroy(); this.stars = this.fx('stun', q.x, q.body.top - 4, { depth: 10, follow: q });
-      if (!this.toldVenom) { this.toldVenom = true; toast('Her own venom stuns her! Strike while she reels.'); } }; q.kickable = () => ['walk', 'turn', 'aim', 'sting', 'spit'].includes(q.state) && !q.sinking; q.ai = () => this.queenAI(); q.onDown = () => { this.stars?.destroy(); this.stars = null; this.mound?.destroy(); this.swirl?.destroy(); this.puddles?.forEach(o => o.destroy()); this.bossFall(q, () => this.queenFallen()); };
+      if (!this.toldVenom) { this.toldVenom = true; toast('Her own venom stuns her! Strike while she reels.'); } }; q.kickable = () => ['walk', 'turn', 'aim', 'sting', 'spit'].includes(q.state) && !q.sinking; q.ai = () => this.queenAI(); q.onDown = () => { q.brood?.forEach(f => { if (f.active) { this.fx('poof', f.x, f.body.bottom - 6, { depth: 9 }); f.destroy(); } }); this.stars?.destroy(); this.stars = null; this.mound?.destroy(); this.swirl?.destroy(); this.puddles?.forEach(o => o.destroy()); this.bossFall(q, () => this.queenFallen()); };
     this.arena(138 * TS, q, 12); this.light(q, 1.6); this.recede();
     hint('The <b>Scorpion Queen</b> patrols the sand. When her <b>stinger glows green, step back</b>: when it <b>sticks in the sand, strike!</b> Jump over her as she passes.');
   }
@@ -3475,6 +3537,16 @@ class Play extends Phaser.Scene {
   queenAI() {
     const q = this.boss, p = this.player; const read = this.bossRead(q); q.think = (q.think || 0) - this.bossStep(); q.diveAge = (q.diveAge || 0) + this.bossStep(); q.tm -= this.bossStep(); q.stingCd -= this.bossStep(); q.spitCd -= this.bossStep(); const d = p.x - q.x, mad = q.hp <= q.max / 2;
     const L = KEEP2 * TS + 4, R = 165 * TS, floorY = 14 * TS, onLedge = p.body.bottom < 12.5 * TS;
+    // at half strength she calls her brood: a young scorpion burrows into the arena floor, on the far side from Rostam,
+    // and rises when he comes near (on the gentle road she is too weak to call it)
+    if (mad && !q.brood && !q.sinking) {
+      q.brood = [];
+      for (const t of gentle() ? [] : [p.x < (L + R) / 2 ? 0.8 : 0.2]) {
+        const x = L + (R - L) * t; banner('ملکهٔ کژدم', 'The Queen calls her brood'); sfx('rock'); this.cam.shake(320, 0.006);
+        const f = this.spawnFoe('scorpion', x, floorY); f.setScale(f.scaleX * 0.75); f.y = floorY - 1 - 0.47 * f.displayHeight; f.body.reset(x, f.y);
+        f.hp = 1; f.roam = [L + 8, R - 8]; f.setTint(0xe0b080); bury(this, f); this.fx('dust', x, floorY, { depth: 8 }); q.brood.push(f);
+      }
+    }
     // she belongs to the sand: pinned to the ground unless she is sinking into it or rising out of it
     q.body.setVelocityY(0); if (!q.sinking) q.y = q.groundY;
     q.setFlipX(q.dir < 0);
@@ -3614,7 +3686,7 @@ const GUIDE = [
   { k: 2, fa: 'ملکهٔ کژدم', name: 'The Scorpion Queen', art: ['k2/queen-sting', 9, 150],
     tale: 'Beyond the reeds lay a desert where no bird flew. A ram led the dying Rostam to a hidden spring, and when its four bells rang the water burst from the rock; but the Queen of the scorpions had made that water her own.',
     how: ['She <b>patrols</b> the sand from side to side, and her armour turns every blow. <b>Jump over her</b> as she passes.', 'If you stand in her path her <b>stinger glows green</b>: <b>step back</b>. The sting sprays <b>venom</b> that burns where it lands, then <b>sticks in the sand</b>: <b>strike now</b>.', 'At the end of a pass she may <b>burrow</b>: a trail of sand runs under the arena and the <b>sand swirls</b> where she will rise. Keep clear, then strike while she is dazed.', 'Hide on the corner ledge and she <b>spits venom</b> at it. Your water does not drain while you fight her.'],
-    more: [['k2/scorpion-crawl', 8, 108, 'Scorpion', 'Two blows, or jump on it. Mind the sting.'], ['k2/vulture-fly', 8, 108, 'Vulture', 'Circles, then dives. Strike it as it swoops low.'], ['k2/ram-walk', 8, 108, 'The Ram', `Follow it to the four bell towers. Stand at each one and press ${keyHTML('offer')} (or tap Ring) in the order it shows you.`]] },
+    more: [['k2/scorpion-crawl', 8, 108, 'Scorpion', 'Two blows, or jump on it. Mind the sting. Some lie buried: a mound in the sand shudders, then one bursts out.'], ['k2/vulture-fly', 8, 108, 'Vulture', 'Circles, then dives. Strike it as it swoops low.'], ['k2/ram-walk', 8, 108, 'The Ram', `Follow it to the four bell towers. Stand at each one and press ${keyHTML('offer')} (or tap Ring) in the order it shows you.`]] },
   { k: 3, fa: 'اژدها', name: 'The Dragon', art: ['k3/dragon-fire', 8, 136],
     tale: 'A dragon eighty cubits long ruled the night. Twice Rakhsh woke Rostam to warn him, and twice the dragon vanished into the dark. The third time God let Rostam see it, and with Rakhsh biting its neck he struck off its head.',
     how: ['You ride <b>Rakhsh</b>: faster, with a longer reach from the saddle.', 'The dragon <b>hides in the dark</b>; while hidden, blows pass through it.', 'When <b>Rakhsh rears and neighs</b> it is revealed. Read the warning: it can breathe flame, lunge or spit a spread of fireballs. Keep moving after it aims.', 'Wounded, it stays visible and may <b>flash gold before a follow-up lunge</b>. It still leaves a recovery window.'],

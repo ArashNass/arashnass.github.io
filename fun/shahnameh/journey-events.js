@@ -127,8 +127,33 @@
       }
     }
     raft(r, tint, alpha) { for (let c = r.a; c <= r.b; c++) { const t = this.s.layer.getTileAt(c, r.r); if (!t) continue; if (tint != null) t.tint = tint; if (alpha != null) t.alpha = alpha; } }
+    // Khan II: half way between the wells an oasis shimmers ahead, water and palms in the heat. It is a mirage: it
+    // dissolves as Rostam runs to it, and the sand where it stood bursts with scorpions.
+    mirage(time) {
+      const s = this.s, p = s.player;
+      if (this.mirageState === undefined) this.mirageState = s.start.x < 72 * 16 ? 'waiting' : 'gone';
+      if (this.mirageState === 'waiting' && p.x >= 72 * 16) {
+        this.mirageState = 'shimmer';
+        const far = this.mirageFar = this.own(s.add.image(0, 0, 'k2-oasis').setOrigin(0).setScrollFactor(0).setAlpha(0));
+        if (s.oasis) s.children.moveTo(far, s.children.getIndex(s.oasis) + 1);   // in the far distance, behind the dunes and the road
+        const pool = this.miragePool = this.own(s.add.image(83 * 16, 224 + 3, 'pool').setOrigin(0.5, 1).setDepth(3).setAlpha(0));
+        s.tweens.add({ targets: far, alpha: 0.6, duration: 1400 }); s.tweens.add({ targets: pool, alpha: 0.85, duration: 1400 });
+        this.api.toast('Water! An oasis shimmers ahead.');
+      }
+      if (this.mirageState === 'shimmer') {
+        const w = Math.sin(time * 0.012) * 0.08; this.mirageFar.setScale(1 + w * 0.05, 1); this.miragePool.setScale(1 + w, 1 - w * 0.5);
+        if (p.x >= 79 * 16) {
+          this.mirageState = 'gone';
+          for (const o of [this.mirageFar, this.miragePool]) s.tweens.add({ targets: o, alpha: 0, duration: 450, ease: 'Stepped', easeParams: [5], onComplete: () => o.destroy() });
+          this.note('mirage', 'سراب', 'A mirage', '<b>The oasis was a lie of the heat.</b> Mounds in the sand hide scorpions: they rise when you come near. Strike as they surface.');
+          s.foes.getChildren().filter(f => f.buried && f.x > 79 * 16 && f.x < 87 * 16).forEach((f, i) => this.api.unearth?.(s, f, 22 + i * 14));
+          s.cam.shake(250, 0.005);
+        }
+      }
+    }
     stage2(time, dt) {
       const s = this.s, p = s.player;
+      this.mirage(time);
       if (p.x < 70 * 16 || p.x > 104 * 16 || s.prayed) { this.surge?.o.destroy(); this.surge = null; return; }
       this.note('sand-shelters', 'بادِ بیابان', 'The desert is on the move', '<b>Moving sand drains your water.</b> Jump the low surge, or take shelter on the high rocks.');
       if (!this.surge && time >= this.next) {
@@ -310,6 +335,7 @@
     getTip() {
       const x = this.s.player.x / 16;
       if (this.n === 1) return this.s.siege ? 'When a jackal drops its head it is about to lunge. Dodge or jump it, then strike while it pants.' : x >= 58 && x < 70 ? 'The reed rafts sink a moment after you land. Keep moving, or take the high road over the reeds.' : null;
+      if (this.n === 2 && x >= 72 && x < 90) return 'Sand mounds hide buried scorpions. They rise when you come near: step back, then strike as they surface.';
       if (this.n === 2 && x >= 70 && x < 104) return 'A sand surge drains water on the low road. Jump over it or shelter on the raised rocks.';
       if (this.n === 3 && x >= 34) return 'The dragon marks the ground before its breath lands. Move through an opening or wait for the fire to fade.';
       if (this.n === 4 && x >= 25) return 'Violet bridges will vanish. Jump before they fade, or take the permanent high ledges.';
