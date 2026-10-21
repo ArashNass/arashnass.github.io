@@ -252,8 +252,30 @@
       p.setVelocity(vx, vy); p.play(on ? 'ride-gallop' : 'rostam-idle');
       this.mountedByJourney = on;
     }
+    // Khan V: the border watch. Between the first fires, archers on the far hills loose volleys at Rostam: marks on
+    // the ground first, where he is heading, then the arrows fall there. Keep moving, or step back out of the marks.
+    volley(time) {
+      const s = this.s, p = s.player;
+      if (p.x < 10 * 16 || p.x > 46 * 16 || s.frozen || time < (this.volleyAt || 0)) return;
+      this.volleyAt = time + 3300;
+      this.note('border-watch', 'مرزبانان', 'The border watch', '<b>Arrows from the hills!</b> They fall where the marks glow, ahead of you. Stop short, or dash through before they land.');
+      const lead = Phaser.Math.Clamp(p.body.velocity.x * 0.95, -115, 115);   // where he will be when they land
+      for (let i = 0; i < 3; i++) {
+        const x = p.x + lead + (i - 1) * 30; if (this.rest(x, 40)) continue;
+        const y = this.floor(x), m = this.mark(x, y, 22, 0xe8d8a0);
+        this.later(900 + i * 70, () => {
+          m.destroy(); this.api.sfx('swing');
+          for (let j = 0; j < 3; j++) {
+            const a = this.own(s.add.image(x + (j - 1) * 6, y - 150 - j * 14, 'arrow').setOrigin(0.5, 1).setDepth(8).setAngle(8).setScale(1.5));
+            s.tweens.add({ targets: a, y: y + 2, duration: 210 + j * 25, ease: 'Quad.easeIn', onComplete: () => { s.fx('dust', a.x, y, { depth: 7 }).setScale(0.4); this.later(900, () => a.destroy()); } });
+          }
+          this.later(190, () => this.zone(x - 11, y - 34, 22, 34, 130, 'attack'));
+        });
+      }
+    }
     stage5(time, dt) {
       const s = this.s, p = s.player;
+      this.volley(time);
       if (this.phase === 'approach' && p.x >= 50 * 16 && p.x < 106 * 16 && s.atk <= 0 && !s.heavyGo && !(s.dodgeT > 0)) {
         this.phase = 'pursuit'; this.next = time + 1000; this.mount(true);
         this.scout = this.actor('olad-walk', p.x + 155, this.floor(p.x + 155), 112, 5).setFlipX(false);
@@ -373,6 +395,7 @@
       if (this.n === 3 && this.rideState === 'chase') return "The dragon's fire follows you across the marsh. Keep riding and make clean jumps: the sacred fire ahead stops it.";
       if (this.n === 3 && x >= 34) return 'The dragon marks the ground before its breath lands. Move through an opening or wait for the fire to fade.';
       if (this.n === 4 && x >= 25) return 'Violet bridges will vanish. Jump before they fade, or take the permanent high ledges.';
+      if (this.n === 5 && x >= 10 && x < 47) return 'The border watch aims where you are heading. Stop short of the glowing marks, or dash through before the arrows land.';
       if (this.n === 5 && this.phase === 'pursuit') return 'Strike flying knives back at Olad from the saddle. He commits to the line he marked.';
       if (this.n === 6 && this.s.horde) return 'Break the two war drums on the high platform to silence their fire lanes.';
       if (this.n === 7) return x < 120 ? 'Cracking ledges fall after their warning and reform shortly. Keep your second jump for the crossing.' : 'Keep out of the pale ice columns. Break the cave seal with three strikes or one charged heavy blow.';

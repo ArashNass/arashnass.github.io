@@ -1327,6 +1327,8 @@ function makeTextures(scene) {
       x.fillStyle = '#d070d8'; x.fillRect(10, 3, 1, 6);
     }
   });
+  // Khan V's border arrows: a long reed shaft, iron head, grey fletching
+  layer('arrow', 3, 16, x => { x.fillStyle = '#c8b089'; x.fillRect(1, 3, 1, 10); x.fillStyle = '#dfe4ea'; x.fillRect(0, 13, 3, 3); x.fillStyle = '#8a8f98'; x.fillRect(0, 0, 1, 4); x.fillRect(2, 0, 1, 4); });
   layer('boulder', 14, 12, x => {
     x.fillStyle = '#1a1428'; x.beginPath(); x.ellipse(7, 6, 7, 6, 0, 0, 7); x.fill();
     x.fillStyle = '#7a7890'; x.beginPath(); x.ellipse(7, 6, 6, 5, 0, 0, 7); x.fill();
