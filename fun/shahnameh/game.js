@@ -3591,8 +3591,8 @@ class Play extends Phaser.Scene {
     // her own venom, knocked back by the mace, stuns her: an opening as good as a stuck sting
     q.onBack = () => { if (q.state === 'under' || !q.body.enable) return; this.damage(q, 1, true); if (q.hp <= 0) return;
       q.state = 'stuck'; q.tm = 110; q.setVelocityX(0); q.anims.stop(); q.setTexture('queen-sting', 5); q.setTint(0xb8ff90); this.stars?.destroy(); this.stars = this.fx('stun', q.x, q.body.top - 4, { depth: 10, follow: q });
-      if (!this.toldVenom) { this.toldVenom = true; toast('Her own venom stuns her! Strike while she reels.'); } }; q.kickable = () => ['walk', 'turn', 'aim', 'sting', 'spit'].includes(q.state) && !q.sinking; q.ai = () => this.queenAI(); q.onDown = () => { q.brood?.forEach(f => { if (f.active) { this.fx('poof', f.x, f.body.bottom - 6, { depth: 9 }); f.destroy(); } }); this.stars?.destroy(); this.stars = null; this.mound?.destroy(); this.swirl?.destroy(); this.puddles?.forEach(o => o.destroy()); this.bossFall(q, () => this.queenFallen()); };
-    this.arena(138 * TS, q, 12); this.light(q, 1.6); this.recede();
+      if (!this.toldVenom) { this.toldVenom = true; toast('Her own venom stuns her! Strike while she reels.'); } }; q.kickable = () => ['walk', 'turn', 'aim', 'sting', 'spit'].includes(q.state) && !q.sinking; q.ai = () => this.queenAI(); q.onDown = () => { this.stars?.destroy(); this.stars = null; this.mound?.destroy(); this.swirl?.destroy(); this.puddles?.forEach(o => o.destroy()); this.bossFall(q, () => this.queenFallen()); };
+    this.arena(138 * TS, q, 9); this.light(q, 1.6); this.recede();
     hint('The <b>Scorpion Queen</b> patrols the sand. When her <b>stinger glows green, step back</b>: when it <b>sticks in the sand, strike!</b> Jump over her as she passes.');
   }
   // as the Queen rises the riddle is done with: the plinths sink into the sand, and the towers, their bells and the ram
@@ -3639,16 +3639,6 @@ class Play extends Phaser.Scene {
   queenAI() {
     const q = this.boss, p = this.player; const read = this.bossRead(q); q.think = (q.think || 0) - this.bossStep(); q.diveAge = (q.diveAge || 0) + this.bossStep(); q.tm -= this.bossStep(); q.stingCd -= this.bossStep(); q.spitCd -= this.bossStep(); const d = p.x - q.x, mad = q.hp <= q.max / 2;
     const L = KEEP2 * TS + 4, R = 165 * TS, floorY = 14 * TS, onLedge = p.body.bottom < 12.5 * TS;
-    // at half strength she calls her brood: a young scorpion burrows into the arena floor, on the far side from Rostam,
-    // and rises when he comes near (on the gentle road she is too weak to call it)
-    if (mad && !q.brood && !q.sinking) {
-      q.brood = [];
-      for (const t of gentle() ? [] : [p.x < (L + R) / 2 ? 0.8 : 0.2]) {
-        const x = L + (R - L) * t; banner('ملکهٔ کژدم', 'The Queen calls her brood'); sfx('rock'); this.cam.shake(320, 0.006);
-        const f = this.spawnFoe('scorpion', x, floorY); f.setScale(f.scaleX * 0.75); f.y = floorY - 1 - 0.47 * f.displayHeight; f.body.reset(x, f.y);
-        f.hp = 1; f.roam = [L + 8, R - 8]; f.setTint(0xe0b080); bury(this, f); this.fx('dust', x, floorY, { depth: 8 }); q.brood.push(f);
-      }
-    }
     // she belongs to the sand: pinned to the ground unless she is sinking into it or rising out of it
     q.body.setVelocityY(0); if (!q.sinking) q.y = q.groundY;
     q.setFlipX(q.dir < 0);
@@ -3689,7 +3679,7 @@ class Play extends Phaser.Scene {
         for (let i = 0; i < (mad ? 3 : 2); i++) this.venom(hx, q.body.top + 6, q.dir * (70 + i * 55 + Math.random() * 20), -170 - Math.random() * 60);
       }
       if (q.tm <= 0) {   // the stinger is driven into the sand: the opening
-        q.state = 'stuck'; q.tm = mad ? 100 : 125; q.anims.stop(); q.setFrame(5); q.setTint(0xffd0a0);
+        q.state = 'stuck'; q.tm = mad ? 125 : 155; q.anims.stop(); q.setFrame(5); q.setTint(0xffd0a0);
         this.stars = this.fx('stun', q.x, q.body.top - 4, { depth: 10, follow: q }); hint('Her sting is <b>stuck in the sand: strike now!</b>');
       }
     } else if (q.state === 'stuck') {
@@ -3728,7 +3718,7 @@ class Play extends Phaser.Scene {
         for (let i = 0; i < 6; i++) this.fx('dust', q.x + (i - 2.5) * 16, floorY, { depth: 8 });
       }
     } else if (q.state === 'surfacing') {
-      q.setVelocityX(0); if (q.tm <= 0) { q.state = 'surfaced'; q.tm = mad ? 50 : 64; this.stars?.destroy(); this.stars = this.fx('stun', q.x, q.body.top - 4, { depth: 10, follow: q }); }
+      q.setVelocityX(0); if (q.tm <= 0) { q.state = 'surfaced'; q.tm = mad ? 64 : 80; this.stars?.destroy(); this.stars = this.fx('stun', q.x, q.body.top - 4, { depth: 10, follow: q }); }
     } else if (q.state === 'surfaced') {
       q.setVelocityX(0); this.stars?.setPosition(Math.round(q.x), Math.round(q.body.top - 4));
       if (q.tm <= 0) { this.stars?.destroy(); this.stars = null; q.state = 'walk'; q.stingCd = 30; q.play('queen-walk'); }
@@ -3916,16 +3906,16 @@ const MAP_LIGHTS = {
     [426, 18], [451, 12], [466, 28], [483, 13], [515, 25], [548, 7], [579, 21], [605, 7], [626, 24], [648, 4], [667, 26]]
 };
 const stillMotion = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
-// The living map: the road travelled so far glows, mist hangs over the lands not yet reached, Rostam rides to the chosen
-// labour and the painted fires, lamps, stars and snow stir. All of it sits on one aria-hidden layer under the pins, and
+// The living map: the road travelled so far glows, mist hangs over the lands not yet reached, and the painted fires,
+// lamps, stars and snow stir. All of it sits on one aria-hidden layer under the pins, and
 // its loop runs only while the map is on screen.
-const MF = { layer: null, geo: null, ctx: null, to: 1, u: 1, r: null, face: 1, ride: null, glow: null, prog: 0, fresh: 0, want: null, run: 0, last: 0, life: 0, parts: [], flies: null, trail: -1 };
+const MF = { layer: null, geo: null, ctx: null, u: 1, glow: null, prog: 0, fresh: 0, want: null, run: 0, last: 0, life: 0, parts: [], flies: null, trail: -1 };
 function mapLayer(road) {
   if (MF.layer?.isConnected) return;
   const li = document.createElement('li'); li.className = 'road-fx'; li.setAttribute('aria-hidden', 'true');
   li.innerHTML = `<div class="road-mist"></div><svg class="road-trail"><path class="trail-halo"/><path class="trail-core"/><path class="trail-spark"/></svg>` +
-    `<canvas class="road-life" width="${MAP_PX[0]}" height="${MAP_PX[1]}"></canvas><i class="road-rider"><b></b></i>`;
-  road.prepend(li); MF.layer = li; MF.ctx = li.querySelector('canvas').getContext('2d'); MF.geo = null; MF.r = null;
+    `<canvas class="road-life" width="${MAP_PX[0]}" height="${MAP_PX[1]}"></canvas>`;
+  road.prepend(li); MF.layer = li; MF.ctx = li.querySelector('canvas').getContext('2d'); MF.geo = null;
   if (window.ResizeObserver) new ResizeObserver(() => { MF.geo = null; mapKick(); }).observe(road);
 }
 // the road in screen pixels, with the distance along it to every labour's pin
@@ -3942,10 +3932,8 @@ function mapGeom() {
     });
     stops.push(len);
   });
-  const fit = Math.min(h * 0.15, w * 0.085), size = Math.round(Phaser.Math.Clamp(fit, 46, 76));
-  MF.layer.querySelector('.road-rider').classList.toggle('cramped', fit < 40);   // on a map too small for him the pins come first
-  MF.layer.querySelector('svg').setAttribute('viewBox', `0 0 ${w} ${h}`); MF.layer.style.setProperty('--rs', size + 'px');
-  MF.trail = -1; return (MF.geo = { w, h, pts, stops, size, rest: [] });
+  MF.layer.querySelector('svg').setAttribute('viewBox', `0 0 ${w} ${h}`);
+  MF.trail = -1; return (MF.geo = { w, h, pts, stops });
 }
 function roadAt(g, d) {
   const P = g.pts; d = Phaser.Math.Clamp(d, 0, P[P.length - 1][2]);
@@ -3953,32 +3941,16 @@ function roadAt(g, d) {
   const a = P[i - 1], b = P[i], t = (d - a[2]) / ((b[2] - a[2]) || 1);
   return [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, b[0] - a[0]];
 }
-// positions are kept in labours (2.5 is halfway from the second pin to the third), so a resize never loses the rider
+// distance along the road to a point given in labours (2.5 is halfway from the second pin to the third)
 const roadDist = (g, r) => { const k = Phaser.Math.Clamp(Math.floor(r), 0, LABOURS - 1); return g.stops[k] + (g.stops[k + 1] - g.stops[k]) * (r - k); };
-function roadR(g, d) {
-  for (let k = 0; k < LABOURS; k++) if (d <= g.stops[k + 1]) return k + (d - g.stops[k]) / ((g.stops[k + 1] - g.stops[k]) || 1);
-  return LABOURS;
-}
-// Rostam waits on the road short of a labour's pin, at the nearest spot where he hides no pin and no name
-function restR(g, n) {
-  if (g.rest[n] != null) return g.rest[n];
-  const s = g.size, end = g.stops[n], far = end - (end - g.stops[n - 1]) * 0.85;
-  const hit = (a, b) => a[0] < b[2] && b[0] < a[2] && a[1] < b[3] && b[1] < a[3];
-  const keep = MAP_AT.slice(1).flatMap(([x, y]) => { const px = x * g.w / 100, py = y * g.h / 100; return [[px - 28, py - 40, px + 28, py + 28], [px - 50, py + 38, px + 50, py + 64]]; });   // pins with their stars, and their labels
-  const clear = d => { const [x, y] = roadAt(g, d), me = [x - s * 0.28, y - s * 0.8, x + s * 0.28, y]; return keep.every(k => !hit(me, k)); };
-  let d = end - s * 0.4; while (d > far && !clear(d)) d -= 3;
-  if (d <= far) d = end - Math.min(s * 0.75, (end - g.stops[n - 1]) * 0.6);   // no clear spot on a short road: wait just short of the pin
-  return (g.rest[n] = roadR(g, d));
-}
 const mistAt = n => n >= LABOURS ? 100 : (MAP_AT[n][0] + MAP_AT[n + 1][0]) / 2 - 2;
-// called by renderMap: a newly opened map shows any road won since it was last seen, a new choice sends Rostam riding
+// called by renderMap: a newly opened map shows any road won since it was last seen
 function mapSync(u, opening) {
   mapLayer($('road'));
   let seen = +(store.get('sh-map-seen') || 0);
   if (!seen || seen > u) { seen = u; store.set('sh-map-seen', u); }   // a new save, or progress cleared: nothing to reveal
-  MF.u = u; MF.to = pick;
-  if (opening || MF.r == null) MF.want = { seen };
-  else if (!MF.ride || MF.ride.n !== pick) MF.ride = { r0: MF.r, n: pick, t0: performance.now(), dur: null };
+  MF.u = u;
+  if (opening) MF.want = { seen };
   mapKick();
 }
 function mapKick() { if (!MF.run) MF.run = requestAnimationFrame(mapTick); }
@@ -3992,10 +3964,7 @@ function mapTick(now) {
     const { seen } = MF.want, reveal = !calm && seen < MF.u; MF.want = null;
     if (seen < MF.u) store.set('sh-map-seen', MF.u);
     MF.glow = reveal ? { p0: seen, p1: MF.u, t0: now + 350, dur: 1500 } : null; MF.prog = reveal ? seen : MF.u;
-    MF.fresh = reveal ? MF.u : 0;
-    MF.r = restR(g, reveal ? seen : MF.to); MF.face = Math.sign(roadAt(g, roadDist(g, MF.r) + 1)[2]) || 1;
-    MF.ride = reveal && MF.to !== seen ? { r0: MF.r, n: MF.to, t0: now + 2050, dur: null } : null;
-    MF.layer.querySelector('.road-rider').classList.add('on'); mapEdges();
+    MF.fresh = reveal ? MF.u : 0; mapEdges();
     // on a phone the focused Begin button scrolls into view; start from the map's heading instead whenever both fit
     const sm = $('s-map'), top = sm.querySelector('.journey-map-heading').getBoundingClientRect().top - 12;
     if (innerWidth <= 760 && top < 0 && $('rideBtn').getBoundingClientRect().bottom - top <= innerHeight - 8) sm.scrollTop += top;
@@ -4010,24 +3979,6 @@ function mapTick(now) {
       if (pin) { pin.classList.add('fresh'); setTimeout(() => pin.classList.remove('fresh'), 2300); }
     }
   } else MF.prog = MF.u;
-  // the ride: eased along the road at a steady pace, facing the way he goes
-  let r = restR(g, MF.to), moving = false;
-  if (MF.ride) {
-    const R = MF.ride, a = roadDist(g, R.r0), b = roadDist(g, restR(g, R.n));
-    if (R.dur == null) R.dur = calm ? 0 : Phaser.Math.Clamp(Math.abs(b - a) / 0.42, 320, 2400);
-    const k = R.dur ? (now - R.t0) / R.dur : 1;
-    if (k >= 1) MF.ride = null;
-    else {
-      const e = Math.max(0, k), d = a + (b - a) * (e < 0.5 ? 2 * e * e : 1 - (-2 * e + 2) ** 2 / 2);
-      r = roadR(g, d); moving = k > 0;
-      const dx = roadAt(g, d + Math.sign(b - a))[0] - roadAt(g, d)[0]; if (moving && Math.abs(dx) > 0.05) MF.face = dx > 0 ? 1 : -1;
-    }
-  }
-  if (!moving && !MF.ride) { const d = roadDist(g, r), dx = roadAt(g, d + 2)[0] - roadAt(g, d)[0]; if (Math.abs(dx) > 0.3) MF.face = dx > 0 ? 1 : -1; }
-  MF.r = r;
-  const [x, y] = roadAt(g, roadDist(g, r)), rider = MF.layer.querySelector('.road-rider');
-  rider.style.transform = `translate(${x.toFixed(1)}px,${y.toFixed(1)}px) translate(-50%,-94%) scaleX(${MF.face})`;
-  rider.classList.toggle('gallop', moving);
   // the travelled road and the mist beyond it
   const pd = roadDist(g, MF.prog);
   if (Math.abs(pd - MF.trail) > 0.5) {
@@ -4040,7 +3991,7 @@ function mapTick(now) {
   MF.layer.querySelector('.road-mist').style.transform = `translateX(${(mistAt(k) + (mistAt(Math.min(LABOURS, k + 1)) - mistAt(k)) * f).toFixed(2)}%)`;
   if (calm) MF.ctx.clearRect(0, 0, MAP_PX[0], MAP_PX[1]);
   else if (now - MF.life > 33) { mapLife((now - (MF.life || now)) / 1000, now / 1000); MF.life = now; }
-  if (!calm || MF.ride || MF.glow) mapKick();
+  if (!calm || MF.glow) mapKick();
 }
 // the painted world stirring, drawn in the map's own pixels: embers over the Div camp, snow on the White Div's peaks,
 // fireflies in the reeds, guttering windows and lamps, and twinkling stars
