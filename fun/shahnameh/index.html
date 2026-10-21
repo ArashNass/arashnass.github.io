@@ -648,6 +648,11 @@ body.calm #banner.on{animation-name:banCalm}@keyframes banCalm{0%{opacity:0}15%,
  #s-map .road button.next::before,#s-map .road button.fresh::before{animation:none;opacity:.55;transform:none}#s-map .road button.fresh{animation:none}
  #s-map .journey-art.loading{animation:none}#s-map .journey-art .journey-art-old,#s-map .road .pin-tip,#s-map .journey-map:before,#s-map .journey-map:after{transition:none}
 }
+/* the unbroken run of blows */
+#streakPill{gap:3px;color:#ffe08a;font-weight:700}#streakPill .sx{font-size:.78em;font-weight:500;color:#e8d7ae;margin-right:2px}#streakPill b{font-size:1.08em}
+#streakPill.bump{animation:streakBump .28s ease-out}@keyframes streakBump{40%{transform:scale(1.18)}}
+@media (max-width:760px){#streakPill .sx{display:none}}
+@media (prefers-reduced-motion:reduce){#streakPill.bump{animation:none}}
 </style>
 
 <script defer src="/assets/engagement.js?v=1"></script>
@@ -661,6 +666,7 @@ body.calm #banner.on{animation-name:banCalm}@keyframes banCalm{0%{opacity:0}15%,
     <span class="pill hidden" id="waterPill" title="Water"><img class="food" src="assets/ui/waterskin.png" alt="Water"><i class="wbar"><b id="water"></b></i></span>
     <button class="pill hidden" id="offerBtn" aria-label="Make an offering at the sacred fire">&#128293; Offer</button>
     <span class="pill" title="Provisions gathered"><img class="food" src="assets/ui/pomegranate.png" alt="Provisions"><span id="coins">0</span></span>
+    <span class="pill hidden" id="streakPill" title="Blows landed without being hurt"><span class="sx">Unbroken</span>&times;<b id="streak">0</b></span>
     <button class="pill farr" id="farrBtn" aria-label="Farr: when full, call on the Simurgh"><span class="fl">Farr</span><i class="fbar"><b id="farrFill"></b></i></button>
     <span class="pill" id="hearts" role="img"></span>
     <button class="pill icon" id="muteBtn" aria-label="Toggle sound"><svg viewBox="0 0 24 24"><path id="muteIco" d=""/></svg></button>
@@ -974,7 +980,7 @@ body.calm #banner.on{animation-name:banCalm}@keyframes banCalm{0%{opacity:0}15%,
 </section>
 <script src="boot.js?v=92"></script>
 <script src="assets/vendor/phaser-3.80.1.min.js" data-game-script="engine"></script>
-<script src="journey-events.js?v=119" data-game-script="journey"></script>
-<script src="game.js?v=126" data-game-script="game"></script>
+<script src="journey-events.js?v=120" data-game-script="journey"></script>
+<script src="game.js?v=127" data-game-script="game"></script>
 </body>
 </html>

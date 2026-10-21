@@ -7,6 +7,7 @@
       this.objects = []; this.marks = []; this.hazards = []; this.targets = []; this.bridges = []; this.log = []; this.once = new Set();
       this.next = 0; this.phase = 'approach';
       s.events.once('shutdown', () => this.destroy());
+      if (n === 1) this.makeReeds();
       if (n === 4) this.makeGarden();
       if (n === 6) this.makeDrums();
       if (n === 7) this.makeMountain();
@@ -67,8 +68,92 @@
         return true;
       });
     }
+    // Khan I: the lion is never seen until its den, only its eyes in the far reeds, always a little ahead, gone when
+    // Rostam comes near. Once the fire has held, it shows itself: one warned bound across the clearing. The marsh
+    // ledges are reed rafts that sink under his weight and float up again.
+    makeReeds() {
+      this.perches = [14, 36, 46, 71, 78].filter(c => c * 16 > this.s.start.x + 160);
+      this.rafts = [[61, 63, 11], [66, 68, 10]].map(([a, b, r]) => ({ a, b, r, state: 'afloat', until: 0 }));
+    }
+    eyes(c) {
+      const x = c * 16 + 8, y = 177, e = this.own(this.s.add.container(x, y).setDepth(0.6).setAlpha(0));
+      for (const dx of [-3, 3]) e.add([this.s.add.image(dx, 0, 'glow').setTint(0xffb43c).setScale(0.07).setBlendMode(Phaser.BlendModes.ADD), this.s.add.rectangle(dx, 0, 2, 1, 0xfff0b0)]);
+      this.s.tweens.add({ targets: e, alpha: 1, duration: 600 });
+      e.c = c; e.blink = this.s.time.now + 1500 + Math.random() * 2000; return e;
+    }
+    stage1(time) {
+      const s = this.s, p = s.player;
+      // the watcher in the reeds
+      const watching = !s.siege && this.phase !== 'crossing';
+      if (!this.watcher && watching && this.perches.length && this.perches[0] * 16 - p.x < 300 && this.perches[0] * 16 - p.x > 150) this.watcher = this.eyes(this.perches[0]);
+      const w = this.watcher;
+      if (w?.active) {
+        if (time > w.blink) { w.blink = time + 2200 + Math.random() * 2600; s.tweens.add({ targets: w, scaleY: 0.1, yoyo: true, duration: 90 }); }
+        if (!watching || w.c * 16 - p.x < 110) {
+          this.watcher = null; this.perches.shift();
+          s.tweens.add({ targets: w, alpha: 0, duration: 220, onComplete: () => w.destroy() });
+          for (const dx of [-10, 6]) s.fx('dust', w.x + dx, 224, { depth: 1, flip: dx < 0 });
+        }
+      } else if (w) this.watcher = null;
+      // the lion's bound across the clearing, after the pack is broken
+      if (s.siegeDone && this.phase === 'approach' && p.x >= 53 * 16 && p.x < 59 * 16 && p.body.blocked.down) {
+        this.phase = 'warning'; const y = 224;
+        this.api.sfx('roar'); s.cam.shake(500, 0.007);
+        for (let i = 0; i < 4; i++) this.later(i * 160, () => s.fx('dust', (60 + (i % 2)) * 16, y, { depth: 7, flip: true }));
+        const m = this.own(s.add.rectangle(53.5 * 16, y - 3, 11 * 16, 5, 0xffa75a, 0.5).setStrokeStyle(1, 0xffd9a0).setDepth(12));
+        s.tweens.add({ targets: m, alpha: 0.12, yoyo: true, repeat: 4, duration: 110, onComplete: () => m.destroy() });
+        this.api.banner('شیرِ نیستان', 'The lion has found you');
+        this.later(1150, () => {
+          this.phase = 'crossing';
+          const l = this.lion = this.actor('lion-run', 61 * 16, y, 148, 6).setFlipX(true), x1 = 45 * 16;
+          s.tweens.add({ targets: l, x: x1, duration: 620, ease: 'Linear', onUpdate: tw => { l.y = y - Math.sin(tw.progress * Math.PI) * 26; },
+            onComplete: () => { this.phase = 'gone'; s.tweens.add({ targets: l, alpha: 0, duration: 260, onComplete: () => l.destroy() }); s.fx('dust', l.x, y, { depth: 7, flip: true }); this.api.toast('The lion melts into the reeds. Its den lies ahead.'); } });
+        });
+      }
+      if (this.phase === 'crossing' && this.lion?.active) this.zone(this.lion.x - 30, this.lion.y - 40, 60, 40, 40, 'attack');
+      // the reed rafts
+      for (const r of this.rafts) {
+        const on = p.body.blocked.down && Math.abs(p.body.bottom - r.r * 16) < 4 && p.body.right > r.a * 16 && p.body.left < (r.b + 1) * 16;
+        if (r.state === 'afloat' && on) { r.state = 'sinking'; r.until = time + 700; this.raft(r, 0x5f7f46); s.fx('splash', (r.a + r.b + 1) * 8, r.r * 16 + 10, { depth: 7 }); }
+        else if (r.state === 'sinking') {
+          const k = (r.until - time) / 700; this.raft(r, null, 0.45 + 0.55 * Math.max(0, k) * (Math.floor(time / 70) % 2 ? 1 : 0.7));
+          if (time >= r.until) { for (let c = r.a; c <= r.b; c++) s.layer.removeTileAt(c, r.r); r.state = 'sunk'; r.until = time + 2400; s.fx('splash', (r.a + r.b + 1) * 8, r.r * 16 + 8, { depth: 7 }); }
+        } else if (r.state === 'sunk' && time >= r.until) {
+          const cells = new Phaser.Geom.Rectangle(r.a * 16, r.r * 16, (r.b - r.a + 1) * 16, 16);
+          if (Phaser.Geom.Intersects.RectangleToRectangle(p.body, cells)) { r.until = time + 200; continue; }
+          for (let c = r.a; c <= r.b; c++) { const t = s.layer.putTileAt(2, c, r.r); t.setCollision(false, false, true, false); }
+          r.state = 'afloat'; this.raft(r, 0xffffff, 1); s.fx('splash', (r.a + r.b + 1) * 8, r.r * 16 + 8, { depth: 7 });
+        }
+      }
+    }
+    raft(r, tint, alpha) { for (let c = r.a; c <= r.b; c++) { const t = this.s.layer.getTileAt(c, r.r); if (!t) continue; if (tint != null) t.tint = tint; if (alpha != null) t.alpha = alpha; } }
+    // Khan II: half way between the wells an oasis shimmers ahead, water and palms in the heat. It is a mirage: it
+    // dissolves as Rostam runs to it, and the sand where it stood bursts with scorpions.
+    mirage(time) {
+      const s = this.s, p = s.player;
+      if (this.mirageState === undefined) this.mirageState = s.start.x < 72 * 16 ? 'waiting' : 'gone';
+      if (this.mirageState === 'waiting' && p.x >= 72 * 16) {
+        this.mirageState = 'shimmer';
+        const far = this.mirageFar = this.own(s.add.image(0, 0, 'k2-oasis').setOrigin(0).setScrollFactor(0).setAlpha(0));
+        if (s.oasis) s.children.moveTo(far, s.children.getIndex(s.oasis) + 1);   // in the far distance, behind the dunes and the road
+        const pool = this.miragePool = this.own(s.add.image(83 * 16, 224 + 3, 'pool').setOrigin(0.5, 1).setDepth(3).setAlpha(0));
+        s.tweens.add({ targets: far, alpha: 0.6, duration: 1400 }); s.tweens.add({ targets: pool, alpha: 0.85, duration: 1400 });
+        this.api.toast('Water! An oasis shimmers ahead.');
+      }
+      if (this.mirageState === 'shimmer') {
+        const w = Math.sin(time * 0.012) * 0.08; this.mirageFar.setScale(1 + w * 0.05, 1); this.miragePool.setScale(1 + w, 1 - w * 0.5);
+        if (p.x >= 79 * 16) {
+          this.mirageState = 'gone';
+          for (const o of [this.mirageFar, this.miragePool]) s.tweens.add({ targets: o, alpha: 0, duration: 450, ease: 'Stepped', easeParams: [5], onComplete: () => o.destroy() });
+          this.note('mirage', 'سراب', 'A mirage', '<b>The oasis was a lie of the heat.</b> Mounds in the sand hide scorpions: they rise when you come near. Strike as they surface.');
+          s.foes.getChildren().filter(f => f.buried && f.x > 79 * 16 && f.x < 87 * 16).forEach((f, i) => this.api.unearth?.(s, f, 22 + i * 14));
+          s.cam.shake(250, 0.005);
+        }
+      }
+    }
     stage2(time, dt) {
       const s = this.s, p = s.player;
+      this.mirage(time);
       if (p.x < 70 * 16 || p.x > 104 * 16 || s.prayed) { this.surge?.o.destroy(); this.surge = null; return; }
       this.note('sand-shelters', 'بادِ بیابان', 'The desert is on the move', '<b>Moving sand drains your water.</b> Jump the low surge, or take shelter on the high rocks.');
       if (!this.surge && time >= this.next) {
@@ -249,6 +334,8 @@
     }
     getTip() {
       const x = this.s.player.x / 16;
+      if (this.n === 1) return this.s.siege ? 'When a jackal drops its head it is about to lunge. Dodge or jump it, then strike while it pants.' : x >= 58 && x < 70 ? 'The reed rafts sink a moment after you land. Keep moving, or take the high road over the reeds.' : null;
+      if (this.n === 2 && x >= 72 && x < 90) return 'Sand mounds hide buried scorpions. They rise when you come near: step back, then strike as they surface.';
       if (this.n === 2 && x >= 70 && x < 104) return 'A sand surge drains water on the low road. Jump over it or shelter on the raised rocks.';
       if (this.n === 3 && x >= 34) return 'The dragon marks the ground before its breath lands. Move through an opening or wait for the fire to fade.';
       if (this.n === 4 && x >= 25) return 'Violet bridges will vanish. Jump before they fade, or take the permanent high ledges.';
@@ -261,10 +348,11 @@
       if (this.closed) return; this.closed = true; this.hazards = [];
       if (this.mountedByJourney && this.s.player?.active) this.mount(false);
       for (const b of this.bridges) this.bridge(b, false);
+      for (const r of this.rafts || []) if (r.state !== 'afloat' && this.s.layer?.scene) { for (let c = r.a; c <= r.b; c++) { const t = this.s.layer.putTileAt(2, c, r.r); t.setCollision(false, false, true, false); } }
       for (const o of this.objects) if (o.active) o.destroy();
       for (const sh of (this.s.shots?.children?.entries || []).slice()) if (sh.journey) sh.destroy();
     }
     destroy() { this.stop(); this.live = false; }
   }
-  window.ShahnamehJourney = { create: (s, n, api) => n === 1 ? null : new Journey(s, n, api) };
+  window.ShahnamehJourney = { create: (s, n, api) => new Journey(s, n, api) };
 })();
