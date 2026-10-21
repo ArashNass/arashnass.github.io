@@ -1126,6 +1126,7 @@ const LEVELS = {
     resume(s) { if (s.start.x > s.hordeAt.x) s.hordeDone = true; },   // rising past the horde: it stays beaten
     update(s, k, time, p) {
       if (!s.hordeDone && !s.horde && p.x > s.hordeAt.x - 2 * TS) s.startHorde();
+      s.oladTick();
       if (s.horde) s.hordeTick();
       if (!s.bossOn && p.x > 124 * TS) s.startArzhang();
     },
@@ -1646,7 +1647,7 @@ class Play extends Phaser.Scene {
   create() {
     // the scene object is reused from labour to labour: forget whatever the last one left behind
     for (const k of ['dark', 'lights', 'lamp', 'wall', 'wallR', 'stars', 'pose', 'swingFx', 'witch', 'unmasked', 'olad', 'rakhsh', 'dragonSeen', 'horde', 'hordeDone',
-      'gates', 'hordeBat', 'toldRock', 'toldFarr', 'toldOffer', 'atAltar', 'bossT', 'maceHit', 'toldIce', 'chargeWarn', 'toldCharge', 'shards', 'shardG', 'mark', 'markGlow', 'markOpen', 'bossHeart', 'bossHeartT', 'floorWarn', 'highWarn', 'regrow', 'drums', 'sky', 'flashA', 'intro', 'fgReeds', 'mound', 'swirl', 'qx', 'puddles', 'combo', 'comboT', 'heavy', 'heavyGo', 'chargeT', 'chargeFull', 'chargeGlow', 'dodgeT', 'dodgeCd', 'dodgeDir', 'whiteDown', 'ended', 'mounted', 'prayed', 'drank', 'toldImmune', 'toldDeflect', 'toldVenom', 'cage', 'kavus', 'stones', 'puzzle', 'springOpen', 'pool', 'victory', 'attackBuf', 'dodgeBuf', 'counterT', 'counterStrike', 'dodgeRewarded', 'trial', 'nearTrial', 'journey', 'siege', 'siegeDone', 'ally', 'phase2', 'streak', 'didDouble', 'rocks', 'rockT', 'poppies', 'drowsy', 'toldPoppy']) delete this[k];
+      'gates', 'hordeBat', 'toldRock', 'toldFarr', 'toldOffer', 'atAltar', 'bossT', 'maceHit', 'toldIce', 'chargeWarn', 'toldCharge', 'shards', 'shardG', 'mark', 'markGlow', 'markOpen', 'bossHeart', 'bossHeartT', 'floorWarn', 'highWarn', 'regrow', 'drums', 'sky', 'flashA', 'intro', 'fgReeds', 'mound', 'swirl', 'qx', 'puddles', 'combo', 'comboT', 'heavy', 'heavyGo', 'chargeT', 'chargeFull', 'chargeGlow', 'dodgeT', 'dodgeCd', 'dodgeDir', 'whiteDown', 'ended', 'mounted', 'prayed', 'drank', 'toldImmune', 'toldDeflect', 'toldVenom', 'cage', 'kavus', 'stones', 'puzzle', 'springOpen', 'pool', 'victory', 'attackBuf', 'dodgeBuf', 'counterT', 'counterStrike', 'dodgeRewarded', 'trial', 'nearTrial', 'journey', 'siege', 'siegeDone', 'ally', 'phase2', 'streak', 'didDouble', 'rocks', 'rockT', 'poppies', 'drowsy', 'toldPoppy', 'oladAlly']) delete this[k];
     // turn loaded strips into square frames; anything missing falls back to placeholder art
     for (const k of ['decor-' + cur]) if (this.textures.exists(k) && this.textures.get(k).frameTotal < 3) { const t = this.textures.get(k), h = t.getSourceImage().height; for (let i = 0; i < Math.round(t.getSourceImage().width / h); i++) t.add(i, 0, i * h, 0, h, h); }
     for (const [k, f] of Object.entries(ART)) if (f && this.textures.exists(k)) {
@@ -2206,7 +2207,8 @@ class Play extends Phaser.Scene {
     this.cornerHeart(B.x, time);
     // a well-fed Rakhsh gallops in once: twelve seconds into the fight, or sooner if Rostam is hard pressed
     this.bossT = (this.bossT || 0) + this.bossStep();
-    if (this.rakhshFed && cur !== 1 && !this.rakhshRode && !this.mounted && !this.frozen && B.hp > 0 && B.body.enable && B.alpha > 0.5 && (B.kickable?.() ?? true) && (this.bossT > 720 || this.hp <= 2)) this.rakhshRides(B);
+    const call = cur === 7 ? B.hp <= B.max / 2 : this.rakhshFed && cur !== 1 && (this.bossT > 720 || this.hp <= 2);   // in the last labour he always comes, as the White Div weakens
+    if (call && !this.rakhshRode && !this.mounted && !this.frozen && B.hp > 0 && B.body.enable && B.alpha > 0.5 && (B.kickable?.() ?? true)) this.rakhshRides(B);
   }
   rakhshRides(B) {
     // he always comes in from the left edge at a gallop, rears and kicks the boss, then gallops on and away off the right
@@ -3054,6 +3056,37 @@ class Play extends Phaser.Scene {
     this.hordeBat = this.spawnFoe('bat', x, 4 * TS);
     banner('سپاهِ دیوان', 'The Horde of the Divs'); hint('The gates are shut! <b>Defeat six waves of Divs</b>. <b>Jump twice</b> to reach the high platform, drop behind a Div to strike, then leap back up.'); this.drums = this.time.addEvent({ delay: 420, loop: true, callback: () => sfx('drum') });
     this.time.delayedCall(900, () => this.hordeWave());
+    if (!rush) this.time.delayedCall(1600, () => this.oladJoins());
+  }
+  // Olad, bound to guide Rostam since the fifth labour, comes through the gate behind him and fights at his side
+  // while the horde lasts: he walks to the nearest Div and cuts at it, slower than Rostam and never hurt. When the
+  // last wave breaks he points the way on.
+  oladJoins() {
+    if (!this.horde || this.done || this.oladAlly) return;
+    const g = this.gates[0], y = 14 * TS + 1, h = this.textures.get('olad-walk').getSourceImage().height;
+    const o = this.oladAlly = this.add.sprite(g.r.x + 26, y, 'olad-walk', 0).setOrigin(0.5, 0.97).setDepth(4.6).setScale(SIZE.olad / h).play('olad-walk');
+    o.cool = 40; o.dir = 1; this.fx('poof', o.x, y - 20, { depth: 9 });
+    banner('اولاد', 'Olad fights at your side'); toast('Olad keeps his word: he comes through the gate to fight beside you.');
+  }
+  oladTick() {
+    const o = this.oladAlly; if (!o?.active) return;
+    const k = this.bossStep(), lo = this.gates?.[0]?.r.x + 20, hi = this.gates?.[1]?.r.active ? this.gates[1].r.x - 20 : Infinity;
+    if (!this.horde) {
+      if (!o.done) { o.done = true; o.play('olad-walk'); o.setFlipX(false); toast('Olad points through the open gate: Arzhang waits beyond.'); this.tweens.add({ targets: o, alpha: 0, delay: 2500, duration: 800, onComplete: () => o.destroy() }); }
+      return;
+    }
+    o.cool -= k;
+    if (o.slashing) return;
+    const foes = this.foes.getChildren().filter(f => f.active && f.body.enable && f.body.allowGravity && f.x > lo && f.x < hi);
+    const t = foes.sort((a, b) => Math.abs(a.x - o.x) - Math.abs(b.x - o.x))[0];
+    if (!t) { if (o.anims.currentAnim?.key !== 'olad-walk' || o.anims.isPlaying) { o.anims.stop(); o.setFrame(0); } return; }
+    const dx = t.x - o.x; o.dir = Math.sign(dx) || o.dir; o.setFlipX(o.dir < 0);
+    if (Math.abs(dx) > 34) { o.x = Phaser.Math.Clamp(o.x + o.dir * 1.25 * k, lo, hi); if (!o.anims.isPlaying) o.play('olad-walk'); }
+    else if (o.cool <= 0) {
+      o.slashing = true; o.cool = 80; o.play('olad-slash'); sfx('swing');
+      this.time.delayedCall(220, () => { if (t.active && t.body.enable && Math.abs(t.x - o.x) < 50) { this.damage(t, 1, true); this.fx('hit', t.x, t.body.center.y, { depth: 10 }); } });
+      o.once('animationcomplete', () => { o.slashing = false; if (o.active) o.play('olad-walk'); });
+    } else if (o.anims.isPlaying) { o.anims.stop(); o.setFrame(0); }
   }
   hordeWave() {
     const h = this.horde, x = this.hordeAt.x, list = HORDE[h.wave]; h.wave++;
