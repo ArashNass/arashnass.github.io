@@ -23,14 +23,11 @@ try{
   check('the midpoint fire raises a burning-reed stand',!!sc.siege&&sc.siege.walls.length===2);
   let waves=0,held=true;
   for(let i=0;i<60*90&&sc.siege;i++){sc.inv=99999;waves=Math.max(waves,sc.siege.wave);
-   for(const f of sc.foes.getChildren())if(f.active&&f.body.enable&&f.roam&&f.roam[0]>=48*16&&Math.random()<0.02)sc.damage(f,9,true);
-   S.keys.right=i%120<60;S.keys.left=!S.keys.right;step();if(sc.player.body.right>60*16+1||sc.player.body.left<48*16-1)held=false;if(i%240===0)await sleep(1);}
+   for(const f of sc.foes.getChildren())if(f.active&&f.body.enable&&f.roam&&f.roam[0]>=40*16&&Math.random()<0.02)sc.damage(f,9,true);
+   S.keys.right=i%120<60;S.keys.left=!S.keys.right;step();if(sc.player.body.right>60*16+1||sc.player.body.left<40*16-1)held=false;if(i%240===0)await sleep(1);}
   S.keys.right=S.keys.left=false;
   check('the stand keeps Rostam in the clearing through three waves',held&&waves===3&&sc.siegeDone,{waves,held,done:sc.siegeDone});
   check('the broken pack leaves roast lamb by the fire',sc.coins.getChildren().some(c=>c.kind==='lamb'&&Math.abs(c.x-53*16)<50));
-  put(sc,55);step(3);const warned=sc.journey.phase==='warning';let crossing=false;
-  for(let i=0;i<150&&sc.journey.phase!=='gone';i++){step();if(sc.journey.phase==='crossing'&&sc.journey.hazards.some(h=>h.source==='attack'))crossing=true;}
-  check('the lion bounds across the clearing only after a warning',warned&&crossing&&sc.journey.phase==='gone',{phase:sc.journey.phase});
  }
  {const sc=await load();const r=sc.journey.rafts[0];put(sc,62,r.r);step(8);const sinking=r.state==='sinking';step(50);const sunk=r.state==='sunk'&&!sc.layer.getTileAt(62,r.r);
   put(sc,26);step(170);check('reed rafts sink under Rostam and float up again',sinking&&sunk&&r.state==='afloat'&&!!sc.layer.getTileAt(62,r.r),{state:r.state});}

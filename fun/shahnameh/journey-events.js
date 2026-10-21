@@ -69,8 +69,7 @@
       });
     }
     // Khan I: the lion is never seen until its den, only its eyes in the far reeds, always a little ahead, gone when
-    // Rostam comes near. Once the fire has held, it shows itself: one warned bound across the clearing. The marsh
-    // ledges are reed rafts that sink under his weight and float up again.
+    // Rostam comes near. The marsh ledges are reed rafts that sink under his weight and float up again.
     makeReeds() {
       this.perches = [14, 36, 46, 71, 78].filter(c => c * 16 > this.s.start.x + 160);
       this.rafts = [[61, 63, 11], [66, 68, 10]].map(([a, b, r]) => ({ a, b, r, state: 'afloat', until: 0 }));
@@ -84,7 +83,7 @@
     stage1(time) {
       const s = this.s, p = s.player;
       // the watcher in the reeds
-      const watching = !s.siege && this.phase !== 'crossing';
+      const watching = !s.siege;
       if (!this.watcher && watching && this.perches.length && this.perches[0] * 16 - p.x < 300 && this.perches[0] * 16 - p.x > 150) this.watcher = this.eyes(this.perches[0]);
       const w = this.watcher;
       if (w?.active) {
@@ -95,22 +94,6 @@
           for (const dx of [-10, 6]) s.fx('dust', w.x + dx, 224, { depth: 1, flip: dx < 0 });
         }
       } else if (w) this.watcher = null;
-      // the lion's bound across the clearing, after the pack is broken
-      if (s.siegeDone && this.phase === 'approach' && p.x >= 53 * 16 && p.x < 59 * 16 && p.body.blocked.down) {
-        this.phase = 'warning'; const y = 224;
-        this.api.sfx('roar'); s.cam.shake(500, 0.007);
-        for (let i = 0; i < 4; i++) this.later(i * 160, () => s.fx('dust', (60 + (i % 2)) * 16, y, { depth: 7, flip: true }));
-        const m = this.own(s.add.rectangle(53.5 * 16, y - 3, 11 * 16, 5, 0xffa75a, 0.5).setStrokeStyle(1, 0xffd9a0).setDepth(12));
-        s.tweens.add({ targets: m, alpha: 0.12, yoyo: true, repeat: 4, duration: 110, onComplete: () => m.destroy() });
-        this.api.banner('شیرِ نیستان', 'The lion has found you');
-        this.later(1150, () => {
-          this.phase = 'crossing';
-          const l = this.lion = this.actor('lion-run', 61 * 16, y, 148, 6).setFlipX(true), x1 = 45 * 16;
-          s.tweens.add({ targets: l, x: x1, duration: 620, ease: 'Linear', onUpdate: tw => { l.y = y - Math.sin(tw.progress * Math.PI) * 26; },
-            onComplete: () => { this.phase = 'gone'; s.tweens.add({ targets: l, alpha: 0, duration: 260, onComplete: () => l.destroy() }); s.fx('dust', l.x, y, { depth: 7, flip: true }); this.api.toast('The lion melts into the reeds. Its den lies ahead.'); } });
-        });
-      }
-      if (this.phase === 'crossing' && this.lion?.active) this.zone(this.lion.x - 30, this.lion.y - 40, 60, 40, 40, 'attack');
       // the reed rafts
       for (const r of this.rafts) {
         const on = p.body.blocked.down && Math.abs(p.body.bottom - r.r * 16) < 4 && p.body.right > r.a * 16 && p.body.left < (r.b + 1) * 16;
