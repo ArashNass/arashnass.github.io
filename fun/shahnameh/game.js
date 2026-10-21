@@ -257,6 +257,7 @@ function map4() {
   put(16, 13, 'n'); put(29, 13, 'n'); put(38, 7, 'b'); put(42, 13, 'n'); put(63, 13, 'n'); put(70, 6, 'b'); put(77, 13, 'n'); put(99, 13, 'n'); put(96, 7, 'b');   // serpents lie in the open, never in a pocket Rostam would have to drop into
   [[6, 11], [28, 11], [64, 11], [78, 11], [132, 11], [146, 11]].forEach(([c, r]) => put(c, r, 'l'));   // lanterns, never beside an altar
   put(48, 13, 'F'); put(92, 13, 'F');
+  for (const c of [33, 51, 61, 75, 103]) put(c, 13, 'y');      // sleep-poppies, three of them beside a serpent
   put(120, 13, 'T'); put(128, 13, 'W');
   row(115, 118, 10, '=');                                  // the garden arena (112 to 142): one short balcony on the left
   return g;
@@ -818,6 +819,40 @@ function stormRocks(s, k) {
     return true;
   });
 }
+// Khan IV: sleep-poppies. As Rostam comes near, a bud opens for half a second, then breathes out a cloud of violet
+// pollen that hangs over the path. Inside it he is drowsy: slow, with heavy jumps. Strike a poppy before it opens and it
+// wilts; a spent one shuts again after a while.
+function makePoppy(s, x, y) {
+  const f = s.add.image(x, y + 1, 'poppy').setOrigin(0.5, 1).setDepth(3).setScale(1.25);
+  const glow = s.add.image(x, y - 26, 'glow').setScale(0.5).setTint(0xd070ff).setBlendMode(Phaser.BlendModes.ADD).setDepth(2.9).setAlpha(0.45);
+  s.light(glow, 0.5, 0.05); return { f, glow, x, y, state: 'shut', tm: 0 };
+}
+function poppyTick(s, k, time) {
+  const p = s.player;
+  for (const q of s.poppies || []) {
+    if (q.state === 'wilted') continue;
+    q.tm -= k;
+    const near = Math.abs(p.x - q.x) < 72 && Math.abs(p.body.bottom - q.y) < 40;
+    if (q.state === 'shut' && near) { q.state = 'opening'; q.tm = 30; s.tweens.add({ targets: q.f, scaleX: 1.45, scaleY: 1.4, yoyo: true, repeat: 1, duration: 120 }); q.glow.setAlpha(0.9); }
+    else if (q.state === 'opening' && q.tm <= 0) {
+      q.state = 'bloom'; q.tm = 230; q.f.setTexture('poppy-open');
+      q.cloud = s.add.particles(q.x, q.y - 30, 'flake', { x: { min: -34, max: 34 }, y: { min: -20, max: 22 }, speedY: { min: -8, max: 6 }, speedX: { min: -10, max: 10 }, lifespan: 1600, frequency: 22, scale: { start: 1.6, end: 0.4 }, alpha: { start: 0.85, end: 0 }, tint: [0xd070ff, 0xff90e0, 0xb060ff], blendMode: 'ADD' }).setDepth(8);
+      q.haze = s.add.ellipse(q.x, q.y - 26, 84, 50, 0xb060e0, 0.2).setDepth(7.9); s.tweens.add({ targets: q.haze, scaleX: 1.08, scaleY: 1.1, yoyo: true, repeat: -1, duration: 700 });
+    } else if (q.state === 'bloom') {
+      if (Phaser.Geom.Intersects.RectangleToRectangle(p.body, new Phaser.Geom.Rectangle(q.x - 40, q.y - 54, 80, 54))) {
+        if (!(s.drowsy > time)) s.combatWord('Drowsy…', '#e0b0ff');
+        s.drowsy = time + 650; p.setTint(0xe0b8ff); s.time.delayedCall(80, () => { if (!(s.drowsy > s.time.now) && p.active) p.clearTint(); });
+      }
+      if (q.tm <= 0) { q.state = 'spent'; q.tm = 360; q.cloud.stop(); s.time.delayedCall(1700, () => q.cloud?.destroy()); s.tweens.add({ targets: q.haze, alpha: 0, duration: 600, onComplete: () => q.haze?.destroy() }); }
+    } else if (q.state === 'spent' && q.tm <= 0 && !near) { q.state = 'shut'; q.f.setTexture('poppy'); q.glow.setAlpha(0.45); }
+    // the mace wilts it, open or shut
+    if (s.atk > 3 && s.atk < 12 && Phaser.Geom.Intersects.RectangleToRectangle(s.strikeBox(), new Phaser.Geom.Rectangle(q.x - 9, q.y - 34, 18, 34))) {
+      const was = q.state; q.state = 'wilted'; q.cloud?.stop(); s.time.delayedCall(1200, () => q.cloud?.destroy()); q.haze?.destroy();
+      q.f.setTexture('poppy').setTint(0x6a5a3a); s.tweens.add({ targets: q.f, scaleY: 0.6, angle: 20, duration: 300 }); s.tweens.add({ targets: q.glow, alpha: 0, duration: 300 });
+      s.fx('hit', q.x, q.y - 14, { depth: 9 }); sfx('hit'); s.gainFarr(was === 'shut' || was === 'opening' ? 6 : 3); s.combatWord('Wilted');
+    }
+  }
+}
 const LEVELS = {
   1: {
     epithet: 'It hunts the reeds by night, and nothing that comes there leaves', hud: 'Khan I &middot; The Lion', winTitle: 'The lion is slain', name: 'The Lion of the Reeds', fa: 'شیرِ نیستان', tiles: 'tiles-1', map: buildMap,
@@ -1018,6 +1053,7 @@ const LEVELS = {
         s.tweens.add({ targets: g, alpha: 0.7, yoyo: true, repeat: -1, duration: 900 + (x % 5) * 140, ease: 'Sine.easeInOut' });
         s.wisps.push(g);
       }
+      else if (ch === 'y') (s.poppies ||= []).push(makePoppy(s, x, y));
       else if (ch === 'T') s.feastAt = { x, y };
       else if (ch === 'W') s.witchAt = { x, y };
     },
@@ -1034,11 +1070,13 @@ const LEVELS = {
     sky: { veil: 0x1a0828, cloud: 0x6a3090, glow: 0x9aff60, sun: [0.66, 0.26], bolt: 0xa8ff90, every: [170, 290], edge: 0x1a3a08, fx: 'spores', paint: 'k4/storm.png' },
     fires: [107], hearts: [105],
     update(s, k, time, p) {
+      if (!s.bossOn) poppyTick(s, k, time);
+      if (!s.bossOn && p.x > 33 * TS - 90 && !s.toldPoppy) { s.toldPoppy = true; hint('<b>Sleep-poppies.</b> Their violet pollen makes you drowsy and slow. Strike a bud before it opens.'); }
       if (!s.bossOn && p.x > 114 * TS) s.startWitch();
       if (s.witch && !s.unmasked && Math.abs(p.x - s.witch.x) < 95 && s.atk > 14) s.unmask();
     },
     win: 'The witch is struck down and her garden withers to thorns. Rostam rides on into the green land of Mazandaran, where the warden Olad keeps watch.',
-    tips: ['At the feast, stand near the lady and strike to speak the name of God.', 'Strike the witch\'s curses with your mace to send them back at her.',
+    tips: ['Strike a sleep-poppy before it opens, or wait outside its pollen until the cloud fades.', 'At the feast, stand near the lady and strike to speak the name of God.', 'Strike the witch\'s curses with your mace to send them back at her.',
       'Serpents rear back, then lunge. Strike them as they rear, or step back from the lunge.', 'Lanterns and fire altars keep the garden lit.', 'Roast lamb waits on the high balconies.']
   },
   5: {
@@ -1088,6 +1126,7 @@ const LEVELS = {
     resume(s) { if (s.start.x > s.hordeAt.x) s.hordeDone = true; },   // rising past the horde: it stays beaten
     update(s, k, time, p) {
       if (!s.hordeDone && !s.horde && p.x > s.hordeAt.x - 2 * TS) s.startHorde();
+      s.oladTick();
       if (s.horde) s.hordeTick();
       if (!s.bossOn && p.x > 124 * TS) s.startArzhang();
     },
@@ -1277,6 +1316,20 @@ function makeTextures(scene) {
     const g = x.createRadialGradient(6, 6, 0, 6, 6, 6); g.addColorStop(0, '#fff6c0'); g.addColorStop(0.35, '#ffb030'); g.addColorStop(0.75, '#e0401a'); g.addColorStop(1, 'rgba(120,20,0,0)');
     x.fillStyle = g; x.fillRect(0, 0, 12, 12);
   });
+  // Khan IV's sleep-poppy: a tall violet flower, shut as a bud, then open with a gold heart
+  for (const open of [0, 1]) layer(open ? 'poppy-open' : 'poppy', 22, 30, x => {
+    x.fillStyle = '#1c3a1a'; x.fillRect(10, 12, 2, 18); x.fillStyle = '#3f7a34'; x.fillRect(11, 12, 1, 18);
+    x.fillStyle = '#2e5e2a'; x.beginPath(); x.ellipse(7, 22, 4, 2, -0.5, 0, 7); x.fill(); x.beginPath(); x.ellipse(15, 19, 4, 2, 0.5, 0, 7); x.fill();
+    if (open) {
+      for (const [dx, dy] of [[-6, -1], [6, -1], [-3, -6], [3, -6], [0, 3]]) { x.fillStyle = '#3a0a3a'; x.beginPath(); x.ellipse(11 + dx, 9 + dy, 5, 4, 0, 0, 7); x.fill(); x.fillStyle = '#c04ac8'; x.beginPath(); x.ellipse(11 + dx, 9 + dy, 4, 3, 0, 0, 7); x.fill(); }
+      x.fillStyle = '#ffd860'; x.fillRect(9, 7, 4, 4); x.fillStyle = '#fff0a0'; x.fillRect(10, 8, 1, 1);
+    } else {
+      x.fillStyle = '#3a0a3a'; x.beginPath(); x.ellipse(11, 8, 5, 7, 0, 0, 7); x.fill(); x.fillStyle = '#9a3aa8'; x.beginPath(); x.ellipse(11, 8, 4, 6, 0, 0, 7); x.fill();
+      x.fillStyle = '#d070d8'; x.fillRect(10, 3, 1, 6);
+    }
+  });
+  // Khan V's border arrows: a long reed shaft, iron head, grey fletching
+  layer('arrow', 3, 16, x => { x.fillStyle = '#c8b089'; x.fillRect(1, 3, 1, 10); x.fillStyle = '#dfe4ea'; x.fillRect(0, 13, 3, 3); x.fillStyle = '#8a8f98'; x.fillRect(0, 0, 1, 4); x.fillRect(2, 0, 1, 4); });
   layer('boulder', 14, 12, x => {
     x.fillStyle = '#1a1428'; x.beginPath(); x.ellipse(7, 6, 7, 6, 0, 0, 7); x.fill();
     x.fillStyle = '#7a7890'; x.beginPath(); x.ellipse(7, 6, 6, 5, 0, 0, 7); x.fill();
@@ -1594,7 +1647,7 @@ class Play extends Phaser.Scene {
   create() {
     // the scene object is reused from labour to labour: forget whatever the last one left behind
     for (const k of ['dark', 'lights', 'lamp', 'wall', 'wallR', 'stars', 'pose', 'swingFx', 'witch', 'unmasked', 'olad', 'rakhsh', 'dragonSeen', 'horde', 'hordeDone',
-      'gates', 'hordeBat', 'toldRock', 'toldFarr', 'toldOffer', 'atAltar', 'bossT', 'maceHit', 'toldIce', 'chargeWarn', 'toldCharge', 'shards', 'shardG', 'mark', 'markGlow', 'markOpen', 'bossHeart', 'bossHeartT', 'floorWarn', 'highWarn', 'regrow', 'drums', 'sky', 'flashA', 'intro', 'fgReeds', 'mound', 'swirl', 'qx', 'puddles', 'combo', 'comboT', 'heavy', 'heavyGo', 'chargeT', 'chargeFull', 'chargeGlow', 'dodgeT', 'dodgeCd', 'dodgeDir', 'whiteDown', 'ended', 'mounted', 'prayed', 'drank', 'toldImmune', 'toldDeflect', 'toldVenom', 'cage', 'kavus', 'stones', 'puzzle', 'springOpen', 'pool', 'victory', 'attackBuf', 'dodgeBuf', 'counterT', 'counterStrike', 'dodgeRewarded', 'trial', 'nearTrial', 'journey', 'siege', 'siegeDone', 'ally', 'phase2', 'streak', 'didDouble', 'rocks', 'rockT']) delete this[k];
+      'gates', 'hordeBat', 'toldRock', 'toldFarr', 'toldOffer', 'atAltar', 'bossT', 'maceHit', 'toldIce', 'chargeWarn', 'toldCharge', 'shards', 'shardG', 'mark', 'markGlow', 'markOpen', 'bossHeart', 'bossHeartT', 'floorWarn', 'highWarn', 'regrow', 'drums', 'sky', 'flashA', 'intro', 'fgReeds', 'mound', 'swirl', 'qx', 'puddles', 'combo', 'comboT', 'heavy', 'heavyGo', 'chargeT', 'chargeFull', 'chargeGlow', 'dodgeT', 'dodgeCd', 'dodgeDir', 'whiteDown', 'ended', 'mounted', 'prayed', 'drank', 'toldImmune', 'toldDeflect', 'toldVenom', 'cage', 'kavus', 'stones', 'puzzle', 'springOpen', 'pool', 'victory', 'attackBuf', 'dodgeBuf', 'counterT', 'counterStrike', 'dodgeRewarded', 'trial', 'nearTrial', 'journey', 'siege', 'siegeDone', 'ally', 'phase2', 'streak', 'didDouble', 'rocks', 'rockT', 'poppies', 'drowsy', 'toldPoppy', 'oladAlly']) delete this[k];
     // turn loaded strips into square frames; anything missing falls back to placeholder art
     for (const k of ['decor-' + cur]) if (this.textures.exists(k) && this.textures.get(k).frameTotal < 3) { const t = this.textures.get(k), h = t.getSourceImage().height; for (let i = 0; i < Math.round(t.getSourceImage().width / h); i++) t.add(i, 0, i * h, 0, h, h); }
     for (const [k, f] of Object.entries(ART)) if (f && this.textures.exists(k)) {
@@ -2154,7 +2207,8 @@ class Play extends Phaser.Scene {
     this.cornerHeart(B.x, time);
     // a well-fed Rakhsh gallops in once: twelve seconds into the fight, or sooner if Rostam is hard pressed
     this.bossT = (this.bossT || 0) + this.bossStep();
-    if (this.rakhshFed && cur !== 1 && !this.rakhshRode && !this.mounted && !this.frozen && B.hp > 0 && B.body.enable && B.alpha > 0.5 && (B.kickable?.() ?? true) && (this.bossT > 720 || this.hp <= 2)) this.rakhshRides(B);
+    const call = cur === 7 ? B.hp <= B.max / 2 : this.rakhshFed && cur !== 1 && (this.bossT > 720 || this.hp <= 2);   // in the last labour he always comes, as the White Div weakens
+    if (call && !this.rakhshRode && !this.mounted && !this.frozen && B.hp > 0 && B.body.enable && B.alpha > 0.5 && (B.kickable?.() ?? true)) this.rakhshRides(B);
   }
   rakhshRides(B) {
     // he always comes in from the left edge at a gallop, rears and kicks the boss, then gallops on and away off the right
@@ -2409,11 +2463,11 @@ class Play extends Phaser.Scene {
     if (this.frozen) { pressed.jump = pressed.attack = false; this.buf = this.attackBuf = this.dodgeBuf = 0; }
     const dirX = this.frozen ? 0 : (keys.right ? 1 : 0) - (keys.left ? 1 : 0), ground = b.blocked.down;
     if (dirX) this.face = dirX;
-    const tv = dirX * (this.mounted ? 165 : 125); b.velocity.x += (tv - b.velocity.x) * (1 - Math.pow(ground ? 0.7 : 0.85, k));   // Rakhsh outruns any man
+    const drowsy = this.drowsy > time, tv = dirX * (this.mounted ? 165 : 125) * (drowsy ? 0.5 : 1); b.velocity.x += (tv - b.velocity.x) * (1 - Math.pow(ground ? 0.7 : 0.85, k));   // Rakhsh outruns any man
     this.coyote = ground ? 6 : Math.max(0, this.coyote - k);
     if (pressed.jump) this.buf = 6; pressed.jump = false;
     if (ground) this.airJumps = 1;
-    if (this.buf > 0 && this.coyote > 0) { p.setVelocityY(-335); this.coyote = 0; this.buf = 0; sfx('jump'); this.fx('dust', p.x, b.bottom, { depth: 6 }); }
+    if (this.buf > 0 && this.coyote > 0) { p.setVelocityY(drowsy ? -270 : -335); this.coyote = 0; this.buf = 0; sfx('jump'); this.fx('dust', p.x, b.bottom, { depth: 6 }); }
     // the super jump: once in the air, jump again for a higher leap, in a burst of gold
     else if (this.buf > 0 && this.coyote <= 0 && this.airJumps > 0) {
       this.airJumps = 0; this.buf = 0; p.setVelocityY(upg().wings ? -460 : -400); sfx('jump'); sfx('swing');
@@ -3002,6 +3056,37 @@ class Play extends Phaser.Scene {
     this.hordeBat = this.spawnFoe('bat', x, 4 * TS);
     banner('سپاهِ دیوان', 'The Horde of the Divs'); hint('The gates are shut! <b>Defeat six waves of Divs</b>. <b>Jump twice</b> to reach the high platform, drop behind a Div to strike, then leap back up.'); this.drums = this.time.addEvent({ delay: 420, loop: true, callback: () => sfx('drum') });
     this.time.delayedCall(900, () => this.hordeWave());
+    if (!rush) this.time.delayedCall(1600, () => this.oladJoins());
+  }
+  // Olad, bound to guide Rostam since the fifth labour, comes through the gate behind him and fights at his side
+  // while the horde lasts: he walks to the nearest Div and cuts at it, slower than Rostam and never hurt. When the
+  // last wave breaks he points the way on.
+  oladJoins() {
+    if (!this.horde || this.done || this.oladAlly) return;
+    const g = this.gates[0], y = 14 * TS + 1, h = this.textures.get('olad-walk').getSourceImage().height;
+    const o = this.oladAlly = this.add.sprite(g.r.x + 26, y, 'olad-walk', 0).setOrigin(0.5, 0.97).setDepth(4.6).setScale(SIZE.olad / h).play('olad-walk');
+    o.cool = 40; o.dir = 1; this.fx('poof', o.x, y - 20, { depth: 9 });
+    banner('اولاد', 'Olad fights at your side'); toast('Olad keeps his word: he comes through the gate to fight beside you.');
+  }
+  oladTick() {
+    const o = this.oladAlly; if (!o?.active) return;
+    const k = this.bossStep(), lo = this.gates?.[0]?.r.x + 20, hi = this.gates?.[1]?.r.active ? this.gates[1].r.x - 20 : Infinity;
+    if (!this.horde) {
+      if (!o.done) { o.done = true; o.play('olad-walk'); o.setFlipX(false); toast('Olad points through the open gate: Arzhang waits beyond.'); this.tweens.add({ targets: o, alpha: 0, delay: 2500, duration: 800, onComplete: () => o.destroy() }); }
+      return;
+    }
+    o.cool -= k;
+    if (o.slashing) return;
+    const foes = this.foes.getChildren().filter(f => f.active && f.body.enable && f.body.allowGravity && f.x > lo && f.x < hi);
+    const t = foes.sort((a, b) => Math.abs(a.x - o.x) - Math.abs(b.x - o.x))[0];
+    if (!t) { if (o.anims.currentAnim?.key !== 'olad-walk' || o.anims.isPlaying) { o.anims.stop(); o.setFrame(0); } return; }
+    const dx = t.x - o.x; o.dir = Math.sign(dx) || o.dir; o.setFlipX(o.dir < 0);
+    if (Math.abs(dx) > 34) { o.x = Phaser.Math.Clamp(o.x + o.dir * 1.25 * k, lo, hi); if (!o.anims.isPlaying) o.play('olad-walk'); }
+    else if (o.cool <= 0) {
+      o.slashing = true; o.cool = 80; o.play('olad-slash'); sfx('swing');
+      this.time.delayedCall(220, () => { if (t.active && t.body.enable && Math.abs(t.x - o.x) < 50) { this.damage(t, 1, true); this.fx('hit', t.x, t.body.center.y, { depth: 10 }); } });
+      o.once('animationcomplete', () => { o.slashing = false; if (o.active) o.play('olad-walk'); });
+    } else if (o.anims.isPlaying) { o.anims.stop(); o.setFrame(0); }
   }
   hordeWave() {
     const h = this.horde, x = this.hordeAt.x, list = HORDE[h.wave]; h.wave++;

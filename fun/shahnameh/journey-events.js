@@ -169,10 +169,43 @@
       }
       if (v.x > 99 * 16) { v.o.destroy(); this.surge = null; }
     }
-    stage3(time) {
+    // Khan III: the night ride. Past the first fire the dragon comes down behind Rakhsh and its flame runs along the
+    // ground after him, across the broken marsh, until the sacred fire ahead holds it back. It keeps a little behind
+    // a rider who keeps moving; a stumble lets it close. A burn throws it back a moment, so one mistake is not two.
+    ride(time, dt) {
+      const s = this.s, p = s.player;
+      if (this.rideState === undefined) this.rideState = s.start.x < 46 * 16 ? 'waiting' : 'done';
+      if (this.rideState === 'waiting' && p.x >= 46 * 16) {
+        this.rideState = 'chase'; this.fireX = p.x - 170; this.api.sfx('roar'); s.cam.shake(600, 0.01);
+        this.note('night-ride', 'اژدها', 'Ride, Rakhsh!', "<b>The dragon's fire runs behind you.</b> Keep riding: only the sacred fire ahead will stop it.");
+        const col = this.flames = [];
+        for (let i = 0; i < 7; i++) { const f = this.own(s.fx('fire', 0, 0, { depth: 7 }).setScale(1.5 - i * 0.12)); f.anims.setProgress(Math.random()); col.push(f); }
+        for (let i = 0; i < 4; i++) { const f = this.own(s.fx('fire', 0, 0, { depth: 6.9 }).setScale(1.1 - i * 0.1).setAlpha(0.8)); f.anims.setProgress(Math.random()); col.push(f); }
+        this.fireGlow = this.own(s.add.image(0, 0, 'glow').setScale(2.4, 3.4).setTint(0xff7a2a).setBlendMode(Phaser.BlendModes.ADD).setDepth(6.8).setAlpha(0.8));
+        s.light(this.fireGlow, 2.6, 0.12);
+        this.wyrm = this.actor('dragon-move', p.x - 260, 70, 165, 11.1).setTint(0x51416b).setAlpha(0.75);
+      }
+      if (this.rideState !== 'chase') return;
+      if (p.x >= 84 * 16 || s.done) {
+        this.rideState = 'done'; this.api.toast("The sacred fire holds the dragon's flame back. Rakhsh slows, trembling.");
+        for (const f of [...this.flames, this.fireGlow]) s.tweens.add({ targets: f, alpha: 0, duration: 700, onComplete: () => f.destroy() });
+        s.tweens.add({ targets: this.wyrm, x: this.wyrm.x - 300, y: 30, alpha: 0, duration: 1800, onComplete: () => this.wyrm.destroy() });
+        return;
+      }
+      this.fireX = Math.max(this.fireX + (s.frozen ? 0 : 150 * dt), p.x - 210);   // nearly Rakhsh's pace: a pause is felt
+      const fx = this.fireX, floor = (s.groundAt(fx) ?? 14) * 16;
+      this.flames.forEach((f, i) => { const back = i >= 7, k = back ? i - 7 : i; f.setPosition(fx - (back ? 14 : 0) + Math.sin(time * 0.02 + i) * 2, floor - k * (back ? 15 : 17)); });
+      this.fireGlow.setPosition(fx - 4, floor - 50);
+      this.wyrm.setPosition(fx + 30, 62 + Math.sin(time * 0.003) * 8);
+      if (time > (this.emberAt || 0)) { this.emberAt = time + 140; s.fx('dust', fx + 8, floor, { depth: 7 }).setTint(0xff9a4a).setScale(0.7); }
+      if (p.body.left < fx + 12 && !s.frozen) { s.hurt(fx, false, 'terrain'); this.fireX -= 130; }
+    }
+    stage3(time, dt) {
       const p = this.s.player;
+      this.ride(time, dt);
       for (const [at, positions] of [[12, []], [34, [36, 39]], [66, [70, 73]], [98, [100, 103]]]) {
         if (p.x < at * 16 || p.x > (at + 10) * 16 || this.once.has('dragon-' + at)) continue;
+        if (at === 66 && this.rideState !== 'waiting') { this.once.add('dragon-66'); continue; }   // the ride replaces this pass
         this.note('dragon-' + at, 'اژدها', 'A shadow crosses the moon', '<b>Rakhsh senses the dragon.</b> The red marks show where its breath will fall. Ride through the openings or wait for the fire to fade.');
         const shadow = this.actor('dragon-move', p.x + 310, 125, 165, 11.1).setTint(0x51416b).setAlpha(0.8);
         this.s.tweens.add({ targets: shadow, x: p.x - 320, y: 75, duration: 2400, onComplete: () => shadow.destroy() });
@@ -219,8 +252,30 @@
       p.setVelocity(vx, vy); p.play(on ? 'ride-gallop' : 'rostam-idle');
       this.mountedByJourney = on;
     }
+    // Khan V: the border watch. Between the first fires, archers on the far hills loose volleys at Rostam: marks on
+    // the ground first, where he is heading, then the arrows fall there. Keep moving, or step back out of the marks.
+    volley(time) {
+      const s = this.s, p = s.player;
+      if (p.x < 10 * 16 || p.x > 46 * 16 || s.frozen || time < (this.volleyAt || 0)) return;
+      this.volleyAt = time + 3300;
+      this.note('border-watch', 'مرزبانان', 'The border watch', '<b>Arrows from the hills!</b> They fall where the marks glow, ahead of you. Stop short, or dash through before they land.');
+      const lead = Phaser.Math.Clamp(p.body.velocity.x * 0.95, -115, 115);   // where he will be when they land
+      for (let i = 0; i < 3; i++) {
+        const x = p.x + lead + (i - 1) * 30; if (this.rest(x, 40)) continue;
+        const y = this.floor(x), m = this.mark(x, y, 22, 0xe8d8a0);
+        this.later(900 + i * 70, () => {
+          m.destroy(); this.api.sfx('swing');
+          for (let j = 0; j < 3; j++) {
+            const a = this.own(s.add.image(x + (j - 1) * 6, y - 150 - j * 14, 'arrow').setOrigin(0.5, 1).setDepth(8).setAngle(8).setScale(1.5));
+            s.tweens.add({ targets: a, y: y + 2, duration: 210 + j * 25, ease: 'Quad.easeIn', onComplete: () => { s.fx('dust', a.x, y, { depth: 7 }).setScale(0.4); this.later(900, () => a.destroy()); } });
+          }
+          this.later(190, () => this.zone(x - 11, y - 34, 22, 34, 130, 'attack'));
+        });
+      }
+    }
     stage5(time, dt) {
       const s = this.s, p = s.player;
+      this.volley(time);
       if (this.phase === 'approach' && p.x >= 50 * 16 && p.x < 106 * 16 && s.atk <= 0 && !s.heavyGo && !(s.dodgeT > 0)) {
         this.phase = 'pursuit'; this.next = time + 1000; this.mount(true);
         this.scout = this.actor('olad-walk', p.x + 155, this.floor(p.x + 155), 112, 5).setFlipX(false);
@@ -337,8 +392,10 @@
       if (this.n === 1) return this.s.siege ? 'When a jackal drops its head it is about to lunge. Dodge or jump it, then strike while it pants.' : x >= 58 && x < 70 ? 'The reed rafts sink a moment after you land. Keep moving, or take the high road over the reeds.' : null;
       if (this.n === 2 && x >= 72 && x < 90) return 'Sand mounds hide buried scorpions. They rise when you come near: step back, then strike as they surface.';
       if (this.n === 2 && x >= 70 && x < 104) return 'A sand surge drains water on the low road. Jump over it or shelter on the raised rocks.';
+      if (this.n === 3 && this.rideState === 'chase') return "The dragon's fire follows you across the marsh. Keep riding and make clean jumps: the sacred fire ahead stops it.";
       if (this.n === 3 && x >= 34) return 'The dragon marks the ground before its breath lands. Move through an opening or wait for the fire to fade.';
       if (this.n === 4 && x >= 25) return 'Violet bridges will vanish. Jump before they fade, or take the permanent high ledges.';
+      if (this.n === 5 && x >= 10 && x < 47) return 'The border watch aims where you are heading. Stop short of the glowing marks, or dash through before the arrows land.';
       if (this.n === 5 && this.phase === 'pursuit') return 'Strike flying knives back at Olad from the saddle. He commits to the line he marked.';
       if (this.n === 6 && this.s.horde) return 'Break the two war drums on the high platform to silence their fire lanes.';
       if (this.n === 7) return x < 120 ? 'Cracking ledges fall after their warning and reform shortly. Keep your second jump for the crossing.' : 'Keep out of the pale ice columns. Break the cave seal with three strikes or one charged heavy blow.';
