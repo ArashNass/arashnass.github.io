@@ -1512,7 +1512,8 @@ function daf(t, k, vol = 1, out = A.music) {
   if (k === 'j') noise(t, 0.28, { type: 'highpass', f: 7500, vol: 0.05 * vol, out });
 }
 // dastgah: the cents of each step; the koron steps sit a quarter tone flat. The effects are tuned to these.
-const MODES = { shur: [0, 150, 300, 500, 700, 800, 1000], mahur: [0, 200, 400, 500, 700, 900, 1100] };
+const MODES = { shur: [0, 150, 300, 500, 700, 800, 1000], mahur: [0, 200, 400, 500, 700, 900, 1100], segah: [0, 150, 350, 500, 650, 850, 1000],
+  chahargah: [0, 150, 400, 500, 700, 850, 1100], esfahan: [0, 200, 300, 500, 700, 800, 1100], homayoun: [0, 150, 400, 500, 700, 800, 1000] };
 function pitch(S, deg) { const m = MODES[S.mode], o = Math.floor(deg / 7), i = ((deg % 7) + 7) % 7; return S.root * 2 ** (o + m[i] / 1200); }
 const KEY = { mode: 'shur', root: 293.66 };
 // the recorded music: one track for the menus, one for the road, a darker one for the dragon's night and the
@@ -1546,6 +1547,57 @@ function track(name) {
   el.addEventListener('error', () => { t.bad = true; if (A.cur === name) { A.cur = null; pickTrack(); } });   // a missing theme gives way to the shared one
   return t;
 }
+// Until recordings arrive, every labour plays a theme of its own on the game's instruments, in its own mode, in the same
+// three layers as the stems: a tar drone (bed), the lead (melody: ney, santur or tar), and daf and tombak (drums), which
+// come in when foes close and grow heavier against the boss. Each tune: mode, root (Hz), dotted-quarter pace, lead, and
+// eight bars of 6/8 as [degree, eighths]. Long notes on the santur are played as tremolo.
+const LABOUR_SYNTH = true;
+const TUNES = {
+  1: { mode: 'shur', root: 293.66, bpm: 62, lead: 'ney', bars: [[[4, 3], [3, 1], [2, 1], [3, 1]], [[4, 2], [5, 1], [4, 3]], [[3, 2], [2, 1], [1, 1], [2, 2]], [[0, 6]], [[2, 2], [3, 1], [4, 2], [5, 1]], [[7, 3], [5, 1], [4, 2]], [[3, 2], [2, 1], [1, 2], [2, 1]], [[0, 6]]] },
+  2: { mode: 'shur', root: 220, bpm: 66, lead: 'ney', bars: [[[4, 4], [5, 1], [4, 1]], [[3, 2], [4, 1], [3, 1], [2, 2]], [[4, 3], [2, 1], [1, 2]], [[0, 6]], [[7, 2], [6, 1], [5, 1], [4, 2]], [[5, 3], [4, 1], [3, 2]], [[2, 2], [3, 1], [2, 1], [1, 2]], [[1, 3], [0, 3]]] },
+  3: { mode: 'segah', root: 164.81, bpm: 56, lead: 'tar', bars: [[[2, 3], [1, 1], [2, 2]], [[3, 2], [2, 1], [1, 1], [0, 2]], [[2, 6]], [[4, 2], [3, 1], [2, 1], [3, 2]], [[2, 3], [1, 1], [0, 2]], [[1, 2], [2, 2], [1, 2]], [[0, 6]], [[-1, 2], [0, 4]]] },
+  4: { mode: 'esfahan', root: 392, bpm: 72, lead: 'santur', bars: [[[0, 2], [2, 1], [3, 1], [4, 2]], [[5, 3], [4, 1], [3, 2]], [[4, 2], [3, 1], [2, 1], [1, 2]], [[2, 6]], [[4, 2], [5, 1], [6, 1], [7, 2]], [[6, 3], [5, 1], [4, 2]], [[3, 2], [2, 1], [1, 1], [0, 2]], [[0, 6]]] },
+  5: { mode: 'chahargah', root: 261.63, bpm: 84, lead: 'santur', bars: [[[0, 1], [2, 1], [4, 1], [4, 3]], [[5, 1], [4, 1], [2, 1], [1, 3]], [[2, 1], [4, 1], [5, 1], [7, 3]], [[5, 2], [4, 1], [2, 3]], [[4, 1], [5, 1], [7, 1], [8, 3]], [[7, 1], [5, 1], [4, 1], [5, 3]], [[4, 1], [2, 1], [1, 1], [2, 1], [1, 1], [0, 1]], [[0, 6]]] },
+  6: { mode: 'chahargah', root: 293.66, bpm: 92, lead: 'tar', bars: [[[0, 2], [0, 1], [4, 3]], [[3, 1], [2, 1], [1, 1], [2, 3]], [[4, 2], [4, 1], [7, 3]], [[5, 1], [4, 1], [2, 1], [4, 3]], [[0, 2], [0, 1], [4, 3]], [[5, 1], [7, 1], [5, 1], [4, 3]], [[2, 1], [1, 1], [2, 1], [1, 1], [0, 2]], [[0, 6]]] },
+  7: { mode: 'homayoun', root: 392, bpm: 54, lead: 'ney', bars: [[[4, 4], [3, 1], [2, 1]], [[1, 3], [2, 3]], [[4, 2], [5, 2], [4, 2]], [[3, 6]], [[5, 3], [4, 1], [3, 2]], [[2, 2], [1, 2], [2, 2]], [[1, 4], [0, 2]], [[0, 6]]] }
+};
+const TUNE_BASS = [0, 0, 3, 0, 0, 3, 4, 0];
+// the ney: a breathy reed flute, a sine with a soft overtone, a slow vibrato and a puff of breath at the start
+function ney(f, t, d, vol, out) {
+  const c = A.ctx, o = c.createOscillator(), o2 = c.createOscillator(), g = c.createGain(), g2 = c.createGain(), lfo = c.createOscillator(), lg = c.createGain(), lp = c.createBiquadFilter();
+  o.type = 'sine'; o.frequency.value = f; o2.type = 'triangle'; o2.frequency.value = f * 2; g2.gain.value = 0.12;
+  lfo.frequency.value = 5; lg.gain.setValueAtTime(0, t); lg.gain.linearRampToValueAtTime(f * 0.007, t + Math.min(0.5, d * 0.5)); lfo.connect(lg).connect(o.frequency);
+  lp.type = 'lowpass'; lp.frequency.value = f * 4;
+  g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + Math.min(0.14, d * 0.3)); g.gain.setValueAtTime(vol, t + d * 0.7); g.gain.exponentialRampToValueAtTime(0.0001, t + d);
+  o.connect(g); o2.connect(g2).connect(g); g.connect(lp).connect(out);
+  noise(t, Math.min(0.22, d), { type: 'bandpass', f: f * 2, q: 1.5, vol: vol * 0.3, out });
+  for (const x of [o, o2, lfo]) { x.start(t); x.stop(t + d + 0.05); }
+}
+function tuneBar(L, P, t) {
+  const S = { mode: P.mode, root: P.root }, e = 60 / P.bpm / 3, i = L.bar % 8, bass = TUNE_BASS[i], G = L.gains;
+  pluck(pitch(S, bass) / 4, t, { kind: 'tar', vol: 0.32, out: G.bed }); pluck(pitch(S, bass + 4) / 4, t + 3 * e, { kind: 'tar', vol: 0.2, out: G.bed });
+  // daf on the beats, tombak taks between; against the boss, a roll fills the bar's end
+  ['D', 0, 't', 'd', 't', 'j'].forEach((k, j) => k && daf(t + j * e, k, 0.6, G.drums));
+  if (L.boss) { for (let j = 0; j < 6; j++) daf(t + j * e + e / 2, 't', 0.35, G.drums); daf(t + 5 * e, 'D', 0.9, G.drums); }
+  let at = t;
+  for (const [deg, len] of P.bars[i]) {
+    const f = pitch(S, deg), d = len * e;
+    if (P.lead === 'ney') ney(f, at, d * 0.95, 0.11, G.melody);
+    else if (P.lead === 'tar') pluck(f / 2, at, { kind: 'tar', vol: 0.34, out: G.melody, bend: len >= 3 ? 0.985 : 0 });
+    else if (len >= 3) for (let r = 0; r < len * 2; r++) pluck(f, at + r * e / 2, { vol: 0.15 * (1 - r / (len * 2.6)), pan: 0.2, out: G.melody });
+    else pluck(f, at, { vol: 0.18, pan: 0.2, out: G.melody });
+    at += d;
+  }
+}
+function startTune(n) {
+  const S = SCORE[n], P = TUNES[n], c = A.ctx, out = c.createGain(); out.gain.value = 0; out.connect(A.bus);
+  const send = c.createGain(); send.gain.value = 0.4; out.connect(send).connect(A.verb);
+  const gains = {}; for (const k of STEMS) { gains[k] = c.createGain(); gains[k].gain.value = MIX.road[k]; gains[k].connect(out); }
+  out.gain.setTargetAtTime(S.vol, c.currentTime, 0.6);
+  const L = A.layers = { n, synth: true, gains, out, srcs: [], bar: S.bar || 0, next: c.currentTime + 0.1, fight: false, fightUntil: 0 };
+  L.timer = setInterval(() => { while (L.next < c.currentTime + 0.5) { tuneBar(L, P, L.next); L.next += 6 * 60 / P.bpm / 3; L.bar++; } }, 120);
+  return L;
+}
 // fetch and decode one labour's stems, once; only one labour's stems are kept in memory
 function loadScore(n) {
   const S = SCORE[n]; if (!S?.stems || S.state || !A.ctx) return;
@@ -1557,10 +1609,11 @@ function loadScore(n) {
 // ready the labour's music while its story plays: the stems, and the boss theme (or the shared one)
 function prepareScore(n) {
   if (!A.ctx || A.muted) return;
-  loadScore(n); track(SCORE[n]?.theme ? `k${n}-boss` : 'boss');
+  loadScore(n); if (SCORE[n]?.theme || !(LABOUR_SYNTH && TUNES[n])) track(SCORE[n]?.theme ? `k${n}-boss` : 'boss');   // a played tune needs no file
 }
 // the stems start together and loop on the same sample, picking up where the labour's music last left off
 function startScore(n) {
+  if (!SCORE[n].stems) return startTune(n);
   const S = SCORE[n], c = A.ctx, t0 = c.currentTime + 0.05, [a, b] = S.loop || [0, Math.min(...S.bufs.map(x => x.duration))], at = (S.at || 0) % (b - a);
   const out = c.createGain(); out.gain.value = 0; out.connect(A.bus);
   const gains = {}, srcs = STEMS.map((k, i) => {
@@ -1575,8 +1628,9 @@ function fadeOut(name, hard = false) {
   if (name === 'menu' && MENU_SYNTH) return stopMenuTheme(hard);
   if (isScore(name)) {
     const L = A.layers; if (!L) return; A.layers = null;
-    SCORE[L.n].at = L.at + Math.max(0, now - L.t0);
-    L.out.gain.cancelScheduledValues(now); L.out.gain.setTargetAtTime(0, now, 0.4); L.srcs.forEach(s => s.stop(hard ? 0 : now + 2.2));
+    if (L.synth) { clearInterval(L.timer); SCORE[L.n].bar = L.bar; setTimeout(() => L.out.disconnect(), hard ? 60 : 2600); }
+    else SCORE[L.n].at = L.at + Math.max(0, now - L.t0);
+    L.out.gain.cancelScheduledValues(now); L.out.gain.setTargetAtTime(0, now, hard ? 0.01 : 0.4); L.srcs.forEach(s => s.stop(hard ? 0 : now + 2.2));
     return;
   }
   const o = A.tracks[name]; if (!o) return;
@@ -1642,10 +1696,10 @@ function silenceMusic() {
 }
 // the drums come in while a foe that can reach Rostam is close, and stay a few seconds after the last one falls, so a
 // lull does not flicker
-function mixScore(sc) {
+function mixScore(sc, boss = false) {
   const L = A.layers, p = sc?.player; if (!L || !p) return;
-  const now = A.ctx.currentTime;
-  if (sc.horde || sc.foes?.getChildren().some(f => f.active && f.body?.enable && Math.abs(f.x - p.x) < 160 && Math.abs(f.y - p.y) < 140 && canHunt(sc, f, p))) L.fightUntil = now + 4;
+  const now = A.ctx.currentTime; L.boss = boss;
+  if (boss || sc.horde || (sc.foes?.children ? sc.foes.getChildren() : []).some(f => f.active && f.body?.enable && Math.abs(f.x - p.x) < 160 && Math.abs(f.y - p.y) < 140 && canHunt(sc, f, p))) L.fightUntil = now + 4;
   const fight = now < L.fightUntil; if (fight === L.fight) return; L.fight = fight;
   for (const k of STEMS) { const g = L.gains[k].gain; g.cancelScheduledValues(now); g.setTargetAtTime(MIX[fight ? 'fight' : 'road'][k], now, fight ? 0.35 : 1.6); }
 }
@@ -1655,8 +1709,9 @@ function pickTrack() {
   if (A.muted || A.background || A.failed) return setTrack(null);
   if (!A.want) return setTrack('menu');
   const sc = game?.scene.getScene('play'), boss = sc && sc.bossOn && !sc.done && sc.boss?.active && sc.boss.hp > 0, S = SCORE[cur];
-  if (boss) { const own = `k${cur}-boss`; return setTrack(S?.theme && !track(own).bad ? own : 'boss'); }
-  if (S?.state === 'ready') { setTrack('k' + cur); return mixScore(sc); }
+  const own = `k${cur}-boss`, tune = LABOUR_SYNTH && TUNES[cur] && !S?.stems;
+  if (boss && (S?.theme || !tune)) return setTrack(S?.theme && !track(own).bad ? own : 'boss');
+  if (S?.state === 'ready' || tune) { setTrack('k' + cur); return mixScore(sc, !!boss); }
   loadScore(cur);
   setTrack(DARK.has(cur) ? 'dark' : 'road');
 }

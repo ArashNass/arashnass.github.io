@@ -1,6 +1,6 @@
 # The score
 
-Each labour has its own music in its own dastgah. The music is made of three stems that loop together and are mixed live while you play. Each boss has its own theme, and five short stings mark the big moments. Everything is optional and can be added one piece at a time. Until a piece's files are in `assets/music` and switched on in `game.js`, the game plays what it played before.
+Each labour has its own music in its own dastgah. The music is made of three stems that loop together and are mixed live while you play. Each boss has its own theme, and five short stings mark the big moments. Everything is optional and can be added one piece at a time. Until a labour's recordings are in `assets/music` and switched on in `game.js`, it plays its own theme performed live on the game's synthesised ney, santur, tar and daf (`TUNES` in `game.js`, in the dastgah listed below), with the same three layers and boss intensity. The menu does the same (`MENU_THEME`). Set `LABOUR_SYNTH` or `MENU_SYNTH` to `false` to go back to the stock recordings.
 
 ## How it plays
 
