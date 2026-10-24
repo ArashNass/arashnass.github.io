@@ -224,6 +224,20 @@
       "text": "The Ram\n\nAs he prayed, a fine ram came walking across the sand before him. Rostam thought: \"Where does this ram drink? Surely there is water near.\" He rose, took his sword in hand and followed it.\n\nThe ram led him to a hidden spring, cool and clear among the rocks, and there it vanished. Rostam drank, and gave thanks, and blessed the ram as a gift from heaven. Then he washed Rakhsh, hunted an onager for his supper, and lay down to rest by the water, knowing that the dragon of the third labour waited in the night ahead.\n\nIn the game the desert burns, wells and water skins keep Rostam alive, and the ram leads him through a sandstorm to the spring.",
       "duration": 47.569,
       "sha256": "e2af468c1bc5710ce467cd17316de115756a027b56c38164c6b2229e359ed256"
+    },
+    {
+      "id": "khan5-lasso",
+      "kind": "panel",
+      "text": "Rostam cast his lasso around Olad and spared his life. In return, the warden promised to guide him through Mazandaran.",
+      "duration": 8.438,
+      "sha256": "c51aaf421096961c69c203ce092319ca69591ac0bc9811febfceeec9b357554d"
+    },
+    {
+      "id": "khan7-noon",
+      "kind": "panel",
+      "text": "At blazing noon the Div guards slept. Olad guided Rostam to the cavern; beyond the dying fire, the hero would face the White Div alone.",
+      "duration": 11.233,
+      "sha256": "5a782212de1683957281eeb9dcd772e56259cad930386238271ed0b6c20880d5"
     }
   ]
 }
