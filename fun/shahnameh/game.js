@@ -842,7 +842,7 @@ function stormRocks(s, k) {
     const floor = s.bossFloorAt(r.x), hop = Math.abs(Math.sin(r.t * 0.085)); r.y = floor - 11 - hop * 20;
     if (hop < 0.12 && !r.landed) { r.landed = true; s.fx('dust', r.x + 6, floor, { depth: 7 }).setScale(0.8); } else if (hop > 0.3) r.landed = false;   // a puff each time it strikes the ground
     const box = new Phaser.Geom.Rectangle(r.x - 11, r.y - 11, 22, 22);
-    if (s.atk > 3 && s.atk < 12 && Phaser.Geom.Intersects.RectangleToRectangle(s.strikeBox(), box)) { smash(r); s.combatWord('Smashed'); s.gainFarr(3); return false; }
+    if (s.atk > 3 && s.atk < 12 && Phaser.Geom.Intersects.RectangleToRectangle(s.strikeBox(), box)) { smash(r); s.gainFarr(3); return false; }
     if (Phaser.Geom.Intersects.RectangleToRectangle(p.body, box)) { s.hurt(r.x); if (!(s.dodgeT > 0)) { smash(r); return false; } }
     if (r.x < s.cam.scrollX - 40 || s.prayed || s.bossOn) { r.destroy(); return false; }
     return true;
@@ -878,7 +878,7 @@ function poppyTick(s, k, time) {
     if (s.atk > 3 && s.atk < 12 && Phaser.Geom.Intersects.RectangleToRectangle(s.strikeBox(), new Phaser.Geom.Rectangle(q.x - 9, q.y - 34, 18, 34))) {
       const was = q.state; q.state = 'wilted'; q.cloud?.stop(); s.time.delayedCall(1200, () => q.cloud?.destroy()); q.haze?.destroy();
       q.f.setTexture('poppy').setTint(0x6a5a3a); s.tweens.add({ targets: q.f, scaleY: 0.6, angle: 20, duration: 300 }); s.tweens.add({ targets: q.glow, alpha: 0, duration: 300 });
-      s.fx('hit', q.x, q.y - 14, { depth: 9 }); sfx('hit'); s.gainFarr(was === 'shut' || was === 'opening' ? 6 : 3); s.combatWord('Wilted');
+      s.fx('hit', q.x, q.y - 14, { depth: 9 }); sfx('hit'); s.gainFarr(was === 'shut' || was === 'opening' ? 6 : 3);
     }
   }
 }
@@ -1671,8 +1671,10 @@ function sting(k, fallback) {
 }
 // recorded effects (Pixabay, free to use, no credit needed), trimmed and levelled; [file, volume]
 const SAMPLE = { swing: ['swing', 0.32], hit: ['hit', 0.4], hurt: ['hurt', 0.45], jump: ['jump', 0.22], coin: ['pickup', 0.32],
-  fire: ['fire', 0.4], roar: ['roar', 0.45], neigh: ['neigh', 0.45], win: ['win', 0.5], drum: ['drum', 0.3],
-  thunder: ['thunder', 0.55], rock: ['rock', 0.45], clang: ['clang', 0.32], shatter: ['shatter', 0.4] };   // CC0 effects from OpenGameArt's '100 CC0 SFX #2'
+  fire: ['fire', 0.4], roar: ['roar', 0.36], neigh: ['neigh', 0.45], win: ['win', 0.5], drum: ['drum', 0.3],
+  thunder: ['thunder', 0.45], rock: ['rock', 0.45], clang: ['clang', 0.32], shatter: ['shatter', 0.4] };   // CC0 effects from OpenGameArt's '100 CC0 SFX #2'
+// the loud effects never pile up: a roar or a thunderclap waits for the last one to fade
+const GAP = { roar: 0.8, thunder: 1.2, clang: 0.25, rock: 0.4, neigh: 0.6 };
 function loadSamples() {
   A.samples = {}; A.last = {};
   for (const f of new Set(Object.values(SAMPLE).map(v => v[0])))
@@ -1681,7 +1683,7 @@ function loadSamples() {
 // play a recorded effect, a little different each time so repeats never grate; false if it is not loaded yet
 function sample(k) {
   const [f, vol] = SAMPLE[k] || [], buf = A.samples?.[f]; if (!buf) return false;
-  const now = A.ctx.currentTime; if (now - (A.last[k] || 0) < 0.06) return true; A.last[k] = now;
+  const now = A.ctx.currentTime; if (now - (A.last[k] || 0) < (GAP[k] || 0.06)) return true; A.last[k] = now;
   const src = A.ctx.createBufferSource(), g = A.ctx.createGain(); src.buffer = buf;
   src.playbackRate.value = k === 'win' ? 1 : 0.93 + Math.random() * 0.14;
   g.gain.value = vol * (0.88 + Math.random() * 0.12); src.connect(g).connect(A.fx); src.start(); return true;
@@ -2143,7 +2145,6 @@ class Play extends Phaser.Scene {
       return;
     }
     if (this.trial?.state === 'running') this.finishTrial(false, 'Hit taken — try again at the feather.');   // no harm during a cutscene or a dodge
-    if (this.streak >= 5) this.combatWord(`Run broken at ${this.streak}`, '#ffb0a0');
     this.streak = 0; this.renderStreak();
     this.hp--; this.renderHearts(); this.inv = thirst ? 30 : gentle() ? 130 : legend() ? 70 : 90; sfx('hurt'); this.cam.shake(160, 0.008); this.cam.flash(120, 180, 40, 60);
     if (!thirst) this.player.setVelocity((this.player.x < fromX ? -1 : 1) * 160, -220);
@@ -2196,9 +2197,9 @@ class Play extends Phaser.Scene {
       const f = target; f.attackId = (f.attackId || 0) + 1; f.smash = f.cast = f.sting = f.thrust = f.leap = false;
       if (!f.body.allowGravity) { f.state = 'rise'; f.anims.timeScale = 1; if (!f.leader) f.clearTint(); }
       f.removeAllListeners('animationcomplete'); f.play(FOES[f.kind].tex, true);
-      f.lassoUntil = this.time.now + 260; f.lassoX = p.x + dir * 30; f.lassoY = p.body.center.y - 6; f.staggerUntil = this.time.now + 260 + 900;
+      f.boundUntil = this.time.now + 1160; f.lassoUntil = this.time.now + 260; f.lassoX = p.x + dir * 30; f.lassoY = p.body.center.y - 6; f.staggerUntil = this.time.now + 260 + 900;
       f.staggerFx?.destroy(); f.staggerFx = this.fx('stun', f.x, f.body.top - 4, { depth: 8 }).setScale(0.55);
-      sfx('hit'); this.cam.shake(80, 0.004); this.combatWord('Lassoed', '#e8c890');
+      sfx('hit'); this.cam.shake(80, 0.004);
     });
   }
   reel(f) { f.setVelocityX(Phaser.Math.Clamp((f.lassoX - f.x) * 9, -340, 340)); if (!f.body.allowGravity) f.setVelocityY(Phaser.Math.Clamp((f.lassoY - f.y) * 9, -340, 340)); }
@@ -2216,6 +2217,7 @@ class Play extends Phaser.Scene {
     if (f.immune?.() && !force) { this.fx('dust', f.x, f.body.center.y, { depth: 10 }); sfx('clang'); if (!this.toldImmune) { this.toldImmune = true; toast(f.immuneMsg || 'Your blow passes through shadow.'); } return false; }
     if (f === this.boss && !force && this.time.now < (f.hitReadyAt || 0)) return false;
     if (f === this.boss) f.hitReadyAt = this.time.now + (gentle() ? 240 : 320);
+    if (!force && f.boundUntil > this.time.now) { n += 1; f.boundUntil = 0; this.fx('impact', f.x, f.body.center.y - 4, { depth: 10 }); }   // a bound foe takes the blow full
     f.hp -= n; if (!force) this.streakHit();
     if (f !== this.boss && f.hp > 0 && f.body.allowGravity && !force && (this.heavy || this.counterStrike)) {
       f.attackId = (f.attackId || 0) + 1; f.staggerUntil = this.time.now + 420;
@@ -3275,7 +3277,7 @@ class Play extends Phaser.Scene {
     this.time.addEvent({ delay: 16, repeat: 40, callback: draw });
     banner('کمند', "Rostam's Lasso");
     const first = !hasLasso(); store.set('sh-lasso', '1'); refreshLassoBtn(); trackGame('boss_defeat', { level_name: String(cur), hearts_left: this.hp });
-    if (first) this.time.delayedCall(3600, () => hint(`<b>Rostam's lasso is yours.</b> Press ${touch ? 'the lasso button' : keyHTML('lasso')} to throw it: it drags a foe to your feet, reeling, pulls a flier from the sky, and draws in provisions out of reach.`));
+    if (first) this.time.delayedCall(3600, () => hint(`<b>Rostam's lasso is yours.</b> Press ${touch ? 'the lasso button' : keyHTML('lasso')} to throw it: it drags a foe to your feet, reeling, where your next blow lands harder; it pulls fliers from the sky and draws in provisions out of reach.`));
     this.time.delayedCall(1200, () => { toast('Olad yields: "Spare me, and I will lead you to Arzhang Div and to the White Div\'s cave."'); say('olad2'); });
     this.time.delayedCall(3400, () => { this.frozen = false; rope.clear().lineStyle(2, 0xc8a060, 1).strokeEllipse(o.x, o.y - 4, 30, 14); this.reward(o.x); });
   }
