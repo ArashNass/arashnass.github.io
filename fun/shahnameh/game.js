@@ -43,10 +43,10 @@ const ART = {
   // Khan VII
   'whitediv-walk': 'k7/whitediv-walk.png', 'whitediv-smash': 'k7/whitediv-smash.png', 'whitediv-throw': 'k7/whitediv-throw.png', 'whitediv-die': 'k7/whitediv-die.png', 'kavus-sight': 'k7/kavus-sight.png'
 };
-Object.assign(ART, { 'rostam-sleep': 'rostam-sleep.png', 'rostam-rise': 'rostam-rise.png', 'div-sleep': 'div-sleep.png' });
+Object.assign(ART, { 'rostam-sleep': 'rostam-sleep.png', 'rostam-rise': 'rostam-rise.png', 'div-sleep': 'div-sleep.png', 'rostam-lasso': 'rostam-lasso.png', 'rakhsh-idle': 'k3/rakhsh-idle.png', 'divwarrior-sleep': 'k6/divwarrior-sleep.png' });
 // Painted replacements retain the original texture dimensions and collision footprints.
 const PAINTED = ['bg-reeds', 'bg-hills', 'bg-mist', 'fg-reeds', 'knife', 'arrow', 'fireball', 'icicle', 'icespike', 'boulder'];
-const FPS = { 'rostam-sleep': 2, 'rostam-rise': 6, 'div-sleep': 2, 'queen-walk': 10, 'queen-sting': 14, 'queen-spit': 12, 'queen-die': 7, 'rostam-dodge': 22, 'rostam-heavy': 14, 'simurgh-fly': 9, 'lion-die': 6, 'dragon-die': 6, 'hag-die': 6, 'rostam-idle': 5, 'rostam-run': 14, 'rostam-jump': 6, 'rostam-attack': 24, 'rostam-hurt': 10, 'lion-walk': 9, 'lion-run': 14, 'lion-roar': 6, 'jackal-run': 12, 'div-hop': 8, 'coin-spin': 8, 'fire-burn': 10,
+const FPS = { 'rostam-lasso': 40, 'rakhsh-idle': 3, 'divwarrior-sleep': 2, 'rostam-sleep': 2, 'rostam-rise': 6, 'div-sleep': 2, 'queen-walk': 10, 'queen-sting': 14, 'queen-spit': 12, 'queen-die': 7, 'rostam-dodge': 22, 'rostam-heavy': 14, 'simurgh-fly': 9, 'lion-die': 6, 'dragon-die': 6, 'hag-die': 6, 'rostam-idle': 5, 'rostam-run': 14, 'rostam-jump': 6, 'rostam-attack': 24, 'rostam-hurt': 10, 'lion-walk': 9, 'lion-run': 14, 'lion-roar': 6, 'jackal-run': 12, 'div-hop': 8, 'coin-spin': 8, 'fire-burn': 10,
   'scorpion-crawl': 10, 'vulture-fly': 10, 'ram-walk': 8, 'rostam-drink': 6, 'rostam-fall': 7, 'rostam-victory': 8, 'rostam-anoint': 6, 'ride-gallop': 12, 'ride-strike': 18, 'ride-rear': 11,
   'dragon-move': 7, 'dragon-fire': 9, 'rakhsh-gallop': 12, 'rakhsh-rear': 9, 'bat-fly': 14,
   'serpent': 8, 'hag-cast': 10, 'beauty-idle': 4,
@@ -1937,7 +1937,7 @@ class Play extends Phaser.Scene {
     makeTextures(this);
     for (const k of Object.keys(FPS)) {
       const t = this.textures.get(k), n = t.frameTotal - 1;
-      if (!this.anims.exists(k)) this.anims.create({ key: k, frames: this.anims.generateFrameNumbers(k, { start: 0, end: Math.max(0, n - 1) }), frameRate: FPS[k], repeat: /attack|hurt|roar|jump|thrust|slash|kneel|smash|throw|fire|rear|sight|strike|sting|die|leap|heavy|dodge|fall|rise|victory|anoint/.test(k) ? 0 : -1 });
+      if (!this.anims.exists(k)) this.anims.create({ key: k, frames: this.anims.generateFrameNumbers(k, { start: 0, end: Math.max(0, n - 1) }), frameRate: FPS[k], repeat: /attack|hurt|roar|jump|thrust|slash|kneel|smash|throw|fire|rear|sight|strike|sting|die|leap|heavy|dodge|fall|rise|lasso|victory|anoint/.test(k) ? 0 : -1 });
     }
     const lv = this.lv, map = lv.map(), C = map[0].length;
     if (LIVE && !rush) hangRing(map);
@@ -2292,7 +2292,7 @@ class Play extends Phaser.Scene {
   throwLasso() {
     if (this.oladBind) { if (Math.abs(this.olad.x - this.player.x) < 200) this.bindOlad(this.oladBind.first); else toast('Come closer to Olad to throw the noose.'); return; }
     const p = this.player, dir = this.face, reach = 150, x0 = p.x + dir * 8, now = this.time.now;
-    this.lassoCd = 75; sfx('swing'); this.pose = 'rostam-attack'; p.play('rostam-attack', true); this.time.delayedCall(260, () => { if (this.pose === 'rostam-attack') this.pose = null; });
+    this.lassoCd = 75; sfx('swing'); this.pose = 'rostam-lasso'; p.play('rostam-lasso', true); this.time.delayedCall(260, () => { if (this.pose === 'rostam-lasso') this.pose = null; });
     const zone = new Phaser.Geom.Rectangle(dir > 0 ? x0 : x0 - reach, p.body.top - 80, reach, p.body.height + 92), along = o => Math.abs(o.x - x0);
     const foe = this.foes.getChildren().filter(f => f.active && f.body.enable && f.hp > 0 && f.alpha > 0.5 && Phaser.Geom.Intersects.RectangleToRectangle(zone, f.body)).sort((a, b) => along(a) - along(b))[0];
     const B = this.boss, boss = B?.active && B.hp > 0 && B.body.enable && B.alpha > 0.5 && Phaser.Geom.Intersects.RectangleToRectangle(zone, B.body) ? B : null;
@@ -2384,7 +2384,7 @@ class Play extends Phaser.Scene {
     this.sleepers = this.foes.getChildren().filter(f => f.body.allowGravity && f.x > 133 * TS && f.x < 146 * TS);
     for (const f of this.sleepers) {
       f.asleep = true;
-      if (f.kind === 'div') f.play('div-sleep'); else { f.anims.pause(); f.setTint(0x9098c0); }
+      if (f.kind === 'div') f.play('div-sleep'); else if (f.kind === 'divwarrior') f.play('divwarrior-sleep'); else { f.anims.pause(); f.setTint(0x9098c0); }
       const harmless = f.harmless; f.harmless = () => f.asleep || !!harmless?.();
     }
     this.time.addEvent({ delay: 1400, loop: true, callback: () => { for (const f of this.sleepers) if (f.active && f.asleep) {
@@ -2399,7 +2399,7 @@ class Play extends Phaser.Scene {
     if (f.stir > 75) this.wake(f);
     if (!this.toldSleep && Math.abs(p.x - f.x) < 140) { this.toldSleep = true; toast('Olad’s counsel: in the noon heat the Divs sleep. Slip past, or strike a sleeper for a double blow.'); }
   }
-  wake(f) { if (!f.asleep) return; f.asleep = false; f.stir = 0; f.clearTint(); f.anims.resume(); if (f.kind === 'div') f.play('div-hop'); f.cool = Math.max(f.cool || 0, 30); }
+  wake(f) { if (!f.asleep) return; f.asleep = false; f.stir = 0; f.clearTint(); f.anims.resume(); if (f.kind === 'div') f.play('div-hop'); else if (f.kind === 'divwarrior') f.play('divwarrior-walk'); f.cool = Math.max(f.cool || 0, 30); }
   // a slain foe flashes white, then bursts into its own pixels, which fly apart as embers and fade
   slay(f) {
     f.setTintFill(0xffffff); this.cam.shake(140, 0.007);
@@ -2534,7 +2534,7 @@ class Play extends Phaser.Scene {
       const x = 90.5 * TS;
       p.setVisible(false); p.body.reset(x, p.y);
       this.sleeper = this.add.sprite(x, 14 * TS + 1, 'rostam-sleep', 0).setScale(p.scaleX).setOrigin(0.5, 0.97).setDepth(3.5).play('rostam-sleep');
-      this.guard = this.add.sprite(95 * TS, 14 * TS + 2, 'rakhsh-gallop', 0).setOrigin(0.5, 0.97).setScale(RAKHSH1).setDepth(3.6);
+      this.guard = this.add.sprite(95 * TS, 14 * TS + 2, 'rakhsh-idle', 0).setOrigin(0.5, 0.97).setScale(RAKHSH1).setDepth(3.6).play('rakhsh-idle');
       this.snore = this.time.addEvent({ delay: 1100, loop: true, callback: () => {
         const z = this.add.text(x + 10, 14 * TS - 22, 'z', { fontFamily: 'Georgia, serif', fontSize: '9px', color: '#e8e0ff', stroke: '#181125', strokeThickness: 2, resolution: 4 }).setDepth(5);
         this.tweens.add({ targets: z, x: z.x + 8, y: z.y - 18, alpha: 0, duration: 1600, onComplete: () => z.destroy() });
@@ -2556,7 +2556,7 @@ class Play extends Phaser.Scene {
       this.fx('hit', 97.5 * TS, 14 * TS - 34, { depth: 10 }); this.fx('dust', 99 * TS, 14 * TS, { depth: 8 }); sfx('hit'); this.cam.shake(320, 0.012); this.hitStop(90);
       L.anims.stop(); L.setFrame(0); this.tweens.add({ targets: L, x: 106 * TS, duration: 650, ease: 'Quad.easeOut' });
     });
-    at(5200, () => { L.play('lion-roar'); sfx('roar'); g.anims.stop(); g.setFrame(0); });
+    at(5200, () => { L.play('lion-roar'); sfx('roar'); g.play('rakhsh-idle'); });
     // the noise wakes Rostam
     at(6300, () => {
       this.snore?.remove(); this.snore = null; s.play('rostam-rise'); this.fx('dust', s.x, 14 * TS, { depth: 6 });
@@ -2786,16 +2786,8 @@ class Play extends Phaser.Scene {
       if (!d || Math.sign(home - r.x) !== d) { r.x = home; r.state = 'post'; r.setFlipX(false); this.allyRest(r); r.next = now + (this.rakhshFed ? 4200 : 6200); }
     }
   }
-  // standing, Rakhsh is never a frozen stride: he breathes, and now and then stamps a hoof and tosses his head
-  allyRest(r) {
-    this.allyWake(r); r.anims.stop(); r.setFrame(0);
-    r.breath = this.tweens.add({ targets: r, scaleY: r.scaleY * 1.025, yoyo: true, repeat: -1, duration: 900, ease: 'Sine.easeInOut' });
-    r.stamp = this.time.addEvent({ delay: 2600, loop: true, callback: () => {
-      if (!r.active || r.anims.isPlaying) return;
-      r.setFrame(1); this.time.delayedCall(160, () => r.active && !r.anims.isPlaying && r.setFrame(0));
-      this.fx('dust', r.x + (r.flipX ? -22 : 22), r.y, { depth: 6, flip: r.flipX }).setScale(0.6);
-    } });
-  }
+  // At rest, Rakhsh uses his planted idle loop; galloping and rearing keep their existing actions.
+  allyRest(r) { this.allyWake(r); r.play('rakhsh-idle'); }
   allyWake(r) { r.breath?.remove(); r.breath = null; r.stamp?.remove(); r.stamp = null; r.anims.timeScale = 1; r.setScale(r.scaleX); }
   lionOpening(l, state, frames) {
     l.state = state; l.tm = frames; l.intent = ''; l.setVelocityX(0); l.play('lion-walk'); l.anims.pause(); l.setTint(0xffd8a0);
@@ -3286,7 +3278,7 @@ class Play extends Phaser.Scene {
   }
   dragonAI() {
     const d = this.boss, p = this.player, r = this.rakhsh; d.tm -= this.bossStep();
-    if (r && r.body.velocity.x > 0 && r.x >= this.rakhshAt.x) { r.setVelocityX(0); r.anims.stop(); r.setFrame(0); }
+    if (r && r.body.velocity.x > 0 && r.x >= this.rakhshAt.x) { r.setVelocityX(0); r.play('rakhsh-idle'); }
     const toP = Math.sign(p.x - d.x) || -1; if (d.state === 'lurk') d.dir = toP; d.setFlipX(d.dir < 0);
     const seen = d.hp <= d.max / 2;                                   // once wounded, God lets Rostam see it
     if (seen && !this.dragonSeen) { this.dragonSeen = true; this.tweens.killTweensOf(d); d.setAlpha(1); banner('خدا', 'The dragon can hide no more'); hint('The dragon can hide no more. <b>Strike it whenever you can</b>, and jump its fire. Its <b>golden flash warns of a follow-up lunge</b>.'); }
@@ -3298,7 +3290,7 @@ class Play extends Phaser.Scene {
       d.setVelocityX(d.regroup ? Math.sign(d.regroup - d.x) * (seen ? 72 : 58) : Math.abs(p.x - d.x) > 70 ? toP * (seen ? 62 : 46) : 0);
       if (d.tm <= 0) {
         // Rakhsh rears and neighs: the dragon is revealed
-        if (r) { r.play('rakhsh-rear'); r.once('animationcomplete', () => { r.anims.stop(); r.setFrame(0); }); } else this.rear(); sfx('neigh');
+        if (r) { r.play('rakhsh-rear'); r.once('animationcomplete', () => { if (r.active) r.play('rakhsh-idle'); }); } else this.rear(); sfx('neigh');
         this.tweens.add({ targets: d, alpha: 1, duration: 280 }); this.cam.flash(160, 255, 200, 140); sfx('roar');
         d.nextMove = this.dragonPlan(d); d.state = 'reveal'; d.tm = seen ? 36 : 42; d.setVelocityX(0);
       }
@@ -3497,7 +3489,8 @@ class Play extends Phaser.Scene {
   }
   bindOlad(first) {
     const o = this.olad, p = this.player; this.oladBind?.auto?.remove(); this.oladBind = null; this.frozen = true; p.setVelocityX(0); hint(null);
-    this.face = o.x > p.x ? 1 : -1; sfx('swing');
+    this.face = o.x > p.x ? 1 : -1; p.setFlipX(this.face < 0); this.pose = 'rostam-lasso'; p.play({ key: 'rostam-lasso', frameRate: 20 });
+    this.time.delayedCall(420, () => { if (this.pose === 'rostam-lasso') this.pose = null; }); sfx('swing');
     const rope = this.add.graphics().setDepth(8); let t = 0;
     const draw = () => {
       t = Math.min(1, t + 0.05); rope.clear(); rope.lineStyle(2, 0xc8a060, 1);
@@ -4620,7 +4613,7 @@ function rushElapsed() { return performance.now() - rush.t0 - rush.pausedMs - (r
 function startRush() { rush = { n: 1, t0: performance.now(), pausedMs: 0, pauseAt: null, hp: null, splits: [] }; begin(1, false, true); }
 // the narrator: recorded readings, one file per picture in assets/voice (open1.mp3 ... end3.mp3). A picture is read
 // aloud only if its name is in VOICED, so a missing recording never leaves a gap; the music sinks beneath the voice
-const VOICED = new Set(['open1', 'open2', 'open3', 'open4', 'open5', 'open6', 'end1', 'end2', 'end3', 'khan1', 'khan2', 'khan3', 'khan4', 'khan5', 'khan6', 'khan7', 'win1', 'win2', 'win3', 'win4', 'win5', 'win6', 'fall1', 'fall2', 'fall3', 'queen1', 'queen2', 'witch1', 'witch2', 'olad1', 'olad2', 'arzhang1', 'arzhang2', 'white1', 'white2', 'white3', 'kavus1', 'khan1-intro', 'khan1-outro', 'khan2-intro', 'khan2-outro', 'khan3-intro', 'khan3-outro', 'khan4-intro', 'khan4-outro', 'khan5-intro', 'khan5-outro', 'khan6-intro', 'khan6-outro', 'khan7-intro', 'tale-1-1', 'tale-1-2', 'tale-1-3', 'tale-1-4', 'tale-1-5', 'tale-3-1', 'tale-3-2', 'tale-4-1', 'tale-4-2', 'tale-5-1', 'tale-5-2', 'tale-6-1', 'tale-6-2', 'tale-7-1', 'tale-7-2', 'tale-2-1', 'tale-2-2']);
+const VOICED = new Set(['khan5-lasso', 'khan7-noon', 'open1', 'open2', 'open3', 'open4', 'open5', 'open6', 'end1', 'end2', 'end3', 'khan1', 'khan2', 'khan3', 'khan4', 'khan5', 'khan6', 'khan7', 'win1', 'win2', 'win3', 'win4', 'win5', 'win6', 'fall1', 'fall2', 'fall3', 'queen1', 'queen2', 'witch1', 'witch2', 'olad1', 'olad2', 'arzhang1', 'arzhang2', 'white1', 'white2', 'white3', 'kavus1', 'khan1-intro', 'khan1-outro', 'khan2-intro', 'khan2-outro', 'khan3-intro', 'khan3-outro', 'khan4-intro', 'khan4-outro', 'khan5-intro', 'khan5-outro', 'khan6-intro', 'khan6-outro', 'khan7-intro', 'tale-1-1', 'tale-1-2', 'tale-1-3', 'tale-1-4', 'tale-1-5', 'tale-3-1', 'tale-3-2', 'tale-4-1', 'tale-4-2', 'tale-5-1', 'tale-5-2', 'tale-6-1', 'tale-6-2', 'tale-7-1', 'tale-7-2', 'tale-2-1', 'tale-2-2']);
 // the narrator's line as each labour begins, shown as a subtitle while he speaks
 const KHAN_LINES = {"khan1": "The first labour. Rostam lay down to sleep among the reeds, while Rakhsh grazed nearby… and in the thicket, a lion was watching.", "khan2": "The second labour: the burning desert. No water. No shade. Not a single bird in the sky… only the sand, and whatever waits beneath it.", "khan3": "The third labour. Night fell, and out of the dark came a dragon eighty cubits long: a beast that only Rakhsh could see.", "khan4": "The fourth labour. In a green garden a feast was laid, and a beautiful lady poured the wine. But in Mazandaran… beauty is rarely what it seems.", "khan5": "The fifth labour. Rostam rode into the lands of Olad: a warden who did not take kindly to strangers.", "khan6": "The sixth labour. At the gates of Mazandaran stood Arzhang, chief of the Divs, with an army of demons at his back.", "khan7": "The seventh labour. Beyond seven mountains, in a cave as dark as night… the White Div was waiting."};
 let sayId = 0, voiceEl = null;
