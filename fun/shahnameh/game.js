@@ -1839,7 +1839,7 @@ class Play extends Phaser.Scene {
   create() {
     // the scene object is reused from labour to labour: forget whatever the last one left behind
     for (const k of ['dark', 'lights', 'lamp', 'wall', 'wallR', 'stars', 'pose', 'swingFx', 'witch', 'unmasked', 'olad', 'rakhsh', 'dragonSeen', 'horde', 'hordeDone',
-      'gates', 'hordeBat', 'toldRock', 'toldFarr', 'toldOffer', 'atAltar', 'bossT', 'maceHit', 'toldIce', 'chargeWarn', 'toldCharge', 'shards', 'shardG', 'mark', 'markGlow', 'markOpen', 'bossHeart', 'bossHeartT', 'floorWarn', 'highWarn', 'regrow', 'drums', 'sky', 'flashA', 'intro', 'fgReeds', 'mound', 'swirl', 'qx', 'puddles', 'combo', 'comboT', 'heavy', 'heavyGo', 'chargeT', 'chargeFull', 'chargeGlow', 'dodgeT', 'dodgeCd', 'dodgeDir', 'whiteDown', 'ended', 'mounted', 'prayed', 'drank', 'toldImmune', 'toldDeflect', 'toldVenom', 'cage', 'kavus', 'stones', 'puzzle', 'springOpen', 'pool', 'victory', 'attackBuf', 'dodgeBuf', 'counterT', 'counterStrike', 'dodgeRewarded', 'trial', 'nearTrial', 'journey', 'siege', 'siegeDone', 'ally', 'phase2', 'streak', 'didDouble', 'rocks', 'rockT', 'poppies', 'drowsy', 'toldPoppy', 'oladAlly', 'rope', 'ropeG', 'lassoCd', 'toldBossLasso', 'asRakhsh', 'sleeper', 'snore', 'ringObj', 'grapple', 'toldBossHold']) delete this[k];
+      'gates', 'hordeBat', 'toldRock', 'toldFarr', 'toldOffer', 'atAltar', 'bossT', 'maceHit', 'toldIce', 'chargeWarn', 'toldCharge', 'shards', 'shardG', 'mark', 'markGlow', 'markOpen', 'bossHeart', 'bossHeartT', 'floorWarn', 'highWarn', 'regrow', 'drums', 'sky', 'flashA', 'intro', 'fgReeds', 'mound', 'swirl', 'qx', 'puddles', 'combo', 'comboT', 'heavy', 'heavyGo', 'chargeT', 'chargeFull', 'chargeGlow', 'dodgeT', 'dodgeCd', 'dodgeDir', 'whiteDown', 'ended', 'mounted', 'prayed', 'drank', 'toldImmune', 'toldDeflect', 'toldVenom', 'cage', 'kavus', 'stones', 'puzzle', 'springOpen', 'pool', 'victory', 'attackBuf', 'dodgeBuf', 'counterT', 'counterStrike', 'dodgeRewarded', 'trial', 'nearTrial', 'journey', 'siege', 'siegeDone', 'ally', 'phase2', 'streak', 'didDouble', 'rocks', 'rockT', 'poppies', 'drowsy', 'toldPoppy', 'oladAlly', 'rope', 'ropeG', 'lassoCd', 'toldBossLasso', 'asRakhsh', 'sleeper', 'snore', 'ringObj', 'grapple', 'toldBossHold', 'oladBind', 'sleepers', 'toldSleep']) delete this[k];
     refreshLassoBtn();
     // turn loaded strips into square frames; anything missing falls back to placeholder art
     for (const k of ['decor-' + cur]) if (this.textures.exists(k) && this.textures.get(k).frameTotal < 3) { const t = this.textures.get(k), h = t.getSourceImage().height; for (let i = 0; i < Math.round(t.getSourceImage().width / h); i++) t.add(i, 0, i * h, 0, h, h); }
@@ -1976,6 +1976,7 @@ class Play extends Phaser.Scene {
       this.tweens.add({ targets: glow, alpha: 0.2, yoyo: true, repeat: -1, duration: 1100, ease: 'Sine.easeInOut' }); if (this.dark) this.light(glow, 0.6);
     }
     if (!rush && LIVE) this.crownChampions();
+    if (cur === 7 && !rush && LIVE) this.lullCave();
     this.setupTrial();
     if (!window.ShahnamehJourney) throw new Error('The journey encounters could not load.');
     if (!rush) this.journey = window.ShahnamehJourney.create(this, cur, { hint, toast, banner, sfx, unearth, TS, W, H });
@@ -2202,6 +2203,7 @@ class Play extends Phaser.Scene {
   // feet and left reeling, a flier pulled out of the air; a provision out of reach is drawn in. A boss is too strong to
   // drag: the noose slips from it
   throwLasso() {
+    if (this.oladBind) { if (Math.abs(this.olad.x - this.player.x) < 200) this.bindOlad(this.oladBind.first); else toast('Come closer to Olad to throw the noose.'); return; }
     const p = this.player, dir = this.face, reach = 150, x0 = p.x + dir * 8, now = this.time.now;
     this.lassoCd = 75; sfx('swing'); this.pose = 'rostam-attack'; p.play('rostam-attack', true); this.time.delayedCall(260, () => { if (this.pose === 'rostam-attack') this.pose = null; });
     const zone = new Phaser.Geom.Rectangle(dir > 0 ? x0 : x0 - reach, p.body.top - 80, reach, p.body.height + 92), along = o => Math.abs(o.x - x0);
@@ -2229,7 +2231,7 @@ class Play extends Phaser.Scene {
       }
       if (target === item) { sfx('coin'); this.tweens.add({ targets: [item, item.glow].filter(Boolean), x: p.x, y: p.body.center.y, duration: 220, ease: 'Quad.easeIn', onComplete: () => this.eat(item) }); return; }
       // a foe: its attack is broken off, and it is dragged to Rostam's feet and left reeling
-      const f = target; f.attackId = (f.attackId || 0) + 1; f.smash = f.cast = f.sting = f.thrust = f.leap = false;
+      const f = target; this.wake(f); f.attackId = (f.attackId || 0) + 1; f.smash = f.cast = f.sting = f.thrust = f.leap = false;
       if (!f.body.allowGravity) { f.state = 'rise'; f.anims.timeScale = 1; if (!f.leader) f.clearTint(); }
       f.removeAllListeners('animationcomplete'); f.play(FOES[f.kind].tex, true);
       f.boundUntil = this.time.now + 1160; f.lassoUntil = this.time.now + 260; f.lassoX = p.x + dir * 30; f.lassoY = p.body.center.y - 6; f.staggerUntil = this.time.now + 260 + 900;
@@ -2252,6 +2254,7 @@ class Play extends Phaser.Scene {
     if (f.immune?.() && !force) { this.fx('dust', f.x, f.body.center.y, { depth: 10 }); sfx('clang'); if (!this.toldImmune) { this.toldImmune = true; toast(f.immuneMsg || 'Your blow passes through shadow.'); } return false; }
     if (f === this.boss && !force && this.time.now < (f.hitReadyAt || 0)) return false;
     if (f === this.boss) f.hitReadyAt = this.time.now + (gentle() ? 240 : 320);
+    if (f.asleep) { if (!force) n *= 2; this.wake(f); }   // a sleeper's blow
     if (!force && f.boundUntil > this.time.now) { n += 1; f.boundUntil = 0; this.fx('impact', f.x, f.body.center.y - 4, { depth: 10 }); }   // a bound foe takes the blow full
     f.hp -= n; if (!force) this.streakHit();
     if (f !== this.boss && f.hp > 0 && f.body.allowGravity && !force && (this.heavy || this.counterStrike)) {
@@ -2287,6 +2290,27 @@ class Play extends Phaser.Scene {
       f.once('destroy', () => f.aura?.destroy());
     });
   }
+  // Khan VII, on Olad's counsel: Rostam comes to the cave in the noon heat, when the Divs sleep. Past the cave's fire
+  // its guards lie dozing. Walk by and they stir only if he lingers; strike a sleeper and the blow lands double
+  lullCave() {
+    for (const [c, kind] of [[137, 'div'], [142, 'divwarrior']]) this.spawnFoe(kind, c * TS + TS / 2, 14 * TS);
+    this.sleepers = this.foes.getChildren().filter(f => f.body.allowGravity && f.x > 133 * TS && f.x < 146 * TS);
+    for (const f of this.sleepers) {
+      f.asleep = true; f.anims.pause(); f.setTint(0x9098c0); const harmless = f.harmless; f.harmless = () => f.asleep || !!harmless?.();
+    }
+    this.time.addEvent({ delay: 1400, loop: true, callback: () => { for (const f of this.sleepers) if (f.active && f.asleep) {
+      const z = this.add.text(f.x + 8, f.body.top - 4, 'z', { fontFamily: 'Georgia, serif', fontSize: '9px', color: '#d8e0ff', stroke: '#181125', strokeThickness: 2, resolution: 4 }).setDepth(5);
+      this.tweens.add({ targets: z, x: z.x + 8, y: z.y - 16, alpha: 0, duration: 1500, onComplete: () => z.destroy() });
+    } } });
+  }
+  doze(f, k, p) {
+    f.setVelocityX(0);
+    const near = Math.abs(p.x - f.x) < 44 && Math.abs(p.body.bottom - f.body.bottom) < 24;
+    f.stir = near ? (f.stir || 0) + k : Math.max(0, (f.stir || 0) - k * 0.5);
+    if (f.stir > 75) this.wake(f);
+    if (!this.toldSleep && Math.abs(p.x - f.x) < 140) { this.toldSleep = true; toast('Olad’s counsel: in the noon heat the Divs sleep. Slip past, or strike a sleeper for a double blow.'); }
+  }
+  wake(f) { if (!f.asleep) return; f.asleep = false; f.stir = 0; f.clearTint(); f.anims.resume(); f.cool = Math.max(f.cool || 0, 30); }
   // a slain foe flashes white, then bursts into its own pixels, which fly apart as embers and fade
   slay(f) {
     f.setTintFill(0xffffff); this.cam.shake(140, 0.007);
@@ -2901,7 +2925,8 @@ class Play extends Phaser.Scene {
     // foes
     for (const f of this.foes.getChildren()) {
       if (!f.body.enable) continue;
-      if (f.lassoUntil > time) this.reel(f);
+      if (f.asleep) this.doze(f, k, p);
+      else if (f.lassoUntil > time) this.reel(f);
       else if (f.staggerUntil > time) { if (f.body.blocked.down) f.setVelocityX(0); if (!f.body.allowGravity) f.setVelocity(0); }
       else { f.staggerUntil = 0; f.staggerFx?.destroy(); f.staggerFx = null; FOES[f.kind].tick(this, f, k, p); }
       f.staggerFx?.setPosition(f.x, f.body.top - 4); f.aura?.setPosition(f.x, f.body.center.y);
@@ -3345,7 +3370,16 @@ class Play extends Phaser.Scene {
     // Olad is not slain: he kneels, Rostam's lasso binds him, and he becomes the guide
     this.calmSky();
     const o = this.olad, p = this.player; o.state = 'down'; o.setVelocity(0); o.body.enable = false; o.play('olad-kneel'); this.hideMark();
-    $('boss').classList.add('hidden'); this.wall?.destroy(); this.wallR?.destroy(); this.frozen = true; p.setVelocityX(0); sfx('win');
+    $('boss').classList.add('hidden'); this.wall?.destroy(); this.wallR?.destroy(); p.setVelocityX(0); sfx('win');
+    const first = !hasLasso(); store.set('sh-lasso', '1'); refreshLassoBtn(); trackGame('boss_defeat', { level_name: String(cur), hearts_left: this.hp });
+    // Rostam throws the noose himself: the first throw of the lasso he will carry from here on
+    if (rush || this.mounted) { this.frozen = true; this.bindOlad(first); return; }
+    this.oladBind = { first, auto: this.time.delayedCall(9000, () => this.oladBind && this.bindOlad(first)) };
+    banner('کمند', "Rostam's Lasso"); hint(`Olad kneels. <b>Throw your lasso</b> with ${touch ? 'the lasso button' : keyHTML('lasso')} to bind him.`);
+  }
+  bindOlad(first) {
+    const o = this.olad, p = this.player; this.oladBind?.auto?.remove(); this.oladBind = null; this.frozen = true; p.setVelocityX(0); hint(null);
+    this.face = o.x > p.x ? 1 : -1; sfx('swing');
     const rope = this.add.graphics().setDepth(8); let t = 0;
     const draw = () => {
       t = Math.min(1, t + 0.05); rope.clear(); rope.lineStyle(2, 0xc8a060, 1);
@@ -3354,8 +3388,6 @@ class Play extends Phaser.Scene {
       if (t >= 1) rope.strokeEllipse(o.x, o.y - 4, 30, 14);
     };
     this.time.addEvent({ delay: 16, repeat: 40, callback: draw });
-    banner('کمند', "Rostam's Lasso");
-    const first = !hasLasso(); store.set('sh-lasso', '1'); refreshLassoBtn(); trackGame('boss_defeat', { level_name: String(cur), hearts_left: this.hp });
     if (first) this.time.delayedCall(3600, () => hint(`<b>Rostam's lasso is yours.</b> Press ${touch ? 'the lasso button' : keyHTML('lasso')} to throw it: it drags a foe to your feet, reeling, where your next blow lands harder; it pulls fliers from the sky and draws in provisions out of reach.`));
     this.time.delayedCall(1200, () => { toast('Olad yields: "Spare me, and I will lead you to Arzhang Div and to the White Div\'s cave."'); say('olad2'); });
     this.time.delayedCall(3400, () => { this.frozen = false; rope.clear().lineStyle(2, 0xc8a060, 1).strokeEllipse(o.x, o.y - 4, 30, 14); this.reward(o.x); });
