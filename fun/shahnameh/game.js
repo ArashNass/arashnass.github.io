@@ -2496,7 +2496,9 @@ class Play extends Phaser.Scene {
   become(kind) {
     const p = this.player, body = p.body, foot = body.bottom, tex = kind === 'rakhsh' ? 'rakhsh-gallop' : 'rostam-idle';
     this.mounted = this.asRakhsh = kind === 'rakhsh'; this.atk = 0; this.pose = null; this.dodgeT = 0; this.chargeT = 0; this.chargeFull = false; this.chargeGlow?.destroy(); this.chargeGlow = null;
-    p.setTexture(tex, 0); this.fit(p, kind); body.updateFromGameObject(); p.y += foot - body.bottom; body.updateFromGameObject();
+    p.setTexture(tex, 0); this.fit(p, kind);
+    if (kind === 'rakhsh') { const sw = body.sourceWidth, ox = body.offset.x; body.setSize(sw * 0.62, body.sourceHeight, false); body.setOffset(ox + sw * 0.19, body.offset.y); }   // a lean body, so the lion's charge can be leapt
+    body.updateFromGameObject(); p.y += foot - body.bottom; body.updateFromGameObject();
     body.prev.copy(body.position); body.prevFrame.copy(body.position); p.setVelocity(0); p.play(tex);
   }
   rakhshGuards() {
