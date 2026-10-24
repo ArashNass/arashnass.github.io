@@ -1408,6 +1408,8 @@ function audio() {
     A.master = c.createGain(); A.master.gain.value = A.muted || A.background ? 0 : 0.8; A.master.connect(comp);
     A.verb = c.createConvolver(); A.verb.buffer = hall(c, 2.8); const wet = c.createGain(); wet.gain.value = 0.42; A.verb.connect(wet).connect(A.master);
     A.music = c.createGain(); A.music.gain.value = 0.7; A.music.connect(A.master);
+    A.bus = c.createGain(); A.bus.connect(A.music);                // the tracks, which duck beneath a sting
+    loadStings();
     A.fx = c.createGain(); A.fx.gain.value = 0.85; A.fx.connect(A.master); setTimeout(applySettings);
     setInterval(pickTrack, 300);
     loadSamples();
@@ -1471,31 +1473,132 @@ const KEY = { mode: 'shur', root: 293.66 };
 // White Div's cave, and an orchestral action theme for every boss ("Battle Boss Fight Game Music" by alex-morgan,
 // Pixabay), cut to begin at full tilt without its slow opening. The volumes even out the tracks' own loudness.
 const TRACK_VOL = { menu: 1, road: 0.62, dark: 0.5, boss: 0.25 }, DARK = new Set([3, 7]);
+// the score: every labour has music of its own, in its own dastgah (see MUSIC.md), recorded as three stems of one loop
+// that play in lockstep and are mixed live. The bed (drone and pads) always sounds; the melody (santur, ney, kamancheh)
+// carries the road and steps back in a fight; the drums (daf, tombak) come in while foes are close. Each boss has a theme
+// of its own as well. stems and theme say the files are in assets/music (k1-bed, k1-melody, k1-drums, k1-boss .m4a);
+// until then a labour keeps the shared tracks above, so the new score can arrive one labour at a time. loop: [start,
+// end] in seconds, when the stems' own length is not the loop (an encoder's padding, a lead-in to skip).
+const SCORE = {
+  1: { dastgah: 'Shur', stems: false, theme: false, vol: 0.6, boss: 0.3 },
+  2: { dastgah: 'Dashti', stems: false, theme: false, vol: 0.6, boss: 0.3 },
+  3: { dastgah: 'Segah', stems: false, theme: false, vol: 0.55, boss: 0.3 },
+  4: { dastgah: 'Bayat-e Esfahan', stems: false, theme: false, vol: 0.6, boss: 0.3 },
+  5: { dastgah: 'Chahargah', stems: false, theme: false, vol: 0.6, boss: 0.3 },
+  6: { dastgah: 'Chahargah, martial', stems: false, theme: false, vol: 0.6, boss: 0.3 },
+  7: { dastgah: 'Homayoun', stems: false, theme: false, vol: 0.55, boss: 0.3 }
+};
+const STEMS = ['bed', 'melody', 'drums'], MIX = { road: { bed: 1, melody: 1, drums: 0 }, fight: { bed: 1, melody: 0.45, drums: 1 } };
+const isScore = name => /^k\d$/.test(name || '');
+const trackVol = name => TRACK_VOL[name] ?? SCORE[name[1]]?.boss ?? 0.3;
 function track(name) {
   let t = A.tracks[name]; if (t) return t;
   const el = new Audio(`assets/music/${name}.m4a?v=${V}`); el.loop = true; el.preload = 'auto';
   // through a gain node, so it can fade (iOS ignores an audio element's own volume)
-  const g = A.ctx.createGain(); g.gain.value = 0; A.ctx.createMediaElementSource(el).connect(g).connect(A.music);
-  return A.tracks[name] = { el, g };
+  const g = A.ctx.createGain(); g.gain.value = 0; A.ctx.createMediaElementSource(el).connect(g).connect(A.bus);
+  t = A.tracks[name] = { el, g };
+  el.addEventListener('error', () => { t.bad = true; if (A.cur === name) { A.cur = null; pickTrack(); } });   // a missing theme gives way to the shared one
+  return t;
+}
+// fetch and decode one labour's stems, once; only one labour's stems are kept in memory
+function loadScore(n) {
+  const S = SCORE[n]; if (!S?.stems || S.state || !A.ctx) return;
+  for (const [k, o] of Object.entries(SCORE)) if (o.state === 'ready' && +k !== n && A.layers?.n !== +k) { o.bufs = null; o.state = null; }
+  S.state = 'loading';
+  Promise.all(STEMS.map(k => fetch(`assets/music/k${n}-${k}.m4a?v=${V}`).then(r => { if (!r.ok) throw new Error(r.status); return r.arrayBuffer(); }).then(b => A.ctx.decodeAudioData(b))))
+    .then(bufs => { S.bufs = bufs; S.state = 'ready'; pickTrack(); }, () => { S.state = 'missing'; });
+}
+// ready the labour's music while its story plays: the stems, and the boss theme (or the shared one)
+function prepareScore(n) {
+  if (!A.ctx || A.muted) return;
+  loadScore(n); track(SCORE[n]?.theme ? `k${n}-boss` : 'boss');
+}
+// the stems start together and loop on the same sample, picking up where the labour's music last left off
+function startScore(n) {
+  const S = SCORE[n], c = A.ctx, t0 = c.currentTime + 0.05, [a, b] = S.loop || [0, Math.min(...S.bufs.map(x => x.duration))], at = (S.at || 0) % (b - a);
+  const out = c.createGain(); out.gain.value = 0; out.connect(A.bus);
+  const gains = {}, srcs = STEMS.map((k, i) => {
+    const s = c.createBufferSource(), g = gains[k] = c.createGain(); s.buffer = S.bufs[i]; s.loop = true; s.loopStart = a; s.loopEnd = b;
+    g.gain.value = MIX.road[k]; s.connect(g).connect(out); s.start(t0, a + at); return s;
+  });
+  out.gain.setTargetAtTime(S.vol, t0, 0.6);
+  return A.layers = { n, srcs, gains, out, t0, at, len: b - a, fight: false, fightUntil: 0 };
+}
+function fadeOut(name, hard = false) {
+  const now = A.ctx.currentTime;
+  if (isScore(name)) {
+    const L = A.layers; if (!L) return; A.layers = null;
+    SCORE[L.n].at = L.at + Math.max(0, now - L.t0);
+    L.out.gain.cancelScheduledValues(now); L.out.gain.setTargetAtTime(0, now, 0.4); L.srcs.forEach(s => s.stop(hard ? 0 : now + 2.2));
+    return;
+  }
+  const o = A.tracks[name]; if (!o) return;
+  o.g.gain.cancelScheduledValues(now); o.g.gain.setTargetAtTime(0, now, 0.4); clearTimeout(o.stop);
+  if (hard) o.el.pause(); else o.stop = setTimeout(() => o.el.pause(), 2200);
 }
 function setTrack(name) {
   if (A.cur === name) return;
   const now = A.ctx.currentTime;
-  if (A.cur) { const o = A.tracks[A.cur]; o.g.gain.cancelScheduledValues(now); o.g.gain.setTargetAtTime(0, now, 0.4); clearTimeout(o.stop); o.stop = setTimeout(() => o.el.pause(), 2200); }
+  if (A.cur) fadeOut(A.cur);
   A.cur = name; if (!name) return;
+  if (isScore(name)) { startScore(+name[1]); return; }
   const t = track(name); clearTimeout(t.stop);
-  if (name === 'boss' && t.el.paused && t.el.currentTime > 0) t.el.currentTime = 0;   // every boss fight starts the battle theme afresh
-  t.g.gain.cancelScheduledValues(now); t.g.gain.setTargetAtTime(TRACK_VOL[name], now, 0.6); t.el.play().catch(() => {});
+  if (/boss$/.test(name) && t.el.paused && t.el.currentTime > 0) t.el.currentTime = 0;   // every boss fight starts its theme afresh
+  t.g.gain.cancelScheduledValues(now); t.g.gain.setTargetAtTime(trackVol(name), now, 0.6); t.el.play().catch(() => {});
+}
+// stop every track at once, for a hidden tab or a failed load
+function silenceMusic() {
+  for (const t of Object.values(A.tracks)) { clearTimeout(t.stop); t.el.pause(); }
+  if (A.layers) fadeOut(A.cur, true);
+  A.cur = null;
+}
+// the drums come in while a foe that can reach Rostam is close, and stay a few seconds after the last one falls, so a
+// lull does not flicker
+function mixScore(sc) {
+  const L = A.layers, p = sc?.player; if (!L || !p) return;
+  const now = A.ctx.currentTime;
+  if (sc.horde || sc.foes?.getChildren().some(f => f.active && f.body?.enable && Math.abs(f.x - p.x) < 160 && Math.abs(f.y - p.y) < 140 && canHunt(sc, f, p))) L.fightUntil = now + 4;
+  const fight = now < L.fightUntil; if (fight === L.fight) return; L.fight = fight;
+  for (const k of STEMS) { const g = L.gains[k].gain; g.cancelScheduledValues(now); g.setTargetAtTime(MIX[fight ? 'fight' : 'road'][k], now, fight ? 0.35 : 1.6); }
 }
 // which track fits this moment
 function pickTrack() {
   if (!A.ctx) return;
   if (A.muted || A.background || A.failed) return setTrack(null);
   if (!A.want) return setTrack('menu');
-  const sc = game?.scene.getScene('play'), boss = sc && sc.bossOn && !sc.done && sc.boss?.active && sc.boss.hp > 0;
-  setTrack(boss ? 'boss' : DARK.has(cur) ? 'dark' : 'road');
+  const sc = game?.scene.getScene('play'), boss = sc && sc.bossOn && !sc.done && sc.boss?.active && sc.boss.hp > 0, S = SCORE[cur];
+  if (boss) { const own = `k${cur}-boss`; return setTrack(S?.theme && !track(own).bad ? own : 'boss'); }
+  if (S?.state === 'ready') { setTrack('k' + cur); return mixScore(sc); }
+  loadScore(cur);
+  setTrack(DARK.has(cur) ? 'dark' : 'road');
 }
-const music = on => { A.want = on; if (audio()) { if (on && !A.muted) track('boss'); pickTrack(); } };   // the battle theme loads early, ready for the boss
+const music = on => { A.want = on; if (audio()) { if (on) prepareScore(cur); pickTrack(); } };   // the boss theme loads early, ready for the fight
+// short cues over the music, which ducks beneath them: a boss's entrance, its fall, Rostam's fall, a Simurgh feather,
+// a sacred fire lit. rec says a recording is in assets/music (sting-boss.m4a and so on); until then each plays the
+// effect it stands in for, or a phrase on the santur, tar and daf in the game's own mode. len: how long the duck lasts.
+const STINGS = {
+  boss: { rec: false, vol: 0.7, len: 2.6 }, victory: { rec: false, vol: 0.7, len: 3 }, fall: { rec: false, vol: 0.6, len: 2.8 },
+  feather: { rec: false, vol: 0.6, len: 1.6 }, fire: { rec: false, vol: 0.5, len: 1.2 }
+};
+const STING_SYNTH = {
+  // a daf roll gathering to a dum, and a low tar note bent downwards under it
+  boss: t => { [0, 0.16, 0.3, 0.42, 0.52, 0.6, 0.67, 0.73].forEach((d, i) => daf(t + d, i < 7 ? 'd' : 'D', 0.5 + i * 0.12)); daf(t + 0.95, 'D', 1.6); pluck(pitch(KEY, 0) / 4, t + 0.95, { kind: 'tar', vol: 0.5, bend: 0.94 }); pluck(pitch(KEY, 4) / 4, t + 0.95, { kind: 'tar', vol: 0.3 }); },
+  // a falling line in shur, slowing to rest a step above the tonic
+  fall: t => { [4, 3, 2, 1].forEach((d, i) => pluck(pitch(KEY, d) / 2, t + i * 0.32 + i * i * 0.04, { kind: 'tar', vol: 0.32 })); daf(t + 1.5, 'D', 0.8); pluck(pitch(KEY, 1) / 2, t + 1.5, { kind: 'tar', vol: 0.36, bend: 0.97 }); }
+};
+function loadStings() {
+  A.stings = {};
+  for (const [k, s] of Object.entries(STINGS)) if (s.rec)
+    fetch(`assets/music/sting-${k}.m4a?v=${V}`).then(r => r.arrayBuffer()).then(b => A.ctx.decodeAudioData(b)).then(buf => { A.stings[k] = buf; }).catch(() => {});
+}
+function sting(k, fallback) {
+  if (!A.ctx || A.muted || A.background) return;
+  const S = STINGS[k], buf = A.stings?.[k], c = A.ctx, now = c.currentTime;
+  if (buf) { const s = c.createBufferSource(), g = c.createGain(); s.buffer = buf; g.gain.value = S.vol; s.connect(g).connect(A.music); s.start(); }
+  else if (fallback) fallback(); else STING_SYNTH[k]?.(now);
+  const len = buf ? buf.duration : S.len;
+  A.bus.gain.cancelScheduledValues(now); A.bus.gain.setTargetAtTime(0.3, now, 0.05); A.bus.gain.setTargetAtTime(1, now + len * 0.75, 0.6);
+}
 // recorded effects (Pixabay, free to use, no credit needed), trimmed and levelled; [file, volume]
 const SAMPLE = { swing: ['swing', 0.32], hit: ['hit', 0.4], hurt: ['hurt', 0.45], jump: ['jump', 0.22], coin: ['pickup', 0.32],
   fire: ['fire', 0.4], roar: ['roar', 0.45], neigh: ['neigh', 0.45], win: ['win', 0.5], drum: ['drum', 0.3],
@@ -1850,7 +1953,7 @@ class Play extends Phaser.Scene {
     const g = this.add.image(a.x, a.y - 22, 'glow').setDepth(1).setScale(2).setBlendMode(Phaser.BlendModes.ADD);
     this.tweens.add({ targets: g, alpha: 0.6, yoyo: true, repeat: -1, duration: 700, ease: 'Sine.easeInOut' });
     if (quiet) return;
-    sfx('fire'); this.fx('fire', a.x, a.y - 20, { depth: 3 }); this.fx('pickup', a.x, a.y - 18);
+    sting('fire', () => sfx('fire')); this.fx('fire', a.x, a.y - 20, { depth: 3 }); this.fx('pickup', a.x, a.y - 18);
     if (this.lv.kindled?.(this, a)) return;
     toast('The sacred fire is lit. If Rostam falls, he will rise again here.');
   }
@@ -1972,7 +2075,7 @@ class Play extends Phaser.Scene {
     this.hp--; this.renderHearts(); this.inv = thirst ? 30 : gentle() ? 130 : legend() ? 70 : 90; sfx('hurt'); this.cam.shake(160, 0.008); this.cam.flash(120, 180, 40, 60);
     if (!thirst) this.player.setVelocity((this.player.x < fromX ? -1 : 1) * 160, -220);
     if (this.hp <= 0) {
-      this.done = true; playing = false; music(false); document.body.classList.remove('playing'); hint(null);
+      this.done = true; playing = false; music(false); sting('fall'); document.body.classList.remove('playing'); hint(null);
       if (this.anims.exists('rostam-fall') && !this.mounted) { this.pose = 'rostam-fall'; this.player.anims.stop(); this.player.play('rostam-fall'); this.tweens.addCounter({ from: 255, to: 150, duration: 900, onUpdate: tw => { const c = Math.round(tw.getValue()); this.player.setTint((c << 16) | (c << 8) | c); } }); } else this.player.setTint(0x777777);
       const t = this.lv.tips; $('deadTip').textContent = controlText((!this.bossOn && this.journey?.getTip()) || t[Math.floor(Math.random() * t.length)]);
       const cp = resumeAt?.n === cur;
@@ -2089,7 +2192,7 @@ class Play extends Phaser.Scene {
       }
     });
     this.time.delayedCall(fall, () => {
-      if (!B.active) return; this.calmSky(); sfx('win'); sfx('drum');
+      if (!B.active) return; this.calmSky(); sting('victory', () => { sfx('win'); sfx('drum'); });
       const floor = (this.groundAt(B.x) ?? 14) * TS;
       this.cam.shake(600, 0.024); this.cam.flash(380, 255, 236, 190);
       // the crash: a ring of dust and a shockwave of light along the ground
@@ -2425,7 +2528,7 @@ class Play extends Phaser.Scene {
   // the feather spirals up around Rostam in a ring of light, and the labour is done
   takeFeather(f) {
     if (this.done || f.taken) return; f.taken = true; f.body.enable = false; this.tweens.killTweensOf(f);
-    const p = this.player; this.frozen = true; p.setVelocityX(0); sfx('fire');
+    const p = this.player; this.frozen = true; p.setVelocityX(0); sting('feather', () => sfx('fire'));
     if (this.anims.exists('rostam-victory') && !this.mounted) { this.pose = 'rostam-victory'; p.anims.stop(); p.play('rostam-victory'); }
     f.spark?.stop(); this.tweens.killTweensOf([f.ring, f.col].filter(Boolean)); this.tweens.add({ targets: [f.glow, f.ring, f.col].filter(Boolean), alpha: 0, duration: 400 });
     this.tweens.addCounter({ from: 0, to: 1, duration: 900, ease: 'Sine.easeIn', onUpdate: tw => { const v = tw.getValue(); f.x = p.x + Math.cos(v * Math.PI * 4) * 26 * (1 - v); f.y = p.body.center.y - v * 30 + Math.sin(v * Math.PI * 4) * 8; f.angle = v * 540; f.setScale(0.62 * (1 - v * 0.6)); },
@@ -2769,7 +2872,7 @@ class Play extends Phaser.Scene {
   bossIntro(B) {
     const lv = this.lv;
     if (!lv.epithet || this.resuming) { banner(); return; }
-    this.intro = true; this.frozen = true; this.player.setVelocityX(0); B.setVelocityX?.(0);
+    sting('boss'); this.intro = true; this.frozen = true; this.player.setVelocityX(0); B.setVelocityX?.(0);
     $('cine').classList.add('on'); document.body.classList.add('cine');
     const shade = this.add.renderTexture(0, 0, W, H).setOrigin(0).setScrollFactor(0).setDepth(11.5).setAlpha(0);
     const spot = this.make.image({ key: 'lightmask', add: false }).setScale(2.4);
@@ -3746,6 +3849,7 @@ class Play extends Phaser.Scene {
 
 let resumeAt = null;           // the last fire lit in this labour: { n, i, well, coins, kills, t }
 function begin(n = cur, rise = false, keepRush = false, afterStory = false) {
+  if (audio()) prepareScore(n);                                    // the labour's music loads while its story plays
   // A fresh journey gets its illustrated opening; a checkpoint retry and the boss rush go straight back to play.
   if (!rise && !keepRush && !afterStory && CINE['intro' + n]) {
     if (!keepRush) rush = null;
@@ -4494,8 +4598,7 @@ function syncBackgroundAudio() {
     if (playing) setPaused(true);
     if (cine?.auto) { cine.autoRemaining = Math.max(0, cine.autoDue - Date.now()); clearTimeout(cine.auto); cine.auto = 0; }
     if (A.master) A.master.gain.value = 0;
-    for (const t of Object.values(A.tracks)) { clearTimeout(t.stop); t.el.pause(); }
-    A.cur = null;
+    if (A.ctx) silenceMusic();
     if (A.ctx?.state === 'running') A.ctx.suspend().catch(() => {});
   } else {
     if (A.master) A.master.gain.value = A.muted ? 0 : 0.8;
@@ -4509,8 +4612,8 @@ document.addEventListener('visibilitychange', syncBackgroundAudio);
 document.addEventListener('game-load-error', () => {
   clearInput(); playing = false; A.failed = true; game?.scene.pause('play');
   if (A.master) A.master.gain.value = 0;
-  for (const t of Object.values(A.tracks)) { clearTimeout(t.stop); t.el.pause(); }
-  A.cur = null; if (A.ctx?.state === 'running') A.ctx.suspend().catch(() => {});
+  if (A.ctx) silenceMusic(); else A.cur = null;
+  if (A.ctx?.state === 'running') A.ctx.suspend().catch(() => {});
 });
 game = new Phaser.Game({
   type: Phaser.AUTO, parent: 'game', width: W * ZOOM, height: H * ZOOM, pixelArt: true, backgroundColor: '#06060c',
@@ -4600,5 +4703,5 @@ if (location.hash === '#selftest') (async () => {
     Object.entries(saved).forEach(([k, v]) => localStorage.setItem(k, v));
   }
 })();
-if (location.hash === '#debug') window.__sh = { game, scene: () => game.scene.getScene('play'), keys, pressed, setPaused, openStory, begin, openMap, LEVELS, FOES, snd: { A, audio, sfx, pickTrack }, cinema, SET, VOICED, rushTime: () => rush ? rushElapsed() : null };
+if (location.hash === '#debug') window.__sh = { game, scene: () => game.scene.getScene('play'), keys, pressed, setPaused, openStory, begin, openMap, LEVELS, FOES, snd: { A, audio, sfx, pickTrack, SCORE, STINGS, sting, loadScore }, cinema, SET, VOICED, rushTime: () => rush ? rushElapsed() : null };
 })();
