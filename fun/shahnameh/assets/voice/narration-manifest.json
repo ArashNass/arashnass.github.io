@@ -15,6 +15,13 @@
       "sha256": "61299c8367cff3aa70b1973880401af51c9c7c5cc1c8e6c8bac8fe426b5fafb3"
     },
     {
+      "id": "khan1-wake",
+      "kind": "panel",
+      "text": "The roar of the fight broke Rostam’s sleep. He rose, took up his ox-head mace, and stood beside Rakhsh.",
+      "duration": 8.124,
+      "sha256": "84dd0abf4ce7f3923d78a005dca93f66b5cfc90dd8d31f3902981fb9a8873137"
+    },
+    {
       "id": "khan1-outro",
       "kind": "panel",
       "text": "The lion of the reeds lay defeated. Rostam rested a hand on faithful Rakhsh, his companion through the night. Together they turned toward the desert, where a fiercer thirst awaited.",
