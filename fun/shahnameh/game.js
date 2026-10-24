@@ -83,6 +83,7 @@ const LABOURS = 7;
 let cur = Math.min(LABOURS, Math.max(1, +(store.get('sh-cur') || 1)));
 const unlocked = () => Math.min(LABOURS, Math.max(1, +(store.get('sh-unlocked') || 1)));
 // Rostam's lasso is won in the fifth labour, when Olad is bound; from then on it goes with him into every labour
+const LIVE = !location.port.startsWith('877') || location.search.includes('live');   // the local test servers keep the original encounters
 const hasLasso = () => store.get('sh-lasso') === '1' || unlocked() >= 6;
 const refreshLassoBtn = () => document.querySelector('.tb.lasso')?.classList.toggle('hidden', !hasLasso());
 const ROMAN = ['', 'I', 'II', 'III', 'IV', 'V', 'VI', 'VII'];
@@ -748,6 +749,12 @@ const STANDS = {
     start: () => `The pack closes on the fire! When a jackal <b>drops its head</b>, ${touch ? 'dodge' : keyHTML('dodge') + ' dodge'} or jump the lunge, then strike while it pants.`,
     wave: (n, N) => n === N ? 'The pack leader comes for the fire!' : `The pack comes: ${n} of ${N}`, end: 'The pack scatters. Roast lamb lies by the fire.',
     after: s => s.time.delayedCall(1500, () => { if (s.done) return; sfx('roar'); s.cam.shake(700, 0.006); toast('Far off in the reeds, the lion answers.'); }) },
+  2: { at: 57.5, L: 53, R: 65, waves: [['s', 'v'], ['s', 's', 'v'], ['v', 'S', 's']], foe: { s: 'scorpion', v: 'vulture' }, lead: 0xffb060, fa: 'چاهِ بیابان', title: 'The well is guarded', held: 'The well is yours',
+    start: () => 'The desert’s creatures come to the water! <b>Bait a sting, step back, then strike</b>; watch the sky for diving vultures.',
+    wave: (n, N) => n === N ? 'The great scorpion of the well comes!' : `They come for the water: ${n} of ${N}`, end: 'The well is yours. Roast lamb lies by the water.' },
+  3: { at: 42.5, L: 32, R: 45, waves: [['j', 'b'], ['b', 'j', 'b'], ['j', 'J', 'b']], foe: { j: 'jackal', b: 'bat' }, lead: 0xc8a0ff, fa: 'شبِ اژدها', title: 'The night closes in', held: 'The night draws back',
+    start: () => 'Things of the night come for the firelight. <b>Strike from the saddle</b> as the jackals lunge and the bats swoop.',
+    wave: (n, N) => n === N ? 'A great black jackal leads the last of them!' : `The night stirs: ${n} of ${N}`, end: 'The night draws back. Roast lamb lies by the fire. Rakhsh tosses his head: something vast is out there.' },
   4: { at: 92.5, L: 91, R: 110, waves: [['n', 'b'], ['n', 'b', 'n'], ['b', 'N', 'n']], foe: { n: 'serpent', b: 'bat' }, lead: 0xb0ff80, flame: 0x9aff60, fa: 'باغِ جادو', title: 'The garden wakes', held: 'The garden is still',
     start: () => 'The fire wakes the garden: <b>its serpents and bats come for the light</b>. Strike a serpent as it rears; swing as a bat swoops low.',
     wave: (n, N) => n === N ? 'The witch’s own serpent comes for the fire!' : `The garden stirs: ${n} of ${N}`, end: 'The garden falls quiet. Roast lamb lies by the fire.' },
@@ -771,6 +778,7 @@ function fireStand(s, S) {
       s.tweens.add({ targets: f, alpha: 1 - i * 0.08, delay: i * 60, duration: 220 }); return f;
     });
     const glow = s.add.image(x, floor - 40, 'glow').setScale(1.6, 2.6).setTint(S.flame ?? 0xff8a3a).setBlendMode(Phaser.BlendModes.ADD).setDepth(6).setAlpha(0.7);
+    if (s.dark) s.light(glow, 1.5, 0.08);
     s.fx('dust', x, floor, { depth: 8 }); return { flames, glow };
   };
   // the foes already in the clearing are drawn into the fight, and hunt Rostam even beside the fire
@@ -1950,6 +1958,7 @@ class Play extends Phaser.Scene {
     this.physics.add.overlap(this.player, this.shots, (pl, sh) => { if (!sh.active || sh.back) return; this.hurt(sh.x); this.fx('hit', sh.x, sh.y, { depth: 10 }); sh.destroy(); });
     lv.create?.(this);
     setupEncounters(this);
+    if (!rush && LIVE) this.crownChampions();
     this.setupTrial();
     if (!window.ShahnamehJourney) throw new Error('The journey encounters could not load.');
     if (!rush) this.journey = window.ShahnamehJourney.create(this, cur, { hint, toast, banner, sfx, unearth, TS, W, H });
@@ -2023,7 +2032,7 @@ class Play extends Phaser.Scene {
   // light a fire altar (or drink at a well): the checkpoint
   kindle(a, quiet = false) {
     a.lit = true; this.respawn = { x: a.x, y: a.y };
-    if (a.onLight) { if (!quiet) a.onLight(); return; }
+    if (a.onLight) { if (!quiet) { a.onLight(); const stand = standAt(this, a); if (stand) fireStand(this, stand); } return; }
     const g = this.add.image(a.x, a.y - 22, 'glow').setDepth(1).setScale(2).setBlendMode(Phaser.BlendModes.ADD);
     this.tweens.add({ targets: g, alpha: 0.6, yoyo: true, repeat: -1, duration: 700, ease: 'Sine.easeInOut' });
     if (quiet) return;
@@ -2237,10 +2246,21 @@ class Play extends Phaser.Scene {
     if (f.hp <= 0) {
       if (f === this.boss) { f.onDown(); return true; }
       this.kills++; f.staggerFx?.destroy(); f.staggerFx = null; f.body.enable = false; this.slay(f); this.gainFarr(4);
+      if (f.champion) { const r = this.groundAt(f.x); if (r != null) this.pickup(f.x, r * TS - 8, 'food', 0, 'lamb'); this.gather(3); this.gainFarr(12); this.combatWord('Champion felled: +3 provisions'); }
     }
     return true;
   }
   // a tiny freeze on impact makes blows feel heavy
+  // a few champions in every labour: two blows harder, marked only by a golden glow, and worth a feast when they fall
+  crownChampions() {
+    const ground = this.foes.getChildren().filter(f => f.body.allowGravity).sort((a, b) => a.x - b.x);
+    ground.filter((f, i) => i >= 2 && i % 4 === 2).slice(0, 2).forEach(f => {
+      f.champion = true; f.hp += 2;
+      f.aura = this.add.image(f.x, f.y, 'glow').setTint(0xffd27a).setBlendMode(Phaser.BlendModes.ADD).setAlpha(0.55).setScale(0.8).setDepth(f.depth - 0.1);
+      this.tweens.add({ targets: f.aura, alpha: 0.3, yoyo: true, repeat: -1, duration: 900, ease: 'Sine.easeInOut' });
+      f.once('destroy', () => f.aura?.destroy());
+    });
+  }
   // a slain foe flashes white, then bursts into its own pixels, which fly apart as embers and fade
   slay(f) {
     f.setTintFill(0xffffff); this.cam.shake(140, 0.007);
@@ -2359,7 +2379,7 @@ class Play extends Phaser.Scene {
     $('boss').classList.remove('hidden'); this.bossBar(); this.bossIntro(l);
     // as Ferdowsi tells it: Rostam sleeps in the reeds and Rakhsh fights the lion alone. The player is Rakhsh until the
     // lion is half beaten; then Rostam wakes and Rakhsh fights at his side. (The local test servers keep the old opening.)
-    if (!rush && (window.__prologue ?? !location.port.startsWith('877'))) return this.rakhshGuards();
+    if (!rush && LIVE) return this.rakhshGuards();
     hint('<b>Roar:</b> it will charge, leap it so it hits the rocks. <b>Gold crouch:</b> a pounce. <b>Orange paw:</b> a swipe. Strike while the stars circle its head.');
   }
   // change who the player is, keeping his feet where they were: Rakhsh alone, or Rostam on foot
@@ -2852,7 +2872,7 @@ class Play extends Phaser.Scene {
       if (f.lassoUntil > time) this.reel(f);
       else if (f.staggerUntil > time) { if (f.body.blocked.down) f.setVelocityX(0); if (!f.body.allowGravity) f.setVelocity(0); }
       else { f.staggerUntil = 0; f.staggerFx?.destroy(); f.staggerFx = null; FOES[f.kind].tick(this, f, k, p); }
-      f.staggerFx?.setPosition(f.x, f.body.top - 4);
+      f.staggerFx?.setPosition(f.x, f.body.top - 4); f.aura?.setPosition(f.x, f.body.center.y);
       yieldFoe(this, f, k);
       containFoe(f, k);
       if (f.body.allowGravity && f.body.blocked.down && !f.smash && !f.cast && !f.sting && !f.thrust) {
