@@ -2786,7 +2786,7 @@ class Play extends Phaser.Scene {
       if (!d || Math.sign(home - r.x) !== d) { r.x = home; r.state = 'post'; r.setFlipX(false); this.allyRest(r); r.next = now + (this.rakhshFed ? 4200 : 6200); }
     }
   }
-  // standing, Rakhsh is never a frozen stride: he breathes, and now and then stamps a hoof and tosses his head
+  // At rest, Rakhsh uses his planted idle loop; galloping and rearing keep their existing actions.
   allyRest(r) { this.allyWake(r); r.play('rakhsh-idle'); }
   allyWake(r) { r.breath?.remove(); r.breath = null; r.stamp?.remove(); r.stamp = null; r.anims.timeScale = 1; r.setScale(r.scaleX); }
   lionOpening(l, state, frames) {

@@ -20,7 +20,7 @@ No PixelLab credits were purchased or used for this final set. Narration was gen
 
 ## Validation
 
-- PNG geometry/transparency checked for all nineteen files; matching left/right edge pixels checked on all four parallax layers.
-- Nineteen focused browser checks passed: frame geometry, loop modes, painted texture loading, six original projectile footprints, and the blue guard's sleep/harmless/wake behaviour.
-- All seven bosses completed in the core self-test, with no script errors and all 132 tested sound/picture files loading. One Khan IV serpent attack probe fails identically on the unchanged baseline; this art change does not resolve that pre-existing behaviour/test issue.
+- PNG geometry/transparency checked for all twenty-two art files; matching left/right edge pixels checked on all four parallax layers.
+- Thirty-two focused browser checks passed: all six new strip geometries, loop modes, painted texture loading, six original projectile footprints, both guards' sleep/harmless/wake behaviour, lasso cooldown/damage/hitbox preservation, horse rest/gallop transitions, narration registration and both recordings decoding at 44.1 kHz without playback.
+- All seven bosses completed in the core self-test, with no script errors and all 134 tested sound/picture files loading. One Khan IV serpent attack probe fails identically on the unchanged baseline; this art change does not resolve that pre-existing behaviour/test issue.
 - Audio remained muted. No claim of real-device or human difficulty validation.
