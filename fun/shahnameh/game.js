@@ -744,6 +744,16 @@ function flyer(tex, { range, dive, rest, offY, speed = 0.012 }) {
 // and three small waves come at Rostam, the last with a leader, larger and harder to kill (a capital letter). Khan I's
 // pack in the reeds came first; the garden's serpents, Olad's ambush and the waking cave follow its pattern.
 // at: the fire's column; L, R: the clearing's edges (tile columns); foe: the wave letters
+// lasso rings: a golden ring hung over a sky ledge in every labour, too high for a jump. With Rostam's lasso he pulls
+// himself up to it, and provisions wait on the ledge; before the lasso is won the ring is a promise for a second journey.
+// [ring column, ledge row, ledge's first and last columns]. None in Khan III: Rostam rides all night, and throws no lasso
+// from the saddle
+const RINGS = { 1: [32, 3, 30, 34], 2: [73, 3, 71, 75], 4: [28, 3, 26, 30], 5: [72, 3, 70, 74], 6: [33, 3, 31, 35], 7: [93, 3, 91, 95] };
+function hangRing(map) {
+  const R = RINGS[cur]; if (!R) return; const [, r, a, b] = R;
+  for (let k = a; k <= b; k++) if (map[r][k] === '.') map[r][k] = '=';
+  for (const k of [a + 1, b - 1]) if (map[r - 1][k] === '.') map[r - 1][k] = 'c';
+}
 const STANDS = {
   1: { at: 52.5, L: 40, R: 60, waves: [['j', 'j'], ['j', 'd', 'j'], ['d', 'J', 'j']], foe: { j: 'jackal', d: 'div' }, lead: 0xd9a46a, fa: 'آتشِ نیستان', title: 'Hold the fire', held: 'The fire holds',
     start: () => `The pack closes on the fire! When a jackal <b>drops its head</b>, ${touch ? 'dodge' : keyHTML('dodge') + ' dodge'} or jump the lunge, then strike while it pants.`,
@@ -1829,7 +1839,7 @@ class Play extends Phaser.Scene {
   create() {
     // the scene object is reused from labour to labour: forget whatever the last one left behind
     for (const k of ['dark', 'lights', 'lamp', 'wall', 'wallR', 'stars', 'pose', 'swingFx', 'witch', 'unmasked', 'olad', 'rakhsh', 'dragonSeen', 'horde', 'hordeDone',
-      'gates', 'hordeBat', 'toldRock', 'toldFarr', 'toldOffer', 'atAltar', 'bossT', 'maceHit', 'toldIce', 'chargeWarn', 'toldCharge', 'shards', 'shardG', 'mark', 'markGlow', 'markOpen', 'bossHeart', 'bossHeartT', 'floorWarn', 'highWarn', 'regrow', 'drums', 'sky', 'flashA', 'intro', 'fgReeds', 'mound', 'swirl', 'qx', 'puddles', 'combo', 'comboT', 'heavy', 'heavyGo', 'chargeT', 'chargeFull', 'chargeGlow', 'dodgeT', 'dodgeCd', 'dodgeDir', 'whiteDown', 'ended', 'mounted', 'prayed', 'drank', 'toldImmune', 'toldDeflect', 'toldVenom', 'cage', 'kavus', 'stones', 'puzzle', 'springOpen', 'pool', 'victory', 'attackBuf', 'dodgeBuf', 'counterT', 'counterStrike', 'dodgeRewarded', 'trial', 'nearTrial', 'journey', 'siege', 'siegeDone', 'ally', 'phase2', 'streak', 'didDouble', 'rocks', 'rockT', 'poppies', 'drowsy', 'toldPoppy', 'oladAlly', 'rope', 'ropeG', 'lassoCd', 'toldBossLasso', 'asRakhsh', 'sleeper', 'snore']) delete this[k];
+      'gates', 'hordeBat', 'toldRock', 'toldFarr', 'toldOffer', 'atAltar', 'bossT', 'maceHit', 'toldIce', 'chargeWarn', 'toldCharge', 'shards', 'shardG', 'mark', 'markGlow', 'markOpen', 'bossHeart', 'bossHeartT', 'floorWarn', 'highWarn', 'regrow', 'drums', 'sky', 'flashA', 'intro', 'fgReeds', 'mound', 'swirl', 'qx', 'puddles', 'combo', 'comboT', 'heavy', 'heavyGo', 'chargeT', 'chargeFull', 'chargeGlow', 'dodgeT', 'dodgeCd', 'dodgeDir', 'whiteDown', 'ended', 'mounted', 'prayed', 'drank', 'toldImmune', 'toldDeflect', 'toldVenom', 'cage', 'kavus', 'stones', 'puzzle', 'springOpen', 'pool', 'victory', 'attackBuf', 'dodgeBuf', 'counterT', 'counterStrike', 'dodgeRewarded', 'trial', 'nearTrial', 'journey', 'siege', 'siegeDone', 'ally', 'phase2', 'streak', 'didDouble', 'rocks', 'rockT', 'poppies', 'drowsy', 'toldPoppy', 'oladAlly', 'rope', 'ropeG', 'lassoCd', 'toldBossLasso', 'asRakhsh', 'sleeper', 'snore', 'ringObj', 'grapple', 'toldBossHold']) delete this[k];
     refreshLassoBtn();
     // turn loaded strips into square frames; anything missing falls back to placeholder art
     for (const k of ['decor-' + cur]) if (this.textures.exists(k) && this.textures.get(k).frameTotal < 3) { const t = this.textures.get(k), h = t.getSourceImage().height; for (let i = 0; i < Math.round(t.getSourceImage().width / h); i++) t.add(i, 0, i * h, 0, h, h); }
@@ -1843,6 +1853,7 @@ class Play extends Phaser.Scene {
       if (!this.anims.exists(k)) this.anims.create({ key: k, frames: this.anims.generateFrameNumbers(k, { start: 0, end: Math.max(0, n - 1) }), frameRate: FPS[k], repeat: /attack|hurt|roar|jump|thrust|slash|kneel|smash|throw|fire|rear|sight|strike|sting|die|leap|heavy|dodge|fall|victory|anoint/.test(k) ? 0 : -1 });
     }
     const lv = this.lv, map = lv.map(), C = map[0].length;
+    if (LIVE && !rush) hangRing(map);
     $('lbl').innerHTML = lv.hud; $('waterPill').classList.add('hidden'); $('bossName').textContent = lv.bossName || lv.name;
     this.levelW = C * TS;
     for (const [k, f] of Object.entries(FX)) if (!this.anims.exists('fx-' + k)) this.anims.create({ key: 'fx-' + k, frames: this.anims.generateFrameNumbers('fx-' + k, { start: 0, end: f.n - 1 }), frameRate: f.fps, repeat: f.loop ? -1 : 0 });
@@ -1958,6 +1969,12 @@ class Play extends Phaser.Scene {
     this.physics.add.overlap(this.player, this.shots, (pl, sh) => { if (!sh.active || sh.back) return; this.hurt(sh.x); this.fx('hit', sh.x, sh.y, { depth: 10 }); sh.destroy(); });
     lv.create?.(this);
     setupEncounters(this);
+    if (LIVE && !rush && RINGS[cur]) {
+      const [c, r] = RINGS[cur], x = c * TS + TS / 2, y = (r - 2) * TS + 6;
+      const ring = this.ringObj = this.add.graphics({ x, y }).setDepth(3); ring.lineStyle(2, 0xe8c25a, 1).strokeCircle(0, 0, 6).lineStyle(1, 0xfff0b0, 0.8).strokeCircle(0, 0, 3);
+      const glow = this.add.image(x, y, 'glow').setScale(0.5).setTint(0xffd27a).setBlendMode(Phaser.BlendModes.ADD).setAlpha(0.5).setDepth(2.9);
+      this.tweens.add({ targets: glow, alpha: 0.2, yoyo: true, repeat: -1, duration: 1100, ease: 'Sine.easeInOut' }); if (this.dark) this.light(glow, 0.6);
+    }
     if (!rush && LIVE) this.crownChampions();
     this.setupTrial();
     if (!window.ShahnamehJourney) throw new Error('The journey encounters could not load.');
@@ -2192,14 +2209,23 @@ class Play extends Phaser.Scene {
     const B = this.boss, boss = B?.active && B.hp > 0 && B.body.enable && B.alpha > 0.5 && Phaser.Geom.Intersects.RectangleToRectangle(zone, B.body) ? B : null;
     const item = this.coins.getChildren().filter(c => c.active && !['trial', 'sfeather'].includes(c.kind) && Phaser.Geom.Rectangle.Contains(zone, c.x, c.y)).sort((a, b) => along(a) - along(b))[0];
     const target = [foe, boss].filter(Boolean).sort((a, b) => along(a) - along(b))[0] || item;   // a foe before any provision
+    const ring = this.ringObj, rdx = ring ? ring.x - p.x : 0, rdy = ring ? p.y - ring.y : 0;
+    if (!target && ring && Math.abs(rdx) < 140 && rdx * dir > -24 && rdy > 40 && rdy < 240) {   // the ring: Rostam hauls himself up
+      const [, r] = RINGS[cur]; this.grapple = { x: ring.x, y: r * TS - 26, start: now + 120, until: now + 900 };
+      this.rope = { t0: now, out: 120, until: now + 700, target: ring, end: { x: ring.x, y: ring.y } }; trackGame('lasso_ring', { level_name: String(cur) }); return;
+    }
     this.rope = { t0: now, out: 120, until: now + (target ? 520 : 300), target, end: { x: x0 + dir * reach, y: p.y - 8 } };
     trackGame('lasso_throw', { level_name: String(cur), caught: target === foe && foe ? 'foe' : target === boss && boss ? 'boss' : target ? 'item' : 'none' });
     if (!target) return;
     this.time.delayedCall(120, () => {
       if (!target.active || this.done) return;
+      if (target === boss && boss.calm?.() && typeof boss.tm === 'number' && !boss.lassoHeld) {   // dazed, it can be held
+        boss.lassoHeld = true; boss.tm += 40; sfx('hit'); this.cam.shake(120, 0.006); if (this.rope) this.rope.until = this.time.now + 650;
+        if (!this.toldBossHold) { this.toldBossHold = true; toast('The noose holds it a moment longer. Strike!'); } return;
+      }
       if (target === boss) {
         sfx('clang'); this.fx('dust', target.x, target.body.center.y, { depth: 10 }); if (this.rope) this.rope.until = this.time.now + 120;
-        if (!this.toldBossLasso) { this.toldBossLasso = true; toast('Too mighty to drag: the noose slips from it.'); } return;
+        if (!this.toldBossLasso) { this.toldBossLasso = true; toast('Too mighty to drag while it is on its guard. Catch it while it is dazed.'); } return;
       }
       if (target === item) { sfx('coin'); this.tweens.add({ targets: [item, item.glow].filter(Boolean), x: p.x, y: p.body.center.y, duration: 220, ease: 'Quad.easeIn', onComplete: () => this.eat(item) }); return; }
       // a foe: its attack is broken off, and it is dragged to Rostam's feet and left reeling
@@ -2251,10 +2277,10 @@ class Play extends Phaser.Scene {
     return true;
   }
   // a tiny freeze on impact makes blows feel heavy
-  // a few champions in every labour: two blows harder, marked only by a golden glow, and worth a feast when they fall
+  // a few champions in every labour, different each journey: two blows harder, marked only by a golden glow, and worth a feast when they fall
   crownChampions() {
     const ground = this.foes.getChildren().filter(f => f.body.allowGravity).sort((a, b) => a.x - b.x);
-    ground.filter((f, i) => i >= 2 && i % 4 === 2).slice(0, 2).forEach(f => {
+    Phaser.Utils.Array.Shuffle(ground.slice(2)).slice(0, 2).forEach(f => {
       f.champion = true; f.hp += 2;
       f.aura = this.add.image(f.x, f.y, 'glow').setTint(0xffd27a).setBlendMode(Phaser.BlendModes.ADD).setAlpha(0.55).setScale(0.8).setDepth(f.depth - 0.1);
       this.tweens.add({ targets: f.aura, alpha: 0.3, yoyo: true, repeat: -1, duration: 900, ease: 'Sine.easeInOut' });
@@ -2813,6 +2839,12 @@ class Play extends Phaser.Scene {
     this.lassoCd = (this.lassoCd || 0) - k;
     if (pressed.lasso) { pressed.lasso = false; if (this.lassoCd <= 0 && hasLasso() && !this.mounted && !this.frozen && !(this.dodgeT > 0) && !(this.atk > 0)) this.throwLasso(); }
     this.drawRope(time);
+    if (this.grapple && time >= this.grapple.start) {
+      const g = this.grapple, dx = g.x - p.x, dy = g.y - p.y, d = Math.hypot(dx, dy);
+      if (d < 12 || time > g.until || this.frozen) { this.grapple = null; p.setVelocity(dx * 2, -140); this.airJumps = 1; }
+      else { const v = Math.min(500, d * 9); p.setVelocity(dx / d * v, dy / d * v); }
+    }
+    if (this.ringObj && !hasLasso() && !store.get('sh-toldRing') && Math.abs(p.x - this.ringObj.x) < 70) { store.set('sh-toldRing', '1'); toast('A golden ring hangs high above. Rostam will need a lasso to reach it.'); }
     // standing by a lit fire altar, Rostam may make an offering of provisions at the Fire Temple
     const altar = ground && !this.bossOn ? this.altars.find(a => a.lit && !a.onLight && Math.abs(a.x - p.x) < 30) : null;
     if (altar !== this.atAltar) {
@@ -2920,7 +2952,7 @@ class Play extends Phaser.Scene {
       B.hitKeep = false;
       if (B.keep && B.body.enable && B.x < B.keep * TS) { B.x = B.keep * TS; if (B.body.velocity.x < 0) B.setVelocityX(0); B.hitKeep = true; }
       // as a boss recovers from an opening it shrugs Rostam off for a moment rather than hurting him where he stands
-      const calm = !!B.calm?.(); if (B.wasCalm && !calm) B.grace = 45; B.wasCalm = calm; B.grace = (B.grace || 0) - this.bossStep();
+      const calm = !!B.calm?.(); if (!calm) B.lassoHeld = false; if (B.wasCalm && !calm) B.grace = 45; B.wasCalm = calm; B.grace = (B.grace || 0) - this.bossStep();
       // touching a boss hurts unless it is reeling (or still hidden, or not yet unmasked); landing on an open one is a blow
       if (B.alpha > 0.5 && !B.noMark?.() && Phaser.Geom.Intersects.RectangleToRectangle(b, B.body)) {
         if (!B.immune?.() && b.velocity.y > 60 && b.bottom - B.body.top < 14) { this.damage(B); p.setVelocityY(-320); }
