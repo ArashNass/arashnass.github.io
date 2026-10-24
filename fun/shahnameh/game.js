@@ -804,7 +804,7 @@ function fireStand(s, S) {
   const floor = x => (s.groundAt(x) ?? 14) * TS;
   s.siege = { S, wave: 0, live: [], L, R, next: s.time.now + 1300, walls: [wall(L, floor(L + 2)), wall(R, floor(R - 2))] };
   sfx('fire'); sfx('roar'); s.cam.shake(300, 0.008);
-  banner(S.fa, S.title); hint(S.start());
+  banner(S.fa, S.title); hint(S.start()); s.time.delayedCall(600, () => rostamSays('stand'));
   trackGame('stand_start', { level_name: String(cur) });
 }
 function standTick(s) {
@@ -1547,9 +1547,13 @@ const KEY = { mode: 'shur', root: 293.66 };
 // Concertino for Santur; the reeds and the garden have a solo santur, the desert a setar in Segah, and Olad's chase the
 // Sadeghi and Dehlavi concertino, and the dragon's night a duduk's lament. The Div camp and the cave keep their war and
 // dark tracks
-const TRACK_FILE = { menu: 'menu-santur.mp3', 'santur-solo': 'santur-solo.mp3', 'setar-segah': 'setar-segah.mp3', 'santur-concertino': 'santur-concertino.mp3', 'duduk-night': 'duduk-night.mp3' };
+const TRACK_FILE = { 'boss-persian': 'boss-persian.mp3', 'war-camp': 'war-camp.mp3', cave: 'cave.mp3', menu: 'menu-santur.mp3', 'santur-solo': 'santur-solo.mp3', 'setar-segah': 'setar-segah.mp3', 'santur-concertino': 'santur-concertino.mp3', 'duduk-night': 'duduk-night.mp3' };
 const ROAD = { 1: 'santur-solo', 2: 'setar-segah', 3: 'duduk-night', 4: 'santur-solo', 5: 'santur-concertino' };
-const TRACK_VOL = { menu: 0.75, 'santur-solo': 0.8, 'setar-segah': 0.85, 'santur-concertino': 0.6, 'duduk-night': 0.7, road: 0.62, dark: 0.5, boss: 0.25 }, DARK = new Set([3, 7]);
+// recordings still to come take their place as soon as their files are in assets/music: the Persian battle theme for
+// every boss, the war camp's drums for Khan VI and the cave for Khan VII
+const SOON = { 'boss-persian': null, 'war-camp': 6, cave: 7 }, HAVE = new Set();
+for (const [name, n] of Object.entries(SOON)) fetch(`assets/music/${TRACK_FILE[name]}?v=${V}`, { method: 'HEAD' }).then(r => { if (!r.ok) return; HAVE.add(name); if (n) ROAD[n] = name; }).catch(() => {});
+const TRACK_VOL = { 'boss-persian': 0.6, 'war-camp': 0.7, cave: 0.7, menu: 0.75, 'santur-solo': 0.8, 'setar-segah': 0.85, 'santur-concertino': 0.6, 'duduk-night': 0.7, road: 0.62, dark: 0.5, boss: 0.25 }, DARK = new Set([3, 7]);
 // the score: every labour has music of its own, in its own dastgah (see MUSIC.md), recorded as three stems of one loop
 // that play in lockstep and are mixed live. The bed (drone and pads) always sounds; the melody (santur, ney, kamancheh)
 // carries the road and steps back in a fight; the drums (daf, tombak) come in while foes are close. Each boss has a theme
@@ -1740,7 +1744,7 @@ function pickTrack() {
   if (!A.want) return setTrack('menu');
   const sc = game?.scene.getScene('play'), boss = sc && sc.bossOn && !sc.done && sc.boss?.active && sc.boss.hp > 0, S = SCORE[cur];
   const own = `k${cur}-boss`, tune = LABOUR_SYNTH && TUNES[cur] && !S?.stems;
-  if (boss && (S?.theme || !tune)) return setTrack(S?.theme && !track(own).bad ? own : 'boss');
+  if (boss && (S?.theme || !tune)) return setTrack(S?.theme && !track(own).bad ? own : HAVE.has('boss-persian') && !A.tracks['boss-persian']?.bad ? 'boss-persian' : 'boss');
   if (S?.state === 'ready' || tune) { setTrack('k' + cur); return mixScore(sc, !!boss); }
   loadScore(cur);
   setTrack(ROAD[cur] && !A.tracks[ROAD[cur]]?.bad ? ROAD[cur] : DARK.has(cur) ? 'dark' : 'road');
@@ -1926,7 +1930,7 @@ class Play extends Phaser.Scene {
   create() {
     // the scene object is reused from labour to labour: forget whatever the last one left behind
     for (const k of ['dark', 'lights', 'lamp', 'wall', 'wallR', 'stars', 'pose', 'swingFx', 'witch', 'unmasked', 'olad', 'rakhsh', 'dragonSeen', 'horde', 'hordeDone',
-      'gates', 'hordeBat', 'toldRock', 'toldFarr', 'toldOffer', 'atAltar', 'bossT', 'maceHit', 'toldIce', 'chargeWarn', 'toldCharge', 'shards', 'shardG', 'mark', 'markGlow', 'markOpen', 'bossHeart', 'bossHeartT', 'floorWarn', 'highWarn', 'regrow', 'drums', 'sky', 'flashA', 'intro', 'fgReeds', 'mound', 'swirl', 'qx', 'puddles', 'combo', 'comboT', 'heavy', 'heavyGo', 'chargeT', 'chargeFull', 'chargeGlow', 'dodgeT', 'dodgeCd', 'dodgeDir', 'whiteDown', 'ended', 'mounted', 'prayed', 'drank', 'toldImmune', 'toldDeflect', 'toldVenom', 'cage', 'kavus', 'stones', 'puzzle', 'springOpen', 'pool', 'victory', 'attackBuf', 'dodgeBuf', 'counterT', 'counterStrike', 'dodgeRewarded', 'trial', 'nearTrial', 'journey', 'siege', 'siegeDone', 'ally', 'phase2', 'streak', 'didDouble', 'rocks', 'rockT', 'poppies', 'drowsy', 'toldPoppy', 'oladAlly', 'rope', 'ropeG', 'lassoCd', 'toldBossLasso', 'sleeper', 'snore', 'guard', 'prologue', 'prologueOn', 'ringObj', 'grapple', 'toldBossHold', 'oladBind', 'sleepers', 'toldSleep']) delete this[k];
+      'gates', 'hordeBat', 'toldRock', 'toldFarr', 'toldOffer', 'atAltar', 'bossT', 'maceHit', 'toldIce', 'chargeWarn', 'toldCharge', 'shards', 'shardG', 'mark', 'markGlow', 'markOpen', 'bossHeart', 'bossHeartT', 'floorWarn', 'highWarn', 'regrow', 'drums', 'sky', 'flashA', 'intro', 'fgReeds', 'mound', 'swirl', 'qx', 'puddles', 'combo', 'comboT', 'heavy', 'heavyGo', 'chargeT', 'chargeFull', 'chargeGlow', 'dodgeT', 'dodgeCd', 'dodgeDir', 'whiteDown', 'ended', 'mounted', 'prayed', 'drank', 'toldImmune', 'toldDeflect', 'toldVenom', 'cage', 'kavus', 'stones', 'puzzle', 'springOpen', 'pool', 'victory', 'attackBuf', 'dodgeBuf', 'counterT', 'counterStrike', 'dodgeRewarded', 'trial', 'nearTrial', 'journey', 'siege', 'siegeDone', 'ally', 'phase2', 'streak', 'didDouble', 'rocks', 'rockT', 'poppies', 'drowsy', 'toldPoppy', 'oladAlly', 'rope', 'ropeG', 'lassoCd', 'toldBossLasso', 'sleeper', 'snore', 'guard', 'prologue', 'prologueOn', 'ringObj', 'grapple', 'toldBossHold', 'oladBind', 'sleepers', 'toldSleep', 'saidLow']) delete this[k];
     refreshLassoBtn();
     // turn loaded strips into square frames; anything missing falls back to placeholder art
     for (const k of ['decor-' + cur]) if (this.textures.exists(k) && this.textures.get(k).frameTotal < 3) { const t = this.textures.get(k), h = t.getSourceImage().height; for (let i = 0; i < Math.round(t.getSourceImage().width / h); i++) t.add(i, 0, i * h, 0, h, h); }
@@ -2240,6 +2244,7 @@ class Play extends Phaser.Scene {
   // the Simurgh's blast: a ring of golden light that strikes every foe on screen and wounds a boss through any guard
   farrBlast() {
     if (this.farr < 100 || this.frozen || this.done) return;
+    rostamSays('farr');
     const p = this.player, cx = this.cam.scrollX; this.farr = 0; store.set('sh-farr', 0); this.renderFarr();
     this.cam.flash(380, 255, 225, 140); this.cam.shake(400, 0.012); sfx('fire'); sfx('roar'); this.hitStop(120);
     const ring = this.add.image(p.x, p.body.center.y, 'glow').setTint(0xffd060).setBlendMode(Phaser.BlendModes.ADD).setDepth(12).setScale(0.4);
@@ -2260,7 +2265,8 @@ class Play extends Phaser.Scene {
     }
     if (this.trial?.state === 'running') this.finishTrial(false, 'Hit taken — try again at the feather.');   // no harm during a cutscene or a dodge
     this.streak = 0; this.renderStreak();
-    this.hp--; this.renderHearts(); this.inv = thirst ? 30 : gentle() ? 130 : legend() ? 70 : 90; sfx('hurt'); this.cam.shake(160, 0.008); this.cam.flash(120, 180, 40, 60);
+    this.hp--; if (this.hp === 1 && !this.saidLow) { this.saidLow = true; rostamSays('low'); }
+    this.renderHearts(); this.inv = thirst ? 30 : gentle() ? 130 : legend() ? 70 : 90; sfx('hurt'); this.cam.shake(160, 0.008); this.cam.flash(120, 180, 40, 60);
     if (!thirst) this.player.setVelocity((this.player.x < fromX ? -1 : 1) * 160, -220);
     if (this.hp <= 0) {
       this.done = true; playing = false; music(false); sting('fall'); document.body.classList.remove('playing'); hint(null);
@@ -2436,7 +2442,7 @@ class Play extends Phaser.Scene {
   // down with a shockwave of dust; then it lies where it fell, dark and smoking, while the sky clears. Returns the ms
   // until it is down.
   bossDeath(B) {
-    trackGame('boss_defeat', { level_name: String(cur), hearts_left: this.hp });
+    trackGame('boss_defeat', { level_name: String(cur), hearts_left: this.hp }); this.time.delayedCall(2600, () => rostamSays('win'));
     B.body.enable = false; B.anims.stop(); this.hideMark(); B.rageFx?.destroy(); B.rageFx = null; this.chargeWarn?.destroy(); this.stars?.destroy(); this.stars = null;
     B.clearTint(); B.setAlpha(1); this.tweens.killTweensOf(B);
     this.hitStop(320); this.cam.flash(260, 255, 255, 255); this.cam.shake(260, 0.02); sfx('hit'); sfx('roar');
@@ -3218,7 +3224,7 @@ class Play extends Phaser.Scene {
     const a0 = B.alpha;                                               // a foe hiding in the dark shows itself for its entrance
     if (a0 < 0.5) { this.tweens.add({ targets: B, alpha: 1, delay: 420, duration: 250 }); this.time.delayedCall(2200, () => B.active && B.state === 'lurk' && this.tweens.add({ targets: B, alpha: a0, duration: 500 })); }
     this.time.delayedCall(500, () => { sfx('roar'); this.cam.shake(520, 0.012); banner(undefined, undefined, lv.epithet); });
-    if (B.lines?.intro) this.time.delayedCall(1100, () => say(B.lines.intro, { once: true }));
+    this.time.delayedCall(1100, () => { if (!B.lines?.intro || !say(B.lines.intro, { once: true, then: () => rostamSays('boss') })) rostamSays('boss'); });   // the foe speaks, Rostam answers
     this.time.delayedCall(2500, () => {
       $('cine').classList.remove('on'); document.body.classList.remove('cine');
       this.tweens.add({ targets: shade, alpha: 0, duration: 400, onComplete: () => { this.events.off('update', draw); shade.destroy(); } });
@@ -3500,7 +3506,7 @@ class Play extends Phaser.Scene {
     };
     this.time.addEvent({ delay: 16, repeat: 40, callback: draw });
     if (first) this.time.delayedCall(3600, () => hint(`<b>Rostam's lasso is yours.</b> Press ${touch ? 'the lasso button' : keyHTML('lasso')} to throw it: it drags a foe to your feet, reeling, where your next blow lands harder; it pulls fliers from the sky and draws in provisions out of reach.`));
-    this.time.delayedCall(1200, () => { toast('Olad yields: "Spare me, and I will lead you to Arzhang Div and to the White Div\'s cave."'); say('olad2'); });
+    this.time.delayedCall(700, () => rostamSays('bind', () => { toast('Olad yields: "Spare me, and I will lead you to Arzhang Div and to the White Div\'s cave."'); say('olad2'); }));
     this.time.delayedCall(3400, () => { this.frozen = false; rope.clear().lineStyle(2, 0xc8a060, 1).strokeEllipse(o.x, o.y - 4, 30, 14); this.reward(o.x); });
   }
   /* ---- Khan VI: the horde, and Arzhang Div ---- */
@@ -4664,14 +4670,22 @@ function narrate(key, then) {
   return h;
 }
 // what the foes and the king say aloud, shown as a subtitle with the speaker's name
+// Rostam speaks at a few great moments only: a boss's entrance, its fall, the Simurgh's call, binding Olad, a fire's
+// stand, and his first brush with death in a labour. Each is read once its file is in assets/voice
+const ROSTAM_SAYS = { boss: 'Come then, and meet the son of Zal!', win: 'It is done. On, Rakhsh!', farr: 'Simurgh, lend me your light!', bind: 'Yield, Olad. Your life is in my noose.', stand: 'Let them come to the fire.', low: 'Not yet… not while Iran waits.' };
+let rostamFace = '../rostam';
+fetch(`assets/ui/port/rostam.png?v=${V}`, { method: 'HEAD' }).then(r => { if (r.ok) rostamFace = 'rostam'; }).catch(() => {});
+for (const k of Object.keys(ROSTAM_SAYS)) fetch(`assets/voice/rostam-${k}.mp3?v=${V}`, { method: 'HEAD' }).then(r => { if (r.ok) VOICED.add('rostam-' + k); }).catch(() => {});
+// speak, and carry on when done (or at once, when the line is silent: no file, muted, or the narrator off)
+function rostamSays(k, then) { if (!say('rostam-' + k, { then })) then?.(); }
 const LINES = {"queen1": ["The Scorpion Queen", "Thirsty, little man? Then come… and drink."], "queen2": ["The Scorpion Queen", "My children… will feast on your bones!"], "witch1": ["The Lady of the Garden", "Sit, brave traveller. Eat… drink… and rest awhile."], "witch2": ["The Witch", "You see me now, do you? Then see your death!"], "olad1": ["Olad", "Who are you, to cross the marches of Mazandaran?"], "olad2": ["Olad", "Enough! Spare me… and I will lead you to the White Div."], "arzhang1": ["Arzhang Div", "Who dares walk into my camp? I will grind your bones for my supper!"], "arzhang2": ["Arzhang Div", "You will pay for every drop of my blood!"], "white1": ["The White Div", "So… the son of Zal comes at last."], "white2": ["The White Div", "I have broken kings, little hero. I will break you."], "white3": ["The White Div", "No… this cannot be…"], "kavus1": ["Kay Kavus", "Rostam! My eyes… my eyes are opened! Iran is saved!"]};
 // a spoken line, with its words as a subtitle; once only = never again this visit (an entrance, a labour's opening)
 const said = new Set();
 function say(k, { once = false, sub = true, then } = {}) {
   if (once && said.has(k)) return false; said.add(k);
-  const el = $('sub'), L = LINES[k], text = L ? `<b>${L[0]}:</b> \u201c${L[1]}\u201d` : KHAN_LINES[k];
+  const el = $('sub'), L = LINES[k] || (k.startsWith('rostam-') ? ['Rostam', ROSTAM_SAYS[k.slice(7)]] : null), text = L ? `<b>${L[0]}:</b> \u201c${L[1]}\u201d` : KHAN_LINES[k];
   // the speaker's face beside the words: the storyteller for the narrator's lines
-  const who = { queen: 'queen', witch1: 'beauty', witch2: 'hag', olad: 'olad', arzhang: 'arzhang', white: 'white', kavus: 'kavus' }, face = who[k] || who[k.replace(/\d+$/, '')] || 'narrator';
+  const who = { queen: 'queen', witch1: 'beauty', witch2: 'hag', olad: 'olad', arzhang: 'arzhang', white: 'white', kavus: 'kavus' }, face = k.startsWith('rostam-') ? rostamFace : who[k] || who[k.replace(/\d+$/, '')] || 'narrator';
   const a = narrate(k, () => { el.classList.remove('on'); then?.(); });
   if (a && sub && text) { el.innerHTML = `<img src="assets/ui/port/${face}.png?v=${V}" alt=""><span>${text}</span>`; el.classList.add('on'); $('toast').classList.remove('on'); } else el.classList.remove('on');   // the spoken words replace the written note
   return !!a;
