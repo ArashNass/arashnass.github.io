@@ -1519,9 +1519,12 @@ const KEY = { mode: 'shur', root: 293.66 };
 // the recorded music: one track for the menus, one for the road, a darker one for the dragon's night and the
 // White Div's cave, and an orchestral action theme for every boss ("Battle Boss Fight Game Music" by alex-morgan,
 // Pixabay), cut to begin at full tilt without its slow opening. The volumes even out the tracks' own loudness.
-// the menu: Faramarz Payvar and Hossein Dehlavi's Concertino for Santur (Wikimedia Commons, public domain)
-const TRACK_FILE = { menu: 'menu-santur.mp3' };
-const TRACK_VOL = { menu: 0.75, road: 0.62, dark: 0.5, boss: 0.25 }, DARK = new Set([3, 7]);
+// real Persian recordings from Wikimedia Commons (credited in the end credits): the menu is Payvar and Dehlavi's
+// Concertino for Santur; the reeds and the garden have a solo santur, the desert a setar in Segah, and Olad's chase the
+// Sadeghi and Dehlavi concertino. The dragon's night, the Div camp and the cave keep their dark and war tracks
+const TRACK_FILE = { menu: 'menu-santur.mp3', 'santur-solo': 'santur-solo.mp3', 'setar-segah': 'setar-segah.mp3', 'santur-concertino': 'santur-concertino.mp3' };
+const ROAD = { 1: 'santur-solo', 2: 'setar-segah', 4: 'santur-solo', 5: 'santur-concertino' };
+const TRACK_VOL = { menu: 0.75, 'santur-solo': 0.8, 'setar-segah': 0.85, 'santur-concertino': 0.6, road: 0.62, dark: 0.5, boss: 0.25 }, DARK = new Set([3, 7]);
 // the score: every labour has music of its own, in its own dastgah (see MUSIC.md), recorded as three stems of one loop
 // that play in lockstep and are mixed live. The bed (drone and pads) always sounds; the melody (santur, ney, kamancheh)
 // carries the road and steps back in a fight; the drums (daf, tombak) come in while foes are close. Each boss has a theme
@@ -1715,7 +1718,7 @@ function pickTrack() {
   if (boss && (S?.theme || !tune)) return setTrack(S?.theme && !track(own).bad ? own : 'boss');
   if (S?.state === 'ready' || tune) { setTrack('k' + cur); return mixScore(sc, !!boss); }
   loadScore(cur);
-  setTrack(DARK.has(cur) ? 'dark' : 'road');
+  setTrack(ROAD[cur] && !A.tracks[ROAD[cur]]?.bad ? ROAD[cur] : DARK.has(cur) ? 'dark' : 'road');
 }
 const music = on => { A.want = on; if (audio()) { if (on) prepareScore(cur); pickTrack(); } };   // the boss theme loads early, ready for the fight
 // short cues over the music, which ducks beneath them: a boss's entrance, its fall, Rostam's fall, a Simurgh feather,
@@ -4546,7 +4549,7 @@ const CREDITS = `<header class="credit-heading"><p class="credit-eyebrow">A jour
     <figure><img src="assets/ui/cast-arash.png?v=${V}" alt="Arash the Archer with his bow and arrow" width="1020" height="1542"><figcaption>Arash the Archer</figcaption></figure>
   </section>
   <div class="credit-details"><section><h3>Created by</h3><p>Arash Nassirpour</p><h3>Inspired by</h3><p>Ferdowsi’s <em>Shahnameh</em><br>The Book of Kings, c. 1010 CE</p></section>
-  <section><h3>Music &amp; sound</h3><p>Faramarz Payvar &amp; Hossein Dehlavi<br>“Concertino for Santur” (Wikimedia Commons, public domain)<br>Pixabay · alex-morgan<br>“Battle Boss Fight Game Music”<br>OpenGameArt · “100 CC0 SFX #2”</p></section>
+  <section><h3>Music &amp; sound</h3><p>Faramarz Payvar &amp; Hossein Dehlavi<br>“Concertino for Santur” (Wikimedia Commons, public domain)<br>Manoochehr Sadeghi &amp; Hossein Dehlavi<br>“Concertino for Santur” (CC BY-SA 3.0)<br>Mohammad R. Azadehfar, santur (CC BY-SA 4.0)<br>Leyth, “Segah” on setar (CC BY-SA 3.0)<br>Pixabay · alex-morgan<br>“Battle Boss Fight Game Music”<br>OpenGameArt · “100 CC0 SFX #2”</p></section>
   <section><h3>Voices</h3><p>ElevenLabs</p><h3>Game engine</h3><p>Phaser 3</p></section></div>
   <footer class="credit-footer">The road waits for the next hero.</footer>`;
 let cine = null;
