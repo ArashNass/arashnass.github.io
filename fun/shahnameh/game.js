@@ -1554,6 +1554,7 @@ function startScore(n) {
 }
 function fadeOut(name, hard = false) {
   const now = A.ctx.currentTime;
+  if (name === 'menu' && MENU_SYNTH) return stopMenuTheme(hard);
   if (isScore(name)) {
     const L = A.layers; if (!L) return; A.layers = null;
     SCORE[L.n].at = L.at + Math.max(0, now - L.t0);
@@ -1570,12 +1571,53 @@ function setTrack(name) {
   if (A.cur) fadeOut(A.cur);
   A.cur = name; if (!name) return;
   if (isScore(name)) { startScore(+name[1]); return; }
+  if (name === 'menu' && MENU_SYNTH) { startMenuTheme(); return; }
   const t = track(name); clearTimeout(t.stop);
   if (/boss$/.test(name) && t.el.paused && t.el.currentTime > 0) t.el.currentTime = 0;   // every boss fight starts its theme afresh
   t.g.gain.cancelScheduledValues(now); t.g.gain.setTargetAtTime(trackVol(name), now, 0.6); t.el.play().catch(() => {});
 }
+// the menu theme: a santur tune in Mahur over a tar drone and a daf in 6/8, played live on the game's own instruments.
+// Sixteen bars, an opening phrase and an answer an octave up, looping with small ornaments so it never repeats exactly.
+// Each bar: [melody as [degree, eighths]...], the tar's bass degree. Long notes are played as santur tremolo.
+const MENU_THEME = [
+  [[[4, 2], [5, 1], [4, 1], [2, 1], [0, 1]], 0], [[[2, 3], [1, 1], [2, 1], [4, 1]], 0], [[[5, 2], [4, 1], [5, 1], [7, 2]], 3], [[[4, 6]], 4],
+  [[[7, 2], [8, 1], [7, 1], [5, 1], [4, 1]], 0], [[[5, 3], [4, 1], [2, 1], [4, 1]], 3], [[[2, 2], [1, 1], [2, 1], [-1, 1], [1, 1]], 4], [[[0, 6]], 0],
+  [[[9, 2], [8, 1], [7, 1], [8, 1], [9, 1]], 5], [[[7, 3], [5, 1], [7, 1], [8, 1]], 3], [[[9, 2], [11, 1], [9, 1], [8, 1], [7, 1]], 4], [[[8, 6]], 4],
+  [[[7, 2], [5, 1], [4, 1], [5, 1], [7, 1]], 0], [[[4, 3], [2, 1], [4, 1], [5, 1]], 3], [[[2, 2], [4, 1], [2, 1], [1, 1], [-1, 1]], 4], [[[0, 6]], 0]
+];
+const MENU_SYNTH = true;                                           // false hands the menu back to the recorded menu.m4a
+const MENU_EIGHTH = 60 / 72 / 3, DAF68 = ['D', 0, 't', 'd', 't', 'j'];
+function menuBar(M, t) {
+  const S = { mode: 'mahur', root: KEY.root }, [notes, bass] = MENU_THEME[M.bar % 16], e = MENU_EIGHTH, out = M.out;
+  pluck(pitch(S, bass) / 4, t, { kind: 'tar', vol: 0.3, out }); pluck(pitch(S, bass + 4) / 4, t + 3 * e, { kind: 'tar', vol: 0.18, out });   // tonic and fifth
+  pluck(pitch(S, bass) / 2, t + 3 * e, { vol: 0.07, pan: -0.3, out });
+  if (M.bar >= 4) DAF68.forEach((k, i) => k && daf(t + i * e, k, M.bar % 8 === 7 && i === 5 ? 1.3 : 0.55, out));   // the daf joins after the opening
+  let at = t;
+  for (const [deg, len] of notes) {
+    const f = pitch(S, deg), pan = 0.15 + Math.random() * 0.1;
+    if (len >= 3) for (let r = 0; r < len * 2; r++) pluck(f, at + r * e / 2, { vol: 0.16 * (1 - r / (len * 2.6)), pan, out });   // tremolo
+    else {
+      if (len === 1 && Math.random() < 0.18) pluck(pitch(S, deg + 1), at - e / 4, { vol: 0.07, pan, out });   // a grace note from above
+      pluck(f, at, { vol: 0.19, pan, out });
+    }
+    at += len * e;
+  }
+}
+function startMenuTheme() {
+  const c = A.ctx, out = c.createGain(); out.gain.value = 0; out.connect(A.bus);
+  const send = c.createGain(); send.gain.value = 0.5; out.connect(send).connect(A.verb);
+  out.gain.setTargetAtTime(1, c.currentTime, 0.5);
+  const M = A.menu = { out, bar: 0, next: c.currentTime + 0.15 };
+  M.timer = setInterval(() => { while (M.next < c.currentTime + 0.5) { menuBar(M, M.next); M.next += 6 * MENU_EIGHTH; M.bar++; } }, 120);
+}
+function stopMenuTheme(hard) {
+  const M = A.menu; if (!M) return; A.menu = null; clearInterval(M.timer);
+  const now = A.ctx.currentTime; M.out.gain.cancelScheduledValues(now); M.out.gain.setTargetAtTime(0, now, hard ? 0.01 : 0.4);
+  setTimeout(() => M.out.disconnect(), hard ? 50 : 2500);
+}
 // stop every track at once, for a hidden tab or a failed load
 function silenceMusic() {
+  stopMenuTheme(true);
   for (const t of Object.values(A.tracks)) { clearTimeout(t.stop); t.el.pause(); }
   if (A.layers) fadeOut(A.cur, true);
   A.cur = null;
