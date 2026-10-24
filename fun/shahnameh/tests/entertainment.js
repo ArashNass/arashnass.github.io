@@ -9,7 +9,7 @@ try{
  let T=performance.now()+1e6,dt=1000/60;const clocks=new Map();
  const step=(n=1)=>{const tw=S.scene().tweens;if(!clocks.has(tw)){clocks.set(tw,tw.getDelta);tw.getDelta=()=>dt;}for(let i=0;i<n;i++){T+=dt;S.game.headlessStep(T,dt);}};
  const resetKeys=()=>{for(const k in S.keys)S.keys[k]=false;for(const k in S.pressed)S.pressed[k]=false;};
- const load=async n=>{resetKeys();const old=S.scene().player,first=!S.scene().started&&S.scene().lv===S.LEVELS[n];S.begin(n,false,false,true);for(let i=0;i<500;i++){step(2);await sleep(3);if(S.scene().player?.active&&(first||S.scene().player!==old)&&S.scene().lv===S.LEVELS[n])break;}const sc=S.scene();sc.drawDark=()=>{};sc.hp=sc.maxHp=999;sc.inv=99999;sc.hordeDone=true;sc.prayed=true;sc.water=100;return sc;};
+ const load=async n=>{resetKeys();const old=S.scene().player,first=!S.scene().started&&S.scene().lv===S.LEVELS[n];S.begin(n,false,false,true);for(let i=0;i<500;i++){step(2);await sleep(3);if(S.scene().player?.active&&(first||S.scene().player!==old)&&S.scene().lv===S.LEVELS[n])break;}const sc=S.scene();sc.drawDark=()=>{};sc.hp=sc.maxHp=999;sc.inv=99999;sc.hordeDone=true;sc.siegeDone=true;sc.prayed=true;sc.water=100;return sc;};
  const place=(sc,x,y)=>{const r=sc.groundAt(x)??14;sc.player.body.reset(x,y??r*16-1-.47*sc.player.displayHeight);sc.player.setVelocity(0);};
  const motion={};
  for(const fps of [30,60]){
