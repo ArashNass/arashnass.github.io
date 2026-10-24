@@ -748,9 +748,10 @@ function flyer(tex, { range, dive, rest, offY, speed = 0.012 }) {
 // at: the fire's column; L, R: the clearing's edges (tile columns); foe: the wave letters
 // lasso rings: a golden ring hung over a sky ledge in every labour, too high for a jump. With Rostam's lasso he pulls
 // himself up to it, and provisions wait on the ledge; before the lasso is won the ring is a promise for a second journey.
-// [ring column, ledge row, ledge's first and last columns]. None in Khan III: Rostam rides all night, and throws no lasso
+// [ring column, ledge row, ledge's first and last columns]. None in Khan III, where Rostam rides all night, nor in
+// Khan V, whose open ground lies under the archers' volleys; he throws no lasso
 // from the saddle
-const RINGS = { 1: [32, 3, 30, 34], 2: [73, 3, 71, 75], 4: [28, 3, 26, 30], 5: [72, 3, 70, 74], 6: [33, 3, 31, 35], 7: [93, 3, 91, 95] };
+const RINGS = { 1: [32, 4, 30, 34], 2: [73, 4, 71, 75], 4: [28, 4, 26, 30], 6: [33, 4, 31, 35], 7: [93, 4, 91, 95] };
 function hangRing(map) {
   const R = RINGS[cur]; if (!R) return; const [, r, a, b] = R;
   for (let k = a; k <= b; k++) if (map[r][k] === '.') map[r][k] = '=';
@@ -764,18 +765,18 @@ const STANDS = {
   2: { at: 57.5, L: 53, R: 65, waves: [['s', 'v'], ['s', 's', 'v'], ['v', 'S', 's']], foe: { s: 'scorpion', v: 'vulture' }, lead: 0xffb060, fa: 'چاهِ بیابان', title: 'The well is guarded', held: 'The well is yours',
     start: () => 'The desert’s creatures come to the water! <b>Bait a sting, step back, then strike</b>; watch the sky for diving vultures.',
     wave: (n, N) => n === N ? 'The great scorpion of the well comes!' : `They come for the water: ${n} of ${N}`, end: 'The well is yours. Roast lamb lies by the water.' },
-  3: { at: 42.5, L: 32, R: 45, waves: [['j', 'b'], ['b', 'j', 'b'], ['j', 'J', 'b']], foe: { j: 'jackal', b: 'bat' }, lead: 0xc8a0ff, fa: 'شبِ اژدها', title: 'The night closes in', held: 'The night draws back',
-    start: () => 'Things of the night come for the firelight. <b>Strike from the saddle</b> as the jackals lunge and the bats swoop.',
+  3: { at: 84.5, L: 81, R: 93, waves: [['j', 'b'], ['b', 'j', 'b'], ['j', 'J', 'b']], foe: { j: 'jackal', b: 'bat' }, lead: 0xc8a0ff, fa: 'شبِ اژدها', title: 'The night closes in', held: 'The night draws back',
+    start: () => 'The sacred fire holds the dragon back, but things of the night come for its light. <b>Strike from the saddle</b> as the jackals lunge and the bats swoop.',
     wave: (n, N) => n === N ? 'A great black jackal leads the last of them!' : `The night stirs: ${n} of ${N}`, end: 'The night draws back. Roast lamb lies by the fire. Rakhsh tosses his head: something vast is out there.' },
   4: { at: 92.5, L: 91, R: 110, waves: [['n', 'b'], ['n', 'b', 'n'], ['b', 'N', 'n']], foe: { n: 'serpent', b: 'bat' }, lead: 0xb0ff80, flame: 0x9aff60, fa: 'باغِ جادو', title: 'The garden wakes', held: 'The garden is still',
     start: () => 'The fire wakes the garden: <b>its serpents and bats come for the light</b>. Strike a serpent as it rears; swing as a bat swoops low.',
     wave: (n, N) => n === N ? 'The witch’s own serpent comes for the fire!' : `The garden stirs: ${n} of ${N}`, end: 'The garden falls quiet. Roast lamb lies by the fire.' },
-  5: { at: 52.5, L: 50, R: 63, waves: [['q', 'j'], ['j', 'q', 'j'], ['q', 'Q', 'j']], foe: { q: 'spearman', j: 'jackal' }, lead: 0xffc070, fa: 'کمینِ اولاد', title: 'Olad’s ambush', held: 'The ambush is broken',
+  5: { at: 107.5, L: 99, R: 111, waves: [['q', 'j'], ['j', 'q', 'j'], ['q', 'Q', 'j']], foe: { q: 'spearman', j: 'jackal' }, lead: 0xffc070, fa: 'کمینِ اولاد', title: 'Olad’s ambush', held: 'The ambush is broken',
     start: () => 'An ambush! <b>Olad’s men close on the fire.</b> Draw the jackals away from the spears, and close in right after a thrust.',
-    wave: (n, N) => n === N ? 'Olad’s captain leads the last charge!' : `Olad’s men: ${n} of ${N}`, end: 'The ambush breaks. Roast lamb lies by the fire. Olad will know you are coming.' },
-  7: { at: 119.5, L: 117, R: 132, waves: [['w', 'b'], ['d', 'w', 'b'], ['w', 'W', 'd']], foe: { w: 'divwarrior', d: 'div', b: 'bat' }, lead: 0xc8e8ff, flame: 0x8ad8ff, fa: 'بیداریِ غار', title: 'The cave wakes', held: 'The cave falls silent',
-    start: () => 'The fire wakes the cave: <b>the White Div’s guard comes for the light</b>. Give the clubs room, then strike from behind.',
-    wave: (n, N) => n === N ? 'The White Div’s own guard comes!' : `The cave wakes: ${n} of ${N}`, end: 'The guard is broken. Roast lamb lies by the fire. Deep in the cave, something stirs.',
+    wave: (n, N) => n === N ? 'Olad’s captain leads the last charge!' : `Olad’s men: ${n} of ${N}`, end: 'The ambush breaks. Roast lamb lies by the fire. Olad waits ahead.' },
+  7: { at: 44.5, L: 41, R: 53, waves: [['w', 'b'], ['d', 'w', 'b'], ['w', 'W', 'd']], foe: { w: 'divwarrior', d: 'div', b: 'bat' }, lead: 0xc8e8ff, flame: 0x8ad8ff, fa: 'نگهبانانِ کوه', title: 'The mountain guard', held: 'The path is open',
+    start: () => 'The fire draws <b>the White Div’s mountain guard</b>. Give the clubs room, then strike from behind.',
+    wave: (n, N) => n === N ? 'The captain of the guard comes!' : `The guard comes: ${n} of ${N}`, end: 'The guard is broken. Roast lamb lies by the fire. Beyond the mountains, the cave waits.',
     after: s => s.time.delayedCall(1500, () => { if (s.done) return; sfx('roar'); s.cam.shake(900, 0.008); }) }
 };
 const standAt = (s, a) => { const S = STANDS[cur]; return S && !rush && !s.siegeDone && Math.abs(a.x / TS - S.at) < 1 && s.player.x < (S.R - 1) * TS ? S : null; };
@@ -1212,7 +1213,7 @@ const LEVELS = {
     fires: [119], hearts: [100, 140],                              // one after the lightning, one at the cave's last fire
     update(s, k, time, p) {
       // lightning on the mountain path: a glow marks the ground, then the bolt falls
-      if (p.x < (CAVE7 - 4) * TS && !s.frozen) {
+      if (p.x < (CAVE7 - 4) * TS && !s.frozen && !s.siege) {
         s.boltT -= k;
         if (s.boltT <= 0) { s.boltT = 110 + Math.random() * 70; const x = p.x + Phaser.Math.Between(-60, 140); if (!nearRest(s, p.x) && !nearRest(s, x)) s.lightning(x); }
       }
@@ -2274,8 +2275,8 @@ class Play extends Phaser.Scene {
     const item = this.coins.getChildren().filter(c => c.active && !['trial', 'sfeather'].includes(c.kind) && Phaser.Geom.Rectangle.Contains(zone, c.x, c.y)).sort((a, b) => along(a) - along(b))[0];
     const target = [foe, boss].filter(Boolean).sort((a, b) => along(a) - along(b))[0] || item;   // a foe before any provision
     const ring = this.ringObj, rdx = ring ? ring.x - p.x : 0, rdy = ring ? p.y - ring.y : 0;
-    if (!target && ring && Math.abs(rdx) < 140 && rdx * dir > -24 && rdy > 40 && rdy < 240) {   // the ring: Rostam hauls himself up
-      const [, r] = RINGS[cur]; this.grapple = { x: ring.x, y: r * TS - 26, start: now + 120, until: now + 900 };
+    if (!foe && !boss && ring && Math.abs(rdx) < 140 && rdx * dir > -24 && rdy > 40 && rdy < 240) {   // the ring, before any provision: Rostam hauls himself up
+      const [, r] = RINGS[cur]; this.grapple = { x: ring.x, y: r * TS - (p.body.bottom - p.y) - 6, start: now + 120, until: now + 900 };   // released with his feet just above the ledge
       this.rope = { t0: now, out: 120, until: now + 700, target: ring, end: { x: ring.x, y: ring.y } }; trackGame('lasso_ring', { level_name: String(cur) }); return;
     }
     this.rope = { t0: now, out: 120, until: now + (target ? 520 : 300), target, end: { x: x0 + dir * reach, y: p.y - 8 } };
@@ -2504,13 +2505,13 @@ class Play extends Phaser.Scene {
     body.prev.copy(body.position); body.prevFrame.copy(body.position); p.setVelocity(0); p.play(tex);
   }
   rakhshGuards() {
-    const p = this.player, x = 87.5 * TS, floor = (this.groundAt(x) ?? 14) * TS, fall = this.textures.get('rostam-fall');
+    const p = this.player, x = 89.5 * TS, floor = (this.groundAt(x) ?? 14) * TS, fall = this.textures.get('rostam-fall');   // just inside the arena
     this.sleeper = this.add.sprite(x, floor, 'rostam-fall', Math.max(0, fall.frameTotal - 2)).setScale(p.scaleX, p.scaleY).setOrigin(0.5, 0.97).setDepth(3.5);
     this.snore = this.time.addEvent({ delay: 1100, loop: true, callback: () => {
       const z = this.add.text(x + 10, floor - 22, 'z', { fontFamily: 'Georgia, serif', fontSize: '9px', color: '#e8e0ff', stroke: '#181125', strokeThickness: 2, resolution: 4 }).setDepth(5);
       this.tweens.add({ targets: z, x: z.x + 8, y: z.y - 18, alpha: 0, duration: 1600, onComplete: () => z.destroy() });
     } });
-    this.become('rakhsh'); p.body.reset(x + 3 * TS, p.y); this.face = 1;
+    this.become('rakhsh'); p.body.reset(x + 5 * TS, p.y); this.face = 1;   // Rakhsh stands clear in front of him, facing the lion
     // the moment is told in the story's own painting before the player takes the reins
     cinema('guard1', () => {
       game.scene.resume('play'); playing = true;                   // a panel with its own ending leaves the resuming to us
@@ -2943,10 +2944,10 @@ class Play extends Phaser.Scene {
     if (pressed.farr) { pressed.farr = false; this.farrBlast(); }
     this.lassoCd = (this.lassoCd || 0) - k;
     if (pressed.lasso) { pressed.lasso = false; if (this.lassoCd <= 0 && hasLasso() && !this.mounted && !this.frozen && !(this.dodgeT > 0) && !(this.atk > 0)) this.throwLasso(); }
-    this.drawRope(time);
-    if (this.grapple && time >= this.grapple.start) {
+    this.drawRope(this.time.now);
+    if (this.grapple && this.time.now >= this.grapple.start) {
       const g = this.grapple, dx = g.x - p.x, dy = g.y - p.y, d = Math.hypot(dx, dy);
-      if (d < 12 || time > g.until || this.frozen) { this.grapple = null; p.setVelocity(dx * 2, -140); this.airJumps = 1; }
+      if (d < 12 || this.time.now > g.until || this.frozen) { this.grapple = null; p.setVelocity(dx * 2, -60); this.airJumps = 1; }
       else { const v = Math.min(500, d * 9); p.setVelocity(dx / d * v, dy / d * v); }
     }
     if (this.ringObj && !hasLasso() && !store.get('sh-toldRing') && Math.abs(p.x - this.ringObj.x) < 70) { store.set('sh-toldRing', '1'); toast('A golden ring hangs high above. Rostam will need a lasso to reach it.'); }
@@ -3007,7 +3008,7 @@ class Play extends Phaser.Scene {
     for (const f of this.foes.getChildren()) {
       if (!f.body.enable) continue;
       if (f.asleep) this.doze(f, k, p);
-      else if (f.lassoUntil > time) this.reel(f);
+      else if (f.lassoUntil > this.time.now) this.reel(f);
       else if (f.staggerUntil > time) { if (f.body.blocked.down) f.setVelocityX(0); if (!f.body.allowGravity) f.setVelocity(0); }
       else { f.staggerUntil = 0; f.staggerFx?.destroy(); f.staggerFx = null; FOES[f.kind].tick(this, f, k, p); }
       f.staggerFx?.setPosition(f.x, f.body.top - 4); f.aura?.setPosition(f.x, f.body.center.y);
