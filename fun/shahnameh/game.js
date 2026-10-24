@@ -1519,7 +1519,9 @@ const KEY = { mode: 'shur', root: 293.66 };
 // the recorded music: one track for the menus, one for the road, a darker one for the dragon's night and the
 // White Div's cave, and an orchestral action theme for every boss ("Battle Boss Fight Game Music" by alex-morgan,
 // Pixabay), cut to begin at full tilt without its slow opening. The volumes even out the tracks' own loudness.
-const TRACK_VOL = { menu: 1, road: 0.62, dark: 0.5, boss: 0.25 }, DARK = new Set([3, 7]);
+// the menu: Faramarz Payvar and Hossein Dehlavi's Concertino for Santur (Wikimedia Commons, public domain)
+const TRACK_FILE = { menu: 'menu-santur.mp3' };
+const TRACK_VOL = { menu: 0.75, road: 0.62, dark: 0.5, boss: 0.25 }, DARK = new Set([3, 7]);
 // the score: every labour has music of its own, in its own dastgah (see MUSIC.md), recorded as three stems of one loop
 // that play in lockstep and are mixed live. The bed (drone and pads) always sounds; the melody (santur, ney, kamancheh)
 // carries the road and steps back in a fight; the drums (daf, tombak) come in while foes are close. Each boss has a theme
@@ -1540,7 +1542,7 @@ const isScore = name => /^k\d$/.test(name || '');
 const trackVol = name => TRACK_VOL[name] ?? SCORE[name[1]]?.boss ?? 0.3;
 function track(name) {
   let t = A.tracks[name]; if (t) return t;
-  const el = new Audio(`assets/music/${name}.m4a?v=${V}`); el.loop = true; el.preload = 'auto';
+  const el = new Audio(`assets/music/${TRACK_FILE[name] || name + '.m4a'}?v=${V}`); el.loop = true; el.preload = 'auto';
   // through a gain node, so it can fade (iOS ignores an audio element's own volume)
   const g = A.ctx.createGain(); g.gain.value = 0; A.ctx.createMediaElementSource(el).connect(g).connect(A.bus);
   t = A.tracks[name] = { el, g };
@@ -1551,7 +1553,7 @@ function track(name) {
 // three layers as the stems: a tar drone (bed), the lead (melody: ney, santur or tar), and daf and tombak (drums), which
 // come in when foes close and grow heavier against the boss. Each tune: mode, root (Hz), dotted-quarter pace, lead, and
 // eight bars of 6/8 as [degree, eighths]. Long notes on the santur are played as tremolo.
-const LABOUR_SYNTH = true;
+const LABOUR_SYNTH = false;                                       // true plays the tunes below instead of the recordings
 const TUNES = {
   1: { mode: 'shur', root: 293.66, bpm: 62, lead: 'ney', bars: [[[4, 3], [3, 1], [2, 1], [3, 1]], [[4, 2], [5, 1], [4, 3]], [[3, 2], [2, 1], [1, 1], [2, 2]], [[0, 6]], [[2, 2], [3, 1], [4, 2], [5, 1]], [[7, 3], [5, 1], [4, 2]], [[3, 2], [2, 1], [1, 2], [2, 1]], [[0, 6]]] },
   2: { mode: 'shur', root: 220, bpm: 66, lead: 'ney', bars: [[[4, 4], [5, 1], [4, 1]], [[3, 2], [4, 1], [3, 1], [2, 2]], [[4, 3], [2, 1], [1, 2]], [[0, 6]], [[7, 2], [6, 1], [5, 1], [4, 2]], [[5, 3], [4, 1], [3, 2]], [[2, 2], [3, 1], [2, 1], [1, 2]], [[1, 3], [0, 3]]] },
@@ -1657,7 +1659,7 @@ const MENU_THEME = [
   [[[9, 2], [8, 1], [7, 1], [8, 1], [9, 1]], 5], [[[7, 3], [5, 1], [7, 1], [8, 1]], 3], [[[9, 2], [11, 1], [9, 1], [8, 1], [7, 1]], 4], [[[8, 6]], 4],
   [[[7, 2], [5, 1], [4, 1], [5, 1], [7, 1]], 0], [[[4, 3], [2, 1], [4, 1], [5, 1]], 3], [[[2, 2], [4, 1], [2, 1], [1, 1], [-1, 1]], 4], [[[0, 6]], 0]
 ];
-const MENU_SYNTH = true;                                           // false hands the menu back to the recorded menu.m4a
+const MENU_SYNTH = false;                                          // true plays the theme above instead of the menu recording
 const MENU_EIGHTH = 60 / 72 / 3, DAF68 = ['D', 0, 't', 'd', 't', 'j'];
 function menuBar(M, t) {
   const S = { mode: 'mahur', root: KEY.root }, [notes, bass] = MENU_THEME[M.bar % 16], e = MENU_EIGHTH, out = M.out;
@@ -4544,7 +4546,7 @@ const CREDITS = `<header class="credit-heading"><p class="credit-eyebrow">A jour
     <figure><img src="assets/ui/cast-arash.png?v=${V}" alt="Arash the Archer with his bow and arrow" width="1020" height="1542"><figcaption>Arash the Archer</figcaption></figure>
   </section>
   <div class="credit-details"><section><h3>Created by</h3><p>Arash Nassirpour</p><h3>Inspired by</h3><p>Ferdowsi’s <em>Shahnameh</em><br>The Book of Kings, c. 1010 CE</p></section>
-  <section><h3>Music &amp; sound</h3><p>Pixabay · alex-morgan<br>“Battle Boss Fight Game Music”<br>OpenGameArt · “100 CC0 SFX #2”</p></section>
+  <section><h3>Music &amp; sound</h3><p>Faramarz Payvar &amp; Hossein Dehlavi<br>“Concertino for Santur” (Wikimedia Commons, public domain)<br>Pixabay · alex-morgan<br>“Battle Boss Fight Game Music”<br>OpenGameArt · “100 CC0 SFX #2”</p></section>
   <section><h3>Voices</h3><p>ElevenLabs</p><h3>Game engine</h3><p>Phaser 3</p></section></div>
   <footer class="credit-footer">The road waits for the next hero.</footer>`;
 let cine = null;
