@@ -1524,10 +1524,11 @@ const KEY = { mode: 'shur', root: 293.66 };
 // Pixabay), cut to begin at full tilt without its slow opening. The volumes even out the tracks' own loudness.
 // real Persian recordings from Wikimedia Commons (credited in the end credits): the menu is Payvar and Dehlavi's
 // Concertino for Santur; the reeds and the garden have a solo santur, the desert a setar in Segah, and Olad's chase the
-// Sadeghi and Dehlavi concertino. The dragon's night, the Div camp and the cave keep their dark and war tracks
-const TRACK_FILE = { menu: 'menu-santur.mp3', 'santur-solo': 'santur-solo.mp3', 'setar-segah': 'setar-segah.mp3', 'santur-concertino': 'santur-concertino.mp3' };
-const ROAD = { 1: 'santur-solo', 2: 'setar-segah', 4: 'santur-solo', 5: 'santur-concertino' };
-const TRACK_VOL = { menu: 0.75, 'santur-solo': 0.8, 'setar-segah': 0.85, 'santur-concertino': 0.6, road: 0.62, dark: 0.5, boss: 0.25 }, DARK = new Set([3, 7]);
+// Sadeghi and Dehlavi concertino, and the dragon's night a duduk's lament. The Div camp and the cave keep their war and
+// dark tracks
+const TRACK_FILE = { menu: 'menu-santur.mp3', 'santur-solo': 'santur-solo.mp3', 'setar-segah': 'setar-segah.mp3', 'santur-concertino': 'santur-concertino.mp3', 'duduk-night': 'duduk-night.mp3' };
+const ROAD = { 1: 'santur-solo', 2: 'setar-segah', 3: 'duduk-night', 4: 'santur-solo', 5: 'santur-concertino' };
+const TRACK_VOL = { menu: 0.75, 'santur-solo': 0.8, 'setar-segah': 0.85, 'santur-concertino': 0.6, 'duduk-night': 0.7, road: 0.62, dark: 0.5, boss: 0.25 }, DARK = new Set([3, 7]);
 // the score: every labour has music of its own, in its own dastgah (see MUSIC.md), recorded as three stems of one loop
 // that play in lockstep and are mixed live. The bed (drone and pads) always sounds; the melody (santur, ney, kamancheh)
 // carries the road and steps back in a fight; the drums (daf, tombak) come in while foes are close. Each boss has a theme
@@ -4573,7 +4574,7 @@ const CREDITS = `<header class="credit-heading"><p class="credit-eyebrow">A jour
     <figure><img src="assets/ui/cast-arash.png?v=${V}" alt="Arash the Archer with his bow and arrow" width="1020" height="1542"><figcaption>Arash the Archer</figcaption></figure>
   </section>
   <div class="credit-details"><section><h3>Created by</h3><p>Arash Nassirpour</p><h3>Inspired by</h3><p>Ferdowsi’s <em>Shahnameh</em><br>The Book of Kings, c. 1010 CE</p></section>
-  <section><h3>Music &amp; sound</h3><p>Faramarz Payvar &amp; Hossein Dehlavi<br>“Concertino for Santur” (Wikimedia Commons, public domain)<br>Manoochehr Sadeghi &amp; Hossein Dehlavi<br>“Concertino for Santur” (CC BY-SA 3.0)<br>Mohammad R. Azadehfar, santur (CC BY-SA 4.0)<br>Leyth, “Segah” on setar (CC BY-SA 3.0)<br>Pixabay · alex-morgan<br>“Battle Boss Fight Game Music”<br>OpenGameArt · “100 CC0 SFX #2”</p></section>
+  <section><h3>Music &amp; sound</h3><p>Faramarz Payvar &amp; Hossein Dehlavi<br>“Concertino for Santur” (Wikimedia Commons, public domain)<br>Manoochehr Sadeghi &amp; Hossein Dehlavi<br>“Concertino for Santur” (CC BY-SA 3.0)<br>Mohammad R. Azadehfar, santur (CC BY-SA 4.0)<br>Leyth, “Segah” on setar (CC BY-SA 3.0)<br>I. Mazia, duduk (CC BY-SA 4.0)<br>Pixabay · alex-morgan<br>“Battle Boss Fight Game Music”<br>OpenGameArt · “100 CC0 SFX #2”</p></section>
   <section><h3>Voices</h3><p>ElevenLabs</p><h3>Game engine</h3><p>Phaser 3</p></section></div>
   <footer class="credit-footer">The road waits for the next hero.</footer>`;
 let cine = null;
