@@ -1821,7 +1821,7 @@ class Play extends Phaser.Scene {
   create() {
     // the scene object is reused from labour to labour: forget whatever the last one left behind
     for (const k of ['dark', 'lights', 'lamp', 'wall', 'wallR', 'stars', 'pose', 'swingFx', 'witch', 'unmasked', 'olad', 'rakhsh', 'dragonSeen', 'horde', 'hordeDone',
-      'gates', 'hordeBat', 'toldRock', 'toldFarr', 'toldOffer', 'atAltar', 'bossT', 'maceHit', 'toldIce', 'chargeWarn', 'toldCharge', 'shards', 'shardG', 'mark', 'markGlow', 'markOpen', 'bossHeart', 'bossHeartT', 'floorWarn', 'highWarn', 'regrow', 'drums', 'sky', 'flashA', 'intro', 'fgReeds', 'mound', 'swirl', 'qx', 'puddles', 'combo', 'comboT', 'heavy', 'heavyGo', 'chargeT', 'chargeFull', 'chargeGlow', 'dodgeT', 'dodgeCd', 'dodgeDir', 'whiteDown', 'ended', 'mounted', 'prayed', 'drank', 'toldImmune', 'toldDeflect', 'toldVenom', 'cage', 'kavus', 'stones', 'puzzle', 'springOpen', 'pool', 'victory', 'attackBuf', 'dodgeBuf', 'counterT', 'counterStrike', 'dodgeRewarded', 'trial', 'nearTrial', 'journey', 'siege', 'siegeDone', 'ally', 'phase2', 'streak', 'didDouble', 'rocks', 'rockT', 'poppies', 'drowsy', 'toldPoppy', 'oladAlly', 'rope', 'ropeG', 'lassoCd', 'toldBossLasso']) delete this[k];
+      'gates', 'hordeBat', 'toldRock', 'toldFarr', 'toldOffer', 'atAltar', 'bossT', 'maceHit', 'toldIce', 'chargeWarn', 'toldCharge', 'shards', 'shardG', 'mark', 'markGlow', 'markOpen', 'bossHeart', 'bossHeartT', 'floorWarn', 'highWarn', 'regrow', 'drums', 'sky', 'flashA', 'intro', 'fgReeds', 'mound', 'swirl', 'qx', 'puddles', 'combo', 'comboT', 'heavy', 'heavyGo', 'chargeT', 'chargeFull', 'chargeGlow', 'dodgeT', 'dodgeCd', 'dodgeDir', 'whiteDown', 'ended', 'mounted', 'prayed', 'drank', 'toldImmune', 'toldDeflect', 'toldVenom', 'cage', 'kavus', 'stones', 'puzzle', 'springOpen', 'pool', 'victory', 'attackBuf', 'dodgeBuf', 'counterT', 'counterStrike', 'dodgeRewarded', 'trial', 'nearTrial', 'journey', 'siege', 'siegeDone', 'ally', 'phase2', 'streak', 'didDouble', 'rocks', 'rockT', 'poppies', 'drowsy', 'toldPoppy', 'oladAlly', 'rope', 'ropeG', 'lassoCd', 'toldBossLasso', 'asRakhsh', 'sleeper', 'snore']) delete this[k];
     refreshLassoBtn();
     // turn loaded strips into square frames; anything missing falls back to placeholder art
     for (const k of ['decor-' + cur]) if (this.textures.exists(k) && this.textures.get(k).frameTotal < 3) { const t = this.textures.get(k), h = t.getSourceImage().height; for (let i = 0; i < Math.round(t.getSourceImage().width / h); i++) t.add(i, 0, i * h, 0, h, h); }
@@ -2357,7 +2357,28 @@ class Play extends Phaser.Scene {
     this.physics.add.collider(l, this.layer, null, onFloor); this.physics.add.collider(l, [this.wall, this.wallR]);
     sfx('roar'); this.roarRings(l);
     $('boss').classList.remove('hidden'); this.bossBar(); this.bossIntro(l);
+    // as Ferdowsi tells it: Rostam sleeps in the reeds and Rakhsh fights the lion alone. The player is Rakhsh until the
+    // lion is half beaten; then Rostam wakes and Rakhsh fights at his side. (The local test servers keep the old opening.)
+    if (!rush && (window.__prologue ?? !location.port.startsWith('877'))) return this.rakhshGuards();
     hint('<b>Roar:</b> it will charge, leap it so it hits the rocks. <b>Gold crouch:</b> a pounce. <b>Orange paw:</b> a swipe. Strike while the stars circle its head.');
+  }
+  // change who the player is, keeping his feet where they were: Rakhsh alone, or Rostam on foot
+  become(kind) {
+    const p = this.player, body = p.body, foot = body.bottom, tex = kind === 'rakhsh' ? 'rakhsh-gallop' : 'rostam-idle';
+    this.mounted = this.asRakhsh = kind === 'rakhsh'; this.atk = 0; this.pose = null; this.dodgeT = 0; this.chargeT = 0; this.chargeFull = false; this.chargeGlow?.destroy(); this.chargeGlow = null;
+    p.setTexture(tex, 0); this.fit(p, kind); body.updateFromGameObject(); p.y += foot - body.bottom; body.updateFromGameObject();
+    body.prev.copy(body.position); body.prevFrame.copy(body.position); p.setVelocity(0); p.play(tex);
+  }
+  rakhshGuards() {
+    const p = this.player, x = 87.5 * TS, floor = (this.groundAt(x) ?? 14) * TS, fall = this.textures.get('rostam-fall');
+    this.sleeper = this.add.sprite(x, floor, 'rostam-fall', Math.max(0, fall.frameTotal - 2)).setScale(p.scaleX, p.scaleY).setOrigin(0.5, 0.97).setDepth(3.5);
+    this.snore = this.time.addEvent({ delay: 1100, loop: true, callback: () => {
+      const z = this.add.text(x + 10, floor - 22, 'z', { fontFamily: 'Georgia, serif', fontSize: '9px', color: '#e8e0ff', stroke: '#181125', strokeThickness: 2, resolution: 4 }).setDepth(5);
+      this.tweens.add({ targets: z, x: z.x + 8, y: z.y - 18, alpha: 0, duration: 1600, onComplete: () => z.destroy() });
+    } });
+    this.become('rakhsh');
+    this.time.delayedCall(2700, () => { if (this.done || !this.asRakhsh) return; banner('رخش', 'Rakhsh stands guard');
+      hint(`<b>Rostam sleeps. You are Rakhsh.</b> Leap the lion's charge so it hits the rocks, then rear and strike with ${touch ? 'the strike button' : keyHTML('attack')} while it is dazed.`); });
   }
   // Keep frame-authored patterns in real time, independent of render/update frequency.
   bossStep() { return this.bossDelta ?? 1; }
@@ -2534,11 +2555,17 @@ class Play extends Phaser.Scene {
   // The legend's turn: at half strength the lion meets Rakhsh. He gallops in and stays. Every few seconds he rears and
   // charges the length of the arena, and a lion caught in his path is thrown down, dazed: lure it into the charge.
   lionMeetsRakhsh(l) {
+    let from = null;
+    if (this.asRakhsh) {                                   // the noise of the fight wakes Rostam, and he takes up his mace
+      from = this.player.x; this.become('rostam'); const s = this.sleeper;
+      this.player.body.reset(s.x, this.player.y); this.face = 1; s.destroy(); this.snore?.remove(); this.sleeper = this.snore = null;
+      this.fx('dust', this.player.x, this.player.body.bottom, { depth: 6 }); banner('رستم', 'Rostam wakes');
+    }
     this.phase2 = true; this.intro = true; this.frozen = true; this.player.setVelocityX(0);
     l.setVelocityX(0); l.clearTint(); l.play('lion-roar'); sfx('roar'); this.roarRings(l); this.cam.shake(500, 0.01);
     const y = 14 * TS + 2, post = this.cam.scrollX + 7 * TS;
     const r = this.ally = this.add.sprite(this.cam.scrollX - 70, y, 'rakhsh-gallop', 0).setOrigin(0.5, 0.97).setDepth(3.6).play('rakhsh-gallop');   // behind the fight; his full size, as when he rides to the rescue in the other labours
-    r.post = post; r.state = 'enter'; r.next = 0;
+    r.post = post; r.state = 'enter'; r.next = 0; if (from != null) r.x = from;
     this.time.delayedCall(600, () => { sfx('neigh'); banner('رخش', 'Rakhsh comes to fight'); });
     const dust = this.time.addEvent({ delay: 110, loop: true, callback: () => r.active && r.state !== 'post' && r.state !== 'rear' && this.fx('dust', r.x - (r.flipX ? -26 : 26), y - 1, { depth: 6, flip: r.flipX }) });
     r.once('destroy', () => dust.remove());
@@ -2723,7 +2750,7 @@ class Play extends Phaser.Scene {
       this.heavy = this.combo >= 3 ? 'finish' : null; if (this.heavy) this.combo = 0;
       this.atk = this.heavy ? 18 : 16; this.cool = this.mounted ? 26 : this.heavy ? 30 : 22; sfx('swing'); this.hitDone = new Set();
       if (this.heavy) { this.pose = 'rostam-heavy'; p.anims.stop(); p.play({ key: 'rostam-heavy', startFrame: 4, frameRate: 26 }); p.once('animationcomplete', () => { if (this.pose === 'rostam-heavy') this.pose = null; }); }
-      else { if (this.pose === 'rostam-heavy') this.pose = null; p.play(this.mounted ? 'ride-strike' : 'rostam-attack', true); }
+      else { if (this.pose === 'rostam-heavy') this.pose = null; p.play(this.mounted ? (this.asRakhsh ? 'rakhsh-rear' : 'ride-strike') : 'rostam-attack', true); }
       this.swingFx = this.heavy ? this.fx('arc', p.x + this.face * 12, p.y - 10, { flip: this.face < 0, depth: 7 }) : this.fx('swing', p.x + this.face * 6, p.y - 2, { flip: this.face < 0, depth: 6 });
       this.chargeT = 0;
     }
@@ -2810,10 +2837,10 @@ class Play extends Phaser.Scene {
     if (tile && tile.index % 4 === 3) { this.hurt(tile.pixelX + 8, false, 'terrain'); p.setVelocityY(-300); }
     if (p.y > ROWS * TS + 60) { this.inv = 0; this.hurt(p.x, false, 'terrain'); if (this.hp > 0) { p.setPosition(this.respawn.x, this.respawn.y - 4 - 0.47 * p.displayHeight); p.setVelocity(0); this.inv = 80; } }
     // animation
-    const M = this.mounted, swinging = p.anims.isPlaying && /attack|strike/.test(p.anims.currentAnim?.key || '');
-    const anim = this.pose || (this.atk > 0 || (M && swinging) ? (M ? 'ride-strike' : 'rostam-attack') : M ? 'ride-gallop' : this.inv > 70 ? 'rostam-hurt' : !ground ? 'rostam-jump' : Math.abs(b.velocity.x) > 15 ? 'rostam-run' : 'rostam-idle');
-    if (p.anims.currentAnim?.key !== anim && !(/attack|strike/.test(anim) && p.anims.isPlaying)) p.play(anim);
-    if (anim === 'ride-gallop') { if (ground && Math.abs(b.velocity.x) > 15) p.anims.resume(); else { p.anims.pause(); if (!ground) p.setFrame(2); } }
+    const M = this.mounted, swinging = p.anims.isPlaying && /attack|strike|rear/.test(p.anims.currentAnim?.key || ''), RS = this.asRakhsh ? 'rakhsh-rear' : 'ride-strike', RG = this.asRakhsh ? 'rakhsh-gallop' : 'ride-gallop';
+    const anim = this.pose || (this.atk > 0 || (M && swinging) ? (M ? RS : 'rostam-attack') : M ? RG : this.inv > 70 ? 'rostam-hurt' : !ground ? 'rostam-jump' : Math.abs(b.velocity.x) > 15 ? 'rostam-run' : 'rostam-idle');
+    if (p.anims.currentAnim?.key !== anim && !(/attack|strike|rear/.test(anim) && p.anims.isPlaying)) p.play(anim);
+    if (anim === RG) { if (ground && Math.abs(b.velocity.x) > 15) p.anims.resume(); else { p.anims.pause(); if (!ground) p.setFrame(2); } }
     if (anim === 'rostam-jump') p.setFrame(b.velocity.y < 0 ? 0 : 1);
     p.setFlipX(this.face < 0);
     this.cam.setFollowOffset(W / 2 - this.face * 30, H / 2);
