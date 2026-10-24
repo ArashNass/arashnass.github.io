@@ -43,7 +43,10 @@ const ART = {
   // Khan VII
   'whitediv-walk': 'k7/whitediv-walk.png', 'whitediv-smash': 'k7/whitediv-smash.png', 'whitediv-throw': 'k7/whitediv-throw.png', 'whitediv-die': 'k7/whitediv-die.png', 'kavus-sight': 'k7/kavus-sight.png'
 };
-const FPS = { 'queen-walk': 10, 'queen-sting': 14, 'queen-spit': 12, 'queen-die': 7, 'rostam-dodge': 22, 'rostam-heavy': 14, 'simurgh-fly': 9, 'lion-die': 6, 'dragon-die': 6, 'hag-die': 6, 'rostam-idle': 5, 'rostam-run': 14, 'rostam-jump': 6, 'rostam-attack': 24, 'rostam-hurt': 10, 'lion-walk': 9, 'lion-run': 14, 'lion-roar': 6, 'jackal-run': 12, 'div-hop': 8, 'coin-spin': 8, 'fire-burn': 10,
+Object.assign(ART, { 'rostam-sleep': 'rostam-sleep.png', 'rostam-rise': 'rostam-rise.png', 'div-sleep': 'div-sleep.png' });
+// Painted replacements retain the original texture dimensions and collision footprints.
+const PAINTED = ['bg-reeds', 'bg-hills', 'bg-mist', 'fg-reeds', 'knife', 'arrow', 'fireball', 'icicle', 'icespike', 'boulder'];
+const FPS = { 'rostam-sleep': 2, 'rostam-rise': 6, 'div-sleep': 2, 'queen-walk': 10, 'queen-sting': 14, 'queen-spit': 12, 'queen-die': 7, 'rostam-dodge': 22, 'rostam-heavy': 14, 'simurgh-fly': 9, 'lion-die': 6, 'dragon-die': 6, 'hag-die': 6, 'rostam-idle': 5, 'rostam-run': 14, 'rostam-jump': 6, 'rostam-attack': 24, 'rostam-hurt': 10, 'lion-walk': 9, 'lion-run': 14, 'lion-roar': 6, 'jackal-run': 12, 'div-hop': 8, 'coin-spin': 8, 'fire-burn': 10,
   'scorpion-crawl': 10, 'vulture-fly': 10, 'ram-walk': 8, 'rostam-drink': 6, 'rostam-fall': 7, 'rostam-victory': 8, 'rostam-anoint': 6, 'ride-gallop': 12, 'ride-strike': 18, 'ride-rear': 11,
   'dragon-move': 7, 'dragon-fire': 9, 'rakhsh-gallop': 12, 'rakhsh-rear': 9, 'bat-fly': 14,
   'serpent': 8, 'hag-cast': 10, 'beauty-idle': 4,
@@ -1274,7 +1277,23 @@ function makeTextures(scene) {
     T.addCanvas('tiles', c);
   }
   // night parallax: the far sky and the ruins are PixelLab paintings (loaded); these nearer layers tile, so they are drawn here
-  const layer = (key, w, h, draw) => { if (T.exists(key)) return; const [c, x] = canvas(w, h); draw(x, w, h); T.addCanvas(key, c); };
+  const layer = (key, w, h, draw) => {
+    if (T.exists(key)) return;
+    const [c, x] = canvas(w, h);
+    if (T.exists('painted-' + key)) {
+      const im = T.get('painted-' + key).getSourceImage();
+      if (key.startsWith('bg-') || key === 'fg-reeds') x.drawImage(im, 0, 0, w, h);
+      else {
+        // Trim transparent atlas padding before fitting the original projectile footprint.
+        const [tmp, cx] = canvas(im.width, im.height); cx.drawImage(im, 0, 0);
+        const d = cx.getImageData(0, 0, im.width, im.height).data;
+        let l = im.width, t = im.height, r = 0, b = 0;
+        for (let y = 0; y < im.height; y++) for (let xx = 0; xx < im.width; xx++) if (d[(y * im.width + xx) * 4 + 3] > 0) { l = Math.min(l, xx); t = Math.min(t, y); r = Math.max(r, xx + 1); b = Math.max(b, y + 1); }
+        if (r > l && b > t) x.drawImage(im, l, t, r - l, b - t, 0, 0, w, h); else draw(x, w, h);
+      }
+    } else draw(x, w, h);
+    T.addCanvas(key, c);
+  };
   const wrap = (w, f) => { f(0); f(-w); f(w); };          // draw a shape three times so the layer tiles seamlessly
   const hash = i => { const s = Math.sin(i * 127.1) * 43758.5453; return s - Math.floor(s); };
   layer('bg-mist', 512, H, (x, w) => {                     // drifting bands of valley fog
@@ -1893,6 +1912,8 @@ class Play extends Phaser.Scene {
     L.off('loaderror', this.essentialLoadError, this);
     L.on('loaderror', this.essentialLoadError, this);
     for (const [k, f] of Object.entries(ART)) if (f) L.image(k, 'assets/' + f + q);
+    for (const k of PAINTED) L.image('painted-' + k, `assets/${k}.png${q}`);
+    L.image('lasso-ring', 'assets/lasso-ring.png' + q);
     for (const [k, f] of Object.entries(FX)) L.spritesheet('fx-' + k, `assets/fx/${k}.png${q}`, { frameWidth: f.w, frameHeight: f.h });
     L.spritesheet('food', 'assets/food.png' + q, { frameWidth: 27, frameHeight: 27 });
     L.spritesheet('props', 'assets/k2/props.png' + q, { frameWidth: 27, frameHeight: 27 });
@@ -1916,7 +1937,7 @@ class Play extends Phaser.Scene {
     makeTextures(this);
     for (const k of Object.keys(FPS)) {
       const t = this.textures.get(k), n = t.frameTotal - 1;
-      if (!this.anims.exists(k)) this.anims.create({ key: k, frames: this.anims.generateFrameNumbers(k, { start: 0, end: Math.max(0, n - 1) }), frameRate: FPS[k], repeat: /attack|hurt|roar|jump|thrust|slash|kneel|smash|throw|fire|rear|sight|strike|sting|die|leap|heavy|dodge|fall|victory|anoint/.test(k) ? 0 : -1 });
+      if (!this.anims.exists(k)) this.anims.create({ key: k, frames: this.anims.generateFrameNumbers(k, { start: 0, end: Math.max(0, n - 1) }), frameRate: FPS[k], repeat: /attack|hurt|roar|jump|thrust|slash|kneel|smash|throw|fire|rear|sight|strike|sting|die|leap|heavy|dodge|fall|rise|victory|anoint/.test(k) ? 0 : -1 });
     }
     const lv = this.lv, map = lv.map(), C = map[0].length;
     if (LIVE && !rush) hangRing(map);
@@ -2037,7 +2058,7 @@ class Play extends Phaser.Scene {
     setupEncounters(this);
     if (LIVE && !rush && RINGS[cur]) {
       const [c, r] = RINGS[cur], x = c * TS + TS / 2, y = (r - 2) * TS + 6;
-      const ring = this.ringObj = this.add.graphics({ x, y }).setDepth(3); ring.lineStyle(2, 0xe8c25a, 1).strokeCircle(0, 0, 6).lineStyle(1, 0xfff0b0, 0.8).strokeCircle(0, 0, 3);
+      const ring = this.ringObj = this.add.image(x, y, 'lasso-ring').setOrigin(0.5, 0.62).setScale(0.65).setDepth(3);
       const glow = this.add.image(x, y, 'glow').setScale(0.5).setTint(0xffd27a).setBlendMode(Phaser.BlendModes.ADD).setAlpha(0.5).setDepth(2.9);
       this.tweens.add({ targets: glow, alpha: 0.2, yoyo: true, repeat: -1, duration: 1100, ease: 'Sine.easeInOut' }); if (this.dark) this.light(glow, 0.6);
     }
@@ -2362,7 +2383,9 @@ class Play extends Phaser.Scene {
     for (const [c, kind] of [[137, 'div'], [142, 'divwarrior']]) this.spawnFoe(kind, c * TS + TS / 2, 14 * TS);
     this.sleepers = this.foes.getChildren().filter(f => f.body.allowGravity && f.x > 133 * TS && f.x < 146 * TS);
     for (const f of this.sleepers) {
-      f.asleep = true; f.anims.pause(); f.setTint(0x9098c0); const harmless = f.harmless; f.harmless = () => f.asleep || !!harmless?.();
+      f.asleep = true;
+      if (f.kind === 'div') f.play('div-sleep'); else { f.anims.pause(); f.setTint(0x9098c0); }
+      const harmless = f.harmless; f.harmless = () => f.asleep || !!harmless?.();
     }
     this.time.addEvent({ delay: 1400, loop: true, callback: () => { for (const f of this.sleepers) if (f.active && f.asleep) {
       const z = this.add.text(f.x + 8, f.body.top - 4, 'z', { fontFamily: 'Georgia, serif', fontSize: '9px', color: '#d8e0ff', stroke: '#181125', strokeThickness: 2, resolution: 4 }).setDepth(5);
@@ -2376,7 +2399,7 @@ class Play extends Phaser.Scene {
     if (f.stir > 75) this.wake(f);
     if (!this.toldSleep && Math.abs(p.x - f.x) < 140) { this.toldSleep = true; toast('Olad’s counsel: in the noon heat the Divs sleep. Slip past, or strike a sleeper for a double blow.'); }
   }
-  wake(f) { if (!f.asleep) return; f.asleep = false; f.stir = 0; f.clearTint(); f.anims.resume(); f.cool = Math.max(f.cool || 0, 30); }
+  wake(f) { if (!f.asleep) return; f.asleep = false; f.stir = 0; f.clearTint(); f.anims.resume(); if (f.kind === 'div') f.play('div-hop'); f.cool = Math.max(f.cool || 0, 30); }
   // a slain foe flashes white, then bursts into its own pixels, which fly apart as embers and fade
   slay(f) {
     f.setTintFill(0xffffff); this.cam.shake(140, 0.007);
@@ -2508,9 +2531,9 @@ class Play extends Phaser.Scene {
     this.cam.stopFollow(); this.cam.fadeOut(500, 0, 0, 0);
     at(520, () => {
       this.cam.setScroll(Math.min(this.levelW - W, x0), this.cam.scrollY);
-      const x = 90.5 * TS, fall = this.textures.get('rostam-fall');
+      const x = 90.5 * TS;
       p.setVisible(false); p.body.reset(x, p.y);
-      this.sleeper = this.add.sprite(x, 14 * TS + 1, 'rostam-fall', Math.max(0, fall.frameTotal - 2)).setScale(p.scaleX).setOrigin(0.5, 0.97).setDepth(3.5);
+      this.sleeper = this.add.sprite(x, 14 * TS + 1, 'rostam-sleep', 0).setScale(p.scaleX).setOrigin(0.5, 0.97).setDepth(3.5).play('rostam-sleep');
       this.guard = this.add.sprite(95 * TS, 14 * TS + 2, 'rakhsh-gallop', 0).setOrigin(0.5, 0.97).setScale(RAKHSH1).setDepth(3.6);
       this.snore = this.time.addEvent({ delay: 1100, loop: true, callback: () => {
         const z = this.add.text(x + 10, 14 * TS - 22, 'z', { fontFamily: 'Georgia, serif', fontSize: '9px', color: '#e8e0ff', stroke: '#181125', strokeThickness: 2, resolution: 4 }).setDepth(5);
@@ -2536,7 +2559,7 @@ class Play extends Phaser.Scene {
     at(5200, () => { L.play('lion-roar'); sfx('roar'); g.anims.stop(); g.setFrame(0); });
     // the noise wakes Rostam
     at(6300, () => {
-      this.snore?.remove(); this.snore = null; s.playReverse('rostam-fall'); this.fx('dust', s.x, 14 * TS, { depth: 6 });
+      this.snore?.remove(); this.snore = null; s.play('rostam-rise'); this.fx('dust', s.x, 14 * TS, { depth: 6 });
       banner('رستم', 'Rostam wakes');
     });
     const finish = () => {
@@ -4267,10 +4290,10 @@ function showGuide(i) {
   gpg = (i + GUIDE.length) % GUIDE.length; const g = GUIDE[gpg];
   $('gtabs').innerHTML = GUIDE.map((x, j) => `<button class="${j === gpg ? 'sel' : ''}" data-g="${j}" aria-label="${x.kick || 'Khan ' + ROMAN[x.k]}: ${x.name}">${x.tab || ROMAN[x.k]}</button>`).join('');
   $('gtabs').querySelectorAll('button').forEach(b => b.onclick = () => showGuide(+b.dataset.g));
-  $('gleaf').innerHTML = `<div class="gcard"><div class="gport k${g.k}">${mini(g.art, 180)}</div>
+  $('gleaf').innerHTML = `<div class="gcard"><div class="gport k${g.k}">${g.k === 1 || g.k === 3 ? `<img class="foePortrait" src="assets/ui/port/${g.k === 1 ? 'lion' : 'dragon'}.png?v=${V}" alt="${g.name}">` : mini(g.art, 180)}</div>
     <div class="gtext"><div class="fa">${g.fa}</div><h2>${g.name}</h2><p class="kick">${g.kick || `Khan ${ROMAN[g.k]} &middot; ${NAMES[g.k][0]}`}</p><p class="gtale">${g.tale}</p></div></div>
     <div class="ghow"><h3>${g.k ? 'How to beat it' : 'How they help'} ${g.k ? '<span class="gkey"><i class="kz"></i>stars: dazed, strike now</span>' : ''}</h3><ol>${g.how.map(h => `<li>${h}</li>`).join('')}</ol></div>
-    <h3 class="galso">${g.k ? 'Also on this road' : 'Who they are'}</h3><div class="gmore">${g.more.map(([src, n, h, name, tip]) => `<div>${mini([src, n, h], 64)}<p><b>${name}</b>${tip}</p></div>`).join('')}</div>`;
+    <h3 class="galso">${g.k ? 'Also on this road' : 'Who they are'}</h3><div class="gmore">${g.more.map(([src, n, h, name, tip]) => `<div>${name === 'Rakhsh' ? `<img class="foePortrait small" src="assets/ui/port/rakhsh.png?v=${V}" alt="Rakhsh">` : mini([src, n, h], 64)}<p><b>${name}</b>${tip}</p></div>`).join('')}</div>`;
   refreshControlLabels($('gleaf')); $('gleaf').scrollTop = 0; animateMinis();
 }
 function openGuide(n) {
@@ -4560,10 +4583,10 @@ const CINE = {
   intro4: [["khan4-intro", "زن جادوگر", "In a green garden, Rostam found a feast and a beautiful woman offering wine. After hunger and hardship, the welcome seemed a blessing. Yet beneath the sweetness lay an enchantment."]],
   outro4: [["khan4-outro", "زن جادوگر", "When Rostam spoke the name of God, the disguise broke and the sorceress stood revealed. He overcame her enchantment and left the false garden behind. The road led deeper into Mazandaran."]],
   intro5: [["khan5-intro", "اولاد", "Beyond the wilderness lay fields guarded by Olad and his men. Rostam’s passage brought a challenge, and the warden rode out to confront the stranger. The road to the captive king would not open peacefully."]],
-  outro5: [["khan5-outro", "اولاد", "Rostam defeated Olad and took him captive. In return for his life, Olad promised to show the way to the demons and their strongholds. Mercy had won the hero a guide for the trials ahead."]],
+  outro5: [["khan5-lasso", "کمند", "Rostam cast his lasso around Olad and spared his life. In return, the warden promised to guide him through Mazandaran."], ["khan5-outro", "اولاد", "Rostam defeated Olad and took him captive. In return for his life, Olad promised to show the way to the demons and their strongholds. Mercy had won the hero a guide for the trials ahead."]],
   intro6: [["khan6-intro", "ارژنگ دیو", "Olad led Rostam to the camp of Arzhang, a mighty demon chief. Fires glowed between the tents, and warriors gathered beneath dark banners. Beyond this camp lay the captive king and the final terror."]],
   outro6: [["khan6-outro", "ارژنگ دیو", "Arzhang fell, and the demon host scattered. Rostam’s road opened at last toward Kay Kavus. But the king’s sight could be restored only after the White Div was overcome; the greatest labour remained."]],
-  intro7: [["khan7-intro", "دیو سپید", "Beyond the mountains waited a cavern filled with darkness. Inside lay the White Div, whose sorcery had blinded Kay Kavus and his army. Rostam entered alone, knowing that the king’s hope rested on this final battle."]],
+  intro7: [["khan7-noon", "نیمروز", "At blazing noon the Div guards slept. Olad guided Rostam to the cavern; beyond the dying fire, the hero would face the White Div alone."], ["khan7-intro", "دیو سپید", "Beyond the mountains waited a cavern filled with darkness. Inside lay the White Div, whose sorcery had blinded Kay Kavus and his army. Rostam entered alone, knowing that the king’s hope rested on this final battle."]],
   opening: [
     ['open1', 'شاهنامه', 'Listen… and I will tell you a tale from the Book of Kings. Long ago, Kay Kavus sat on the throne of Iran: a king as proud as he was easily flattered. One night a minstrel came to his court and sang of Mazandaran. Of gardens that never fade. Of air sweet with roses. Of treasure without end. The king listened, and he wanted it all. But the minstrel… was a Div in disguise.'],
     ['open2', 'دیوِ سپید', 'Deaf to the counsel of his wisest men, the king marched north. And in a single night, the White Div rose. He called down a storm of sorcery, of hail and darkness and stone. When at last it lifted, Kay Kavus and all his army were blind. And the Divs led them away in chains.'],
@@ -4733,7 +4756,7 @@ $('cineNext').onclick = cineNext; $('cineSkip').onclick = cineEnd;
 $('s-cine').querySelector('.cdots').onclick = e => { const k = +e.target.dataset?.k, c = cine; if (!c || isNaN(k) || c.credits) return; hush(); clearInterval(c.typing); c.typing = 0; clearTimeout(c.auto); c.i = k; cineShow(k); };
 // the tale in pictures: every picture of the prologue and the ending, to watch from wherever the player likes. The
 // ending stays sealed until the White Div has fallen
-const CLIP_NAMES = { open1: 'The minstrel at court', open2: 'The White Div’s storm', open3: 'The messenger', open4: 'Two roads', open5: 'Rostam and Rakhsh', open6: 'Riding out',
+const CLIP_NAMES = { 'khan5-lasso': 'Olad is bound — The lasso won', 'khan7-noon': 'At noon — The sleeping guards', open1: 'The minstrel at court', open2: 'The White Div’s storm', open3: 'The messenger', open4: 'Two roads', open5: 'Rostam and Rakhsh', open6: 'Riding out',
   'khan7-outro': 'The White Div — The labour completed',
   end1: 'The king sees again', end2: 'The army set free', end3: 'The hero of the world',
   "khan1-intro": "The Lion of the Reeds — The road ahead",
