@@ -9,7 +9,7 @@ try{
  let T=performance.now()+1e6,dt=1000/60;const clocks=new Map();
  const step=(n=1)=>{const tw=S.scene().tweens;if(!clocks.has(tw)){clocks.set(tw,tw.getDelta);tw.getDelta=()=>dt;}for(let i=0;i<n;i++){T+=dt;S.game.headlessStep(T,dt);}};
  const keys=()=>{for(const k in S.keys)S.keys[k]=false;for(const k in S.pressed)S.pressed[k]=false;};
- const load=async(n,rise=false)=>{keys();const old=S.scene().player,first=!S.scene().started&&S.scene().lv===S.LEVELS[n];S.begin(n,rise,false,true);for(let i=0;i<500;i++){step(2);await sleep(3);if(S.scene().player?.active&&(first||S.scene().player!==old)&&S.scene().lv===S.LEVELS[n])break;}const sc=S.scene();sc.drawDark=()=>{};sc.hp=sc.maxHp=999;sc.inv=99999;sc.water=100;sc.hordeDone=true;return sc;};
+ const load=async(n,rise=false)=>{keys();const old=S.scene().player,first=!S.scene().started&&S.scene().lv===S.LEVELS[n];S.begin(n,rise,false,true);for(let i=0;i<500;i++){step(2);await sleep(3);if(S.scene().player?.active&&(first||S.scene().player!==old)&&S.scene().lv===S.LEVELS[n])break;}const sc=S.scene();sc.drawDark=()=>{};sc.hp=sc.maxHp=999;sc.inv=99999;sc.water=100;sc.hordeDone=true;sc.siegeDone=true;return sc;};
  const place=(s,c,r)=>{const x=c*16,foot=(r??s.groundAt(x)??14)*16;s.player.body.reset(x,foot-1-.47*s.player.displayHeight);s.player.body.updateFromGameObject();s.player.body.prev.copy(s.player.body.position);s.player.body.prevFrame.copy(s.player.body.position);s.player.setVelocity(0);};
  {const sc=await load(1);sc.foes.clear(true,true);place(sc,8);step(120);
   check('First labour has no pursuit: the lion only watches until the fire has held',!sc.journey?.hunter&&sc.journey?.phase==='approach'&&!sc.journey?.lion);

@@ -82,6 +82,9 @@ const PROPS = ['skin', 'jug', 'dates', 'flask'];
 const LABOURS = 7;
 let cur = Math.min(LABOURS, Math.max(1, +(store.get('sh-cur') || 1)));
 const unlocked = () => Math.min(LABOURS, Math.max(1, +(store.get('sh-unlocked') || 1)));
+// Rostam's lasso is won in the fifth labour, when Olad is bound; from then on it goes with him into every labour
+const hasLasso = () => store.get('sh-lasso') === '1' || unlocked() >= 6;
+const refreshLassoBtn = () => document.querySelector('.tb.lasso')?.classList.toggle('hidden', !hasLasso());
 const ROMAN = ['', 'I', 'II', 'III', 'IV', 'V', 'VI', 'VII'];
 
 const W = 480, H = 270, TS = 16, ROWS = 17;
@@ -381,8 +384,8 @@ const ROUTE_CUES = {
   7: [[27,'<b>A mountain guard.</b> Give its club room, then strike from behind.'],[41,'<b>A sheltered fire.</b> Rest here; lightning avoids the sacred fires.'],[57,'<b>Broken mountain paths.</b> Fight on solid ground before taking the next jump.'],[89,'<b>The next fire is near.</b> Draw the blue Div away from the crossing.'],[114,'<b>The cave mouth.</b> Pass the guard before following the bat into the dark.'],[132,'<b>A final thorn crossing.</b> Land first, then face the last guard.'],[142,'<b>The final fire.</b> The White Div waits beyond the darkness.']]
 };
 function routeCue(s, p) {
-  if (s.bossOn || s.horde || s.frozen || s.done || (cur === 2 && p.x >= 112 * TS)) return;
-  const cues = ROUTE_CUES[cur]; if (!cues) return;
+  if (s.bossOn || s.horde || s.siege || s.frozen || s.done || (cur === 2 && p.x >= 112 * TS)) return;
+  const cues = ROUTE_CUES[cur]; if (!cues || legend() || starsOf()[cur]) return;   // a guide for the first walk only
   let beat = -1; for (let i = 0; i < cues.length; i++) if (p.x >= cues[i][0] * TS) beat = i;
   if (beat > s.routeBeat) { s.routeBeat = beat; hint(cues[beat][1]); }
 }
@@ -410,9 +413,11 @@ const groundFoe = f => f.active && f.body?.enable && f.body.allowGravity;
 const foeBusy = f => f.staggerUntil > f.scene.time.now || f.smash || f.cast || f.sting || f.thrust || f.leap || f.js === 'crouch' || f.dw > 0 ||
   (f.anims.isPlaying && /strike|smash|thrust|sting|throw|leap/.test(f.anims.currentAnim?.key || ''));
 const attackRole = f => ['bat', 'vulture', 'firediv'].includes(f.kind) ? 'ranged' : 'melee';
+// nearby foes of a kind take turns to attack. On the legend's road two may come at once, a breath apart
 function reserveAttack(s, f) {
   const role = attackRole(f), nearby = s.foes.getChildren().filter(o => o !== f && o.active && o.body.enable && attackRole(o) === role && Math.abs(o.x - f.x) < 125);
-  if (nearby.some(o => foeBusy(o) || ['warn', 'dive'].includes(o.state) || s.time.now - (o.attackAt ?? -Infinity) < 360)) return false;
+  const busy = o => foeBusy(o) || ['warn', 'dive'].includes(o.state), [most, gap] = legend() ? [2, 200] : [1, 360];
+  if (nearby.filter(busy).length >= most || nearby.some(o => s.time.now - (o.attackAt ?? -Infinity) < gap)) return false;
   f.attackAt = s.time.now; f.attackId = (f.attackId || 0) + 1; return true;
 }
 function crowded(s, f, dir) {
@@ -734,61 +739,86 @@ function flyer(tex, { range, dive, rest, offY, speed = 0.012 }) {
 /* --------------------------- labours --------------------------- */
 // Each labour: its map, its backdrop and how the backdrop scrolls, what 'c' becomes, extra map
 // characters, and hooks that run on create and every frame. Shared systems live in the scene.
-// Khan I: the fire in the middle of the reeds draws the lion's pack. Burning reeds close the clearing on both sides and
-// three small waves come at Rostam: jackals, then a Div with them, then the pack's leader. J is that leader, larger and
-// three blows to kill.
-const SIEGE1 = [['j', 'j'], ['j', 'd', 'j'], ['d', 'J', 'j']];
-function reedSiege(s) {
-  const L = 40 * TS, R = 60 * TS;   // twenty tiles of open ground: room for the pack to circle
+// The stands at the fire: lighting one sacred fire in a labour draws its foes. Flames close the clearing on both sides
+// and three small waves come at Rostam, the last with a leader, larger and harder to kill (a capital letter). Khan I's
+// pack in the reeds came first; the garden's serpents, Olad's ambush and the waking cave follow its pattern.
+// at: the fire's column; L, R: the clearing's edges (tile columns); foe: the wave letters
+const STANDS = {
+  1: { at: 52.5, L: 40, R: 60, waves: [['j', 'j'], ['j', 'd', 'j'], ['d', 'J', 'j']], foe: { j: 'jackal', d: 'div' }, lead: 0xd9a46a, fa: 'آتشِ نیستان', title: 'Hold the fire', held: 'The fire holds',
+    start: () => `The pack closes on the fire! When a jackal <b>drops its head</b>, ${touch ? 'dodge' : keyHTML('dodge') + ' dodge'} or jump the lunge, then strike while it pants.`,
+    wave: (n, N) => n === N ? 'The pack leader comes for the fire!' : `The pack comes: ${n} of ${N}`, end: 'The pack scatters. Roast lamb lies by the fire.',
+    after: s => s.time.delayedCall(1500, () => { if (s.done) return; sfx('roar'); s.cam.shake(700, 0.006); toast('Far off in the reeds, the lion answers.'); }) },
+  4: { at: 92.5, L: 91, R: 110, waves: [['n', 'b'], ['n', 'b', 'n'], ['b', 'N', 'n']], foe: { n: 'serpent', b: 'bat' }, lead: 0xb0ff80, flame: 0x9aff60, fa: 'باغِ جادو', title: 'The garden wakes', held: 'The garden is still',
+    start: () => 'The fire wakes the garden: <b>its serpents and bats come for the light</b>. Strike a serpent as it rears; swing as a bat swoops low.',
+    wave: (n, N) => n === N ? 'The witch’s own serpent comes for the fire!' : `The garden stirs: ${n} of ${N}`, end: 'The garden falls quiet. Roast lamb lies by the fire.' },
+  5: { at: 52.5, L: 50, R: 63, waves: [['q', 'j'], ['j', 'q', 'j'], ['q', 'Q', 'j']], foe: { q: 'spearman', j: 'jackal' }, lead: 0xffc070, fa: 'کمینِ اولاد', title: 'Olad’s ambush', held: 'The ambush is broken',
+    start: () => 'An ambush! <b>Olad’s men close on the fire.</b> Draw the jackals away from the spears, and close in right after a thrust.',
+    wave: (n, N) => n === N ? 'Olad’s captain leads the last charge!' : `Olad’s men: ${n} of ${N}`, end: 'The ambush breaks. Roast lamb lies by the fire. Olad will know you are coming.' },
+  7: { at: 119.5, L: 117, R: 132, waves: [['w', 'b'], ['d', 'w', 'b'], ['w', 'W', 'd']], foe: { w: 'divwarrior', d: 'div', b: 'bat' }, lead: 0xc8e8ff, flame: 0x8ad8ff, fa: 'بیداریِ غار', title: 'The cave wakes', held: 'The cave falls silent',
+    start: () => 'The fire wakes the cave: <b>the White Div’s guard comes for the light</b>. Give the clubs room, then strike from behind.',
+    wave: (n, N) => n === N ? 'The White Div’s own guard comes!' : `The cave wakes: ${n} of ${N}`, end: 'The guard is broken. Roast lamb lies by the fire. Deep in the cave, something stirs.',
+    after: s => s.time.delayedCall(1500, () => { if (s.done) return; sfx('roar'); s.cam.shake(900, 0.008); }) }
+};
+const standAt = (s, a) => { const S = STANDS[cur]; return S && !rush && !s.siegeDone && Math.abs(a.x / TS - S.at) < 1 && s.player.x < (S.R - 1) * TS ? S : null; };
+function fireStand(s, S) {
+  const L = S.L * TS, R = S.R * TS;
   // the burning reeds hold Rostam and the pack inside by position, not by a physics wall he could climb by jumping into it
   const wall = (x, floor) => {
     // a tapering column of flame, each tongue on its own beat so the reeds seem to burn rather than stack
     const flames = [[0, 0, 1.5], [-5, 13, 1.3], [5, 24, 1.15], [-3, 36, 1], [3, 47, 0.85], [0, 57, 0.65]].map(([dx, up, sc], i) => {
-      const f = s.fx('fire', x + dx, floor - up, { depth: 7 - i * 0.01 }).setScale(sc).setAlpha(0);
+      const f = s.fx('fire', x + dx, floor - up, { depth: 7 - i * 0.01 }).setScale(sc).setAlpha(0); if (S.flame) f.setTint(S.flame);
       f.anims.setProgress(Math.random()); f.anims.timeScale = 0.8 + Math.random() * 0.5;
       s.tweens.add({ targets: f, alpha: 1 - i * 0.08, delay: i * 60, duration: 220 }); return f;
     });
-    const glow = s.add.image(x, floor - 40, 'glow').setScale(1.6, 2.6).setTint(0xff8a3a).setBlendMode(Phaser.BlendModes.ADD).setDepth(6).setAlpha(0.7);
+    const glow = s.add.image(x, floor - 40, 'glow').setScale(1.6, 2.6).setTint(S.flame ?? 0xff8a3a).setBlendMode(Phaser.BlendModes.ADD).setDepth(6).setAlpha(0.7);
     s.fx('dust', x, floor, { depth: 8 }); return { flames, glow };
   };
-  s.siege = { wave: 0, live: [], L, R, next: s.time.now + 1300, walls: [wall(L, 14 * TS), wall(R, 14 * TS)] };
+  // the foes already in the clearing are drawn into the fight, and hunt Rostam even beside the fire
+  for (const f of s.foes.getChildren()) if (f.active && f.x > L && f.x < R) { f.roam = [L + 6, R - 6]; f.encounter = false; }
+  const floor = x => (s.groundAt(x) ?? 14) * TS;
+  s.siege = { S, wave: 0, live: [], L, R, next: s.time.now + 1300, walls: [wall(L, floor(L + 2)), wall(R, floor(R - 2))] };
   sfx('fire'); sfx('roar'); s.cam.shake(300, 0.008);
-  banner('آتشِ نیستان', 'Hold the fire');
-  hint(`The pack closes on the fire! When a jackal <b>drops its head</b>, ${touch ? 'dodge' : keyHTML('dodge') + ' dodge'} or jump the lunge, then strike while it pants.`);
+  banner(S.fa, S.title); hint(S.start());
+  trackGame('stand_start', { level_name: String(cur) });
 }
-function reedSiegeTick(s) {
+function standTick(s) {
   const g = s.siege; if (!g) return;
-  const b = s.player.body;
+  const b = s.player.body, S = g.S, N = S.waves.length;
   if (b.left < g.L + 4) { b.x += g.L + 4 - b.left; if (b.velocity.x < 0) b.velocity.x = 0; }
   if (b.right > g.R - 4) { b.x -= b.right - (g.R - 4); if (b.velocity.x > 0) b.velocity.x = 0; }
   if (s.time.now < g.next) return;
   if (g.live.some(f => f.active && f.body.enable)) return;
-  if (g.wave < SIEGE1.length) {
-    const list = SIEGE1[g.wave++]; g.live = []; g.next = s.time.now + list.length * 380 + 900;
-    toast(g.wave === SIEGE1.length ? 'The pack leader comes for the fire!' : `The pack comes: ${g.wave} of ${SIEGE1.length}`);
+  if (g.wave < N) {
+    const list = S.waves[g.wave++]; g.live = []; g.next = s.time.now + list.length * 380 + 900;
+    toast(S.wave(g.wave, N));
     list.forEach((k, i) => s.time.delayedCall(i * 380, () => {
       if (s.siege !== g || s.done) return;
       const side = i % 2 ? 1 : -1, edge = side < 0 ? g.L + 26 : g.R - 26;
       const x = Math.abs(s.player.x - edge) < 50 ? edge - side * 70 : edge, y = (s.groundAt(x) ?? 14) * TS;
+      const kind = S.foe[k.toLowerCase()], flies = ['bat', 'vulture'].includes(kind);
       const mark = s.add.ellipse(x, y - 2, 30, 7, 0xffb84d, 0.45).setStrokeStyle(1, 0xffe7a2).setDepth(7);
       s.tweens.add({ targets: mark, alpha: 0.15, yoyo: true, repeat: 2, duration: 80 });
       s.time.delayedCall(480, () => {
         mark.destroy(); if (s.siege !== g || s.done) return;
-        s.fx('dust', x, y, { depth: 8 }); s.fx('poof', x, y - 8, { depth: 9 });
-        const f = s.spawnFoe(k === 'd' ? 'div' : 'jackal', x, y);
-        if (k === 'J') { f.hp = 3; f.setScale(f.scaleX * 1.22); f.setTint(0xd9a46a); f.y = y - 1 - 0.47 * f.displayHeight; f.body.reset(x, f.y); f.leader = true; }
+        s.fx('dust', x, y, { depth: 8 }); s.fx('poof', x, (flies ? y - 70 : y) - 8, { depth: 9 });
+        const f = s.spawnFoe(kind, x, flies ? y - 70 : y);
+        if (k !== k.toLowerCase()) {                               // the leader: larger, tinted, and two blows harder to kill
+          f.hp = FOES[kind].hp + 2; f.setScale(f.scaleX * 1.22); f.setTint(S.lead); f.leader = true;
+          if (f.body.allowGravity) { f.y = y - 1 - 0.47 * f.displayHeight; f.body.reset(x, f.y); }
+        }
         f.roam = [g.L + 6, g.R - 6]; f.dir = -side; f.setFlipX(f.dir < 0); f.jt = 30 + i * 20; g.live.push(f);
       });
     }));
     return;
   }
-  // the pack is broken: the burning reeds die down, and from the far reeds the lion answers
+  // the stand is won: the flames die down, and a roast lamb lies by the fire
   s.siege = null; s.siegeDone = true;
   for (const w of g.walls) { w.flames.forEach((f, i) => s.tweens.add({ targets: f, alpha: 0, delay: i * 60, duration: 300, onComplete: () => f.destroy() })); s.tweens.add({ targets: w.glow, alpha: 0, duration: 500, onComplete: () => w.glow.destroy() }); }
-  sfx('win'); s.gainFarr(30); banner('آتشِ نیستان', 'The fire holds'); hint(null);
-  const a = s.altars.find(a => Math.abs(a.x / TS - 52.5) < 1), drop = s.pickup(a.x + 18, a.y - 8, 'food', 0, 'lamb');
-  s.fx('pickup', drop.x, drop.y); toast('The pack scatters. Roast lamb lies by the fire.');
-  s.time.delayedCall(1500, () => { if (s.done) return; sfx('roar'); s.cam.shake(700, 0.006); toast('Far off in the reeds, the lion answers.'); });
+  sting('victory', () => sfx('win')); s.gainFarr(30); banner(S.fa, S.held); hint(null);
+  const a = s.altars.find(a => Math.abs(a.x / TS - S.at) < 1), drop = s.pickup(a.x + 18, a.y - 8, 'food', 0, 'lamb');
+  s.fx('pickup', drop.x, drop.y); toast(S.end);
+  trackGame('stand_end', { level_name: String(cur) });
+  S.after?.(s);
 }
 // Khan II: the sandstorm rolls loose rocks along the ground with the wind. A plume of dust at the edge of sight comes
 // first, then the rock tumbles in, bouncing. Jump it, dodge through it, or smash it with the mace.
@@ -888,13 +918,11 @@ const LEVELS = {
       }
       hint(`Night in the reeds. <b>Strike</b> with ${touch ? 'the mace button' : keyHTML('attack')}, or <b>jump onto a foe</b>.`);
     },
-    kindled(s, a) { if (Math.abs(a.x / TS - 52.5) < 1 && !rush && s.player.x < 59 * TS) { for (const f of s.foes.getChildren()) if (f.active && f.x > 40 * TS && f.x < 60 * TS) f.roam = [40 * TS + 6, 60 * TS - 6]; reedSiege(s); return true; } },
     // the storm over each boss fight: veil and cloud colours, the sun or moon behind it, lightning colour and pace, and its weather
     sky: { veil: 0x3a0a06, cloud: 0xa8401c, glow: 0xff7a2a, sun: [0.76, 0.34], bolt: 0xffd0a0, every: [260, 420], edge: 0x6a1004, fx: 'dust', paint: 'bg/storm.png' },
     fires: [82], hearts: [85],                       // a last fire and a heart before the lion's den
     update(s, k, time, p) {
       if (s.bossOn) return;
-      reedSiegeTick(s);
       if (p.x > 88 * TS) { s.startBoss(); return; }
       if (!p.body.blocked.down && s.airJumps === 0) s.didDouble = true;
       // a few words only where something new is asked of Rostam; the reeds and the fires speak for themselves
@@ -1662,10 +1690,10 @@ function setMuted(m) {
 }
 
 /* ---------------------------- input ---------------------------- */
-const keys = { left: false, right: false, jump: false, attack: false, dodge: false, farr: false, offer: false }, pressed = { jump: false, attack: false, dodge: false, farr: false, offer: false };
+const keys = { left: false, right: false, jump: false, attack: false, dodge: false, farr: false, offer: false, lasso: false }, pressed = { jump: false, attack: false, dodge: false, farr: false, offer: false, lasso: false };
 // settings, kept in the browser: volumes, screen shake, flashes, and the keys for each action (two per action)
-const KEY_DEF = { left: ['ArrowLeft', 'a'], right: ['ArrowRight', 'd'], jump: ['ArrowUp', ' '], attack: ['x', 'j'], dodge: ['Shift', 'c'], farr: ['f', ''], offer: ['ArrowDown', 's'] };
-const ACTIONS = [['left', 'Move left'], ['right', 'Move right'], ['jump', 'Jump (twice for a super jump)'], ['attack', 'Strike (hold for a heavy blow)'], ['dodge', 'Dodge roll'], ['farr', 'Call the Simurgh (Farr)'], ['offer', 'Offer at a fire']];
+const KEY_DEF = { left: ['ArrowLeft', 'a'], right: ['ArrowRight', 'd'], jump: ['ArrowUp', ' '], attack: ['x', 'j'], dodge: ['Shift', 'c'], farr: ['f', ''], offer: ['ArrowDown', 's'], lasso: ['k', 'l'] };
+const ACTIONS = [['left', 'Move left'], ['right', 'Move right'], ['jump', 'Jump (twice for a super jump)'], ['attack', 'Strike (hold for a heavy blow)'], ['dodge', 'Dodge roll'], ['farr', 'Call the Simurgh (Farr)'], ['offer', 'Offer at a fire'], ['lasso', 'Throw the lasso (won from Olad)']];
 const SET = (() => { let s = {}; try { s = JSON.parse(store.get('sh-set') || '{}'); } catch (e) {} return { music: 70, fx: 85, shake: true, flash: true, ...s, voice: s.voice > 0 ? s.voice : 90, narrator: typeof s.narrator === 'boolean' ? s.narrator : s.voice !== 0, keys: JSON.parse(JSON.stringify({ ...KEY_DEF, ...(s.keys || {}) })) }; })();
 const saveSet = () => store.set('sh-set', JSON.stringify(SET));
 const keyName = k => ({ ' ': 'Space', ArrowLeft: '\u2190', ArrowRight: '\u2192', ArrowUp: '\u2191', ArrowDown: '\u2193', Shift: 'Shift', Control: 'Ctrl', Enter: 'Enter' })[k] || (k.length === 1 ? k.toUpperCase() : k);
@@ -1749,7 +1777,8 @@ class Play extends Phaser.Scene {
   create() {
     // the scene object is reused from labour to labour: forget whatever the last one left behind
     for (const k of ['dark', 'lights', 'lamp', 'wall', 'wallR', 'stars', 'pose', 'swingFx', 'witch', 'unmasked', 'olad', 'rakhsh', 'dragonSeen', 'horde', 'hordeDone',
-      'gates', 'hordeBat', 'toldRock', 'toldFarr', 'toldOffer', 'atAltar', 'bossT', 'maceHit', 'toldIce', 'chargeWarn', 'toldCharge', 'shards', 'shardG', 'mark', 'markGlow', 'markOpen', 'bossHeart', 'bossHeartT', 'floorWarn', 'highWarn', 'regrow', 'drums', 'sky', 'flashA', 'intro', 'fgReeds', 'mound', 'swirl', 'qx', 'puddles', 'combo', 'comboT', 'heavy', 'heavyGo', 'chargeT', 'chargeFull', 'chargeGlow', 'dodgeT', 'dodgeCd', 'dodgeDir', 'whiteDown', 'ended', 'mounted', 'prayed', 'drank', 'toldImmune', 'toldDeflect', 'toldVenom', 'cage', 'kavus', 'stones', 'puzzle', 'springOpen', 'pool', 'victory', 'attackBuf', 'dodgeBuf', 'counterT', 'counterStrike', 'dodgeRewarded', 'trial', 'nearTrial', 'journey', 'siege', 'siegeDone', 'ally', 'phase2', 'streak', 'didDouble', 'rocks', 'rockT', 'poppies', 'drowsy', 'toldPoppy', 'oladAlly']) delete this[k];
+      'gates', 'hordeBat', 'toldRock', 'toldFarr', 'toldOffer', 'atAltar', 'bossT', 'maceHit', 'toldIce', 'chargeWarn', 'toldCharge', 'shards', 'shardG', 'mark', 'markGlow', 'markOpen', 'bossHeart', 'bossHeartT', 'floorWarn', 'highWarn', 'regrow', 'drums', 'sky', 'flashA', 'intro', 'fgReeds', 'mound', 'swirl', 'qx', 'puddles', 'combo', 'comboT', 'heavy', 'heavyGo', 'chargeT', 'chargeFull', 'chargeGlow', 'dodgeT', 'dodgeCd', 'dodgeDir', 'whiteDown', 'ended', 'mounted', 'prayed', 'drank', 'toldImmune', 'toldDeflect', 'toldVenom', 'cage', 'kavus', 'stones', 'puzzle', 'springOpen', 'pool', 'victory', 'attackBuf', 'dodgeBuf', 'counterT', 'counterStrike', 'dodgeRewarded', 'trial', 'nearTrial', 'journey', 'siege', 'siegeDone', 'ally', 'phase2', 'streak', 'didDouble', 'rocks', 'rockT', 'poppies', 'drowsy', 'toldPoppy', 'oladAlly', 'rope', 'ropeG', 'lassoCd', 'toldBossLasso']) delete this[k];
+    refreshLassoBtn();
     // turn loaded strips into square frames; anything missing falls back to placeholder art
     for (const k of ['decor-' + cur]) if (this.textures.exists(k) && this.textures.get(k).frameTotal < 3) { const t = this.textures.get(k), h = t.getSourceImage().height; for (let i = 0; i < Math.round(t.getSourceImage().width / h); i++) t.add(i, 0, i * h, 0, h, h); }
     for (const [k, f] of Object.entries(ART)) if (f && this.textures.exists(k)) {
@@ -1920,6 +1949,7 @@ class Play extends Phaser.Scene {
     const t = this.trial; if (!t || t.state !== 'running') return;
     for (const c of t.sparks) { c.glow?.destroy(); if (c.active) c.destroy(); }
     t.sparks = []; t.ribbon.setVisible(false); t.ribbonFrame.setVisible(false); t.state = success ? 'complete' : 'ready'; t.marker.setAlpha(success ? 0.65 : 1); t.label.setText(success ? 'Trial complete' : 'Simurgh trial').setVisible(true);
+    trackGame('trial_end', { level_name: String(cur), success, seconds: Math.round((this.time.now - t.started) / 1000) });
     if (!success) { if (reason) toast(reason); return; }
     t.completed = true; t.elapsed = Math.max(1, Math.round(this.time.now - t.started));
     const records = trialRecords(), previous = records[cur], first = !previous?.best;
@@ -1954,6 +1984,7 @@ class Play extends Phaser.Scene {
     this.tweens.add({ targets: g, alpha: 0.6, yoyo: true, repeat: -1, duration: 700, ease: 'Sine.easeInOut' });
     if (quiet) return;
     sting('fire', () => sfx('fire')); this.fx('fire', a.x, a.y - 20, { depth: 3 }); this.fx('pickup', a.x, a.y - 18);
+    const stand = standAt(this, a); if (stand) { fireStand(this, stand); return; }
     if (this.lv.kindled?.(this, a)) return;
     toast('The sacred fire is lit. If Rostam falls, he will rise again here.');
   }
@@ -2076,6 +2107,7 @@ class Play extends Phaser.Scene {
     if (!thirst) this.player.setVelocity((this.player.x < fromX ? -1 : 1) * 160, -220);
     if (this.hp <= 0) {
       this.done = true; playing = false; music(false); sting('fall'); document.body.classList.remove('playing'); hint(null);
+      trackGame('player_death', { level_name: String(cur), cause, boss: !!this.bossOn, column: Math.round(this.player.x / TS), seconds: Math.round((this.time.now - this.t0) / 1000), mode: rush ? 'boss_rush' : 'story' });
       if (this.anims.exists('rostam-fall') && !this.mounted) { this.pose = 'rostam-fall'; this.player.anims.stop(); this.player.play('rostam-fall'); this.tweens.addCounter({ from: 255, to: 150, duration: 900, onUpdate: tw => { const c = Math.round(tw.getValue()); this.player.setTint((c << 16) | (c << 8) | c); } }); } else this.player.setTint(0x777777);
       const t = this.lv.tips; $('deadTip').textContent = controlText((!this.bossOn && this.journey?.getTip()) || t[Math.floor(Math.random() * t.length)]);
       const cp = resumeAt?.n === cur;
@@ -2096,6 +2128,45 @@ class Play extends Phaser.Scene {
       this.fx('shock', p.x + this.face * 30, y + 1, { depth: 8 });
     });
     p.once('animationcomplete', () => { this.heavyGo = false; if (this.pose === 'rostam-heavy') this.pose = null; this.heavy = null; });
+  }
+  // Rostam's lasso (kamand), won from Olad: thrown ahead, it catches the first thing in its path. A foe is dragged to his
+  // feet and left reeling, a flier pulled out of the air; a provision out of reach is drawn in. A boss is too strong to
+  // drag: the noose slips from it
+  throwLasso() {
+    const p = this.player, dir = this.face, reach = 150, x0 = p.x + dir * 8, now = this.time.now;
+    this.lassoCd = 75; sfx('swing'); this.pose = 'rostam-attack'; p.play('rostam-attack', true); this.time.delayedCall(260, () => { if (this.pose === 'rostam-attack') this.pose = null; });
+    const zone = new Phaser.Geom.Rectangle(dir > 0 ? x0 : x0 - reach, p.body.top - 80, reach, p.body.height + 92), along = o => Math.abs(o.x - x0);
+    const foe = this.foes.getChildren().filter(f => f.active && f.body.enable && f.hp > 0 && f.alpha > 0.5 && Phaser.Geom.Intersects.RectangleToRectangle(zone, f.body)).sort((a, b) => along(a) - along(b))[0];
+    const B = this.boss, boss = B?.active && B.hp > 0 && B.body.enable && B.alpha > 0.5 && Phaser.Geom.Intersects.RectangleToRectangle(zone, B.body) ? B : null;
+    const item = this.coins.getChildren().filter(c => c.active && !['trial', 'sfeather'].includes(c.kind) && Phaser.Geom.Rectangle.Contains(zone, c.x, c.y)).sort((a, b) => along(a) - along(b))[0];
+    const target = [foe, boss].filter(Boolean).sort((a, b) => along(a) - along(b))[0] || item;   // a foe before any provision
+    this.rope = { t0: now, out: 120, until: now + (target ? 520 : 300), target, end: { x: x0 + dir * reach, y: p.y - 8 } };
+    trackGame('lasso_throw', { level_name: String(cur), caught: target === foe && foe ? 'foe' : target === boss && boss ? 'boss' : target ? 'item' : 'none' });
+    if (!target) return;
+    this.time.delayedCall(120, () => {
+      if (!target.active || this.done) return;
+      if (target === boss) {
+        sfx('clang'); this.fx('dust', target.x, target.body.center.y, { depth: 10 }); if (this.rope) this.rope.until = this.time.now + 120;
+        if (!this.toldBossLasso) { this.toldBossLasso = true; toast('Too mighty to drag: the noose slips from it.'); } return;
+      }
+      if (target === item) { sfx('coin'); this.tweens.add({ targets: [item, item.glow].filter(Boolean), x: p.x, y: p.body.center.y, duration: 220, ease: 'Quad.easeIn', onComplete: () => this.eat(item) }); return; }
+      // a foe: its attack is broken off, and it is dragged to Rostam's feet and left reeling
+      const f = target; f.attackId = (f.attackId || 0) + 1; f.smash = f.cast = f.sting = f.thrust = f.leap = false;
+      if (!f.body.allowGravity) { f.state = 'rise'; f.anims.timeScale = 1; if (!f.leader) f.clearTint(); }
+      f.removeAllListeners('animationcomplete'); f.play(FOES[f.kind].tex, true);
+      f.lassoUntil = this.time.now + 260; f.lassoX = p.x + dir * 30; f.lassoY = p.body.center.y - 6; f.staggerUntil = this.time.now + 260 + 900;
+      f.staggerFx?.destroy(); f.staggerFx = this.fx('stun', f.x, f.body.top - 4, { depth: 8 }).setScale(0.55);
+      sfx('hit'); this.cam.shake(80, 0.004); this.combatWord('Lassoed', '#e8c890');
+    });
+  }
+  reel(f) { f.setVelocityX(Phaser.Math.Clamp((f.lassoX - f.x) * 9, -340, 340)); if (!f.body.allowGravity) f.setVelocityY(Phaser.Math.Clamp((f.lassoY - f.y) * 9, -340, 340)); }
+  drawRope(time) {
+    const r = this.rope; if (!r || time > r.until) { this.rope = null; this.ropeG?.clear(); return; }
+    const p = this.player, g = this.ropeG ||= this.add.graphics().setDepth(8), T = r.target?.active ? r.target : null;
+    const x0 = p.x + this.face * 8, y0 = p.y - 14, t = Math.min(1, (time - r.t0) / r.out);
+    const ex = T ? T.x : r.end.x, ey = T ? (T.body?.center?.y ?? T.y) : r.end.y, x1 = x0 + (ex - x0) * t, y1 = y0 + (ey - y0) * t - Math.sin(t * Math.PI) * 14;
+    g.clear().lineStyle(2, 0xc8a060, 1).beginPath(); g.moveTo(x0, y0); g.lineTo((x0 + x1) / 2, (y0 + y1) / 2 - 6 * (1 - t)); g.lineTo(x1, y1); g.strokePath();
+    if (t >= 1 && T) g.strokeEllipse(x1, y1, 22, 10);
   }
   strikeBox(extra = 0) { const p = this.player, r = (this.mounted ? 48 : 34) + (upg().reach ? 12 : 0) + extra; return new Phaser.Geom.Rectangle(this.face > 0 ? p.body.right - 4 : p.body.left - r + 4, p.body.top - 22, r, p.body.height + 24); }   // the blade arcs over his head too
   damage(f, n = 1, force = false) {
@@ -2162,6 +2233,7 @@ class Play extends Phaser.Scene {
   // down with a shockwave of dust; then it lies where it fell, dark and smoking, while the sky clears. Returns the ms
   // until it is down.
   bossDeath(B) {
+    trackGame('boss_defeat', { level_name: String(cur), hearts_left: this.hp });
     B.body.enable = false; B.anims.stop(); this.hideMark(); B.rageFx?.destroy(); B.rageFx = null; this.chargeWarn?.destroy(); this.stars?.destroy(); this.stars = null;
     B.clearTint(); B.setAlpha(1); this.tweens.killTweensOf(B);
     this.hitStop(320); this.cam.flash(260, 255, 255, 255); this.cam.shake(260, 0.02); sfx('hit'); sfx('roar');
@@ -2647,6 +2719,9 @@ class Play extends Phaser.Scene {
     if (this.swingFx?.active) this.swingFx.setPosition(Math.round(p.x + this.face * 6), Math.round(p.y - 2));
     pressed.attack = false;
     if (pressed.farr) { pressed.farr = false; this.farrBlast(); }
+    this.lassoCd = (this.lassoCd || 0) - k;
+    if (pressed.lasso) { pressed.lasso = false; if (this.lassoCd <= 0 && hasLasso() && !this.mounted && !this.frozen && !(this.dodgeT > 0) && !(this.atk > 0)) this.throwLasso(); }
+    this.drawRope(time);
     // standing by a lit fire altar, Rostam may make an offering of provisions at the Fire Temple
     const altar = ground && !this.bossOn ? this.altars.find(a => a.lit && !a.onLight && Math.abs(a.x - p.x) < 30) : null;
     if (altar !== this.atAltar) {
@@ -2703,7 +2778,8 @@ class Play extends Phaser.Scene {
     // foes
     for (const f of this.foes.getChildren()) {
       if (!f.body.enable) continue;
-      if (f.staggerUntil > time) { if (f.body.blocked.down) f.setVelocityX(0); }
+      if (f.lassoUntil > time) this.reel(f);
+      else if (f.staggerUntil > time) { if (f.body.blocked.down) f.setVelocityX(0); if (!f.body.allowGravity) f.setVelocity(0); }
       else { f.staggerUntil = 0; f.staggerFx?.destroy(); f.staggerFx = null; FOES[f.kind].tick(this, f, k, p); }
       f.staggerFx?.setPosition(f.x, f.body.top - 4);
       yieldFoe(this, f, k);
@@ -2719,13 +2795,14 @@ class Play extends Phaser.Scene {
       }
     }
     // checkpoint
-    for (const a of this.altars) if (!a.lit && p.x > a.x) { this.kindle(a); resumeAt = { n: cur, i: this.altars.indexOf(a), well: !!a.onLight }; }
+    for (const a of this.altars) if (!a.lit && p.x > a.x) { this.kindle(a); resumeAt = { n: cur, i: this.altars.indexOf(a), well: !!a.onLight }; trackGame('checkpoint', { level_name: String(cur), fire: resumeAt.i, seconds: Math.round((this.time.now - this.t0) / 1000) }); }
     // a taken platform heart grows back once Rostam has been away from it for 2 s
     this.regrow = this.regrow.filter(h => {
       const near = Math.abs(p.x - h.x) < 3 * TS && Math.abs(b.bottom - (h.y + 12)) < 10;
       h.away = near ? 0 : h.away + delta; if (h.away < 2000) return true;
       this.fx('heal', h.x, h.y + 12, { depth: 6 }); this.heart(h.x, h.y).regrow = true; return false;
     });
+    standTick(this);
     routeCue(this, p);
     this.lv.update?.(this, k, time, p, b);
     this.journey?.tick(time, delta);
@@ -2871,6 +2948,7 @@ class Play extends Phaser.Scene {
   // written large. Rostam and the boss hold still for those two seconds. (The witch hides her face until unmasked.)
   bossIntro(B) {
     const lv = this.lv;
+    trackGame('boss_start', { level_name: String(cur), retry: !!this.resuming });
     if (!lv.epithet || this.resuming) { banner(); return; }
     sting('boss'); this.intro = true; this.frozen = true; this.player.setVelocityX(0); B.setVelocityX?.(0);
     $('cine').classList.add('on'); document.body.classList.add('cine');
@@ -3154,6 +3232,8 @@ class Play extends Phaser.Scene {
     };
     this.time.addEvent({ delay: 16, repeat: 40, callback: draw });
     banner('کمند', "Rostam's Lasso");
+    const first = !hasLasso(); store.set('sh-lasso', '1'); refreshLassoBtn(); trackGame('boss_defeat', { level_name: String(cur), hearts_left: this.hp });
+    if (first) this.time.delayedCall(3600, () => hint(`<b>Rostam's lasso is yours.</b> Press ${touch ? 'the lasso button' : keyHTML('lasso')} to throw it: it drags a foe to your feet, reeling, pulls a flier from the sky, and draws in provisions out of reach.`));
     this.time.delayedCall(1200, () => { toast('Olad yields: "Spare me, and I will lead you to Arzhang Div and to the White Div\'s cave."'); say('olad2'); });
     this.time.delayedCall(3400, () => { this.frozen = false; rope.clear().lineStyle(2, 0xc8a060, 1).strokeEllipse(o.x, o.y - 4, 30, 14); this.reward(o.x); });
   }
@@ -4482,7 +4562,7 @@ $('setFlash').onclick = () => { SET.flash = !SET.flash; saveSet(); applySettings
 $('keyReset').onclick = () => { SET.keys = JSON.parse(JSON.stringify(KEY_DEF)); saveSet(); buildKeys(); renderSettings(); };
 applySettings();
 // gamepads: play with the stick or D-pad and the face buttons; in a menu the D-pad moves between buttons, A presses, B goes back
-const PAD = { 0: 'jump', 2: 'attack', 1: 'dodge', 3: 'farr', 13: 'offer' }, padWas = {};
+const PAD = { 0: 'jump', 2: 'attack', 1: 'dodge', 3: 'farr', 13: 'offer', 5: 'lasso' }, padWas = {};
 let padAxis = 0, padNav = 0;
 function padPoll() {
   const pad = [...(navigator.getGamepads?.() || [])].find(Boolean);
@@ -4588,7 +4668,7 @@ function closeStory() { stopStoryReading(); $('s-story').classList.add('hidden')
 document.querySelectorAll('[data-story]').forEach(b => b.onclick = () => openStory(+b.dataset.story || 0, cur));
 $('prevPg').onclick = () => turn(-1); $('nextPg').onclick = () => turn(1); $('storyClose').onclick = closeStory;
 $('pauseBtn').onclick = () => setPaused(true); $('resumeBtn').onclick = () => setPaused(false);
-$('restartBtn').onclick = () => { const sc = game.scene.getScene('play'); sc.done = true; begin(); };
+$('restartBtn').onclick = () => { const sc = game.scene.getScene('play'); trackGame('level_restart', { level_name: String(cur), column: Math.round((sc.player?.x || 0) / TS), seconds: Math.round((sc.time.now - sc.t0) / 1000) }); sc.done = true; begin(); };
 function syncBackgroundAudio() {
   const background = document.hidden || !document.hasFocus();
   if (background === A.background) return;

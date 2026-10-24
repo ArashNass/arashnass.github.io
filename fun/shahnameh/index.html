@@ -377,7 +377,7 @@ body.calm #banner.on{animation-name:banCalm}@keyframes banCalm{0%{opacity:0}15%,
 .tb{position:relative;-webkit-user-select:none;user-select:none;backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px);transition:transform .06s,background .1s}
 .tb.on{transform:scale(.92)}
 .tb small{position:absolute;bottom:-15px;left:50%;transform:translateX(-50%);font:700 9px Inter,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,240,210,.75);text-shadow:0 1px 2px #000;pointer-events:none}
-.tb svg path{fill:#fff}#touch .dodge svg path{fill:none}
+.tb svg path{fill:#fff}#touch .dodge svg path,#touch .lasso svg path{fill:none}.tb.lasso{background:rgba(120,80,30,.55);border-color:#e8c890}
 @media (max-height:420px){#touch .act .strike{width:72px;height:72px}.tb{width:58px;height:58px}#touch .act .dodge{width:50px;height:50px}.tb small{display:none}}
 /* the Simurgh's feathers: three pips under each labour's seal, and the tally under the map */
 .road .fc{position:absolute;left:50%;top:100%;transform:translate(-50%,3px);display:flex;gap:2px;pointer-events:none}
@@ -677,6 +677,7 @@ body.calm #banner.on{animation-name:banCalm}@keyframes banCalm{0%{opacity:0}15%,
     <button class="tb" data-k="right" aria-label="Right"><svg viewBox="0 0 24 24"><path d="M9 5l8 7-8 7z"/></svg></button>
   </div>
   <div class="act">
+    <button class="tb lasso hidden" data-k="lasso" aria-label="Throw the lasso"><svg viewBox="0 0 24 24"><path d="M12 4c-4.4 0-8 2.2-8 5s3.6 5 8 5 8-2.2 8-5-3.6-5-8-5z M12 14c-1 2-1 4 1 6" stroke="#fff" stroke-width="2.2" fill="none" stroke-linecap="round"/></svg><small>Lasso</small></button>
     <button class="tb farr hidden" data-k="farr" aria-label="Call on the Simurgh"><svg viewBox="0 0 24 24"><path d="M12 2l2.6 6.4L21 9l-5 4.4L17.4 20 12 16.6 6.6 20 8 13.4 3 9l6.4-.6z"/></svg><small>Farr</small></button>
     <button class="tb jump" data-k="jump" aria-label="Jump"><svg viewBox="0 0 24 24"><path d="M12 4l8 9h-5v7H9v-7H4z"/></svg><small>Jump</small></button>
     <button class="tb dodge" data-k="dodge" aria-label="Dodge"><svg viewBox="0 0 24 24"><path d="M3 12h10M9 7l5 5-5 5M15 6c3 1 5 3.5 5 6s-2 5-5 6" stroke="#fff" stroke-width="2.2" fill="none" stroke-linecap="round"/></svg><small>Dodge</small></button>
@@ -789,7 +790,7 @@ body.calm #banner.on{animation-name:banCalm}@keyframes banCalm{0%{opacity:0}15%,
     <h2>Controls &amp; combat</h2>
     <div class="helpGrid">
       <section><h3>Moving</h3><p><kbd data-action-key="left">&larr;</kbd> <kbd data-action-key="right">&rarr;</kbd> run &middot; <kbd data-action-key="jump">&uarr; / Space</kbd> jump, and <b>jump again in the air</b> for a super jump. Land on a foe from above for a double blow.<span class="touch"> On a phone, use the buttons at the bottom of the screen.</span></p></section>
-      <section><h3>Fighting</h3><p><kbd data-action-key="attack">X</kbd> strike with the ox-head mace. <b>Three quick strikes</b> end in a hard finisher. <b>Keep holding</b> Strike after a swing until the mace glows, then let go for a <b>heavy blow</b> that interrupts ordinary foes. <kbd data-action-key="dodge">Shift / C</kbd> <b>dodges</b>: no blow can touch you mid-dash. Dodge just as a blow arrives to earn <b>Farr and a stronger counterstrike</b>.</p></section>
+      <section><h3>Fighting</h3><p><kbd data-action-key="attack">X</kbd> strike with the ox-head mace. <b>Three quick strikes</b> end in a hard finisher. <b>Keep holding</b> Strike after a swing until the mace glows, then let go for a <b>heavy blow</b> that interrupts ordinary foes. <kbd data-action-key="dodge">Shift / C</kbd> <b>dodges</b>: no blow can touch you mid-dash. Dodge just as a blow arrives to earn <b>Farr and a stronger counterstrike</b>. From the fifth labour, when Olad is bound, <kbd data-action-key="lasso">K / L</kbd> throws <b>Rostam’s lasso</b>: it drags a foe to your feet, reeling, pulls a flier from the sky, and draws in provisions out of reach.</p></section>
       <section><h3>Bosses</h3><p>Each great foe has an opening. <b>When stars circle its head it is dazed: strike now</b>, and the boss bar flashes <b>Strike now!</b> Otherwise your blows glance off. Watch for the warning glow before its big attacks; the corner ledge is a refuge, but you must come down to win.</p></section>
       <section><h3>Hearts and fires</h3><p>Roast lamb and glowing hearts restore you; in boss fights a heart appears in a corner now and then. Walk past a <b>fire altar</b> to light it: if you fall, you rise there. At a lit fire press <kbd data-action-key="offer">&darr;</kbd> (or tap <b>Offer</b>) for the <b>Fire Temple</b>.</p></section>
       <section><h3>Provisions and Farr</h3><p>Provisions fill your purse, to spend at the Fire Temple on lasting gifts, and your golden <b>Farr</b>: when it is full press <kbd data-action-key="farr">F</kbd> and the Simurgh strikes every foe on screen. Gather eight in a labour and <b>Rakhsh</b> gallops in to kick the boss.</p></section>
@@ -974,6 +975,6 @@ body.calm #banner.on{animation-name:banCalm}@keyframes banCalm{0%{opacity:0}15%,
 <script src="boot.js?v=92"></script>
 <script src="assets/vendor/phaser-3.80.1.min.js" data-game-script="engine"></script>
 <script src="journey-events.js?v=122" data-game-script="journey"></script>
-<script src="game.js?v=131" data-game-script="game"></script>
+<script src="game.js?v=132" data-game-script="game"></script>
 </body>
 </html>
