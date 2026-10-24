@@ -57,7 +57,9 @@ const BODY = { queen: [0.62, 0.42], rider: [0.3, 0.5], rostam: [0.143, 0.393], l
 const V = 92;
 const RAKHSH1 = 0.56;                                               // Rakhsh's scale in Khan I: his strip is 229 px, the horse a little larger than the lion
 const REVISED_STORY_ART = new Set(['khan1-intro', 'khan4-intro', 'khan4-outro', 'khan5-intro', 'khan5-outro', 'khan7-intro', 'end2']);
-let wakeArt = false, lionPrologueSeen = false; { const im = new Image(); im.onload = () => { wakeArt = true; }; im.src = `assets/cine/khan1-wake.png?v=${V}`; }   // an optional painting
+let wakeArt = false, lionPrologueSeen = false;
+// the waking's narration (assets/voice/khan1-wake.mp3, the same ElevenLabs narrator) is read once the file is there
+fetch(`assets/voice/khan1-wake.mp3?v=${V}`, { method: 'HEAD' }).then(r => { if (r.ok && typeof VOICED !== 'undefined') VOICED.add('khan1-wake'); }).catch(() => {}); { const im = new Image(); im.onload = () => { wakeArt = true; }; im.src = `assets/cine/khan1-wake.png?v=${V}`; }   // an optional painting
 const storyArt = key => `assets/cine/${key}${REVISED_STORY_ART.has(key) ? '-v2' : ''}.png?v=${V}`;
 const ZOOM = 2;                                                   // canvas pixels per world pixel   // bump to bust caches when assets change
 
