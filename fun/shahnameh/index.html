@@ -768,6 +768,17 @@ body.calm #banner.on{animation-name:banCalm}@keyframes banCalm{0%{opacity:0}15%,
 /* the sound button reads exactly like its neighbours */
 #s-map .journey-nav-link.journey-sound,#s-map .journey-sound .spk-l{font-family:Georgia,'Times New Roman',serif;font-weight:600;font-size:13px;color:#f6e6b5}
 @media(max-width:760px){#s-map .journey-nav-link.journey-sound,#s-map .journey-sound .spk-l{font-size:12px}}
+
+/* Distinct manuscript actions; keep these after the earlier menu rules. */
+#s-map .journey-page #rideBtn,#s-map .journey-page #mapTale{display:flex;align-items:center;justify-content:center;gap:9px;position:static;inset:auto;box-sizing:border-box;width:100%;min-width:0;flex:none;padding:0 4px;border:solid transparent;border-radius:0;background:none;box-shadow:none;letter-spacing:0;transition:filter .2s,transform .2s,color .2s}
+#s-map .journey-page #rideBtn{height:52px;min-height:52px;border-width:12px 22px;border-image:url(assets/ui/btn-gold.png) 14 22 fill stretch;font:700 15px/1.15 Cinzel,serif;color:#fff1c9;text-shadow:0 1px 2px #200808;filter:none}
+#s-map .journey-page #rideBtn .journey-action-label{font:inherit}
+#s-map .journey-page #rideBtn:hover:not(:disabled){filter:drop-shadow(0 0 10px #f6dc8c88);transform:translateY(-2px)}
+#s-map .journey-page #mapTale{height:44px;min-height:44px;border-width:10px 24px;border-image:url(assets/ui/btn-scroll.png) 12 24 fill stretch;font:italic 500 15px/1.15 'EB Garamond',serif;color:#3b2814;text-shadow:none;filter:none}
+#s-map .journey-page #mapTale:hover:not(:disabled){color:#24160a;filter:none}
+#s-map .journey-page #rideBtn svg,#s-map .journey-page #mapTale svg{width:16px;height:16px;flex:none;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+#s-map .journey-page #rideBtn svg{color:#f6dc8c}#s-map .journey-page #mapTale svg{color:#6b4f2a}
+@media(max-width:760px){#s-map .journey-page #rideBtn,#s-map .journey-page #mapTale{width:100%;min-height:44px}}
 </style>
 
 <script defer src="/assets/engagement.js?v=1"></script>
@@ -968,7 +979,7 @@ body.calm #banner.on{animation-name:banCalm}@keyframes banCalm{0%{opacity:0}15%,
       <aside class="journey-card" aria-label="Selected labour">
         <div class="journey-art"><img id="journeyArt" src="assets/cine/khan1-intro-v2.png?v=92" fetchpriority="high" decoding="async" alt="The lion's night among the reeds" width="1536" height="1024"><span id="journeyChapter">Khan I</span></div>
         <div class="journey-card-body"><p class="journey-status" id="journeyStatus">The journey begins</p><h2 id="journeyTitle">The Lion</h2><p class="story" id="mapInfo" aria-live="polite"></p>
-          <div class="journey-actions"><button class="btn" id="rideBtn">Begin journey</button><button class="btn journey-tale" id="mapTale">Read this labour's tale</button></div>
+          <div class="journey-actions"><button class="btn" id="rideBtn"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="m4 3 13 13m-2-2 4-4M2 2l4 1-3 3Zm14 14 5 5m-2-2 2-2M20 3 7 16m2-2-3-3M18 2l4 4-3 3-4-4ZM7 16l-4 5m0-3 3 3"/></svg><span class="journey-action-label">Begin journey</span></button><button class="btn journey-tale" id="mapTale"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M12 5v15M12 5C9 2 4 3 2 4v15c3-2 7-2 10 1 3-3 7-3 10-1V4c-3-1-7-2-10 1ZM5 7l4 1M5 11l4 1m6-4 4-1m-4 5 4-1"/></svg><span>Read the tale</span></button></div>
           <details class="journey-options"><summary>Choose your road <span id="journeyDifficulty">Hero's road</span></summary><div class="diff" role="group" aria-label="Difficulty"><button data-diff="gentle" aria-pressed="false">Gentle road</button><button data-diff="hero" aria-pressed="true">Hero's road</button><button data-diff="legend" aria-pressed="false" title="Three hearts, stronger foes, no healing in the arenas">Legend's road</button></div><p>Gentle: more hearts. Hero: the classic road. Legend: three hearts, no arena healing.</p></details>
         </div>
       </aside>
@@ -1105,6 +1116,6 @@ body.calm #banner.on{animation-name:banCalm}@keyframes banCalm{0%{opacity:0}15%,
 <script src="boot.js?v=92"></script>
 <script src="assets/vendor/phaser-3.80.1.min.js" data-game-script="engine"></script>
 <script src="journey-events.js?v=123" data-game-script="journey"></script>
-<script src="game.js?v=168" data-game-script="game"></script>
+<script src="game.js?v=169" data-game-script="game"></script>
 </body>
 </html>
