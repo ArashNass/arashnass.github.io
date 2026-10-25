@@ -1998,7 +1998,21 @@ let game = null, playing = false;
 const touch = matchMedia('(pointer:coarse)').matches || 'ontouchstart' in window;
 const isPhone = () => touch && Math.min(innerWidth, innerHeight) < 560;
 const markPhone = () => { document.body.classList.toggle('phone', isPhone()); document.body.classList.toggle('upright', isPhone() && innerHeight > innerWidth); };
-markPhone(); addEventListener('resize', markPhone); addEventListener('orientationchange', () => setTimeout(markPhone, 200));
+// where the game's 16:9 picture leaves dark bars at the sides, the thumb buttons move into them, off the picture
+const fitGutters = () => {
+  const c = game?.canvas; if (!c) return; const r = c.getBoundingClientRect(), gut = Math.max(0, r.left);
+  document.documentElement.style.setProperty('--gut', gut + 'px'); document.documentElement.style.setProperty('--cw', r.width + 'px');
+  document.body.classList.toggle('gutters', isPhone() && gut >= 128);
+};
+const relayout = () => { markPhone(); setTimeout(fitGutters, 120); setTimeout(fitGutters, 600); };
+markPhone(); addEventListener('resize', relayout); addEventListener('orientationchange', () => setTimeout(relayout, 200));
+document.addEventListener('fullscreenchange', relayout);
+// on a phone the browser's own bars eat the screen: a labour plays full screen, held sideways
+const goFull = () => {
+  const d = document.documentElement; if (!isPhone() || document.fullscreenElement || !d.requestFullscreen) return;
+  d.requestFullscreen({ navigationUI: 'hide' }).then(() => screen.orientation?.lock?.('landscape').catch(() => {})).catch(() => {});
+};
+addEventListener('pointerdown', e => { if (document.body.classList.contains('playing') ? e.target.closest('#touch') : e.target.closest('#rideBtn,#heroGo,[data-play],.endMenu button,.road button,.road a')) goFull(); }, true);
 
 class Play extends Phaser.Scene {
   constructor() { super('play'); }
@@ -5445,6 +5459,7 @@ function banner(fa, name, ep = '') {
   b.querySelector('.fa').textContent = fa || lv.bossFa || lv.fa; b.querySelector('h2').textContent = name || lv.bossName || lv.name;
   b.querySelector('.ep').textContent = ep; b.classList.toggle('grand', !!ep);
   b.classList.remove('on'); void b.offsetWidth; b.classList.add('on');
+  document.body.classList.add('bannering'); clearTimeout(banner.t); banner.t = setTimeout(() => document.body.classList.remove('bannering'), 3400);   // on a phone the hint steps aside for it
 }
 // the tale, paged like a manuscript
 let pages = [], pg = 0, storyFrom = null, storyReading = false;
@@ -5515,6 +5530,7 @@ game = new Phaser.Game({
   physics: { default: 'arcade', arcade: { gravity: { y: 900 }, debug: location.hash === '#physics' } },
   scene: [Play]
 });
+game.scale.on('resize', () => setTimeout(fitGutters, 50)); setTimeout(fitGutters, 300);
 $('playBtn').onclick = () => (unlocked() > 1 ? openMap() : begin(1)); $('againBtn').onclick = () => $('winTitle').textContent === 'The boss rush is done' ? startRush() : begin(); $('retryBtn').onclick = () => rush ? startRush() : begin(cur, true); $('freshBtn').onclick = () => begin();
 $('muteBtn').onclick = () => { audio(); setMuted(!A.muted); };
 setMuted(A.muted); document.body.classList.toggle('backgrounded', A.background);
