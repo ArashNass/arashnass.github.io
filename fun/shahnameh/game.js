@@ -68,7 +68,7 @@ const FPS = { 'jackal-die': 10, 'div-die': 10, 'scorpion-die': 10, 'vulture-die'
 const SIZE = { queen: 150, rider: 124, rostam: 112, lion: 148, jackal: 108, div: 108, scorpion: 86, vulture: 92, ram: 86, dragon: 136, rakhsh: 128, bat: 108, serpent: 92, hag: 108, beauty: 108, spearman: 140, olad: 92, divwarrior: 100, arzhang: 136, whitediv: 204, firediv: 104, ghul: 100 };
 const BODY = { queen: [0.62, 0.42], rider: [0.3, 0.5], rostam: [0.143, 0.393], lion: [0.5, 0.36], jackal: [0.3, 0.22], div: [0.22, 0.34], scorpion: [0.4, 0.22], vulture: [0.33, 0.2], ram: [0.4, 0.4],
   dragon: [0.46, 0.42], rakhsh: [0.5, 0.5], bat: [0.32, 0.24], serpent: [0.31, 0.31], hag: [0.27, 0.42], beauty: [0.2, 0.47], spearman: [0.115, 0.386], olad: [0.17, 0.49], divwarrior: [0.31, 0.64], arzhang: [0.3, 0.7], whitediv: [0.2667, 0.3867], firediv: [0.2, 0.6], ghul: [0.5, 0.36] };
-const V = 103;
+const V = 104;
 const RAKHSH1 = 128 / 229;                                               // Rakhsh's scale in Khan I: his strip is 229 px, the horse a little larger than the lion
 const REVISED_STORY_ART = new Set(['khan1-intro', 'khan4-intro', 'khan4-outro', 'khan5-intro', 'khan5-outro', 'khan7-intro', 'end2', 'open1', 'open2', 'open3', 'open4', 'open5', 'open6', 'khan1-outro', 'khan2-intro', 'khan2-outro', 'khan3-intro', 'khan3-outro', 'khan6-intro', 'khan6-outro', 'end1', 'end3']);
 let wakeArt = false, lionPrologueSeen = false;
@@ -1628,20 +1628,21 @@ const TRACK_VOL = { 'boss-persian': 0.6, 'war-camp': 0.7, cave: 0.7, menu: 0.75,
 // until then a labour keeps the shared tracks above, so the new score can arrive one labour at a time. loop: [start,
 // end] in seconds, when the stems' own length is not the loop (an encoder's padding, a lead-in to skip).
 const SCORE = {
-  1: { dastgah: 'Shur', stems: false, theme: false, vol: 0.6, boss: 0.3 },
-  2: { dastgah: 'Dashti', stems: false, theme: false, vol: 0.6, boss: 0.3 },
-  3: { dastgah: 'Segah', stems: false, theme: false, vol: 0.55, boss: 0.3 },
-  4: { dastgah: 'Bayat-e Esfahan', stems: false, theme: false, vol: 0.6, boss: 0.3 },
-  5: { dastgah: 'Chahargah', stems: false, theme: false, vol: 0.6, boss: 0.3 },
-  6: { dastgah: 'Chahargah, martial', stems: false, theme: false, vol: 0.6, boss: 0.3 },
-  7: { dastgah: 'Homayoun', stems: false, theme: false, vol: 0.55, boss: 0.3 }
+  1: { dastgah: 'Shur', stems: false, theme: true, vol: 0.6, boss: 0.3 },
+  2: { dastgah: 'Dashti', stems: false, theme: true, vol: 0.6, boss: 0.3 },
+  3: { dastgah: 'Segah', stems: false, theme: true, vol: 0.55, boss: 0.3 },
+  4: { dastgah: 'Bayat-e Esfahan', stems: false, theme: true, vol: 0.6, boss: 0.3 },
+  5: { dastgah: 'Chahargah', stems: false, theme: true, vol: 0.6, boss: 0.3 },
+  6: { dastgah: 'Chahargah, martial', stems: false, theme: true, vol: 0.6, boss: 0.3 },
+  7: { dastgah: 'Homayoun', stems: false, theme: true, vol: 0.55, boss: 0.3 }
 };
 const STEMS = ['bed', 'melody', 'drums'], MIX = { road: { bed: 1, melody: 1, drums: 0 }, fight: { bed: 1, melody: 0.45, drums: 1 } };
 const isScore = name => /^k\d$/.test(name || '');
 const trackVol = name => TRACK_VOL[name] ?? SCORE[name[1]]?.boss ?? 0.3;
 function track(name) {
   let t = A.tracks[name]; if (t) return t;
-  const el = new Audio(`assets/music/${TRACK_FILE[name] || name + '.m4a'}?v=${V}`); el.loop = true; el.preload = 'auto';
+  const file = TRACK_FILE[name] || name + (/^k[1-7]-boss$/.test(name) ? '.mp3' : '.m4a');
+  const el = new Audio(`assets/music/${file}?v=${V}`); el.loop = true; el.preload = 'auto';
   // through a gain node, so it can fade (iOS ignores an audio element's own volume)
   const g = A.ctx.createGain(); g.gain.value = 0; A.ctx.createMediaElementSource(el).connect(g).connect(A.bus);
   t = A.tracks[name] = { el, g };
@@ -4708,7 +4709,7 @@ const metAt = c => c.k || MET_AT[c.id] || 1;
 const known = c => unlocked() >= metAt(c) || location.hash === '#debug' && location.search.includes('allcodex');
 const LOCKED_FA = '؟';
 const CODEX_GROUPS = [['hero', 'Heroes and allies', 'پهلوانان'], ['boss', 'The seven foes', 'هفت خوان'], ['foe', 'On the road', 'دیوان و ددان'], ['moment', 'Moments of the journey', 'رویدادهای سفر']];
-const mini = ([src, n, h], size, cls = '') => `<i class="spr ${cls}" style="--n:${n};--s:${size}px;--src:url(assets/${src}.png)" data-n="${n}" data-key="${src.split('/').pop()}"></i>`;
+const mini = ([src, n, h], size, cls = '') => `<i class="spr ${cls}" style="--n:${n};--s:${size}px;--src:url(assets/${src}.png?v=${V})" data-n="${n}" data-key="${src.split('/').pop()}"></i>`;
 // the miniatures move at their in-game speed: walkers and fliers loop, attacks play once and then the foe waits a few seconds
 let sprTimer = 0;
 const sprTimers = {};
@@ -5524,7 +5525,7 @@ if (location.hash === '#selftest') (async () => {
       for (const f of all) { if (!f.active || !f.body.enable) continue;
         all.forEach(o => { if (o !== f && o.active) { o.body.enable = false; o.setVisible(false); } });
         const fly = !f.body.allowGravity, hx = f.home?.x ?? f.x, fr = fly ? null : Math.round(f.body.bottom / TS);
-        let px = null; for (const d of fly ? [-50, 50, -80, 80] : [-56, 56, -72, 72, -40, 40, -24, 24]) { const x = hx + d; if (f.roam && (x < f.roam[0] + 8 || x > f.roam[1] - 8)) continue; const r = top(x); if (r === 99 || !open(x, r)) continue;
+        let px = null; for (const d of fly ? [-50, 50, -80, 80] : [-56, 56, -72, 72, -40, 40, -24, 24]) { const x = hx + d; if (!canHunt(s, f, { x })) continue; if (f.roam && (x < f.roam[0] + 8 || x > f.roam[1] - 8)) continue; const r = top(x); if (r === 99 || !open(x, r)) continue;
           if (!fly) { if (r !== fr) continue; let ok = true; for (let xx = Math.min(x, hx); xx <= Math.max(x, hx); xx += 8) if (top(xx) !== fr) ok = false; if (!ok) continue; } px = x; break; }
         if (px == null) skipped++;
         else { tested++; const r = top(px); s.player.body.reset(px, r * TS - 1 - 0.47 * s.player.displayHeight); s.player.setVelocity(0); hits = 0; if (f.state === 'rise') f.state = 'circle'; f.cool = 0;
@@ -5536,7 +5537,9 @@ if (location.hash === '#selftest') (async () => {
     // the boss: walk into the arena, wait for it, strike it down, and see the labour through
     s.frozen = false; const ax = n === 1 ? 89 : RUSH_AT[n] + 3, r = s.groundAt(ax * TS + 8) ?? 14; s.player.body.reset(ax * TS + 8, r * TS - 1 - 0.47 * s.player.displayHeight);
     if (n === 2) { s.prayed = true; s.puzzle = { done: true }; s.startQueen(); }
-    for (let i = 0; i < 120 && !(s.boss && s.boss.hp > 0 && !s.intro && s.boss.body.enable); i++) { step(10); await W8(5); }
+    // The garden requires the name-of-God interaction, rather than merely entering its arena.
+    if (n === 4) { if (!s.witch) s.startWitch(); s.unmask(true); }
+    for (let i = 0; i < 120 && !(s.boss && s.boss.hp > 0 && !s.intro && s.boss.body.enable && !(n === 4 && (s.frozen || !s.unmasked))); i++) { step(10); await W8(5); }
     const B = s.boss; say(!!B, `Khan ${ROMAN[n]}: the boss appears${B ? ` (${B.texture.key.split('-')[0]})` : ''}`);
     if (B) {
       B.hp = 1; s.damage(B, 1, true); let done = false;
@@ -5551,7 +5554,7 @@ if (location.hash === '#selftest') (async () => {
     say(errs.length === e0, `Khan ${ROMAN[n]}: no script errors${errs.length > e0 ? ': ' + errs.slice(e0).join('; ') : ''}`);
   }
   // every recording, effect and painting the game asks for is really there
-  const urls = [...[...VOICED].map(k => `assets/voice/${k}.mp3`), ...Object.keys(FX).map(k => `assets/fx/${k}.png`), ...Object.values(CINE).flat().map(([img]) => storyArt(img)), ...Object.values(SAMPLE).map(([f]) => `assets/sfx/${f}.m4a`)];
+  const urls = [...[...VOICED].map(k => `assets/voice/${k}.mp3`), ...Array.from({ length: LABOURS }, (_, i) => `assets/music/k${i + 1}-boss.mp3`), ...Object.keys(FX).map(k => `assets/fx/${k}.png`), ...Object.values(CINE).flat().map(([img]) => storyArt(img)), ...Object.values(SAMPLE).map(([f]) => `assets/sfx/${f}.m4a`)];
   const missing = []; await Promise.all([...new Set(urls)].map(u => fetch(u, { method: 'HEAD' }).then(r => r.ok || missing.push(u)).catch(() => missing.push(u))));
   say(!missing.length, `${new Set(urls).size} sound and picture files load${missing.length ? `; missing: ${missing.join(', ')}` : ''}`);
 

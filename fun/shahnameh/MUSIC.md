@@ -21,7 +21,7 @@ Until the recordings exist, `boss` and `fall` play short phrases synthesised in 
 In `game.js`:
 
 - **Stems:** set `stems: true` on the labour in `SCORE` once `k{n}-bed.m4a`, `k{n}-melody.m4a` and `k{n}-drums.m4a` are all in `assets/music`.
-- **Boss theme:** set `theme: true` once `k{n}-boss.m4a` is there.
+- **Boss theme:** all seven are enabled with `theme: true`, using `k{n}-boss.mp3` (44.1 kHz stereo, 192 kbps, 90 seconds each, about −16 LUFS). The shared theme remains the load-error fallback.
 - **Stings:** set `rec: true` on the sting in `STINGS` once `sting-{name}.m4a` is there.
 - **Levels:** adjust `vol` (stems), `boss` (boss theme) and the sting `vol` by ear against the narration and effects.
 - **Cache:** after replacing any audio file, bump `V`.
@@ -114,3 +114,9 @@ Each starts at full intensity with no slow intro, in the same dastgah as its lab
 If you replace `menu.m4a`, keep the same file name. Suggested prompt:
 
 *A Persian minstrel at court about to tell an ancient tale. A solo tar improvisation in dastgah Mahur, then a gentle santur and kamancheh join. Noble, nostalgic, inviting. 2 minutes, loopable.*
+
+## Delivered boss recordings
+
+Generated with ElevenLabs Music v2.5 in instrumental mode, one take per boss, using the shared style and boss prompts above. Each exported MP3 is 90 seconds at 44.1 kHz/192 kbps. A circular overlap and a low-amplitude boundary join remove the hard edit without an overall fade. Loudness is normalised to approximately −16 LUFS.
+
+All validation was silent: file decoding, duration, loudness, peak and boundary checks. Musical interpretation and instrumentation were specified in generation prompts; they have not been verified by listening.
