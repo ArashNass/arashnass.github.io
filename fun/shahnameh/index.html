@@ -857,6 +857,11 @@ body.calm #banner.on{animation-name:banCalm}@keyframes banCalm{0%{opacity:0}15%,
 #s-guide .gtop .kick{display:block;margin:0}
 .jcast-head h2{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
 .jcast-fa{font:400 22px/1.2 'Vazirmatn','Noto Naskh Arabic',serif;color:#d9b45f;letter-spacing:0;text-transform:none;padding-left:14px;border-left:1px solid #c9a65a70}
+/* a sealed scene in the tale in pictures: no painting until it is earned */
+.clipSeal{aspect-ratio:16/9;display:grid;place-items:center;background:repeating-linear-gradient(45deg,#101b28 0 10px,#0d1622 10px 20px);border-bottom:1px solid #4a607480}
+.clipSeal span{display:grid;place-items:center;width:44px;height:44px;border-radius:50%;border:1px solid #c9a65a90;background:#0b1220;font-size:18px;opacity:.85}
+#s-clips .clip.locked:after{display:none}
+#s-clips .clip.locked span{color:#8fa0ae;font-style:italic}
 </style>
 
 <script defer src="/assets/engagement.js?v=1"></script>
@@ -1187,6 +1192,6 @@ body.calm #banner.on{animation-name:banCalm}@keyframes banCalm{0%{opacity:0}15%,
 <script src="boot.js?v=92"></script>
 <script src="assets/vendor/phaser-3.80.1.min.js" data-game-script="engine"></script>
 <script src="journey-events.js?v=124" data-game-script="journey"></script>
-<script src="game.js?v=195" data-game-script="game"></script>
+<script src="game.js?v=196" data-game-script="game"></script>
 </body>
 </html>

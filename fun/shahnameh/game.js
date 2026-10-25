@@ -5279,15 +5279,17 @@ const CLIP_NAMES = { 'khan5-lasso': 'Olad is bound — The lasso won', 'khan7-no
   "khan7-intro": "The White Div — The road ahead",
 };
 function openClips() {
-  const groups = [{ name: 'opening', title: 'The Prologue', locked: false }];
-  for (let n = 1; n <= LABOURS; n++) {
-    groups.push({ name: 'intro' + n, title: 'Khan ' + ROMAN[n] + ': ' + NAMES[n][0], locked: n > unlocked() });
-    if (n < LABOURS) groups.push({ name: 'outro' + n, title: 'After Khan ' + ROMAN[n], locked: !bestOf(n) });
-  }
-  groups.push({ name: 'ending', title: 'The Ending', locked: !bestOf(LABOURS) });
-  const playlist = groups.filter(g => !g.locked).flatMap(g => CINE[g.name]);
-  $('clipList').innerHTML = groups.map(({ name, title, locked }) => `<h3>${title}</h3><div class="clips">${CINE[name].map(([img], k) =>
-    `<button class="clip${locked ? ' locked' : ''}" ${locked ? 'aria-disabled="true" title="Complete this part of the journey to unlock"' : `data-play="${name}" data-k="${k}"`} aria-label="${CLIP_NAMES[img]}${locked ? ', locked' : ''}"><img src="${storyArt(img)}" alt="" loading="lazy"><span><b>${k + 1}</b>${locked ? 'Complete this part of the journey to see it' : CLIP_NAMES[img]}</span></button>`).join('')}</div>`).join('');
+  // one group per Khan: the paintings before it and after it, each sealed until the player has earned it
+  const part = (name, locked, need) => CINE[name].map(([img], k) => ({ name, k, img, locked, need }));
+  const groups = [{ title: 'The Prologue', clips: part('opening', false) }];
+  for (let n = 1; n <= LABOURS; n++) groups.push({ title: 'Khan ' + ROMAN[n] + ': ' + NAMES[n][0], clips: [
+    ...part('intro' + n, n > unlocked(), 'Reach Khan ' + ROMAN[n] + ' to see it'),
+    ...(n < LABOURS ? part('outro' + n, !bestOf(n), 'Complete Khan ' + ROMAN[n] + ' to see it') : []) ] });
+  groups.push({ title: 'The Ending', clips: part('ending', !bestOf(LABOURS), 'Complete all seven labours to see it') });
+  const playlist = groups.flatMap(g => g.clips.filter(c => !c.locked).map(c => CINE[c.name][c.k]));
+  $('clipList').innerHTML = groups.map(({ title, clips }) => `<h3>${title}</h3><div class="clips">${clips.map(({ name, k, img, locked, need }, i) => locked
+    ? `<button class="clip locked" aria-disabled="true" aria-label="Sealed scene: ${need}"><div class="clipSeal"><span aria-hidden="true">&#128274;</span></div><span><b>${i + 1}</b>${need}</span></button>`
+    : `<button class="clip" data-play="${name}" data-k="${k}" aria-label="${CLIP_NAMES[img]}"><img src="${storyArt(img)}" alt="" loading="lazy"><span><b>${i + 1}</b>${CLIP_NAMES[img]}</span></button>`).join('')}</div>`).join('');
   $('clipsSummary').textContent = `${playlist.length} unlocked scenes · Watch your story in order`;
   $('clipsPlayAll').onclick = () => {
     store.set('sh-prologue', '1'); $('s-clips').classList.add('hidden');
