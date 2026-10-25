@@ -725,6 +725,27 @@ body.calm #banner.on{animation-name:banCalm}@keyframes banCalm{0%{opacity:0}15%,
 #gifts li{position:relative;padding-left:62px;min-height:52px}
 #s-temple .templePage h2,#s-temple .templePage .kick,#s-temple .templePage .fa,#s-temple .purse{text-shadow:0 2px 6px #000,0 0 3px #000}
 .giftIco{position:absolute;left:4px;top:4px;width:48px;height:48px;image-rendering:pixelated;filter:drop-shadow(0 2px 4px #0008)}
+
+.journey-seal{white-space:nowrap}
+.journey-tagline{font:italic 400 15px/1.4 'EB Garamond',Georgia,serif;color:#d9ccb0;margin:4px 0 0}
+.journey-sound{display:inline-flex;align-items:center;gap:7px}
+.spk{width:18px;height:18px;flex:none}.spk path{fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}.spk .spk-body{fill:currentColor}
+.journey-sound[aria-pressed="false"] .spk-on{display:none}.journey-sound[aria-pressed="true"] .spk-off{display:none}
+/* the map and its card share one frame */
+.journey-main{position:relative;gap:0!important;border:2px solid #c9a65a;border-radius:18px;padding:6px;background:#0d1520;box-shadow:0 0 0 1px #00000080,0 0 0 5px #0d1520,0 0 0 6px #c9a65a66,0 24px 70px #0008}
+.journey-main .map-scroll{border:0;border-radius:12px 0 0 12px;box-shadow:none}
+.journey-main .journey-card{border:0;border-left:1px solid #c9a65a55;border-radius:0 12px 12px 0;box-shadow:none}
+@media (max-width:900px){.journey-main .map-scroll{border-radius:12px 12px 0 0}.journey-main .journey-card{border-left:0;border-top:1px solid #c9a65a55;border-radius:0 0 12px 12px}}
+.journey-map{position:relative}
+.map-stats{position:absolute;left:14px;top:12px;z-index:3;display:flex;gap:14px;list-style:none;margin:0;padding:7px 14px;border:1px solid #c9a65a80;border-radius:12px;background:#0b1220d0;backdrop-filter:blur(3px)}
+.map-stats li{display:flex;flex-direction:column;align-items:center}
+.map-stats b{font:700 16px/1.1 Cinzel,serif;color:#f6dc8c}.map-stats b i{font-style:normal;font-size:11px;color:#bca36a}
+.map-stats span{font:600 8px/1.5 Inter,sans-serif;letter-spacing:.12em;text-transform:uppercase;color:#b5c0c4}
+/* the hero and his horse at the foot of the page, the mountain behind them */
+.jduo{position:relative;height:200px;margin-top:6px;border-radius:14px;overflow:hidden;background:linear-gradient(90deg,#090d15 0%,#090d15cc 22%,#090d1500 60%),linear-gradient(0deg,#090d15 0%,#090d1500 35%),url(assets/bg/far.png) right 62%/cover no-repeat;image-rendering:pixelated}
+.jduo .spr{position:absolute;bottom:0;background-color:transparent;box-shadow:none;border-radius:0;filter:drop-shadow(0 6px 8px #000a)}
+.jd-rostam{left:4%}.jd-rakhsh{left:calc(4% + 120px)}
+@media (max-width:600px){.jduo{height:140px}.jduo .spr{--s:110px!important}.jd-rakhsh{left:calc(4% + 90px)}.map-stats{gap:8px;padding:5px 9px;left:8px;top:8px}.map-stats b{font-size:13px}}
 </style>
 
 <script defer src="/assets/engagement.js?v=1"></script>
@@ -906,35 +927,20 @@ body.calm #banner.on{animation-name:banCalm}@keyframes banCalm{0%{opacity:0}15%,
   <div class="homebg" aria-hidden="true"><i></i><b></b></div><canvas id="emb" aria-hidden="true"></canvas>
   <div class="page mapPage journey-page">
     <header class="journey-header">
-      <div class="journey-brand"><span class="journey-seal" lang="fa">هفت خوان</span><div><p class="journey-eyebrow">Ferdowsi's Shahnameh</p><h1>The Seven Labours of Rostam</h1></div></div>
+      <div class="journey-brand"><span class="journey-seal" lang="fa">هفت خوانِ رستم</span><div><p class="journey-eyebrow">Ferdowsi's Shahnameh</p><h1>The Seven Labours of Rostam</h1><p class="journey-tagline">Seven trials. One hero. A blinded king waiting in the dark.</p></div></div>
       <nav class="journey-nav" aria-label="Game menu">
         <button id="journeyMenu" class="journey-nav-link journey-menu" aria-expanded="false"><span aria-hidden="true">&#9776;</span>Menu</button>
         <button id="prologueBtn" class="journey-nav-link">Story scenes</button>
         <button class="journey-nav-link" data-help>Controls</button>
-        <button class="journey-nav-link" data-guide>Heroes &amp; Foes</button>
         <button class="journey-nav-link" data-settings>Settings</button>
-        <button id="journeySound" class="journey-sound" aria-label="Toggle sound" aria-pressed="false">Sound on</button>
+        <button id="journeySound" class="journey-nav-link journey-sound" aria-label="Toggle sound" aria-pressed="false"><svg class="spk" viewBox="0 0 24 24" aria-hidden="true"><path class="spk-body" d="M4 9.5h3.2L12 5.5v13l-4.8-4H4z"/><path class="spk-on" d="M15.5 9a4.2 4.2 0 0 1 0 6M18.2 6.4a8 8 0 0 1 0 11.2"/><path class="spk-off" d="M16 9.5l5 5M21 9.5l-5 5"/></svg><span class="spk-l">Sound on</span></button>
         <button id="mapClose" class="journey-close" aria-label="Close">&times;</button>
       </nav>
     </header>
-    <section class="jhero" aria-label="Welcome">
-      <div class="jhero-copy">
-        <p class="jhero-kick">A pixel-art epic from Ferdowsi's Shahnameh</p>
-        <p class="jhero-fa" lang="fa">هفت خوانِ رستم</p>
-        <p class="jhero-line">Seven trials. One hero. A blinded king waiting in the dark.<br>Ride the short and terrible road to Mazandaran.</p>
-        <div class="jhero-cta"><button class="btn" id="heroGo">Begin the journey</button><button class="btn2" id="heroCast">Meet the heroes &amp; foes</button></div>
-        <ul class="jhero-stats" id="heroStats" aria-label="Your journey so far"></ul>
-      </div>
-      <div class="jhero-stage" aria-hidden="true">
-        <i class="spr jh-rakhsh" style="--n:4;--s:210px;--src:url(assets/k3/rakhsh-idle.png)" data-n="4" data-key="rakhsh-idle"></i>
-        <i class="spr jh-rostam" style="--n:4;--s:205px;--src:url(assets/rostam-idle.png)" data-n="4" data-key="rostam-idle"></i>
-        <span class="jh-fire"></span>
-      </div>
-    </section>
     <div class="journey-map-heading"><div><h2>Your Journey to Mazandaran</h2></div></div>
     <div class="journey-main">
       <section class="journey-map" aria-label="The road to Mazandaran">
-        <div class="map-scroll" id="mapScroll" tabindex="0" aria-label="Journey map. Scroll sideways to explore all seven labours."><ol class="road" id="road"></ol></div>
+        <ul class="map-stats" id="heroStats" aria-label="Your journey so far"></ul><div class="map-scroll" id="mapScroll" tabindex="0" aria-label="Journey map. Scroll sideways to explore all seven labours."><ol class="road" id="road"></ol></div>
 
       </section>
       <aside class="journey-card" aria-label="Selected labour">
@@ -949,6 +955,10 @@ body.calm #banner.on{animation-name:banCalm}@keyframes banCalm{0%{opacity:0}15%,
       <div class="jcast-head"><h2>Heroes &amp; foes of the road</h2><button class="journey-nav-link" id="castAll">Open the book</button></div>
       <div class="jcast-row" id="castRow"></div>
     </section>
+    <div class="jduo" aria-hidden="true">
+      <i class="spr jd-rostam" style="--n:4;--s:150px;--src:url(assets/rostam-idle.png)" data-n="4" data-key="rostam-idle"></i>
+      <i class="spr jd-rakhsh" style="--n:4;--s:160px;--src:url(assets/k3/rakhsh-idle.png)" data-n="4" data-key="rakhsh-idle"></i>
+    </div>
     <footer class="journey-footer"><a href="/fun/" class="journey-back">← The Funfair</a><div class="journey-extras"><button id="rushBtn" class="hidden">Boss rush</button></div></footer>
   </div>
 </section>
@@ -1073,6 +1083,6 @@ body.calm #banner.on{animation-name:banCalm}@keyframes banCalm{0%{opacity:0}15%,
 <script src="boot.js?v=92"></script>
 <script src="assets/vendor/phaser-3.80.1.min.js" data-game-script="engine"></script>
 <script src="journey-events.js?v=123" data-game-script="journey"></script>
-<script src="game.js?v=157" data-game-script="game"></script>
+<script src="game.js?v=158" data-game-script="game"></script>
 </body>
 </html>

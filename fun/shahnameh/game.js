@@ -1863,7 +1863,7 @@ function setMuted(m) {
   A.muted = m; store.set('sh-muted', m ? '1' : '0'); if (A.master) A.master.gain.value = m || A.background ? 0 : 0.8; if (m) hush(true);
   if (typeof storyReading !== 'undefined') refreshStoryListen();
   $('muteIco').setAttribute('d', m ? 'M4 9v6h4l5 4V5L8 9z M17 9l5 6 M22 9l-5 6' : 'M4 9v6h4l5 4V5L8 9z M16 9a4 4 0 0 1 0 6 M19 6a8 8 0 0 1 0 12');
-  if ($('journeySound')) { $('journeySound').textContent = m ? 'Sound off' : 'Sound on'; $('journeySound').setAttribute('aria-pressed', String(!m)); }
+  if ($('journeySound')) { $('journeySound').querySelector('.spk-l').textContent = m ? 'Sound off' : 'Sound on'; $('journeySound').setAttribute('aria-pressed', String(!m)); }
   music(!m && game && game.scene.isActive('play') && playing);
 }
 
@@ -4608,8 +4608,8 @@ const bestOf = n => +(store.get(n === 1 ? 'sh-best' : 'sh-best-' + n) || 0);
 function renderHero() {
   const u = unlocked(), S = starsOf(), done = Object.keys(S).length, stars = Object.values(S).reduce((a, b) => a + b, 0), fe = Object.keys(feathers()).length;
   const next = Math.min(u, LABOURS), fresh = !done && u === 1;
-  $('heroGo').innerHTML = fresh ? 'Begin the journey' : done >= LABOURS ? 'Ride the road again' : `Continue <small>Khan ${ROMAN[next]} &middot; ${NAMES[next][0]}</small>`;
-  $('heroGo').onclick = () => { pick = done >= LABOURS ? 1 : next; renderMap(); $('rideBtn').click(); };
+  if ($('heroGo')) $('heroGo').innerHTML = fresh ? 'Begin the journey' : done >= LABOURS ? 'Ride the road again' : `Continue <small>Khan ${ROMAN[next]} &middot; ${NAMES[next][0]}</small>`;
+  if ($('heroGo')) $('heroGo').onclick = () => { pick = done >= LABOURS ? 1 : next; renderMap(); $('rideBtn').click(); };
   $('heroStats').innerHTML = [[`${done}<i>/7</i>`, 'labours won'], [`${stars}<i>/21</i>`, 'stars'], [`${fe}<i>/21</i>`, 'Simurgh feathers']].map(([v, l]) => `<li><b>${v}</b><span>${l}</span></li>`).join('');
   $('castRow').innerHTML = CODEX.filter(c => c.group !== 'foe' && c.id !== 'ram').map(c =>
     `<button class="jcast-it jc-${c.group}" data-cdx="${c.id}" aria-label="${c.name}: open their page">${codexFace(c, 56)}<span class="jc-fa" lang="fa">${c.fa}</span><b>${c.name}</b><small>${c.group === 'boss' ? 'Khan ' + ROMAN[c.k] : 'Hero'}</small></button>`).join('');
@@ -4821,7 +4821,7 @@ function openMap(e) {
   mapFrom = document.querySelector('.ov:not(.hidden):not(#s-map)'); mapFrom?.classList.add('hidden');
   $('s-map').classList.toggle('home', !mapFrom); $('mapClose').classList.toggle('hidden', !mapFrom);   // the map is also the home screen
   pick = Math.min(unlocked(), LABOURS); if (!LEVELS[pick]) pick = cur;
-  renderMap(); renderDiff(); $('s-map').classList.remove('hidden'); renderHero(); $('s-map').scrollTop = 0; $('heroGo').focus({ preventScroll: true }); if (!mapFrom) embers();
+  renderMap(); renderDiff(); $('s-map').classList.remove('hidden'); renderHero(); $('s-map').scrollTop = 0; $('rideBtn').focus({ preventScroll: true }); if (!mapFrom) embers();
 }
 // embers and sparks rising over the home screen's panorama; the loop runs only while the home map is on screen
 let embRun = false;
@@ -4853,7 +4853,7 @@ document.querySelectorAll('[data-map]').forEach(b => b.onclick = openMap);
 $('journeySound').onclick = () => $('muteBtn').click();
 $('mapClose').onclick = closeMap; $('rideBtn').onclick = () => { if (pick === 1 && !store.get('sh-prologue')) { store.set('sh-prologue', '1'); cinema('opening', () => begin(1)); } else begin(pick); };
 $('mapTale').onclick = () => openStory(0, pick);
-$('heroCast').onclick = () => openGuide('rostam'); $('castAll').onclick = () => openGuide('rostam');
+$('castAll').onclick = () => openGuide('rostam');
 // the Fire Temple: provisions offered for lasting gifts. The game waits while Rostam stands at the fire.
 function renderTemple() {
   const u = upg(), have = purse(); $('purseN').textContent = have;
