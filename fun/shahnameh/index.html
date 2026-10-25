@@ -851,6 +851,12 @@ body.calm #banner.on{animation-name:banCalm}@keyframes banCalm{0%{opacity:0}15%,
 #s-map .map-kicker{margin:0 0 2px;font:400 14px/1.2 'Vazirmatn','Noto Naskh Arabic',serif;color:#d9b45f}
 #s-map .map-stats{top:auto!important;bottom:14px;left:14px;box-shadow:0 6px 18px #0007;pointer-events:none}
 @media (max-width:600px){#s-map .journey-map-heading.map-title{left:8px;top:8px;padding:5px 10px}#s-map .map-title h2{font-size:14px!important}#s-map .map-kicker{font-size:12px}#s-map .map-stats{bottom:8px;left:8px}}
+/* the book's Persian title stands clear above the page, not on the painting */
+#s-guide .gtop{flex-direction:column;align-items:center;justify-content:center;gap:2px;margin:-6px 0 16px;padding:0 0 10px;border-bottom:1px solid #b8893a70;text-align:center}
+#s-guide .gtop .fa{display:block;line-height:1.35;font-size:clamp(26px,3vw,34px)}
+#s-guide .gtop .kick{display:block;margin:0}
+.jcast-head h2{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.jcast-fa{font:400 22px/1.2 'Vazirmatn','Noto Naskh Arabic',serif;color:#d9b45f;letter-spacing:0;text-transform:none;padding-left:14px;border-left:1px solid #c9a65a70}
 </style>
 
 <script defer src="/assets/engagement.js?v=1"></script>
@@ -1050,7 +1056,7 @@ body.calm #banner.on{animation-name:banCalm}@keyframes banCalm{0%{opacity:0}15%,
       </aside>
     </div>
     <section class="jcast" aria-label="Heroes and foes">
-      <div class="jcast-head"><h2>Heroes &amp; foes of the road</h2><button class="journey-nav-link" id="castAll">Open the book</button></div>
+      <div class="jcast-head"><h2>Heroes &amp; foes of the road<span class="jcast-fa" lang="fa">پهلوان‌نامه</span></h2><button class="journey-nav-link" id="castAll">Open the book</button></div>
       <div class="jcast-row" id="castRow"></div>
     </section>
     <div class="jduo" aria-hidden="true">
@@ -1181,6 +1187,6 @@ body.calm #banner.on{animation-name:banCalm}@keyframes banCalm{0%{opacity:0}15%,
 <script src="boot.js?v=92"></script>
 <script src="assets/vendor/phaser-3.80.1.min.js" data-game-script="engine"></script>
 <script src="journey-events.js?v=124" data-game-script="journey"></script>
-<script src="game.js?v=194" data-game-script="game"></script>
+<script src="game.js?v=195" data-game-script="game"></script>
 </body>
 </html>
