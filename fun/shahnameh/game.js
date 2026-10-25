@@ -5012,6 +5012,7 @@ function say(k, { once = false, sub = true, then } = {}) {
 function sayIntro(n) { say('khan' + n, { once: true }); }
 function cineAdvanceAfter(ms) {
   const c = cine; if (!c) return;
+  if (c.shownAt) ms = Math.max(ms, c.shownAt + 9000 - Date.now());   // no picture leaves before it has been seen
   clearTimeout(c.auto); c.autoRemaining = null; c.autoDue = Date.now() + ms;
   if (A.background) { c.auto = 0; c.autoRemaining = ms; return; }
   c.auto = setTimeout(() => { if (cine === c) { c.auto = 0; cineNext(); } }, ms);
@@ -5041,15 +5042,15 @@ function cineShow(i) {
   ov.querySelectorAll('.cdots i').forEach((d, k) => d.classList.toggle('on', k === i));
   const cap = ov.querySelector('.ccap'); cap.classList.remove('done'); cap.querySelector('.fa').textContent = fa; const p = cap.querySelector('p'); p.textContent = '';
   // the narration types out, a few letters at a time; the next picture follows on its own after a reading pause
-  clearInterval(c.typing); clearTimeout(c.auto); c.autoRemaining = null; let n = 0;
+  clearInterval(c.typing); clearTimeout(c.auto); c.autoRemaining = null; c.shownAt = Date.now(); let n = 0;
   // with the narrator on, the words appear at his pace and the next picture waits for him to finish
-  const panel = i, a = narrate(img, () => { if (cine === c && c.i === panel) { c.speaking = false; if (!c.typing) cineAdvanceAfter(1400); } });
+  const panel = i, a = narrate(img, () => { if (cine === c && c.i === panel) { c.speaking = false; if (!c.typing) cineAdvanceAfter(3500); } });
   c.speaking = !!a;
   c.typing = setInterval(() => {
     if (A.background) return;
-    n = c.speaking ? (a.duration ? Math.floor(text.length * (A.ctx.currentTime * 1000 - a.t0) / (a.duration * 900)) : 0) : n + 2;
+    n = c.speaking ? (a.duration ? Math.floor(text.length * (A.ctx.currentTime * 1000 - a.t0) / (a.duration * 900)) : 0) : n + 1;
     p.textContent = text.slice(0, n);
-    if (n >= text.length) { clearInterval(c.typing); c.typing = 0; p.textContent = text; cap.classList.add('done'); if (!c.speaking) cineAdvanceAfter(2600 + text.length * 32); }
+    if (n >= text.length) { clearInterval(c.typing); c.typing = 0; p.textContent = text; cap.classList.add('done'); if (!c.speaking) cineAdvanceAfter(4000 + text.length * 45); }
   }, 28);
 }
 function cineNext() {
