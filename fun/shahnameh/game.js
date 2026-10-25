@@ -4550,7 +4550,7 @@ let sprTimer = 0;
 const sprTimers = {};
 function animateSprites(root, ov) {
   clearInterval(sprTimers[ov]);
-  const els = [...root.querySelectorAll('.spr')].map((el, i) => {
+  const els = [...root.querySelectorAll('.spr:not(.still)')].map((el, i) => {
     const key = el.dataset.key, n = +el.dataset.n;
     return { el, n, fps: FPS[key] || 10, attack: /smash|slash|thrust|fire|cast|roar|throw|strike|sting|pounce|charge|rear|attack|leap|dive|lunge/.test(key), t0: performance.now() - i * 700, last: -1 };
   });
@@ -4568,7 +4568,7 @@ function animateSprites(root, ov) {
 }
 const animateMinis = () => animateSprites($('gleaf'), 's-guide');
 // a character's face: their portrait where one is painted, else their own sprite
-const codexFace = (c, size) => c.port ? `<img class="cdx-face" src="assets/ui/port/${c.port}.png?v=${V}" alt="" width="${size}" height="${size}">` : mini(c.art, size, 'cdx-mini');
+const codexFace = (c, size) => c.port ? `<img class="cdx-face" src="assets/ui/port/${c.port}.png?v=${V}" alt="" width="${size}" height="${size}">` : mini(c.art, size, 'cdx-mini still');
 function showGuide(i) {
   gpg = (i + CODEX.length) % CODEX.length; const c = CODEX[gpg], road = c.road || GUIDE.find(g => g.k === c.k)?.how || [];
   $('gtabs').innerHTML = CODEX_GROUPS.map(([grp, label, fa]) => `<div class="cdx-grp"><p class="cdx-gh"><span lang="fa">${fa}</span>${label}</p>${CODEX.map((x, j) => x.group !== grp ? '' :
