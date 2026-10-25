@@ -1976,6 +1976,9 @@ addEventListener('blur', clearInput);
 /* ---------------------------- scene ---------------------------- */
 let game = null, playing = false;
 const touch = matchMedia('(pointer:coarse)').matches || 'ontouchstart' in window;
+const isPhone = () => touch && Math.min(innerWidth, innerHeight) < 560;
+const markPhone = () => { document.body.classList.toggle('phone', isPhone()); document.body.classList.toggle('upright', isPhone() && innerHeight > innerWidth); };
+markPhone(); addEventListener('resize', markPhone); addEventListener('orientationchange', () => setTimeout(markPhone, 200));
 
 class Play extends Phaser.Scene {
   constructor() { super('play'); }
@@ -5423,8 +5426,9 @@ function hint(html) {
   const h = $('hint'); if (!html) { h.classList.add('hidden'); h.dataset.t = ''; return; }
   if (h.dataset.t === html) return; h.dataset.t = html; h.innerHTML = html; refreshControlLabels(h);
   h.classList.remove('hidden', 'new', 'dim'); void h.offsetWidth; h.classList.add('new');
-  clearTimeout(hint.t); hint.t = setTimeout(() => h.classList.add('dim'), 7000);
+  h.classList.remove('full'); clearTimeout(hint.t); hint.t = setTimeout(() => h.classList.add('dim'), isPhone() ? 4500 : 7000);
 }
+$('hint').addEventListener('click', () => { if (!isPhone()) return; const h = $('hint'); h.classList.toggle('full'); h.classList.remove('dim'); clearTimeout(hint.t); hint.t = setTimeout(() => h.classList.add('dim'), 6000); });
 function toast(msg) { if ($('sub').classList.contains('on')) return; const t = $('toast'); t.textContent = controlText(msg); t.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('on'), 3200); }
 function banner(fa, name, ep = '') {
   const lv = LEVELS[cur], b = $('banner');
