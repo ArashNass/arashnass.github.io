@@ -4709,7 +4709,7 @@ const metAt = c => c.k || MET_AT[c.id] || 1;
 const known = c => unlocked() >= metAt(c) || location.hash === '#debug' && location.search.includes('allcodex');
 const LOCKED_FA = '؟';
 const CODEX_GROUPS = [['hero', 'Heroes and allies', 'پهلوانان'], ['boss', 'The seven foes', 'هفت خوان'], ['foe', 'On the road', 'دیوان و ددان'], ['moment', 'Moments of the journey', 'رویدادهای سفر']];
-const mini = ([src, n, h], size, cls = '') => `<i class="spr ${cls}" style="--n:${n};--s:${size}px;--src:url(assets/${src}.png)" data-n="${n}" data-key="${src.split('/').pop()}"></i>`;
+const mini = ([src, n, h], size, cls = '') => `<i class="spr ${cls}" style="--n:${n};--s:${size}px;--src:url(assets/${src}.png?v=${V})" data-n="${n}" data-key="${src.split('/').pop()}"></i>`;
 // the miniatures move at their in-game speed: walkers and fliers loop, attacks play once and then the foe waits a few seconds
 let sprTimer = 0;
 const sprTimers = {};
