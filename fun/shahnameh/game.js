@@ -43,6 +43,7 @@ const ART = {
   // Khan VII
   'whitediv-walk': 'k7/whitediv-walk.png', 'whitediv-smash': 'k7/whitediv-smash.png', 'whitediv-throw': 'k7/whitediv-throw.png', 'whitediv-die': 'k7/whitediv-die.png', 'kavus-sight': 'k7/kavus-sight.png'
 };
+Object.assign(ART, { 'rostam-land': 'rostam-land.png', 'rostam-turn': 'rostam-turn.png', 'rostam-climb': 'rostam-climb.png', 'rostam-swim': 'rostam-swim.png' });
 Object.assign(ART, { 'rostam-tanbur': 'rostam-tanbur.png', 'rostam-roar': 'rostam-roar.png', 'olad-bound': 'k5/olad-bound.png' });
 Object.assign(ART, { 'rostam-pray': 'rostam-pray.png', 'rostam-kneel-drink': 'rostam-kneel-drink.png', 'rostam-thirst': 'rostam-thirst.png',
   'ram-idle': 'k2/ram-idle.png', 'ram-look': 'k2/ram-look.png', 'ram-paw': 'k2/ram-paw.png', 'ram-appear': 'k2/ram-appear.png', 'rakhsh-trot': 'k3/rakhsh-trot.png', 'rakhsh-drink': 'k3/rakhsh-drink.png' });
@@ -55,7 +56,7 @@ Object.assign(ART, { 'lion-pounce': 'lion-pounce.png', 'lion-swipe': 'lion-swipe
 Object.assign(ART, { 'rostam-sleep': 'rostam-sleep.png', 'rostam-rise': 'rostam-rise.png', 'div-sleep': 'div-sleep.png', 'rostam-lasso': 'rostam-lasso.png', 'rakhsh-idle': 'k3/rakhsh-idle.png', 'divwarrior-sleep': 'k6/divwarrior-sleep.png' });
 // Painted replacements retain the original texture dimensions and collision footprints.
 const PAINTED = ['bg-reeds', 'bg-hills', 'bg-mist', 'fg-reeds', 'knife', 'arrow', 'fireball', 'icicle', 'icespike', 'boulder'];
-const FPS = { 'rostam-tanbur': 5, 'rostam-roar': 8, 'olad-bound': 9, 'rostam-pray': 4, 'rostam-thirst': 9, 'ram-idle': 3, 'rakhsh-trot': 9, 'rakhsh-drink': 4, 'rostam-lasso': 40, 'rakhsh-idle': 3, 'divwarrior-sleep': 2, 'rostam-sleep': 2, 'rostam-rise': 6, 'div-sleep': 2, 'queen-walk': 10, 'queen-sting': 14, 'queen-spit': 12, 'queen-die': 7, 'rostam-dodge': 22, 'rostam-heavy': 14, 'simurgh-fly': 9, 'lion-die': 6, 'dragon-die': 6, 'hag-die': 6, 'rostam-idle': 5, 'rostam-run': 14, 'rostam-jump': 6, 'rostam-attack': 24, 'rostam-hurt': 10, 'lion-walk': 9, 'lion-run': 14, 'lion-roar': 6, 'jackal-run': 12, 'div-hop': 8, 'coin-spin': 8, 'fire-burn': 10,
+const FPS = { 'rostam-land': 16, 'rostam-turn': 14, 'rostam-climb': 12, 'rostam-swim': 8, 'rostam-tanbur': 5, 'rostam-roar': 8, 'olad-bound': 9, 'rostam-pray': 4, 'rostam-thirst': 9, 'ram-idle': 3, 'rakhsh-trot': 9, 'rakhsh-drink': 4, 'rostam-lasso': 40, 'rakhsh-idle': 3, 'divwarrior-sleep': 2, 'rostam-sleep': 2, 'rostam-rise': 6, 'div-sleep': 2, 'queen-walk': 10, 'queen-sting': 14, 'queen-spit': 12, 'queen-die': 7, 'rostam-dodge': 22, 'rostam-heavy': 14, 'simurgh-fly': 9, 'lion-die': 6, 'dragon-die': 6, 'hag-die': 6, 'rostam-idle': 5, 'rostam-run': 14, 'rostam-jump': 6, 'rostam-attack': 24, 'rostam-hurt': 10, 'lion-walk': 9, 'lion-run': 14, 'lion-roar': 6, 'jackal-run': 12, 'div-hop': 8, 'coin-spin': 8, 'fire-burn': 10,
   'scorpion-crawl': 10, 'vulture-fly': 10, 'ram-walk': 8, 'rostam-drink': 6, 'rostam-fall': 7, 'rostam-victory': 8, 'rostam-anoint': 6, 'ride-gallop': 12, 'ride-strike': 18, 'ride-rear': 11,
   'dragon-move': 7, 'dragon-fire': 9, 'rakhsh-gallop': 12, 'rakhsh-rear': 9, 'bat-fly': 14,
   'serpent': 8, 'hag-cast': 10, 'beauty-idle': 4,
@@ -66,7 +67,7 @@ const FPS = { 'rostam-tanbur': 5, 'rostam-roar': 8, 'olad-bound': 9, 'rostam-pra
 const SIZE = { queen: 150, rider: 124, rostam: 112, lion: 148, jackal: 108, div: 108, scorpion: 86, vulture: 92, ram: 86, dragon: 136, rakhsh: 128, bat: 108, serpent: 92, hag: 108, beauty: 108, spearman: 140, olad: 112, divwarrior: 100, arzhang: 136, whitediv: 204, firediv: 104, ghul: 100 };
 const BODY = { queen: [0.62, 0.42], rider: [0.3, 0.5], rostam: [0.143, 0.393], lion: [0.5, 0.36], jackal: [0.3, 0.22], div: [0.22, 0.34], scorpion: [0.4, 0.22], vulture: [0.33, 0.2], ram: [0.4, 0.4],
   dragon: [0.46, 0.42], rakhsh: [0.5, 0.5], bat: [0.32, 0.24], serpent: [0.31, 0.31], hag: [0.27, 0.42], beauty: [0.2, 0.47], spearman: [0.115, 0.386], olad: [0.17, 0.49], divwarrior: [0.31, 0.64], arzhang: [0.3, 0.7], whitediv: [0.2667, 0.3867], firediv: [0.2, 0.6], ghul: [0.5, 0.36] };
-const V = 101;
+const V = 102;
 const RAKHSH1 = 128 / 229;                                               // Rakhsh's scale in Khan I: his strip is 229 px, the horse a little larger than the lion
 const REVISED_STORY_ART = new Set(['khan1-intro', 'khan4-intro', 'khan4-outro', 'khan5-intro', 'khan5-outro', 'khan7-intro', 'end2', 'open1', 'open2', 'open3', 'open4', 'open5', 'open6', 'khan1-outro', 'khan2-intro', 'khan2-outro', 'khan3-intro', 'khan3-outro', 'khan6-intro', 'khan6-outro', 'end1', 'end3']);
 let wakeArt = false, lionPrologueSeen = false;
@@ -1995,7 +1996,7 @@ class Play extends Phaser.Scene {
   create() {
     // the scene object is reused from labour to labour: forget whatever the last one left behind
     for (const k of ['dark', 'lights', 'lamp', 'wall', 'wallR', 'stars', 'pose', 'swingFx', 'witch', 'unmasked', 'olad', 'rakhsh', 'dragonSeen', 'horde', 'hordeDone',
-      'gates', 'hordeBat', 'toldRock', 'toldFarr', 'toldOffer', 'atAltar', 'bossT', 'maceHit', 'toldIce', 'chargeWarn', 'toldCharge', 'shards', 'shardG', 'mark', 'markGlow', 'markOpen', 'bossHeart', 'bossHeartT', 'floorWarn', 'highWarn', 'regrow', 'drums', 'sky', 'flashA', 'intro', 'fgReeds', 'mound', 'swirl', 'qx', 'puddles', 'combo', 'comboT', 'heavy', 'heavyGo', 'chargeT', 'chargeFull', 'chargeGlow', 'dodgeT', 'dodgeCd', 'dodgeDir', 'whiteDown', 'ended', 'mounted', 'prayed', 'drank', 'toldImmune', 'toldDeflect', 'toldVenom', 'cage', 'kavus', 'stones', 'puzzle', 'springOpen', 'pool', 'victory', 'attackBuf', 'dodgeBuf', 'counterT', 'counterStrike', 'dodgeRewarded', 'trial', 'nearTrial', 'journey', 'siege', 'siegeDone', 'ally', 'phase2', 'streak', 'didDouble', 'rocks', 'rockT', 'poppies', 'drowsy', 'toldPoppy', 'oladAlly', 'rope', 'ropeG', 'lassoCd', 'toldBossLasso', 'sleeper', 'snore', 'guard', 'prologue', 'prologueOn', 'ringObj', 'grapple', 'toldBossHold', 'oladBind', 'sleepers', 'toldSleep', 'saidLow', 'ramDug', 'ramAmbush', 'toldRamWait', 'climbTo', 'rakhshDrinks', 'shove', 'saidThirst', 'storyHold', 'dragonStoryDone', 'dragonStoryOn', 'feastDone', 'feastOn', 'warcryDone', 'oladGuide', 'guideDone', 'rakhshAt1']) delete this[k];
+      'gates', 'hordeBat', 'toldRock', 'toldFarr', 'toldOffer', 'atAltar', 'bossT', 'maceHit', 'toldIce', 'chargeWarn', 'toldCharge', 'shards', 'shardG', 'mark', 'markGlow', 'markOpen', 'bossHeart', 'bossHeartT', 'floorWarn', 'highWarn', 'regrow', 'drums', 'sky', 'flashA', 'intro', 'fgReeds', 'mound', 'swirl', 'qx', 'puddles', 'combo', 'comboT', 'heavy', 'heavyGo', 'chargeT', 'chargeFull', 'chargeGlow', 'dodgeT', 'dodgeCd', 'dodgeDir', 'whiteDown', 'ended', 'mounted', 'prayed', 'drank', 'toldImmune', 'toldDeflect', 'toldVenom', 'cage', 'kavus', 'stones', 'puzzle', 'springOpen', 'pool', 'victory', 'attackBuf', 'dodgeBuf', 'counterT', 'counterStrike', 'dodgeRewarded', 'trial', 'nearTrial', 'journey', 'siege', 'siegeDone', 'ally', 'phase2', 'streak', 'didDouble', 'rocks', 'rockT', 'poppies', 'drowsy', 'toldPoppy', 'oladAlly', 'rope', 'ropeG', 'lassoCd', 'toldBossLasso', 'sleeper', 'snore', 'guard', 'prologue', 'prologueOn', 'ringObj', 'grapple', 'toldBossHold', 'oladBind', 'sleepers', 'toldSleep', 'saidLow', 'ramDug', 'ramAmbush', 'toldRamWait', 'climbTo', 'rakhshDrinks', 'shove', 'saidThirst', 'storyHold', 'dragonStoryDone', 'dragonStoryOn', 'feastDone', 'feastOn', 'warcryDone', 'oladGuide', 'guideDone', 'rakhshAt1', 'motionKey', 'motionUntil', 'turnFrom']) delete this[k];
     this.physics.resume();
     refreshLassoBtn();
     // turn loaded strips into square frames; anything missing falls back to placeholder art
@@ -2006,6 +2007,7 @@ class Play extends Phaser.Scene {
     }
     makeTextures(this);
     for (const k of Object.keys(FPS)) {
+      if (k === 'rostam-land' || k === 'rostam-turn') continue; // explicit play-once movement animations below
       const t = this.textures.get(k), n = t.frameTotal - 1;
       if (!this.anims.exists(k)) this.anims.create({ key: k, frames: this.anims.generateFrameNumbers(k, { start: 0, end: Math.max(0, n - 1) }), frameRate: FPS[k], repeat: /attack|hurt|roar|jump|thrust|slash|kneel|smash|throw|fire|rear|sight|strike|sting|die|leap|heavy|dodge|fall|rise|lasso|victory|anoint/.test(k) ? 0 : -1 });
     }
@@ -2116,6 +2118,7 @@ class Play extends Phaser.Scene {
     move('div-pounce', 'div-strike', 3, 5, 12); move('rostam-farr', 'rostam-farr', 0, 7, 14);
     // a boss's opening: the dazed loop that says strike now; the witch's unmasking; Rostam vaulting into the saddle
     for (const k of ['lion', 'queen', 'dragon', 'hag', 'olad', 'arzhang', 'whitediv']) move(k + '-dazed', k + '-dazed', 0, 5, 6, -1);
+    move('rostam-land', 'rostam-land', 0, 3, 16); move('rostam-turn', 'rostam-turn', 0, 2, 14);
     move('rostam-warcry', 'rostam-roar', 0, 5, 8);
     move('rostam-sip', 'rostam-kneel-drink', 0, 7, 5); move('ram-glance', 'ram-look', 0, 5, 6); move('ram-pawing', 'ram-paw', 0, 5, 8); move('ram-arrive', 'ram-appear', 0, 7, 6);
     move('witch-transform', 'witch-transform', 0, 7, 8); move('ride-mount', 'ride-mount', 0, 5, 11);
@@ -3026,6 +3029,9 @@ class Play extends Phaser.Scene {
     this.inv = Math.max(0, this.inv - k); p.setAlpha(this.inv > 0 && Math.floor(this.inv / 5) % 2 ? 0.35 : 1);
     if (this.frozen) { pressed.jump = pressed.attack = false; this.buf = this.attackBuf = this.dodgeBuf = 0; }
     const dirX = this.frozen ? 0 : (keys.right ? 1 : 0) - (keys.left ? 1 : 0), ground = b.blocked.down;
+    if (dirX && dirX !== this.face && ground && !this.mounted && !this.pose && !(this.atk > 0) && this.anims.exists('rostam-turn')) {
+      this.turnFrom = this.face; this.motionKey = 'rostam-turn'; this.motionUntil = time + 210;
+    }
     if (dirX) this.face = dirX;
     const drowsy = this.drowsy > time, tv = dirX * (this.mounted ? 165 : 125) * (drowsy ? 0.5 : 1); b.velocity.x += (tv - b.velocity.x) * (1 - Math.pow(ground ? 0.7 : 0.85, k));   // Rakhsh outruns any man
     if (this.shove && this.time.now < this.shove.until) b.velocity.x = this.shove.vx;   // thrown, he cannot help it
@@ -3049,6 +3055,9 @@ class Play extends Phaser.Scene {
     }
     this.buf = Math.max(0, this.buf - k);
     if (ground && !this.wasGround && this.fallV > 200) this.fx('dust', p.x, b.bottom, { depth: 6 });
+    if (ground && !this.wasGround && this.fallV > 300 && !this.mounted && !this.frozen && !this.pose && !(this.atk > 0) && this.anims.exists('rostam-land')) {
+      this.motionKey = 'rostam-land'; this.motionUntil = time + 250;
+    }
     this.wasGround = ground; this.fallV = b.velocity.y;
     this.stepping = Math.max(0, (this.stepping || 0) - k);
     if (!keys.jump && !this.stepping && b.velocity.y < -120) p.setVelocityY(b.velocity.y * Math.pow(0.85, k));   // a step up is not cut short
@@ -3156,11 +3165,14 @@ class Play extends Phaser.Scene {
     if (p.y > ROWS * TS + 60) { this.inv = 0; this.hurt(p.x, false, 'terrain'); if (this.hp > 0) { p.setPosition(this.respawn.x, this.respawn.y - 4 - 0.47 * p.displayHeight); p.setVelocity(0); this.inv = 80; } }
     // animation
     const M = this.mounted, swinging = p.anims.isPlaying && /attack|strike/.test(p.anims.currentAnim?.key || '');
-    const anim = this.pose || (this.atk > 0 || (M && swinging) ? (M ? 'ride-strike' : 'rostam-attack') : M ? 'ride-gallop' : this.inv > 70 ? 'rostam-hurt' : !ground ? 'rostam-jump' : Math.abs(b.velocity.x) > 15 ? (cur === 2 && this.water < 25 && this.anims.exists('rostam-thirst') ? 'rostam-thirst' : 'rostam-run') : 'rostam-idle');
+    // Cosmetic movement poses yield immediately to combat, jumping and held story beats.
+    if (this.pose || this.atk > 0 || this.inv > 70 || !ground || this.mounted || this.frozen || time >= (this.motionUntil || 0)) this.motionKey = null;
+    const movementPose = this.grapple && time >= this.grapple.start && this.anims.exists('rostam-climb') ? 'rostam-climb' : this.motionKey;
+    const anim = this.pose || movementPose || (this.atk > 0 || (M && swinging) ? (M ? 'ride-strike' : 'rostam-attack') : M ? 'ride-gallop' : this.inv > 70 ? 'rostam-hurt' : !ground ? 'rostam-jump' : Math.abs(b.velocity.x) > 15 ? (cur === 2 && this.water < 25 && this.anims.exists('rostam-thirst') ? 'rostam-thirst' : 'rostam-run') : 'rostam-idle');
     if (p.anims.currentAnim?.key !== anim && !(/attack|strike/.test(anim) && p.anims.isPlaying)) p.play(anim);
     if (anim === 'ride-gallop') { if (ground && Math.abs(b.velocity.x) > 15) p.anims.resume(); else { p.anims.pause(); if (!ground) p.setFrame(2); } }
     if (anim === 'rostam-jump') p.setFrame(b.velocity.y < 0 ? 0 : 1);
-    p.setFlipX(this.face < 0);
+    p.setFlipX(anim === 'rostam-turn' ? this.turnFrom < 0 : this.face < 0);
     this.cam.setFollowOffset(W / 2 - this.face * 30, H / 2);
     // Resolve crowding before foes commit to new attack tells.
     separate(this, k);
