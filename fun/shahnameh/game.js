@@ -55,8 +55,9 @@ Object.assign(ART, { 'lion-pounce': 'lion-pounce.png', 'lion-swipe': 'lion-swipe
   'div-strike': 'div-strike.png', 'rostam-farr': 'rostam-farr.png' });
 Object.assign(ART, { 'rostam-sleep': 'rostam-sleep.png', 'rostam-rise': 'rostam-rise.png', 'div-sleep': 'div-sleep.png', 'rostam-lasso': 'rostam-lasso.png', 'rakhsh-idle': 'k3/rakhsh-idle.png', 'divwarrior-sleep': 'k6/divwarrior-sleep.png' });
 // Painted replacements retain the original texture dimensions and collision footprints.
+Object.assign(ART, {"jackal-die": "jackal-die.png", "div-die": "div-die.png", "scorpion-die": "k2/scorpion-die.png", "vulture-die": "k2/vulture-die.png", "bat-die": "k3/bat-die.png", "serpent-die": "k4/serpent-die.png", "spearman-die": "k5/spearman-die.png", "divwarrior-die": "k6/divwarrior-die.png", "firediv-die": "k6/firediv-die.png", "ghul-die": "k6/ghul-die.png"});
 const PAINTED = ['bg-reeds', 'bg-hills', 'bg-mist', 'fg-reeds', 'knife', 'arrow', 'fireball', 'icicle', 'icespike', 'boulder'];
-const FPS = { 'rostam-land': 16, 'rostam-turn': 14, 'rostam-climb': 12, 'rostam-swim': 8, 'rostam-tanbur': 5, 'rostam-roar': 8, 'olad-bound': 9, 'rostam-pray': 4, 'rostam-thirst': 9, 'ram-idle': 3, 'rakhsh-trot': 9, 'rakhsh-drink': 4, 'rostam-lasso': 40, 'rakhsh-idle': 3, 'divwarrior-sleep': 2, 'rostam-sleep': 2, 'rostam-rise': 6, 'div-sleep': 2, 'queen-walk': 10, 'queen-sting': 14, 'queen-spit': 12, 'queen-die': 7, 'rostam-dodge': 22, 'rostam-heavy': 14, 'simurgh-fly': 9, 'lion-die': 6, 'dragon-die': 6, 'hag-die': 6, 'rostam-idle': 5, 'rostam-run': 14, 'rostam-jump': 6, 'rostam-attack': 24, 'rostam-hurt': 10, 'lion-walk': 9, 'lion-run': 14, 'lion-roar': 6, 'jackal-run': 12, 'div-hop': 8, 'coin-spin': 8, 'fire-burn': 10,
+const FPS = { 'jackal-die': 10, 'div-die': 10, 'scorpion-die': 10, 'vulture-die': 10, 'bat-die': 10, 'serpent-die': 10, 'spearman-die': 10, 'divwarrior-die': 10, 'firediv-die': 10, 'ghul-die': 10, 'rostam-land': 16, 'rostam-turn': 14, 'rostam-climb': 12, 'rostam-swim': 8, 'rostam-tanbur': 5, 'rostam-roar': 8, 'olad-bound': 9, 'rostam-pray': 4, 'rostam-thirst': 9, 'ram-idle': 3, 'rakhsh-trot': 9, 'rakhsh-drink': 4, 'rostam-lasso': 40, 'rakhsh-idle': 3, 'divwarrior-sleep': 2, 'rostam-sleep': 2, 'rostam-rise': 6, 'div-sleep': 2, 'queen-walk': 10, 'queen-sting': 14, 'queen-spit': 12, 'queen-die': 7, 'rostam-dodge': 22, 'rostam-heavy': 14, 'simurgh-fly': 9, 'lion-die': 6, 'dragon-die': 6, 'hag-die': 6, 'rostam-idle': 5, 'rostam-run': 14, 'rostam-jump': 6, 'rostam-attack': 24, 'rostam-hurt': 10, 'lion-walk': 9, 'lion-run': 14, 'lion-roar': 6, 'jackal-run': 12, 'div-hop': 8, 'coin-spin': 8, 'fire-burn': 10,
   'scorpion-crawl': 10, 'vulture-fly': 10, 'ram-walk': 8, 'rostam-drink': 6, 'rostam-fall': 7, 'rostam-victory': 8, 'rostam-anoint': 6, 'ride-gallop': 12, 'ride-strike': 18, 'ride-rear': 11,
   'dragon-move': 7, 'dragon-fire': 9, 'rakhsh-gallop': 12, 'rakhsh-rear': 9, 'bat-fly': 14,
   'serpent': 8, 'hag-cast': 10, 'beauty-idle': 4,
@@ -67,7 +68,7 @@ const FPS = { 'rostam-land': 16, 'rostam-turn': 14, 'rostam-climb': 12, 'rostam-
 const SIZE = { queen: 150, rider: 124, rostam: 112, lion: 148, jackal: 108, div: 108, scorpion: 86, vulture: 92, ram: 86, dragon: 136, rakhsh: 128, bat: 108, serpent: 92, hag: 108, beauty: 108, spearman: 140, olad: 92, divwarrior: 100, arzhang: 136, whitediv: 204, firediv: 104, ghul: 100 };
 const BODY = { queen: [0.62, 0.42], rider: [0.3, 0.5], rostam: [0.143, 0.393], lion: [0.5, 0.36], jackal: [0.3, 0.22], div: [0.22, 0.34], scorpion: [0.4, 0.22], vulture: [0.33, 0.2], ram: [0.4, 0.4],
   dragon: [0.46, 0.42], rakhsh: [0.5, 0.5], bat: [0.32, 0.24], serpent: [0.31, 0.31], hag: [0.27, 0.42], beauty: [0.2, 0.47], spearman: [0.115, 0.386], olad: [0.17, 0.49], divwarrior: [0.31, 0.64], arzhang: [0.3, 0.7], whitediv: [0.2667, 0.3867], firediv: [0.2, 0.6], ghul: [0.5, 0.36] };
-const V = 102;
+const V = 103;
 const RAKHSH1 = 128 / 229;                                               // Rakhsh's scale in Khan I: his strip is 229 px, the horse a little larger than the lion
 const REVISED_STORY_ART = new Set(['khan1-intro', 'khan4-intro', 'khan4-outro', 'khan5-intro', 'khan5-outro', 'khan7-intro', 'end2', 'open1', 'open2', 'open3', 'open4', 'open5', 'open6', 'khan1-outro', 'khan2-intro', 'khan2-outro', 'khan3-intro', 'khan3-outro', 'khan6-intro', 'khan6-outro', 'end1', 'end3']);
 let wakeArt = false, lionPrologueSeen = false;
@@ -2516,10 +2517,26 @@ class Play extends Phaser.Scene {
     if (!this.toldSleep && Math.abs(p.x - f.x) < 140) { this.toldSleep = true; toast('Olad’s counsel: in the noon heat the Divs sleep. Slip past, or strike a sleeper for a double blow.'); }
   }
   wake(f) { if (!f.asleep) return; f.asleep = false; f.stir = 0; f.clearTint(); f.anims.resume(); if (f.kind === 'div') f.play('div-hop'); else if (f.kind === 'divwarrior') f.play('divwarrior-walk'); f.cool = Math.max(f.cool || 0, 30); }
-  // a slain foe flashes white, then bursts into its own pixels, which fly apart as embers and fade
+  // A slain foe collapses before becoming embers; its disabled body can no longer hurt or block anyone.
   slay(f) {
+    if (f.dying || !f.active) return;
+    f.dying = true; f.setVelocity(0); f.body.enable = false;
+    this.tweens.killTweensOf(f); f.setAngle(0); f.anims.timeScale = 1;
     f.setTintFill(0xffffff); this.cam.shake(140, 0.007);
-    this.time.delayedCall(90, () => { if (!f.active) return; this.shatter(f, { step: 2, power: 1 }); this.fx('hit', f.x, f.body.center.y, { depth: 10 }); f.destroy(); sfx('hit'); });
+    const die = f.kind + '-die'; let finished = false, guard;
+    const finish = () => {
+      if (finished) return; finished = true; guard?.remove(); f.off('animationcomplete-' + die, finish);
+      if (!f.active) return;
+      this.shatter(f, { step: 2, power: 1 }); this.fx('hit', f.x, f.body.center.y, { depth: 10 }); f.destroy(); sfx('hit');
+    };
+    this.time.delayedCall(90, () => {
+      if (!f.active) return;
+      if (!this.anims.exists(die)) { finish(); return; }
+      f.clearTint(); f.once('animationcomplete-' + die, finish); f.play(die);
+      // A bounded fallback also cleans up if an animation is interrupted or a frame is unavailable.
+      const animation = this.anims.get(die);
+      guard = this.time.delayedCall(Math.max(800, animation.duration + 250), finish);
+    });
   }
   // break a sprite's current frame into pixels, each flying from where it was drawn
   shatter(o, { step = 2, power = 1 } = {}) {
