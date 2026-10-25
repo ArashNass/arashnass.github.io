@@ -941,6 +941,19 @@ body.phone #s-cine .ccap .chint{display:none}
 body.phone #s-cine .cframe:after{height:42vh}
 body.phone.upright #s-cine .ccap{width:90vw;bottom:max(18px,env(safe-area-inset-bottom))}
 body.phone.upright #s-cine .cdots{top:calc(max(8px,env(safe-area-inset-top)) + 40px)}
+/* phones: the thumb buttons in one low row, see-through, so the road stays visible above them */
+body.phone #touch{padding:0 max(10px,env(safe-area-inset-right)) max(8px,env(safe-area-inset-bottom)) max(10px,env(safe-area-inset-left))}
+body.phone #touch .row{gap:10px}
+body.phone #touch .tb{width:54px;height:54px;background:rgba(16,28,80,.32);border-color:rgba(232,194,90,.5);border-width:1.5px}
+body.phone #touch .tb svg{width:24px;height:24px}
+body.phone #touch .tb small{display:none}
+body.phone #touch .act{grid-template-columns:auto auto auto;grid-template-areas:"lasso farr ." "dodge jump strike";gap:8px 10px;align-items:end}
+body.phone #touch .act .lasso{grid-area:lasso;width:44px;height:44px}
+body.phone #touch .act .farr{grid-area:farr;width:44px;height:44px}
+body.phone #touch .act .dodge{width:48px;height:48px}
+body.phone #touch .act .jump{width:58px;height:58px}
+body.phone #touch .act .strike{width:66px;height:66px;background:rgba(120,30,20,.4)}
+body.phone #touch .tb.on{background:rgba(232,194,90,.45)}
 </style>
 
 <script defer src="/assets/engagement.js?v=1"></script>
@@ -1272,6 +1285,6 @@ body.phone.upright #s-cine .cdots{top:calc(max(8px,env(safe-area-inset-top)) + 4
 <script src="boot.js?v=92"></script>
 <script src="assets/vendor/phaser-3.80.1.min.js" data-game-script="engine"></script>
 <script src="journey-events.js?v=124" data-game-script="journey"></script>
-<script src="game.js?v=200" data-game-script="game"></script>
+<script src="game.js?v=201" data-game-script="game"></script>
 </body>
 </html>
