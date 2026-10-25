@@ -60,11 +60,11 @@ const FPS = { 'rostam-lasso': 40, 'rakhsh-idle': 3, 'divwarrior-sleep': 2, 'rost
   'divwarrior-walk': 8, 'divwarrior-smash': 13, 'arzhang-walk': 7, 'arzhang-smash': 9,
   'whitediv-walk': 6, 'whitediv-smash': 11, 'whitediv-throw': 10, 'whitediv-die': 7, 'arzhang-die': 7, 'firediv-walk': 9, 'firediv-throw': 14, 'ghul-crawl': 14, 'ghul-leap': 14, 'serpent-strike': 16, 'scorpion-sting': 16, 'kavus-sight': 6 };
 // on-screen frame height in game pixels; equal to the PixelLab frame size so sprites draw 1:1
-const SIZE = { queen: 150, rider: 124, rostam: 112, lion: 148, jackal: 108, div: 108, scorpion: 86, vulture: 92, ram: 86, dragon: 136, rakhsh: 104, bat: 108, serpent: 92, hag: 108, beauty: 108, spearman: 140, olad: 112, divwarrior: 100, arzhang: 136, whitediv: 204, firediv: 104, ghul: 100 };
+const SIZE = { queen: 150, rider: 124, rostam: 112, lion: 148, jackal: 108, div: 108, scorpion: 86, vulture: 92, ram: 86, dragon: 136, rakhsh: 128, bat: 108, serpent: 92, hag: 108, beauty: 108, spearman: 140, olad: 112, divwarrior: 100, arzhang: 136, whitediv: 204, firediv: 104, ghul: 100 };
 const BODY = { queen: [0.62, 0.42], rider: [0.3, 0.5], rostam: [0.143, 0.393], lion: [0.5, 0.36], jackal: [0.3, 0.22], div: [0.22, 0.34], scorpion: [0.4, 0.22], vulture: [0.33, 0.2], ram: [0.4, 0.4],
   dragon: [0.46, 0.42], rakhsh: [0.5, 0.5], bat: [0.32, 0.24], serpent: [0.31, 0.31], hag: [0.27, 0.42], beauty: [0.2, 0.47], spearman: [0.115, 0.386], olad: [0.17, 0.49], divwarrior: [0.31, 0.64], arzhang: [0.3, 0.7], whitediv: [0.2667, 0.3867], firediv: [0.2, 0.6], ghul: [0.5, 0.36] };
 const V = 93;
-const RAKHSH1 = 0.56;                                               // Rakhsh's scale in Khan I: his strip is 229 px, the horse a little larger than the lion
+const RAKHSH1 = 128 / 229;                                               // Rakhsh's scale in Khan I: his strip is 229 px, the horse a little larger than the lion
 const REVISED_STORY_ART = new Set(['khan1-intro', 'khan4-intro', 'khan4-outro', 'khan5-intro', 'khan5-outro', 'khan7-intro', 'end2']);
 let wakeArt = false, lionPrologueSeen = false;
 // the waking's narration (assets/voice/khan1-wake.mp3, the same ElevenLabs narrator) is read once the file is there
@@ -1027,14 +1027,13 @@ const LEVELS = {
       // the ram's riddle: four towers of the elements, earth, water, fire and wind, each with a bell in its arch
       s.ramStand = 164.5 * TS;   // the ram watches from the back, by the dry rock
       s.layer.forEachTile(t => { if (t.y < 14 && PLINTHS.some(([a, b]) => t.x >= a && t.x <= b)) t.plinth = true; });
-      s.stones = TOWER_AT.map((c, i) => {
+      s.stones = LIVE ? [] : TOWER_AT.map((c, i) => {
         const x = c * TS + TS / 2, r = s.groundAt(x), tall = s.textures.exists('tower-' + i);
         const st = s.add.image(x, r * TS + 2, tall ? 'tower-' + i : 'stone-' + i).setOrigin(0.5, tall ? TOWER.foot[i] : 1).setDepth(2).setScale(tall ? TOWER.scale : 1);
         const top = st.y - st.displayHeight * st.originY, by = tall ? top + st.displayHeight * TOWER.bell[i] : top - 4;
         st.bell = s.add.image(x, by, 'bell').setOrigin(0.5, 0.06).setDepth(2.1).setScale(TOWER.bellScale);
         st.glow = s.add.image(x, by + 8, 'glow').setScale(1.2).setBlendMode(Phaser.BlendModes.ADD).setDepth(3).setAlpha(0);
         st.aura = s.add.image(x, st.y - st.displayHeight * 0.45, 'glow').setScale(1.4, 2.6).setBlendMode(Phaser.BlendModes.ADD).setDepth(1.9).setAlpha(0).setTint(ELEMENTS[i].tint);
-        if (LIVE) st.bell.setVisible(false);
         st.el = i; st.footY = r * TS; return st;
       });
       hint('Your <b>water</b> (blue bar, top right) drains in the heat. <b>Walk past a well</b> to drink your fill; water skins give a sip. If it runs dry you lose hearts.');
@@ -1940,7 +1939,7 @@ class Play extends Phaser.Scene {
   create() {
     // the scene object is reused from labour to labour: forget whatever the last one left behind
     for (const k of ['dark', 'lights', 'lamp', 'wall', 'wallR', 'stars', 'pose', 'swingFx', 'witch', 'unmasked', 'olad', 'rakhsh', 'dragonSeen', 'horde', 'hordeDone',
-      'gates', 'hordeBat', 'toldRock', 'toldFarr', 'toldOffer', 'atAltar', 'bossT', 'maceHit', 'toldIce', 'chargeWarn', 'toldCharge', 'shards', 'shardG', 'mark', 'markGlow', 'markOpen', 'bossHeart', 'bossHeartT', 'floorWarn', 'highWarn', 'regrow', 'drums', 'sky', 'flashA', 'intro', 'fgReeds', 'mound', 'swirl', 'qx', 'puddles', 'combo', 'comboT', 'heavy', 'heavyGo', 'chargeT', 'chargeFull', 'chargeGlow', 'dodgeT', 'dodgeCd', 'dodgeDir', 'whiteDown', 'ended', 'mounted', 'prayed', 'drank', 'toldImmune', 'toldDeflect', 'toldVenom', 'cage', 'kavus', 'stones', 'puzzle', 'springOpen', 'pool', 'victory', 'attackBuf', 'dodgeBuf', 'counterT', 'counterStrike', 'dodgeRewarded', 'trial', 'nearTrial', 'journey', 'siege', 'siegeDone', 'ally', 'phase2', 'streak', 'didDouble', 'rocks', 'rockT', 'poppies', 'drowsy', 'toldPoppy', 'oladAlly', 'rope', 'ropeG', 'lassoCd', 'toldBossLasso', 'sleeper', 'snore', 'guard', 'prologue', 'prologueOn', 'ringObj', 'grapple', 'toldBossHold', 'oladBind', 'sleepers', 'toldSleep', 'saidLow', 'ramDug', 'ramAmbush', 'toldRamWait', 'climbTo']) delete this[k];
+      'gates', 'hordeBat', 'toldRock', 'toldFarr', 'toldOffer', 'atAltar', 'bossT', 'maceHit', 'toldIce', 'chargeWarn', 'toldCharge', 'shards', 'shardG', 'mark', 'markGlow', 'markOpen', 'bossHeart', 'bossHeartT', 'floorWarn', 'highWarn', 'regrow', 'drums', 'sky', 'flashA', 'intro', 'fgReeds', 'mound', 'swirl', 'qx', 'puddles', 'combo', 'comboT', 'heavy', 'heavyGo', 'chargeT', 'chargeFull', 'chargeGlow', 'dodgeT', 'dodgeCd', 'dodgeDir', 'whiteDown', 'ended', 'mounted', 'prayed', 'drank', 'toldImmune', 'toldDeflect', 'toldVenom', 'cage', 'kavus', 'stones', 'puzzle', 'springOpen', 'pool', 'victory', 'attackBuf', 'dodgeBuf', 'counterT', 'counterStrike', 'dodgeRewarded', 'trial', 'nearTrial', 'journey', 'siege', 'siegeDone', 'ally', 'phase2', 'streak', 'didDouble', 'rocks', 'rockT', 'poppies', 'drowsy', 'toldPoppy', 'oladAlly', 'rope', 'ropeG', 'lassoCd', 'toldBossLasso', 'sleeper', 'snore', 'guard', 'prologue', 'prologueOn', 'ringObj', 'grapple', 'toldBossHold', 'oladBind', 'sleepers', 'toldSleep', 'saidLow', 'ramDug', 'ramAmbush', 'toldRamWait', 'climbTo', 'rakhshDrinks', 'shove']) delete this[k];
     refreshLassoBtn();
     // turn loaded strips into square frames; anything missing falls back to placeholder art
     for (const k of ['decor-' + cur]) if (this.textures.exists(k) && this.textures.get(k).frameTotal < 3) { const t = this.textures.get(k), h = t.getSourceImage().height; for (let i = 0; i < Math.round(t.getSourceImage().width / h); i++) t.add(i, 0, i * h, 0, h, h); }
@@ -2677,7 +2676,7 @@ class Play extends Phaser.Scene {
   rakhshRides(B) {
     // he always comes in from the left edge at a gallop, rears and kicks the boss, then gallops on and away off the right
     this.rakhshRode = true; const y = 14 * TS + 3, x0 = this.cam.scrollX - 60;
-    const r = this.add.sprite(x0, y, 'rakhsh-gallop', 0).setOrigin(0.5, 0.97).setDepth(5).play('rakhsh-gallop');
+    const r = this.add.sprite(x0, y, 'rakhsh-gallop', 0).setOrigin(0.5, 0.97).setDepth(5).setScale(RAKHSH1).play('rakhsh-gallop');
     sfx('neigh'); toast('Rakhsh gallops to your aid!'); banner('رخش', 'Rakhsh');
     const dust = this.time.addEvent({ delay: 120, loop: true, callback: () => r.active && this.fx('dust', r.x - 26, y - 2, { depth: 6 }) });
     const reach = Math.max(x0 + 40, B.x - 56);
@@ -2904,7 +2903,7 @@ class Play extends Phaser.Scene {
     return this.victory = { seconds, stars, healthy, allFeathers, previousBest, legend: legend(), hp: this.hp, coins: this.coinCount, kills: this.kills };
   }
   win(f) {
-    if (this.done) return; this.done = true; playing = false; music(false); sfx('fire'); document.body.classList.remove('playing'); hint(null); resumeAt = null;
+    if (this.done) return; this.done = true; playing = false; if (rush) music(false); sfx('fire'); document.body.classList.remove('playing'); hint(null); resumeAt = null;
     this.tweens.killTweensOf([f, f.glow, f.ring, f.col].filter(Boolean)); f.spark?.destroy(); f.glow?.destroy?.(); f.ring?.destroy?.(); f.col?.destroy?.(); f.destroy();
     if (rush) { this.rushNext(); return; }
     const result = this.recordVictory(), { seconds: s, stars, healthy, allFeathers, previousBest: best } = result;
@@ -2938,6 +2937,7 @@ class Play extends Phaser.Scene {
     const dirX = this.frozen ? 0 : (keys.right ? 1 : 0) - (keys.left ? 1 : 0), ground = b.blocked.down;
     if (dirX) this.face = dirX;
     const drowsy = this.drowsy > time, tv = dirX * (this.mounted ? 165 : 125) * (drowsy ? 0.5 : 1); b.velocity.x += (tv - b.velocity.x) * (1 - Math.pow(ground ? 0.7 : 0.85, k));   // Rakhsh outruns any man
+    if (this.shove && this.time.now < this.shove.until) b.velocity.x = this.shove.vx;   // thrown, he cannot help it
     this.coyote = ground ? 6 : Math.max(0, this.coyote - k);
     // on the dunes a rise one tile high is stepped up, not jumped: walking into its lip lifts Rostam onto it
     if (this.lv.smoothSteps && LIVE && ground && dirX && !this.frozen && !this.mounted && (dirX > 0 ? b.blocked.right : b.blocked.left)) {
@@ -3959,6 +3959,7 @@ class Play extends Phaser.Scene {
     this.fx('pickup', a.x, a.y - 20); toast('Rostam drinks deep from the well and fills his skins. He will return here if he falls.');
   }
   prayForWater() {
+    if (LIVE) return this.prayLive();
     // the storm and the thirst bring Rostam to his knees; he prays, and a ram appears in a shaft of light
     this.prayed = true; this.frozen = true; this.pose = 'rostam-drink';
     this.player.setVelocityX(0); this.player.play({ key: 'rostam-drink', frameRate: 4 }); this.time.delayedCall(700, () => this.player.anims.pause());
@@ -3978,6 +3979,31 @@ class Play extends Phaser.Scene {
       hint(LIVE ? '<b>Follow the glowing ram</b> to the water. Your thirst does not wait: keep up, and watch the sand.' : '<b>Follow the glowing ram</b>: it knows where the water is.');
     });
   }
+  // Khan II, as Ferdowsi tells it, in held beats: Rostam falls to his knees in the storm and prays; the waste goes still,
+  // the music falls away, and after a long breath a ram appears in a shaft of light on the dune ahead
+  prayLive() {
+    this.prayed = true; this.frozen = true; const p = this.player, now = A.ctx?.currentTime ?? 0;
+    p.setVelocityX(0); hint(null); $('toast').classList.remove('on');
+    this.banish(p.x - 24 * TS, this.levelW);                                   // every creature of the waste is gone
+    if (A.bus) { A.bus.gain.cancelScheduledValues(now); A.bus.gain.setTargetAtTime(0.12, now, 0.9); }
+    this.pose = 'rostam-fall'; p.play({ key: 'rostam-fall', frameRate: 4 }); this.time.delayedCall(800, () => { if (this.pose === 'rostam-fall') { p.anims.stop(); p.setFrame(3); } });
+    this.time.delayedCall(1200, () => { banner('نیایش', 'The prayer'); hint('Rostam falls to his knees in the burning sand and prays: <b>\u201cO Lord, You alone can save me now.\u201d</b>'); });
+    const x = p.x + 8 * TS, y = (this.groundAt(x) ?? 14) * TS;
+    this.time.delayedCall(4200, () => {
+      this.fx('beam', x, y + 1, { depth: 4 }); sfx('fire'); this.cam.flash(500, 255, 236, 180);
+      const r = this.ram = this.physics.add.sprite(x, y - 30, 'ram-walk', 0).setAlpha(0).setDepth(4).setFlipX(true);
+      this.fit(r, 'ram'); this.physics.add.collider(r, this.layer, null, o => !o.back);
+      this.tweens.add({ targets: r, alpha: 1, duration: 1200 });
+      r.glow = this.add.image(x, y - 22, 'glow').setScale(1.4).setBlendMode(Phaser.BlendModes.ADD).setDepth(3).setTint(0xfff0b0).setAlpha(0);
+      this.tweens.add({ targets: r.glow, alpha: 1, duration: 1200 });
+    });
+    this.time.delayedCall(6200, () => { banner('میش', 'A ram, glowing like the dawn'); hint('It looks at Rostam, then turns toward the open waste.'); this.ram?.setFlipX(false); });
+    this.time.delayedCall(8000, () => {
+      if (this.done) return; this.pose = null; this.frozen = false; this.fx('dust', p.x, p.body.bottom, { depth: 6 });
+      if (A.bus && A.ctx) { const t = A.ctx.currentTime; A.bus.gain.cancelScheduledValues(t); A.bus.gain.setTargetAtTime(1, t, 1.2); }
+      hint('<b>Follow the ram.</b> It knows where the water is, and your thirst will not wait.');
+    });
+  }
   ramGuide(k) {
     if (LIVE) return this.ramLeads(k);
     const r = this.ram, p = this.player, d = r.x - p.x, end = this.ramStand;   // past the four towers, where it can watch them
@@ -3992,14 +4018,13 @@ class Play extends Phaser.Scene {
     // among the towers it steps back into the background, smaller and in shadow, so the towers and Rostam stand out
     if (!r.back && r.x > 145 * TS && r.body.blocked.down) { r.back = true; r.body.setAllowGravity(false); r.setVelocityY(0); r.setDepth(1.5); r.glow.setDepth(1.4); this.tweens.add({ targets: r.glow, alpha: 0.5, duration: 900 }); r.setTint(0xd0c0a8); }
   }
-  // As Ferdowsi tells it: the ram leads the dying hero to a spring. It keeps a little ahead along the dunes, hopping
-  // up each rise; if Rostam falls far behind it turns and waits. The desert does not let them pass quietly: scorpions
-  // burst from the sand along its path, and a vulture comes down out of the haze
+  // As Ferdowsi tells it: the ram leads the dying hero to a spring. It walks a little ahead along the dunes, climbing
+  // each rise; if Rostam falls far behind it turns and waits
   ramLeads(k) {
     const r = this.ram, p = this.player, d = r.x - p.x, end = this.springAt.x - TS;
     if (this.ramDug) { r.setVelocityX(0); r.glow.setPosition(r.x, r.y + 2); return; }
-    const vx = r.x >= end ? 0 : d > 150 ? 0 : Phaser.Math.Clamp((p.x + 80 - r.x) * 2.2, 0, 140);
-    r.setVelocityX(vx); r.setFlipX(d > 150);
+    const vx = r.x >= end ? 0 : d > 170 ? 0 : d < 24 ? 100 : 66;   // it walks on ahead at its own pace, waits when Rostam is far behind
+    r.setVelocityX(vx); r.setFlipX(d > 170);
     if (vx > 8 && r.climbTo == null && r.body.blocked.right && r.body.blocked.down) {   // the lip of a rise: how high does it go?
       const fx = r.body.right + 2; let top = null;
       for (let up = 0; up < 3; up++) { const t = this.layer.getTileAtWorldXY(fx, r.body.bottom - 4 - up * TS); if (!t?.collides) break; top = t.pixelY; }
@@ -4008,25 +4033,46 @@ class Play extends Phaser.Scene {
     if (r.climbTo != null) { if (vx <= 8 || r.body.bottom <= r.climbTo - 0.5) { if (r.body.velocity.y < 0) r.setVelocityY(0); r.climbTo = null; } else { r.setVelocityY(-170); r.setVelocityX(Math.max(vx, 50)); } }
     if (vx > 8 || !r.body.blocked.down) { if (r.anims.currentAnim?.key !== 'ram-walk' || !r.anims.isPlaying) r.play('ram-walk'); r.anims.timeScale = Math.max(0.8, vx / 62); }
     else { r.anims.stop(); r.setFrame(0); }
-    if (d > 150 && !this.toldRamWait) { this.toldRamWait = true; toast('The ram stops and looks back for you.'); }
+    if (d > 170 && !this.toldRamWait) { this.toldRamWait = true; toast('The ram stops and looks back for you.'); }
     r.glow.setPosition(r.x, r.y + 2);
-    // ambushes along the way, each sprung once as the ram passes
-    this.ramAmbush ||= [[133, 'a'], [137, 'v'], [142, 'a'], [153, 'a']];
-    for (const am of this.ramAmbush) if (!am.done && r.x > (am[0] - 3) * TS) {
-      am.done = true; const x = (am[0] + 2) * TS + TS / 2, y = (this.groundAt(x) ?? 14) * TS;
-      if (am[1] === 'v') this.spawnFoe('vulture', x + 4 * TS, 6 * TS); else bury(this, this.spawnFoe('scorpion', x, y));
-    }
   }
-  // at the dry rock the ram stops and paws at the sand: the water is here, and so is its guardian
+  // at the dry rock the ram stops and paws the sand; it looks back at Rostam; then the sand trembles, the music falls
+  // away, the ram flees, and only then does the water's guardian rise
   ramDigs() {
-    this.ramDug = true; const r = this.ram; r.setVelocityX(0); r.setFlipX(false); r.anims.stop(); r.setFrame(0); hint(null);
-    toast('The ram stops at a dry rock and paws the sand. The water is here... and the ground begins to tremble.');
-    for (let i = 0; i < 4; i++) this.time.delayedCall(i * 280, () => { if (!r.active) return; this.tweens.add({ targets: r, y: r.y - 6, yoyo: true, duration: 120 }); this.fx('dust', r.x + 10, r.body.bottom, { depth: 6 }); sfx('rock'); });
-    this.time.delayedCall(1300, () => {
-      if (this.done) return; this.banish(this.springAt.x - 30 * TS, this.levelW);
-      this.tweens.add({ targets: r, x: this.springAt.x + 2.5 * TS, duration: 700, ease: 'Sine.easeOut' });   // it springs aside
+    this.ramDug = true; const r = this.ram, at = (ms, fn) => this.time.delayedCall(ms, () => { if (!this.done) fn(); });
+    r.setVelocityX(0); r.setFlipX(false); r.anims.stop(); r.setFrame(0); hint(null);
+    for (let i = 0; i < 3; i++) at(i * 520, () => { if (!r.active) return; this.tweens.add({ targets: r, y: r.y - 5, yoyo: true, duration: 140 }); this.fx('dust', r.x + 12, r.body.bottom, { depth: 6 }); });
+    at(1700, () => { r.setFlipX(true); banner('چشمه', 'The hidden water'); hint('The ram stops at a dry rock and paws the sand. <b>The water is here.</b>'); });
+    at(3600, () => {
+      this.cam.shake(1500, 0.005); sfx('rock'); this.time.delayedCall(500, () => sfx('rock'));
+      if (A.bus && A.ctx) { const t = A.ctx.currentTime; A.bus.gain.cancelScheduledValues(t); A.bus.gain.setTargetAtTime(0.1, t, 0.6); }
+      hint('The sand trembles under your feet. <b>Something stirs beneath it\u2026</b>');
+      // the sand heaves and throws Rostam back, clear of where she will rise
+      const p = this.player; if (p.x > 152 * TS) { this.frozen = true; p.setVelocityY(-230); this.shove = { vx: -190, until: this.time.now + 650 }; this.fx('dust', p.x, p.body.bottom, { depth: 6 }); this.time.delayedCall(750, () => { this.frozen = false; }); }
+      r.setFlipX(false); r.play('ram-walk'); r.body.setAllowGravity(false); r.body.enable = false;
+      this.tweens.add({ targets: [r, r.glow], x: '+=' + 7 * TS, alpha: 0, duration: 1300, ease: 'Sine.easeIn' });   // it bolts away
+    });
+    at(5400, () => {
+      this.banish(this.springAt.x - 30 * TS, this.levelW);
+      if (A.bus && A.ctx) { const t = A.ctx.currentTime; A.bus.gain.cancelScheduledValues(t); A.bus.gain.setTargetAtTime(1, t, 0.4); }
       this.startQueen();
     });
+  }
+  afterQueen() {
+    const at = (ms, fn) => this.time.delayedCall(ms, () => { if (!this.done) fn(); }), sx = this.springAt.x;
+    at(900, () => {                                        // her body sinks back into the sand it came from
+      for (const o of this.children.list) if (o.texture?.key?.startsWith('queen') && o.active) { this.tweens.add({ targets: o, alpha: 0, y: o.y + 24, duration: 1300, ease: 'Sine.easeIn', onComplete: () => o.destroy() }); this.fx('dust', o.x, 14 * TS, { depth: 8 }); }
+    });
+    at(2600, () => { this.springFlows(); banner('آب', 'Water from the rock'); });
+    at(4200, () => {                                       // the ram comes back to watch over the water
+      const r = this.ram; if (!r) return; r.clearTint(); r.body.enable = false; r.setPosition(sx - 14 * TS, (this.groundAt(sx - 14 * TS) ?? 14) * TS - r.displayHeight * (0.97 - r.originY) - 2); r.setDepth(3.4);   // on the rise behind, watching, as in the picture
+      r.setFlipX(true); r.anims.stop(); r.setFrame(0); this.tweens.add({ targets: r, alpha: 1, duration: 900 }); r.glow?.setPosition(r.x, r.y + 2); if (r.glow) this.tweens.add({ targets: r.glow, alpha: 0.8, duration: 900 });
+    });
+    at(4600, () => {                                       // and Rakhsh trots in to drink
+      const y = 14 * TS + 2, k = this.rakhshDrinks = this.add.sprite(this.cam.scrollX - 60, y, 'rakhsh-gallop', 0).setOrigin(0.5, 0.97).setDepth(3.6).setScale(RAKHSH1).play('rakhsh-gallop');
+      sfx('neigh'); this.tweens.add({ targets: k, x: sx - 3 * TS, duration: 1800, ease: 'Sine.easeOut', onComplete: () => { if (k.active) k.play('rakhsh-idle'); } });
+    });
+    at(6800, () => { this.springOpen = true; hint('<b>Walk to the water</b> and drink.'); });
   }
   // the guardian is dead, and the water bursts from the rock
   springFlows() {
@@ -4263,8 +4309,9 @@ class Play extends Phaser.Scene {
     }
   }
   queenFallen() {
-    this.springOpen = true; this.boss = null; if (LIVE) this.springFlows();
-    toast(LIVE ? 'The Scorpion Queen is slain, and water bursts from the rock!' : 'The Scorpion Queen is slain. The spring runs clear.'); hint('<b>Walk into the spring</b> to drink.');
+    this.boss = null;
+    if (LIVE) return this.afterQueen();
+    this.springOpen = true; toast('The Scorpion Queen is slain. The spring runs clear.'); hint('<b>Walk into the spring</b> to drink.');
   }
   // foes in a stretch of the level vanish in smoke
   banish(x0, x1) {
@@ -4274,6 +4321,14 @@ class Play extends Phaser.Scene {
     }
   }
   reachSpring() {
+    if (LIVE) {
+      this.drank = true; this.frozen = true; const p = this.player; p.setVelocityX(0); this.face = 1; p.setFlipX(false); p.body.reset(this.springAt.x + 6, p.y); this.cam.pan(this.springAt.x - 2 * TS, this.cam.midPoint.y, 600, 'Sine.easeInOut');   // at the water's edge, the scene framed
+      this.pose = 'rostam-fall'; p.play({ key: 'rostam-fall', frameRate: 5 }); this.time.delayedCall(700, () => { p.anims.stop(); p.setFrame(3); });
+      this.time.delayedCall(900, () => { this.fx('splash', p.x + 18, p.body.bottom - 2, { depth: 6 }); sfx('coin'); this.water = 100; this.renderWater(); });
+      this.time.delayedCall(1700, () => this.cam.fadeOut(1100, 0, 0, 0));
+      this.time.delayedCall(2900, () => this.win({ destroy() {} }));
+      return;
+    }
     this.drank = true; this.frozen = true; const p = this.player; p.setVelocityX(0); this.banish(p.x - 10 * TS, this.levelW);
     this.pose = 'rostam-drink'; p.play('rostam-drink'); sfx('coin');
     this.time.delayedCall(700, () => { this.fx('splash', p.x + this.face * 18, p.body.bottom - 2, { depth: 6 }); this.water = 100; this.renderWater(); });
@@ -4365,7 +4420,7 @@ const CODEX = [
     facts: [['Nest', 'Mount Alborz'], ['Raised', 'Zal, Rostam\'s father'], ['Gift', 'Feathers to burn in need'], ['First seen', 'Every labour']] },
   { id: 'ram', group: 'hero', fa: 'میش', name: 'The Ram of the Spring', title: 'A guide sent to a dying man in the waste', art: ['k2/ram-walk', 8], bg: 'khan2-intro',
     lore: 'In the second labour there was no monster, only thirst. Rostam and Rakhsh crossed a waterless desert until the hero fell, his tongue cracked, and he prayed for mercy. A ram passed by him, and Rostam understood that where a beast goes there must be water. He followed it and found a spring. He blessed the ram, drank, and let Rakhsh drink.',
-    road: ['When Rostam falls to his knees and prays, the ram appears and <b>leads him to the hidden water</b>. Keep up: your thirst does not wait.', 'Scorpions burst from the sand along its path, and a vulture hunts overhead. Where it paws the sand, the water\'s guardian rises.'],
+    road: ['When Rostam falls to his knees in the storm and prays, the ram appears and <b>leads him to the hidden water</b>. Keep up: your thirst does not wait.', 'Where it paws the sand, the water\'s guardian rises.'],
     facts: [['Labour', 'Khan II, the burning desert'], ['Gift', 'The hidden spring'], ['First seen', 'Khan II']] },
   { id: 'kavus', group: 'hero', fa: 'کی‌کاووس', name: 'Kay Kavus', title: 'King of Iran, blinded by the White Div', art: ['k7/kavus-sight', 9], port: 'kavus', bg: 'end2', say: 'kavus1',
     lore: 'Kay Kavus was a proud king, easily flattered. A Div disguised as a minstrel sang to him of Mazandaran\'s gardens and treasure, and he marched his army there against every warning. The White Div answered with a storm of sorcery: when it lifted, the king and all his warriors were blind and in chains. Only the blood of the White Div\'s heart, dropped into their eyes, could give them back their sight.',
