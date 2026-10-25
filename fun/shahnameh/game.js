@@ -2175,7 +2175,7 @@ class Play extends Phaser.Scene {
     // offset centres Rostam, and the bounds and tile culling are worked out for the zoomed view
     this.cam.setZoom(ZOOM).setOrigin(0, 0);
     this.cam.clampX = x => Phaser.Math.Clamp(x, 0, Math.max(0, this.levelW - W)); this.cam.clampY = y => Phaser.Math.Clamp(y, 0, Math.max(0, ROWS * TS - H));
-    this.layer.setCullPadding(W / TS, H / TS);
+    this.layer.setCullPadding(Math.ceil(W / TS), Math.ceil(H / TS));   // whole tiles: a fractional padding makes Phaser draw no tiles at all
     this.cam.setBounds(0, 0, this.levelW, ROWS * TS);
     this.cam.startFollow(this.player, true, 0.12, 0.12, W / 2, H / 2);
     this.cam.setRoundPixels(true);
