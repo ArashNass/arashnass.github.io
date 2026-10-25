@@ -742,10 +742,11 @@ body.calm #banner.on{animation-name:banCalm}@keyframes banCalm{0%{opacity:0}15%,
 .map-stats b{font:700 16px/1.1 Cinzel,serif;color:#f6dc8c}.map-stats b i{font-style:normal;font-size:11px;color:#bca36a}
 .map-stats span{font:600 8px/1.5 Inter,sans-serif;letter-spacing:.12em;text-transform:uppercase;color:#b5c0c4}
 /* the hero and his horse at the foot of the page, the mountain behind them */
-.jduo{position:relative;height:200px;margin-top:6px;border-radius:14px;overflow:hidden;background:linear-gradient(90deg,#090d15 0%,#090d15cc 22%,#090d1500 60%),linear-gradient(0deg,#090d15 0%,#090d1500 35%),url(assets/bg/far.png) right 62%/cover no-repeat;image-rendering:pixelated}
+.jduo{position:relative;height:220px;margin-top:6px;isolation:isolate}
+.jduo:before{content:"";position:absolute;inset:-20px -16px 0;z-index:-1;background:url(assets/bg/far.png) right 62%/cover no-repeat;image-rendering:pixelated;opacity:.85;-webkit-mask-image:linear-gradient(90deg,transparent 0%,#000 35%,#000 80%,transparent 100%),linear-gradient(0deg,transparent 0%,#000 40%,#000 85%,transparent 100%);-webkit-mask-composite:source-in;mask-image:linear-gradient(90deg,transparent 0%,#000 35%,#000 80%,transparent 100%),linear-gradient(0deg,transparent 0%,#000 40%,#000 85%,transparent 100%);mask-composite:intersect}
 .jduo .spr{position:absolute;bottom:0;background-color:transparent;box-shadow:none;border-radius:0;filter:drop-shadow(0 6px 8px #000a)}
-.jd-rostam{left:4%}.jd-rakhsh{left:calc(4% + 120px)}
-@media (max-width:600px){.jduo{height:140px}.jduo .spr{--s:110px!important}.jd-rakhsh{left:calc(4% + 90px)}.map-stats{gap:8px;padding:5px 9px;left:8px;top:8px}.map-stats b{font-size:13px}}
+.jd-rostam{left:4%;z-index:2}.jd-rakhsh{left:calc(4% + 40px);z-index:1}
+@media (max-width:600px){.jduo{height:140px}.jduo .spr{--s:110px!important}.jd-rakhsh{left:calc(4% + 28px)}.map-stats{gap:8px;padding:5px 9px;left:8px;top:8px}.map-stats b{font-size:13px}}
 </style>
 
 <script defer src="/assets/engagement.js?v=1"></script>
@@ -1083,6 +1084,6 @@ body.calm #banner.on{animation-name:banCalm}@keyframes banCalm{0%{opacity:0}15%,
 <script src="boot.js?v=92"></script>
 <script src="assets/vendor/phaser-3.80.1.min.js" data-game-script="engine"></script>
 <script src="journey-events.js?v=123" data-game-script="journey"></script>
-<script src="game.js?v=158" data-game-script="game"></script>
+<script src="game.js?v=159" data-game-script="game"></script>
 </body>
 </html>
