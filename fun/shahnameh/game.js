@@ -4740,7 +4740,7 @@ function showGuide(i) {
   $('gtabs').querySelectorAll('button').forEach(b => b.onclick = () => showGuide(+b.dataset.g));
   $('gtabs').querySelector('.sel')?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
   if (!known(c)) {                                       // not yet met: a shadow, and where the road will bring them
-    $('gleaf').innerHTML = `<article class="cdx-card cdx-${c.group} cdx-locked">
+    $('gleaf').innerHTML = `<article class="cdx-card cdx-${c.group === 'hero' ? 'ally' : c.group} cdx-locked">
       <div class="cdx-hero" style="--bg:url('${storyArt(c.bg)}')"><div class="cdx-stage">${mini(c.art, 200, 'cdx-spr still')}</div>
         <div class="cdx-id"><p class="cdx-fa" lang="fa">${LOCKED_FA}</p><h2>Unknown</h2><p class="cdx-title">This page of the book is still sealed.</p></div></div>
       <div class="cdx-seal"><span class="cdx-lock" aria-hidden="true">&#128274;</span><p>Ride on to <b>Khan ${ROMAN[metAt(c)]}, ${NAMES[metAt(c)][0]}</b> to meet them, and their story will be written here.</p></div></article>`;
@@ -4748,7 +4748,7 @@ function showGuide(i) {
   }
   const said = c.say && (LINES[c.say] || (c.say.startsWith('rostam-') ? ['Rostam', ROSTAM_SAYS[c.say.slice(7)]] : null));
   const chip = c.group === 'moment' ? `Khan ${ROMAN[c.k]} · a moment of the journey` : c.group === 'hero' ? 'Hero and ally' : c.group === 'boss' ? `Khan ${ROMAN[c.k]} &middot; the ${['', 'first', 'second', 'third', 'fourth', 'fifth', 'sixth', 'seventh'][c.k]} labour` : 'Foe of the road';
-  $('gleaf').innerHTML = `<article class="cdx-card cdx-${c.group}">
+  $('gleaf').innerHTML = `<article class="cdx-card cdx-${c.group === 'hero' ? 'ally' : c.group}">
     <div class="cdx-hero" style="--bg:url('${storyArt(c.bg)}')"><div class="cdx-stage">${mini(c.art, 200, 'cdx-spr')}</div>
       <div class="cdx-id"><p class="cdx-fa" lang="fa">${c.fa}</p><h2>${c.name}</h2><p class="cdx-title">${c.title}</p></div></div>
     ${said ? `<blockquote class="cdx-quote"><span>\u201c${said[1]}\u201d</span>${VOICED.has(c.say) ? `<button class="cdx-listen" data-say="${c.say}" aria-label="Hear ${c.name}">&#9654; Hear it</button>` : ''}</blockquote>` : ''}
