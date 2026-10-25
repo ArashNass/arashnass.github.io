@@ -773,13 +773,13 @@ function hangRing(map) {
   for (let k = a; k <= b; k++) if (map[r][k] === '.') map[r][k] = '=';
   for (const k of [a + 1, b - 1]) if (map[r - 1][k] === '.') map[r - 1][k] = 'c';
 }
-// Khan II: the dunes slope. Where the ground steps up or down a single tile, the two cells on the low side take a slope
+// Each labour uses its own terrain palette for slopes. Where the ground steps up or down a single tile, the two cells on the low side take a slope
 // tile (assets/k2/slopes.png): 1, 2 a gentle rise in two halves, 4, 5 a gentle fall (3 and 6 are the steep pair).
 // Bodies on a slope are carried along its surface. The plinths of the old riddle are levelled
 const SLOPE_Y = [null, x => 15 - (x >> 1), x => 8 - ((x + 1) >> 1), x => 15 - x, x => 8 + (x >> 1), x => (x + 1) >> 1, x => x];
 function cutSlopes(map) {
   const C = map[0].length, slopes = {}, top = c => { for (let r = 1; r < ROWS; r++) if (map[r][c] === '#') return r; return null; }, pit = c => map[15]?.[c] === '^';
-  for (const [a, b] of PLINTHS) for (let c = a; c <= b; c++) for (let r = 0; r < 14; r++) if (map[r][c] === '#') map[r][c] = '.';
+  if (cur === 2) for (const [a, b] of PLINTHS) for (let c = a; c <= b; c++) for (let r = 0; r < 14; r++) if (map[r][c] === '#') map[r][c] = '.';
   const free = (c, r) => c >= 0 && c < C && map[r][c] === '.' && !slopes[c + ',' + r];
   for (let c = 2; c < C - 2; c++) {
     const a = top(c - 1), b = top(c); if (a == null || b == null || pit(c - 1) || pit(c)) continue;
@@ -962,7 +962,9 @@ function heldBeat(s, { fa, title, text, voice, min = 1800, pose }, then) {
 const LEVELS = {
   1: {
     epithet: 'It hunts the reeds by night, and nothing that comes there leaves', hud: 'Khan I &middot; The Lion', winTitle: 'The lion is slain', name: 'The Lion of the Reeds', fa: 'شیرِ نیستان', tiles: 'tiles-1', map: buildMap,
+    smoothSteps: true,
     load(L, q) {
+      L.spritesheet('k1-slopes', 'assets/slopes.png' + q, { frameWidth: 16, frameHeight: 16 });
       L.image('tiles-1', 'assets/tiles.png' + q);
       L.image('bg-far', 'assets/bg/far.png' + q); L.image('bg-ruins', 'assets/bg/ruins.png' + q);
       L.image('altar', 'assets/altar.png' + q); L.image('feather', 'assets/feather.png' + q);
@@ -1108,7 +1110,9 @@ const LEVELS = {
   },
   3: {
     epithet: 'No lion or elephant dares cross the plain where it sleeps', hud: 'Khan III &middot; The Dragon', winTitle: 'The dragon is slain', name: 'The Dragon of the Night', fa: 'اژدها', bossName: 'The Dragon', tiles: 'tiles-3', map: map3, mounted: true,
-    load(L, q) { L.image('tiles-3', 'assets/k3/tiles.png' + q); L.image('k3-far', 'assets/k3/far.png' + q); L.image('altar', 'assets/altar.png' + q); },
+    smoothSteps: true,
+    load(L, q) {
+      L.spritesheet('k3-slopes', 'assets/k3/slopes.png' + q, { frameWidth: 16, frameHeight: 16 }); L.image('tiles-3', 'assets/k3/tiles.png' + q); L.image('k3-far', 'assets/k3/far.png' + q); L.image('altar', 'assets/altar.png' + q); },
     backdrop(s) {
       s.add.image(0, 0, 'k3-far').setOrigin(0).setScrollFactor(0);
       s.mist = s.add.tileSprite(0, 0, W, H, 'bg-mist').setOrigin(0).setScrollFactor(0).setTint(0x9a8ab0);
@@ -1143,7 +1147,9 @@ const LEVELS = {
   },
   4: {
     hud: 'Khan IV &middot; The Witch', winTitle: 'The witch unmasked', name: 'The Enchanted Garden', fa: 'زنِ جادوگر', bossName: 'The Witch', bossFa: 'زنِ جادوگر', tiles: 'tiles-4', map: map4,
-    load(L, q) { L.image('tiles-4', 'assets/k4/tiles.png' + q); L.image('k4-far', 'assets/k4/far.png' + q); L.image('altar', 'assets/altar.png' + q); },
+    smoothSteps: true,
+    load(L, q) {
+      L.spritesheet('k4-slopes', 'assets/k4/slopes.png' + q, { frameWidth: 16, frameHeight: 16 }); L.image('tiles-4', 'assets/k4/tiles.png' + q); L.image('k4-far', 'assets/k4/far.png' + q); L.image('altar', 'assets/altar.png' + q); },
     backdrop(s) {
       s.add.image(0, 0, 'k4-far').setOrigin(0).setScrollFactor(0);
       s.mist = s.add.tileSprite(0, 0, W, H, 'bg-mist').setOrigin(0).setScrollFactor(0).setTint(0xb0a0d0);
@@ -1187,7 +1193,9 @@ const LEVELS = {
   },
   5: {
     epithet: 'Young lord of the green marches, and their sword', hud: 'Khan V &middot; Olad', winTitle: 'Olad yields', name: 'The Green Land', fa: 'اولاد', bossName: 'Olad, Warden of the Marches', bossFa: 'اولاد', tiles: 'tiles-5', map: map5,
-    load(L, q) { L.image('tiles-5', 'assets/k5/tiles.png' + q); L.image('k5-far', 'assets/k5/far.png' + q); L.image('altar', 'assets/altar.png' + q); },
+    smoothSteps: true,
+    load(L, q) {
+      L.spritesheet('k5-slopes', 'assets/k5/slopes.png' + q, { frameWidth: 16, frameHeight: 16 }); L.image('tiles-5', 'assets/k5/tiles.png' + q); L.image('k5-far', 'assets/k5/far.png' + q); L.image('altar', 'assets/altar.png' + q); },
     backdrop(s) {
       s.add.image(0, 0, 'k5-far').setOrigin(0).setScrollFactor(0);
       s.fgReeds = s.add.tileSprite(0, 10, W, H, 'fg-reeds').setOrigin(0).setScrollFactor(0).setDepth(12).setTint(0x2a5a20).setAlpha(0.9);
@@ -1205,7 +1213,9 @@ const LEVELS = {
   },
   6: {
     epithet: 'Chieftain of the Div host, who breaks men with his axe', hud: 'Khan VI &middot; Arzhang Div', winTitle: 'Arzhang has fallen', name: 'The Camp of the Divs', fa: 'اَرژنگِ دیو', bossName: 'Arzhang Div', tiles: 'tiles-6', map: map6,
-    load(L, q) { L.image('tiles-6', 'assets/k6/tiles.png' + q); L.image('k6-far', 'assets/k6/far.png' + q); L.image('altar', 'assets/altar.png' + q); L.image('gate', 'assets/k6/gate.png' + q); },
+    smoothSteps: true,
+    load(L, q) {
+      L.spritesheet('k6-slopes', 'assets/k6/slopes.png' + q, { frameWidth: 16, frameHeight: 16 }); L.image('tiles-6', 'assets/k6/tiles.png' + q); L.image('k6-far', 'assets/k6/far.png' + q); L.image('altar', 'assets/altar.png' + q); L.image('gate', 'assets/k6/gate.png' + q); },
     backdrop(s) {
       s.add.image(0, 0, 'k6-far').setOrigin(0).setScrollFactor(0);
       s.smoke = s.add.tileSprite(0, 0, W, H, 'bg-mist').setOrigin(0).setScrollFactor(0).setTint(0x6a3020);
@@ -1243,7 +1253,9 @@ const LEVELS = {
   7: {
     epithet: 'Master of Mazandaran, who blinded a king and all his army', hud: 'Khan VII &middot; The White Div', winTitle: 'The Seven Labours are done', name: 'The White Div', fa: 'دیوِ سپید', tiles: 'tiles-7', map: map7,
     tileShift: c => c >= CAVE7 ? 4 : 0,
-    load(L, q) { L.image('tiles-7', 'assets/k7/tiles.png' + q); L.image('k7-far', 'assets/k7/far.png' + q); L.image('k7-cave', 'assets/k7/cave.png' + q); L.image('altar', 'assets/altar.png' + q); },
+    smoothSteps: true,
+    load(L, q) {
+      L.spritesheet('k7-slopes', 'assets/k7/slopes.png' + q, { frameWidth: 16, frameHeight: 16 }); L.image('tiles-7', 'assets/k7/tiles.png' + q); L.image('k7-far', 'assets/k7/far.png' + q); L.image('k7-cave', 'assets/k7/cave.png' + q); L.image('altar', 'assets/altar.png' + q); },
     backdrop(s) {
       s.add.image(0, 0, 'k7-far').setOrigin(0).setScrollFactor(0);
       s.cave = s.add.image(0, 0, 'k7-cave').setOrigin(0).setScrollFactor(0).setAlpha(0);
@@ -2013,7 +2025,7 @@ class Play extends Phaser.Scene {
     const ts = tm.addTilesetImage(lv.tiles, lv.tiles, TS, TS, 0, 0);
     this.layer = tm.createLayer(0, ts, 0, 0);
     this.layer.setCollision([0, 1, 2, 4, 5, 6]);
-    for (const [k, t] of Object.entries(this.slopes)) { const [c, r] = k.split(',').map(Number); if (this.textures.exists('k2-slopes')) this.add.image(c * TS, r * TS, 'k2-slopes', t - 1).setOrigin(0).setDepth(0.5); }
+    for (const [k, t] of Object.entries(this.slopes)) { const [c, r] = k.split(',').map(Number); if (this.textures.exists('k' + cur + '-slopes')) this.add.image(c * TS, r * TS, 'k' + cur + '-slopes', t - 1).setOrigin(0).setDepth(0.5); }
     this.layer.forEachTile(t => { if (t.index % 4 === 2) t.setCollision(false, false, true, false); });
     // the ground darkens with depth below its surface, each tile a shade apart, so the earth has body rather than a pattern
     const rnd = (a, b) => { const v = Math.sin(a * 127.1 + b * 311.7) * 43758.5453; return v - Math.floor(v); };
