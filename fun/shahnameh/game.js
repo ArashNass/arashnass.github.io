@@ -43,6 +43,10 @@ const ART = {
   // Khan VII
   'whitediv-walk': 'k7/whitediv-walk.png', 'whitediv-smash': 'k7/whitediv-smash.png', 'whitediv-throw': 'k7/whitediv-throw.png', 'whitediv-die': 'k7/whitediv-die.png', 'kavus-sight': 'k7/kavus-sight.png'
 };
+Object.assign(ART, { 'lion-pounce': 'lion-pounce.png', 'lion-swipe': 'lion-swipe.png', 'olad-throw': 'k5/olad-throw.png', 'olad-guard': 'k5/olad-guard.png',
+  'arzhang-charge': 'k6/arzhang-charge.png', 'arzhang-stomp': 'k6/arzhang-stomp.png', 'whitediv-roar': 'k7/whitediv-roar.png', 'dragon-lunge': 'k3/dragon-lunge.png',
+  'hag-vanish': 'k4/hag-vanish.png', 'queen-burrow': 'k2/queen-burrow.png', 'jackal-lunge': 'jackal-lunge.png', 'bat-dive': 'k3/bat-dive.png', 'vulture-dive': 'k2/vulture-dive.png',
+  'div-strike': 'div-strike.png', 'rostam-farr': 'rostam-farr.png' });
 Object.assign(ART, { 'rostam-sleep': 'rostam-sleep.png', 'rostam-rise': 'rostam-rise.png', 'div-sleep': 'div-sleep.png', 'rostam-lasso': 'rostam-lasso.png', 'rakhsh-idle': 'k3/rakhsh-idle.png', 'divwarrior-sleep': 'k6/divwarrior-sleep.png' });
 // Painted replacements retain the original texture dimensions and collision footprints.
 const PAINTED = ['bg-reeds', 'bg-hills', 'bg-mist', 'fg-reeds', 'knife', 'arrow', 'fireball', 'icicle', 'icespike', 'boulder'];
@@ -531,17 +535,18 @@ function jackalHunt(s, f, k, p) {
   if (f.js === 'lunge' && !f.leap) { f.js = 'recover'; f.jt = 40; }   // a heavy blow broke the lunge
   if (f.js !== 'crouch' && f.glint) { f.glint.destroy(); f.glint = null; f.setAngle(0); }
   if (f.js === 'crouch') {
+    s.hold(f, 'jackal-lunge', f.jt > 14 ? 0 : 1);
     f.setVelocityX(foeStepFree(s, f, -f.dir * 2) ? -f.dir * 16 : 0);
     f.glint?.setPosition(f.x + f.dir * f.displayWidth * 0.3, f.body.top + 4);
     if (f.jt <= 0) {
-      f.js = 'lunge'; f.jt = 40; f.leap = true; f.bit = false; f.setAngle(0); f.anims.resume(); f.anims.timeScale = 1.7;
+      f.js = 'lunge'; f.jt = 40; f.leap = true; f.bit = false; f.setAngle(0); if (s.anims.exists('jackal-leap')) f.play('jackal-leap'); else { f.anims.resume(); f.anims.timeScale = 1.7; }
       f.setVelocity(hopVelocity(f, f.dir * 215, 0.34), -150); s.fx('dust', f.x - f.dir * 10, f.body.bottom, { flip: f.dir < 0, depth: 6 });
     }
     return;
   }
   if (f.js === 'lunge') {
-    if (f.jt < 30 && f.body.blocked.down) { f.leap = false; f.js = 'recover'; f.jt = 46; f.setVelocityX(0); f.anims.timeScale = 0.5; s.fx('dust', f.x, f.body.bottom, { depth: 6 }); }
-    else if (f.jt < -40) { f.leap = false; f.js = 'recover'; f.jt = 30; }
+    if (f.jt < 30 && f.body.blocked.down) { f.leap = false; f.js = 'recover'; f.jt = 46; f.setVelocityX(0); f.play('jackal-run'); f.anims.timeScale = 0.5; s.fx('dust', f.x, f.body.bottom, { depth: 6 }); }
+    else if (f.jt < -40) { f.leap = false; f.js = 'recover'; f.jt = 30; f.play('jackal-run'); }
     return;
   }
   if (f.js === 'recover') { f.setVelocityX(0); if (f.jt <= 0) { f.js = 'stalk'; f.anims.timeScale = 1; f.jt = 24 + Math.random() * 36; } return; }
@@ -590,11 +595,12 @@ const FOES = {
     tex: 'div-hop', hp: 2,
     tick(s, f, k, p) {
       f.hopT -= k; if (!f.body.blocked.down) return;
+      if (f.anims.currentAnim?.key === 'div-pounce' && !f.dw) f.play('div-hop');   // landed from a pounce
       if (canHunt(s, f, p) && above(f, p)) { if (f.dw > 0) { f.dw = 0; f.setAngle(0); f.anims.resume(); } f.setVelocityX(0); if (f.hopT <= 0) { const post = postOf(s, f); f.dir = Math.abs(f.x - post) > TS ? Math.sign(post - f.x) : (Math.random() < 0.5 ? -1 : 1); f.setFlipX(f.dir < 0); f.setVelocity(hopVelocity(f, crowded(s, f, f.dir) ? 0 : f.dir * 50, 0.48), -200); f.hopT = 80 + Math.random() * 40; } return; }
       f.dir = Math.sign(p.x - f.x) || 1; f.setFlipX(f.dir < 0); f.setVelocityX(0);
       if (f.dw > 0) {                                                // the wind-up: it sinks on its haunches, then springs
-        f.dw -= k; f.anims.pause(); f.setFrame(0); f.setAngle(Math.sin(s.time.now * 0.09) * 3);
-        if (f.dw <= 0) { f.dw = 0; f.setAngle(0); f.anims.resume(); f.setVelocity(hopVelocity(f, crowded(s, f, f.dir) ? 0 : f.dir * 70, 0.55), -230); f.hopT = 70; s.fx('dust', f.x, f.body.bottom, { depth: 6 }); }
+        f.dw -= k; if (s.anims.exists('div-pounce')) s.hold(f, 'div-strike', f.dw > 8 ? 1 : 2); else { f.anims.pause(); f.setFrame(0); } f.setAngle(Math.sin(s.time.now * 0.09) * 3);
+        if (f.dw <= 0) { f.dw = 0; f.setAngle(0); if (s.anims.exists('div-pounce')) f.play('div-pounce'); else f.anims.resume(); f.setVelocity(hopVelocity(f, crowded(s, f, f.dir) ? 0 : f.dir * 70, 0.55), -230); f.hopT = 70; s.fx('dust', f.x, f.body.bottom, { depth: 6 }); }
         return;
       }
       if (canHunt(s, f, p) && f.hopT <= 0 && Math.abs(p.x - f.x) < 200 && reserveAttack(s, f)) f.dw = 15;
@@ -737,8 +743,8 @@ function flyer(tex, { range, dive, rest, offY, speed = 0.012 }) {
           f.setVelocity(0); f.setTint(0xffd27a); f.anims.timeScale = 0.4;
         }
       } else if (f.state === 'warn') {
-        f.setVelocity(0); if ((f.tm -= k) <= 0) { const a = Math.atan2(f.aim.y - f.body.center.y, f.aim.x - f.body.center.x); f.clearTint(); f.state = 'dive'; f.tm = 46; f.setVelocity(Math.cos(a) * dive, Math.sin(a) * dive); f.setFlipX(Math.cos(a) < 0); sfx('swing'); }
-      } else if (f.state === 'dive') { if ((f.tm -= k) <= 0 || f.body.blocked.down) { f.state = 'rise'; f.anims.timeScale = 1.4; } }
+        f.setVelocity(0); if ((f.tm -= k) <= 0) { const a = Math.atan2(f.aim.y - f.body.center.y, f.aim.x - f.body.center.x); f.clearTint(); f.state = 'dive'; f.tm = 46; s.playIf(f, tex.replace('-fly', '-dive')); f.setVelocity(Math.cos(a) * dive, Math.sin(a) * dive); f.setFlipX(Math.cos(a) < 0); sfx('swing'); }
+      } else if (f.state === 'dive') { if ((f.tm -= k) <= 0 || f.body.blocked.down) { f.state = 'rise'; f.play(tex); f.anims.timeScale = 1.4; } }
       else { f.setVelocity((f.home.x - f.x) * 1.5, (f.home.y - f.y) * 1.8); if (Math.abs(f.y - f.home.y) < 8) { f.state = 'circle'; f.cool = rest + Math.random() * 80; f.anims.timeScale = 1; f.t = Math.asin(Phaser.Math.Clamp((f.x - f.home.x) / range, -1, 1)); } }
     }
   };
@@ -2035,6 +2041,13 @@ class Play extends Phaser.Scene {
       cam.shake = function (d, i, ...a) { return SET.shake ? cam.rawShake(d, i, ...a) : cam; };
       cam.flash = function (d, r, g, b, ...a) { return SET.flash ? cam.rawFlash(d, r, g, b, ...a) : cam; };
     }
+    // the attack animations: each tell holds its wind-up frames, then the blow plays out (the strip's later frames)
+    const move = (key, tex, a, b, fps, repeat = 0) => { if (this.textures.exists(tex) && !this.anims.exists(key)) this.anims.create({ key, frames: this.anims.generateFrameNumbers(tex, { start: a, end: b }), frameRate: fps, repeat }); };
+    move('lion-leap', 'lion-pounce', 3, 7, 10); move('lion-paw', 'lion-swipe', 2, 5, 14); move('olad-toss', 'olad-throw', 3, 5, 12); move('olad-guard', 'olad-guard', 0, 3, 5, -1);
+    move('arzhang-charge', 'arzhang-charge', 0, 7, 14, -1); move('arzhang-slam', 'arzhang-stomp', 3, 5, 12); move('whitediv-roar', 'whitediv-roar', 0, 5, 8);
+    move('dragon-lunge', 'dragon-lunge', 0, 5, 10); move('hag-vanish', 'hag-vanish', 0, 5, 11); move('queen-burrow', 'queen-burrow', 0, 5, 9);
+    move('jackal-leap', 'jackal-lunge', 2, 5, 12); move('bat-dive', 'bat-dive', 0, 3, 12, -1); move('vulture-dive', 'vulture-dive', 0, 3, 12, -1);
+    move('div-pounce', 'div-strike', 3, 5, 12); move('rostam-farr', 'rostam-farr', 0, 7, 14);
     // the canvas is drawn at twice the world's resolution so finer sprite art keeps its detail. The camera zooms from its
     // top-left corner, so scrollX stays the left edge of the view and screen-fixed layers keep their places; its follow
     // offset centres Rostam, and the bounds and tile culling are worked out for the zoomed view
@@ -2245,6 +2258,7 @@ class Play extends Phaser.Scene {
   farrBlast() {
     if (this.farr < 100 || this.frozen || this.done) return;
     rostamSays('farr');
+    if (!this.mounted && this.anims.exists('rostam-farr')) { this.pose = 'rostam-farr'; this.player.play('rostam-farr'); this.time.delayedCall(620, () => { if (this.pose === 'rostam-farr') this.pose = null; }); }
     const p = this.player, cx = this.cam.scrollX; this.farr = 0; store.set('sh-farr', 0); this.renderFarr();
     this.cam.flash(380, 255, 225, 140); this.cam.shake(400, 0.012); sfx('fire'); sfx('roar'); this.hitStop(120);
     const ring = this.add.image(p.x, p.body.center.y, 'glow').setTint(0xffd060).setBlendMode(Phaser.BlendModes.ADD).setDepth(12).setScale(0.4);
@@ -2292,6 +2306,9 @@ class Play extends Phaser.Scene {
     });
     p.once('animationcomplete', () => { this.heavyGo = false; if (this.pose === 'rostam-heavy') this.pose = null; this.heavy = null; });
   }
+  // hold a wind-up frame of an attack strip (a tell), or play an animation when it exists, else a fallback
+  hold(o, tex, frame) { if (!this.textures.exists(tex)) return; if (o.texture.key !== tex || o.anims.isPlaying) { o.anims.stop(); o.setTexture(tex, frame); } else if (o.frame.name !== frame) o.setFrame(frame); }
+  playIf(o, key, fallback) { if (this.anims.exists(key)) o.play(key); else if (fallback) o.play(fallback); }
   // Rostam's lasso (kamand), won from Olad: thrown ahead, it catches the first thing in its path. A foe is dragged to his
   // feet and left reeling, a flier pulled out of the air; a provision out of reach is drawn in. A boss is too strong to
   // drag: the noose slips from it
@@ -2732,17 +2749,17 @@ class Play extends Phaser.Scene {
       l.setVelocityX(-l.dir * 70);
       if (l.tm <= 0) { const swipe = !read.ledge && Math.abs(p.body.bottom - l.body.bottom) < 45 && read.distance < 90; this.bossAim(l, swipe ? 'Raised paw: step clear' : 'Low crouch: a hunting leap'); l.state = swipe ? 'pawReady' : 'crouch'; l.tm = 38; l.setVelocityX(0); }
     } else if (l.state === 'crouch') {
-      l.setVelocityX(0); l.setTint(0xffdc9a);
+      l.setVelocityX(0); l.setTint(0xffdc9a); this.hold(l, 'lion-pounce', Math.min(2, Math.floor((38 - l.tm) / 13)));
       if (l.tm <= 0) {
         l.clearTint(); l.state = 'pounce'; l.tm = 55;
         const vx = Phaser.Math.Clamp(((l.aimX ?? p.x) - l.x) / 0.65, -240, 240);
-        l.dir = Math.sign(vx) || l.dir; l.setVelocity(vx, l.aimLedge ? -390 : -330); l.play('lion-run');
+        l.dir = Math.sign(vx) || l.dir; l.setVelocity(vx, l.aimLedge ? -390 : -330); this.playIf(l, 'lion-leap', 'lion-run');
       }
     } else if (l.state === 'pounce') {
       if ((l.tm < 30 && l.body.blocked.down) || l.tm < -35) this.lionOpening(l, 'recover', 55);
     } else if (l.state === 'pawReady') {
-      l.setVelocityX(0); l.setTint(0xffad70);
-      if (l.tm <= 0) { l.clearTint(); l.state = 'paw'; l.tm = 24; l.pawed = false; this.fx('swing', l.x + l.dir * 38, l.body.center.y, { flip: l.dir < 0 }); }
+      l.setVelocityX(0); l.setTint(0xffad70); this.hold(l, 'lion-swipe', l.tm > 18 ? 0 : 1);
+      if (l.tm <= 0) { l.clearTint(); l.state = 'paw'; l.tm = 24; l.pawed = false; this.playIf(l, 'lion-paw'); this.fx('swing', l.x + l.dir * 38, l.body.center.y, { flip: l.dir < 0 }); }
     } else if (l.state === 'paw') {
       if (!l.pawed && l.tm < 16) { l.pawed = true; this.hazard(l.dir > 0 ? l.x + 15 : l.x - 88, l.body.bottom - 48, 73, 48, 150); sfx('swing'); }
       if (l.tm <= 0) this.lionOpening(l, 'recover', 58);
@@ -3305,7 +3322,7 @@ class Play extends Phaser.Scene {
         const move = d.nextMove || this.dragonPlan(d); d.nextMove = null;
         if (move === 'embers') { d.state = 'embers'; d.tm = 74; d.fired = false; d.play('dragon-fire'); }
         else if (move === 'breath') { d.intent = 'Flame breath'; d.state = 'breath'; d.tm = 75; d.play('dragon-fire'); d.fired = false; }
-        else { d.intent = 'The dragon lunges'; d.state = 'lunge'; d.tm = 42; d.setVelocityX(d.dir * 250); }
+        else { d.intent = 'The dragon lunges'; d.state = 'lunge'; d.tm = 42; d.setVelocityX(d.dir * 250); this.playIf(d, 'dragon-lunge'); }
       }
     } else if (d.state === 'embers') {
       d.setVelocityX(0); d.setTint(0xffb060);
@@ -3329,7 +3346,7 @@ class Play extends Phaser.Scene {
       }
       if (d.tm <= 0 && this.time.now >= (d.breathUntil || 0)) { d.play('dragon-move'); if (seen && this.bossTactic(d, [{ move: 'follow', weight: this.bossRead(d).distance > 80 ? 2 : 0.8 }, { move: 'recover', weight: 1 }]) === 'follow') { this.bossAim(d, 'Golden flash: follow-up lunge'); d.state = 'coil'; d.tm = 36; d.anims.stop(); d.setFrame(0); d.setTint(0xffdc9a); } else { d.state = 'exposed'; d.tm = 85; } }
     } else if (d.state === 'coil') {
-      d.setVelocityX(0); if (d.tm <= 0) { d.clearTint(); d.state = 'lunge'; d.tm = 36; d.play('dragon-move'); d.setVelocityX(d.dir * 250); }
+      d.setVelocityX(0); if (d.tm <= 0) { d.clearTint(); d.state = 'lunge'; d.tm = 36; this.playIf(d, 'dragon-lunge', 'dragon-move'); d.setVelocityX(d.dir * 250); }
     } else if (d.state === 'lunge') {
       if (d.tm <= 0 || (d.dir < 0 ? d.body.blocked.left || d.hitKeep : d.body.blocked.right)) { d.setVelocityX(0); d.state = 'exposed'; d.tm = seen ? 50 : 85; this.cam.shake(200, 0.01); }
     } else if (d.state === 'exposed') {
@@ -3411,8 +3428,8 @@ class Play extends Phaser.Scene {
       w.setVelocity(0); this.stars?.setPosition(w.x, w.body.top - 4);
       if (w.tm <= 0) { w.clearTint(); this.stars?.destroy(); this.stars = null; w.state = 'float'; w.tm = 54; w.tx = Phaser.Math.Clamp(p.x + (p.x < w.x ? 120 : -120), this.wall.x + 55, this.wallR.x - 55); }
     } else if (w.state === 'vanish') {
-      w.setVelocity(0); w.setTint(0xd8a0ff);
-      if (w.tm <= 0) { w.clearTint(); w.state = 'blink'; w.tm = 30; this.fx('poof', w.x, w.y + 10, { depth: 10 }); w.setAlpha(0); w.body.enable = false; }
+      w.setVelocity(0); w.setTint(0xd8a0ff); if (!w.vanishing) { w.vanishing = true; this.playIf(w, 'hag-vanish'); }
+      if (w.tm <= 0) { w.vanishing = false; w.clearTint(); w.state = 'blink'; w.tm = 30; this.fx('poof', w.x, w.y + 10, { depth: 10 }); w.setAlpha(0); w.body.enable = false; }
     } else if (w.state === 'blink') {
       if (w.tm <= 0) {
         const L = this.wall.x + 55, R = this.wallR.x - 55, spots = [L, (L + R) / 2, R];
@@ -3420,6 +3437,7 @@ class Play extends Phaser.Scene {
         const x = candidates[Math.floor(Math.random() * candidates.length)] ?? spots.sort((a, b) => Math.abs(b - p.x) - Math.abs(a - p.x))[0];
         w.body.reset(x, w.baseY); w.body.enable = true; this.fx('poof', x, w.y + 10, { depth: 10 });
         this.tweens.add({ targets: w, alpha: 1, duration: 200 }); w.state = 'float'; w.tm = 54; w.tx = x;
+        if (this.anims.exists('hag-vanish')) { w.playReverse('hag-vanish'); w.once('animationcomplete', () => { if (w.active && !w.anims.isPlaying) w.setTexture('hag-cast', 0); }); }
       }
     }
   }
@@ -3457,8 +3475,8 @@ class Play extends Phaser.Scene {
       this.bossAim(o, o.attackMove === 'knife' ? 'Knife drawn: dodge or parry' : o.attackMove === 'thrust' ? 'Sword levelled: a long thrust' : o.attackMove === 'retreat' ? 'Olad gives ground' : 'Sword raised: watch the swing');
       o.comboLeft = o.hp <= o.max / 2 && Math.random() < 0.65 ? 1 : 0; o.state = o.attackMove === 'knife' ? 'knifeReady' : o.attackMove === 'retreat' ? 'retreat' : 'ready'; o.tm = o.attackMove === 'knife' ? 48 : o.attackMove === 'thrust' ? 42 : 34; o.setVelocityX(0); o.anims.stop(); o.setFrame(0); }
     } else if (o.state === 'knifeReady') {
-      o.setVelocityX(0); o.setTint(0xb8e8ff);
-      if (o.tm <= 0) { o.clearTint(); o.state = 'knife'; o.tm = 35; o.play('olad-slash');
+      o.setVelocityX(0); o.setTint(0xb8e8ff); this.hold(o, 'olad-throw', o.tm > 30 ? 0 : o.tm > 14 ? 1 : 2);
+      if (o.tm <= 0) { o.clearTint(); o.state = 'knife'; o.tm = 35; this.playIf(o, 'olad-toss', 'olad-slash');
         const x = o.x + o.dir * 18, y = o.body.top + 14, a = Math.atan2(o.aimY - y, o.aimX - x);
         const sh = this.shoot(x, y, Math.cos(a) * 180, Math.sin(a) * 180, 'knife', { life: 2400 }); sh.setRotation(a); sh.curse = true; sfx('swing');
       }
@@ -3476,7 +3494,7 @@ class Play extends Phaser.Scene {
       if (o.tm <= 0 && o.comboLeft > 0) { o.comboLeft--; o.attackMove = 'slash'; o.intent = 'Second swing: keep clear'; o.state = 'ready'; o.tm = 36; o.setVelocityX(0); o.anims.stop(); o.setFrame(0); hint('Olad draws back for a <b>second swing</b>. Keep clear, then strike!'); }
       else if (o.tm <= 0) { o.state = 'open'; o.tm = 84; o.intent = ''; o.setVelocityX(0); o.anims.stop(); o.setFrame(0); o.setTint(0xffd0a0); hint('Olad\'s guard is down: <b>strike now!</b>'); }
     } else if (o.state === 'open') {
-      o.setVelocityX(0); if (o.tm <= 0) { o.clearTint(); o.state = 'guard'; o.tm = 30 + Math.random() * 20;
+      o.setVelocityX(0); if (o.tm <= 0) { o.clearTint(); o.state = 'guard'; o.tm = 30 + Math.random() * 20; this.playIf(o, 'olad-guard');
         hint('Shield up again. When he <b>flashes, step back</b>, then <b>strike while he glows</b>, or leap over him and hit his back.'); }
     } else if (o.state === 'guard') {
       o.setVelocityX(0); if (o.tm <= 0) { o.state = 'walk'; o.tm = 90; const room = o.dir < 0 ? this.wallR.x - o.x : o.x - o.keep * TS; if (room > 90 && Math.random() < 0.25) o.setVelocity(-o.dir * 120, -170); }
@@ -3626,7 +3644,7 @@ class Play extends Phaser.Scene {
         const preferred = Math.random() < (hurt ? 0.75 : 0.6) ? other : first; const follow = this.bossChoice(a, preferred, preferred === first ? other : first); a.combo = hurt && Math.random() < 0.35 ? [first, follow, follow === 'split' ? 'sweep' : 'split'] : [first, follow]; a.intent = a.combo.length === 3 ? 'Three axe blows: watch each red band' : 'Two axe blows: watch each red band'; this.windUp(a, first === 'split' ? Math.max(hurt ? 70 : 80, this.reachT(127, 131)) : hurt ? 70 : 80);   // time to reach the platform
       }
     } else if (a.state === 'stompReady') {
-      a.setVelocityX(0); a.stompWarn?.setAlpha(0.18 + 0.3 * Math.abs(Math.sin(a.tm * 0.25))); if (a.tm <= 0) { a.stompWarn?.destroy(); a.stompWarn = null; a.clearTint(); this.hazard((a.stompX ?? a.x) - 82, 14 * TS - 25, 164, 25, 200); this.fx('shock', a.x, 14 * TS, { depth: 8 }); a.state = 'stomp'; a.tm = 18; sfx('hit'); }
+      a.setVelocityX(0); a.stompWarn?.setAlpha(0.18 + 0.3 * Math.abs(Math.sin(a.tm * 0.25))); this.hold(a, 'arzhang-stomp', a.tm > 30 ? 0 : a.tm > 15 ? 1 : 2); if (a.tm <= 0) { this.playIf(a, 'arzhang-slam'); a.stompWarn?.destroy(); a.stompWarn = null; a.clearTint(); this.hazard((a.stompX ?? a.x) - 82, 14 * TS - 25, 164, 25, 200); this.fx('shock', a.x, 14 * TS, { depth: 8 }); a.state = 'stomp'; a.tm = 18; sfx('hit'); }
     } else if (a.state === 'stomp') {
       if (a.tm <= 0) { a.state = 'rest'; a.tm = 80; a.intent = ''; a.setTint(0xffc0a0); this.stars = this.fx('stun', a.x, a.body.top - 4, { depth: 10, follow: a }); }
     } else if (a.state === 'raise') {
@@ -3651,7 +3669,7 @@ class Play extends Phaser.Scene {
     if (b.state === 'brace') {
       b.setVelocityX(0); Math.floor(b.tm / 5) % 2 ? b.setTint(0xff7060) : b.clearTint();
       this.chargeWarn?.setAlpha(0.2 + 0.35 * Math.abs(Math.sin(b.tm * 0.3)));
-      if (b.tm <= 0) { b.clearTint(); b.state = 'charge'; b.tm = 90; b.play(walk); b.anims.timeScale = 2.6; this.chargeWarn?.destroy(); this.chargeWarn = null; sfx('roar'); this.cam.shake(200, 0.006); }
+      if (b.tm <= 0) { b.clearTint(); b.state = 'charge'; b.tm = 90; const run = walk.replace('-walk', '-charge'); if (this.anims.exists(run)) { b.play(run); b.anims.timeScale = 1; } else { b.play(walk); b.anims.timeScale = 2.6; } this.chargeWarn?.destroy(); this.chargeWarn = null; sfx('roar'); this.cam.shake(200, 0.006); }
       return true;
     }
     if (b.state === 'charge') {
@@ -3796,7 +3814,7 @@ class Play extends Phaser.Scene {
       }
       if (move === 'frost') {
         // he roars at the roof and the ice comes down on the ledge: two marks, a moment apart
-        w.setVelocityX(0); w.state = 'roar'; w.tm = 120; w.throwCd = mad ? 120 : 170; sfx('roar'); this.cam.shake(300, 0.008);
+        w.setVelocityX(0); w.state = 'roar'; w.tm = 120; this.playIf(w, 'whitediv-roar'); w.throwCd = mad ? 120 : 170; sfx('roar'); this.cam.shake(300, 0.008);
         w.frostUntil = this.time.now + 1800;
         const target = w.aimX; this.iceStrike(target, w); const shift = Math.abs(read.vx) > 20 ? Math.sign(read.vx) * 64 : -w.dir * 64; const second = Phaser.Math.Clamp(target + shift, this.wall.x + 25, this.wallR.x - 25); this.time.delayedCall(450, () => this.iceStrike(second, w));
         if (!this.toldIce) { this.toldIce = true; toast('He roars at the roof! Where the light shines, ice will fall. Move!'); }
@@ -4111,13 +4129,13 @@ class Play extends Phaser.Scene {
       if (q.think <= 0) {
         move = this.bossTactic(q, [{ move: 'patrol', weight: 1 }, { move: 'sting', weight: close && q.stingCd <= 0 ? 4 : 0 }, { move: 'spit', weight: q.spitCd <= 0 && (onLedge || Math.abs(d) > 140) ? 3 + (read.camp > 2000 ? 2 : 0) : 0 }, { move: 'dive', weight: q.diveAge > 360 ? 1 + read.pressure * 3 : 0, cooldown: 6500 }]); q.think = 30 + Math.random() * 24;
       }
-      if (q.diveAge >= (mad ? 600 : 780) || move === 'dive') { q.diveAge = 0; q.state = 'dive'; q.tm = 44; q.setVelocityX(0); q.anims.stop(); this.sink(q, true, 700); sfx('hit'); }
+      if (q.diveAge >= (mad ? 600 : 780) || move === 'dive') { q.diveAge = 0; q.state = 'dive'; q.tm = 44; q.setVelocityX(0); this.playIf(q, 'queen-burrow'); this.sink(q, true, 700); sfx('hit'); }
       else if (move === 'sting') { q.intent = 'Green stinger: step back'; q.state = 'aim'; q.tm = mad ? 34 : 40; q.setVelocityX(0); q.anims.stop(); q.setTexture('queen-sting', 0); sfx('roar'); }
       else if (move === 'spit') { this.bossAim(q, 'Venom raised: leave the target'); q.state = 'spit'; q.tm = 44; q.setVelocityX(0); q.dir = Math.sign(d) || q.dir; q.play('queen-spit'); q.spat = false; }
       else if ((q.dir < 0 && (q.x <= L || q.hitKeep)) || (q.dir > 0 && q.x >= R)) {
         // the end of a pass: turn back, or every few passes go under the sand and come out at the far side
         q.setVelocityX(0); q.passes++;
-        if (q.passes >= q.nextDive) { q.passes = 0; q.diveAge = 0; q.nextDive = mad ? 1 : 2 + (Math.random() < 0.5 ? 1 : 0); q.state = 'dive'; q.tm = 44; q.anims.stop(); this.sink(q, true, 700); sfx('hit'); }
+        if (q.passes >= q.nextDive) { q.passes = 0; q.diveAge = 0; q.nextDive = mad ? 1 : 2 + (Math.random() < 0.5 ? 1 : 0); q.state = 'dive'; q.tm = 44; this.playIf(q, 'queen-burrow'); this.sink(q, true, 700); sfx('hit'); }
         else { q.state = 'turn'; q.tm = 18; q.anims.stop(); }
       }
     } else if (q.state === 'turn') {
@@ -4167,7 +4185,7 @@ class Play extends Phaser.Scene {
         }
       } else if (q.tm <= 0) {
         this.swirl.destroy(); this.swirl = null;
-        q.state = 'surfacing'; q.tm = 18; q.setAlpha(1); q.body.enable = true; q.setTexture('queen-walk', 0); this.sink(q, false, 260);
+        q.state = 'surfacing'; q.tm = 18; q.setAlpha(1); q.body.enable = true; if (this.anims.exists('queen-burrow')) q.playReverse({ key: 'queen-burrow', frameRate: 20 }); else q.setTexture('queen-walk', 0); this.sink(q, false, 260);
         q.dir = q.x < (L + R) / 2 ? 1 : -1;
         this.hazard(q.x - 36, floorY - 60, 72, 60, 260); this.cam.shake(420, 0.016); sfx('hit'); sfx('roar');
         for (let i = 0; i < 6; i++) this.fx('dust', q.x + (i - 2.5) * 16, floorY, { depth: 8 });
@@ -4318,7 +4336,7 @@ function renderMap() {
       const n = i + 1, open = n <= u && LEVELS[n], done = !!bestOf(n) || n < u, [x, y] = MAP_AT[n];
       const fc = [0, 1, 2].filter(k => F[n + ':' + k]).length, st = starsOf()[n] || 0, lg = legendsOf()[n], best = bestOf(n);
       const tip = open ? `${st ? `<i class="${lg ? 'lg' : ''}">${'\u2605'.repeat(st)}${'\u2606'.repeat(3 - st)}</i>` : done ? '' : 'The road lies open<br>'}Simurgh feathers ${fc} / 3${best ? `<br>Best time ${fmtTime(best * 1000)}` : ''}` : `Win Khan ${ROMAN[n - 1]} to open this road`;
-      return `<li style="left:${x}%;top:${y}%"><button data-n="${n}" class="${n === pick ? 'sel' : ''} ${done ? 'done' : ''} ${open && !done ? 'next' : ''}" ${open ? '' : 'disabled'} aria-current="${n === pick ? 'step' : 'false'}" aria-label="Labour ${n}: ${name}${open ? '' : ' (locked)'}, ${fc} of 3 feathers${st ? `, ${st} of 3 stars` : ''}${best ? `, best time ${fmtTime(best * 1000)}` : ''}">${ROMAN[n]}</button><span class="pin-label" aria-hidden="true">${name}</span>${open && st ? `<span class="st${lg ? ' lg' : ''}" aria-hidden="true">${'\u2605'.repeat(st)}${'\u2606'.repeat(3 - st)}</span>` : ''}${open ? `<span class="fc${fc === 3 ? ' all' : ''}" aria-hidden="true">${'<i></i>'.repeat(fc)}${'<i class="no"></i>'.repeat(3 - fc)}</span>` : ''}<span class="pin-tip${x < 20 ? ' at-l' : x > 80 ? ' at-r' : ''}" aria-hidden="true"><b>Khan ${ROMAN[n]} &middot; ${name}</b>${tip}</span></li>`;
+      return `<li style="left:${x}%;top:${y}%"><button data-n="${n}" class="${n === pick ? 'sel' : ''} ${done ? 'done' : ''} ${open && !done ? 'next' : ''}" ${open ? '' : 'disabled'} aria-current="${n === pick ? 'step' : 'false'}" aria-label="Labour ${n}: ${name}${open ? '' : ' (locked)'}, ${fc} of 3 feathers${st ? `, ${st} of 3 stars` : ''}${best ? `, best time ${fmtTime(best * 1000)}` : ''}"><img class="bdg" src="assets/ui/badge-${n}.png?v=${V}" alt=""><span class="rn">${ROMAN[n]}</span></button><span class="pin-label" aria-hidden="true">${name}</span>${open && st ? `<span class="st${lg ? ' lg' : ''}" aria-hidden="true">${'\u2605'.repeat(st)}${'\u2606'.repeat(3 - st)}</span>` : ''}${open ? `<span class="fc${fc === 3 ? ' all' : ''}" aria-hidden="true">${'<i></i>'.repeat(fc)}${'<i class="no"></i>'.repeat(3 - fc)}</span>` : ''}<span class="pin-tip${x < 20 ? ' at-l' : x > 80 ? ' at-r' : ''}" aria-hidden="true"><b>Khan ${ROMAN[n]} &middot; ${name}</b>${tip}</span></li>`;
     }).join(''));
   $('road').querySelectorAll('button').forEach(b => {
     b.onclick = () => { pick = +b.dataset.n; renderMap(); $('road').querySelector(`[data-n="${pick}"]`)?.focus({ preventScroll: true }); };

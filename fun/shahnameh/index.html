@@ -158,7 +158,7 @@ h2{font-size:clamp(21px,4.6vw,27px);margin:2px 0 8px}
 .road button{position:relative;width:36px;height:36px;border-radius:50%;display:grid;place-items:center;background:radial-gradient(circle at 35% 30%,#2a4fc0,#14286b 70%);border:2px solid var(--gold);color:var(--gold2);font:900 12px Cinzel,serif;box-shadow:0 0 0 2px #2a1a08,0 3px 8px rgba(0,0,0,.6);transition:transform .15s}
 .road button:hover:not(:disabled),.road button.sel{transform:scale(1.2);box-shadow:0 0 0 2px #2a1a08,0 0 0 4px var(--gold2),0 0 16px rgba(246,220,140,.8)}
 .road button:disabled{background:radial-gradient(circle at 35% 30%,#8a7f6a,#4f463a 70%);border-color:#9a8f78;color:#d8ccb0;cursor:default}
-.road button.done:after{content:"\2713";position:absolute;top:-6px;right:-6px;width:16px;height:16px;border-radius:50%;background:#1f8a92;border:1px solid #e8d6ae;color:#fff;font:700 10px/14px Inter,sans-serif}
+.road button .bdg{position:absolute;inset:-3px;width:calc(100% + 6px);height:calc(100% + 6px);border-radius:50%;image-rendering:pixelated;pointer-events:none}.road button:disabled .bdg{filter:grayscale(1) brightness(.7)}.road button .rn{position:absolute;bottom:-9px;left:50%;transform:translateX(-50%);font:700 8px/11px Cinzel,serif;padding:0 4px;border-radius:6px;background:#142f49;border:1px solid #e7c987;color:#fff0ca;pointer-events:none}.road button.done:after{content:"\2713";position:absolute;top:-6px;right:-6px;width:16px;height:16px;border-radius:50%;background:#1f8a92;border:1px solid #e8d6ae;color:#fff;font:700 10px/14px Inter,sans-serif}
 #mapInfo{min-height:3.1em;margin:8px auto 12px}#mapInfo .pf{display:block;font:700 26px/1.5 'Noto Nastaliq Urdu',Lalezar,serif;color:var(--lapisInk);margin:0 0 .75em}
 .hero{display:none;position:absolute;right:calc(100% + 52px);bottom:-40px;width:189px;height:auto;image-rendering:pixelated;filter:drop-shadow(0 12px 24px rgba(0,0,0,.6));pointer-events:none}
 @media (min-width:1000px) and (min-height:560px){.hero{display:block}}
@@ -976,6 +976,6 @@ body.calm #banner.on{animation-name:banCalm}@keyframes banCalm{0%{opacity:0}15%,
 <script src="boot.js?v=92"></script>
 <script src="assets/vendor/phaser-3.80.1.min.js" data-game-script="engine"></script>
 <script src="journey-events.js?v=122" data-game-script="journey"></script>
-<script src="game.js?v=150" data-game-script="game"></script>
+<script src="game.js?v=151" data-game-script="game"></script>
 </body>
 </html>
