@@ -779,6 +779,15 @@ body.calm #banner.on{animation-name:banCalm}@keyframes banCalm{0%{opacity:0}15%,
 #s-map .journey-page #rideBtn svg,#s-map .journey-page #mapTale svg{width:16px;height:16px;flex:none;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 #s-map .journey-page #rideBtn svg{color:#f6dc8c}#s-map .journey-page #mapTale svg{color:#6b4f2a}
 @media(max-width:760px){#s-map .journey-page #rideBtn,#s-map .journey-page #mapTale{width:100%;min-height:44px}}
+
+/* the story paintings are shown whole: never cropped, the caption beneath the picture, only the gentlest drift */
+#s-cine .cframe{top:8vh;bottom:calc(8vh + 118px);left:0;right:0}
+#s-cine .cimg{object-fit:contain!important;top:0!important;left:0!important;width:100%!important;height:100%!important;transform-origin:50% 50%}
+#s-cine .cimg.on{animation:burnsGentle var(--d,14s) ease-out forwards!important}
+@keyframes burnsGentle{from{transform:scale(1)}to{transform:scale(1.025)}}
+@media (max-width:700px),(max-height:520px){#s-cine .cframe{bottom:calc(8vh + 96px)}}
+.csound{left:calc(max(16px,env(safe-area-inset-left)) + 150px);right:auto;display:inline-flex;align-items:center;gap:6px}
+.csound[aria-pressed="false"] .spk-on,.csound[aria-pressed="true"] .spk-off{display:none}
 </style>
 
 <script defer src="/assets/engagement.js?v=1"></script>
@@ -882,7 +891,7 @@ body.calm #banner.on{animation-name:banCalm}@keyframes banCalm{0%{opacity:0}15%,
   <button class="cnext" id="cineNext" aria-label="Next picture"></button>
   <div class="ccap" aria-live="polite"><div class="fa"></div><p></p><span class="chint">Click, tap or press Space to go on</span></div>
   <div class="cdots" aria-hidden="true"></div>
-  <button class="cskip cvoice" id="cineNarrator" aria-pressed="true">Narrator on</button><button class="cskip" id="cineSkip">Skip &rsaquo;</button>
+  <button class="cskip cvoice" id="cineNarrator" aria-pressed="true">Narrator on</button><button class="cskip csound" id="cineSound" aria-label="Sound on or off" aria-pressed="true"><svg class="spk" viewBox="0 0 24 24" aria-hidden="true"><path class="spk-body" d="M4 9.5h3.2L12 5.5v13l-4.8-4H4z"/><path class="spk-on" d="M15.5 9a4.2 4.2 0 0 1 0 6M18.2 6.4a8 8 0 0 1 0 11.2"/><path class="spk-off" d="M16 9.5l5 5M21 9.5l-5 5"/></svg><span class="spk-l">Sound on</span></button><button class="cskip" id="cineSkip">Skip &rsaquo;</button>
   <div class="credits hidden" id="credits"><div class="roll" id="roll"></div></div>
 </section>
 <section class="ov hidden" id="s-clips" role="dialog" aria-modal="true" aria-label="The tale in pictures">
@@ -1116,6 +1125,6 @@ body.calm #banner.on{animation-name:banCalm}@keyframes banCalm{0%{opacity:0}15%,
 <script src="boot.js?v=92"></script>
 <script src="assets/vendor/phaser-3.80.1.min.js" data-game-script="engine"></script>
 <script src="journey-events.js?v=124" data-game-script="journey"></script>
-<script src="game.js?v=179" data-game-script="game"></script>
+<script src="game.js?v=180" data-game-script="game"></script>
 </body>
 </html>
