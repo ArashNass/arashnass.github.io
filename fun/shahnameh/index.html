@@ -800,6 +800,24 @@ body.calm #banner.on{animation-name:banCalm}@keyframes banCalm{0%{opacity:0}15%,
 #s-dead #deadTip{font:500 clamp(18px,2.2vw,24px)/1.4 'EB Garamond',serif;max-width:38em;margin:12px auto 18px;color:var(--inkb)}
 /* Keep the lasso named even on a short landscape phone. */
 #touch .tb.lasso small{display:block;bottom:-13px}
+
+/* the book's character box: one size and shape for every soul */
+#gleaf .cdx-hero{height:250px;min-height:250px;grid-template-columns:220px 1fr;align-items:center;padding:12px 22px}
+#gleaf .cdx-stage{width:220px;height:220px;display:flex;align-items:flex-end;justify-content:center;overflow:hidden}
+#gleaf .cdx-stage .spr.cdx-spr,#gleaf .cdx-boss .cdx-stage .spr.cdx-spr{--s:210px!important}
+#gleaf .cdx-id{align-self:center;min-width:0}
+#gleaf .cdx-id h2{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#gleaf .cdx-title{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:2.9em}
+@media (max-width:760px){#gleaf .cdx-hero{height:auto;min-height:330px;grid-template-columns:1fr}#gleaf .cdx-stage{width:100%;height:170px}#gleaf .cdx-stage .spr.cdx-spr,#gleaf .cdx-boss .cdx-stage .spr.cdx-spr{--s:165px!important}}
+/* scrollbars in the book's own colours: a thin gilded rail */
+#s-guide *{scrollbar-width:thin;scrollbar-color:#b8893a #e9d9b4}
+#s-guide ::-webkit-scrollbar{width:8px;height:8px}
+#s-guide ::-webkit-scrollbar-track{background:#e9d9b4;border-radius:8px;box-shadow:inset 0 0 0 1px #c9a65a55}
+#s-guide ::-webkit-scrollbar-thumb{background:linear-gradient(180deg,#d9b25e,#a87a2c);border-radius:8px;border:2px solid #e9d9b4}
+#s-guide ::-webkit-scrollbar-thumb:hover{background:linear-gradient(180deg,#e8c25a,#b8893a)}
+#gleaf{scrollbar-color:#b8893a #18222f}
+#gleaf::-webkit-scrollbar-track{background:#18222f;box-shadow:none}
+#gleaf::-webkit-scrollbar-thumb{border-color:#18222f}
 </style>
 
 <script defer src="/assets/engagement.js?v=1"></script>
@@ -1131,6 +1149,6 @@ body.calm #banner.on{animation-name:banCalm}@keyframes banCalm{0%{opacity:0}15%,
 <script src="boot.js?v=92"></script>
 <script src="assets/vendor/phaser-3.80.1.min.js" data-game-script="engine"></script>
 <script src="journey-events.js?v=124" data-game-script="journey"></script>
-<script src="game.js?v=184" data-game-script="game"></script>
+<script src="game.js?v=185" data-game-script="game"></script>
 </body>
 </html>
