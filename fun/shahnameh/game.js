@@ -61,7 +61,7 @@ const FPS = { 'rostam-lasso': 40, 'rakhsh-idle': 3, 'divwarrior-sleep': 2, 'rost
 const SIZE = { queen: 150, rider: 124, rostam: 112, lion: 148, jackal: 108, div: 108, scorpion: 86, vulture: 92, ram: 86, dragon: 136, rakhsh: 104, bat: 108, serpent: 92, hag: 108, beauty: 108, spearman: 140, olad: 112, divwarrior: 100, arzhang: 136, whitediv: 204, firediv: 104, ghul: 100 };
 const BODY = { queen: [0.62, 0.42], rider: [0.3, 0.5], rostam: [0.143, 0.393], lion: [0.5, 0.36], jackal: [0.3, 0.22], div: [0.22, 0.34], scorpion: [0.4, 0.22], vulture: [0.33, 0.2], ram: [0.4, 0.4],
   dragon: [0.46, 0.42], rakhsh: [0.5, 0.5], bat: [0.32, 0.24], serpent: [0.31, 0.31], hag: [0.27, 0.42], beauty: [0.2, 0.47], spearman: [0.115, 0.386], olad: [0.17, 0.49], divwarrior: [0.31, 0.64], arzhang: [0.3, 0.7], whitediv: [0.2667, 0.3867], firediv: [0.2, 0.6], ghul: [0.5, 0.36] };
-const V = 92;
+const V = 93;
 const RAKHSH1 = 0.56;                                               // Rakhsh's scale in Khan I: his strip is 229 px, the horse a little larger than the lion
 const REVISED_STORY_ART = new Set(['khan1-intro', 'khan4-intro', 'khan4-outro', 'khan5-intro', 'khan5-outro', 'khan7-intro', 'end2']);
 let wakeArt = false, lionPrologueSeen = false;
@@ -1938,7 +1938,7 @@ class Play extends Phaser.Scene {
   create() {
     // the scene object is reused from labour to labour: forget whatever the last one left behind
     for (const k of ['dark', 'lights', 'lamp', 'wall', 'wallR', 'stars', 'pose', 'swingFx', 'witch', 'unmasked', 'olad', 'rakhsh', 'dragonSeen', 'horde', 'hordeDone',
-      'gates', 'hordeBat', 'toldRock', 'toldFarr', 'toldOffer', 'atAltar', 'bossT', 'maceHit', 'toldIce', 'chargeWarn', 'toldCharge', 'shards', 'shardG', 'mark', 'markGlow', 'markOpen', 'bossHeart', 'bossHeartT', 'floorWarn', 'highWarn', 'regrow', 'drums', 'sky', 'flashA', 'intro', 'fgReeds', 'mound', 'swirl', 'qx', 'puddles', 'combo', 'comboT', 'heavy', 'heavyGo', 'chargeT', 'chargeFull', 'chargeGlow', 'dodgeT', 'dodgeCd', 'dodgeDir', 'whiteDown', 'ended', 'mounted', 'prayed', 'drank', 'toldImmune', 'toldDeflect', 'toldVenom', 'cage', 'kavus', 'stones', 'puzzle', 'springOpen', 'pool', 'victory', 'attackBuf', 'dodgeBuf', 'counterT', 'counterStrike', 'dodgeRewarded', 'trial', 'nearTrial', 'journey', 'siege', 'siegeDone', 'ally', 'phase2', 'streak', 'didDouble', 'rocks', 'rockT', 'poppies', 'drowsy', 'toldPoppy', 'oladAlly', 'rope', 'ropeG', 'lassoCd', 'toldBossLasso', 'sleeper', 'snore', 'guard', 'prologue', 'prologueOn', 'ringObj', 'grapple', 'toldBossHold', 'oladBind', 'sleepers', 'toldSleep', 'saidLow', 'ramDug', 'ramAmbush', 'toldRamWait']) delete this[k];
+      'gates', 'hordeBat', 'toldRock', 'toldFarr', 'toldOffer', 'atAltar', 'bossT', 'maceHit', 'toldIce', 'chargeWarn', 'toldCharge', 'shards', 'shardG', 'mark', 'markGlow', 'markOpen', 'bossHeart', 'bossHeartT', 'floorWarn', 'highWarn', 'regrow', 'drums', 'sky', 'flashA', 'intro', 'fgReeds', 'mound', 'swirl', 'qx', 'puddles', 'combo', 'comboT', 'heavy', 'heavyGo', 'chargeT', 'chargeFull', 'chargeGlow', 'dodgeT', 'dodgeCd', 'dodgeDir', 'whiteDown', 'ended', 'mounted', 'prayed', 'drank', 'toldImmune', 'toldDeflect', 'toldVenom', 'cage', 'kavus', 'stones', 'puzzle', 'springOpen', 'pool', 'victory', 'attackBuf', 'dodgeBuf', 'counterT', 'counterStrike', 'dodgeRewarded', 'trial', 'nearTrial', 'journey', 'siege', 'siegeDone', 'ally', 'phase2', 'streak', 'didDouble', 'rocks', 'rockT', 'poppies', 'drowsy', 'toldPoppy', 'oladAlly', 'rope', 'ropeG', 'lassoCd', 'toldBossLasso', 'sleeper', 'snore', 'guard', 'prologue', 'prologueOn', 'ringObj', 'grapple', 'toldBossHold', 'oladBind', 'sleepers', 'toldSleep', 'saidLow', 'ramDug', 'ramAmbush', 'toldRamWait', 'climbTo']) delete this[k];
     refreshLassoBtn();
     // turn loaded strips into square frames; anything missing falls back to placeholder art
     for (const k of ['decor-' + cur]) if (this.textures.exists(k) && this.textures.get(k).frameTotal < 3) { const t = this.textures.get(k), h = t.getSourceImage().height; for (let i = 0; i < Math.round(t.getSourceImage().width / h); i++) t.add(i, 0, i * h, 0, h, h); }
@@ -2936,7 +2936,11 @@ class Play extends Phaser.Scene {
     // on the dunes a rise one tile high is stepped up, not jumped: walking into its lip lifts Rostam onto it
     if (this.lv.smoothSteps && LIVE && ground && dirX && !this.frozen && !this.mounted && (dirX > 0 ? b.blocked.right : b.blocked.left)) {
       const fx = dirX > 0 ? b.right + 2 : b.left - 2, at = y => this.layer.getTileAtWorldXY(fx, y), lip = at(b.bottom - 4);
-      if (lip?.collides && lip.index % 4 !== 3 && !at(b.bottom - TS - 4)?.collides && !at(b.bottom - 2 * TS - 4)?.collides) { p.setVelocityY(-250); b.velocity.x = dirX * 125; this.stepping = 14; }
+      if (lip?.collides && lip.index % 4 !== 3 && !at(b.bottom - TS - 4)?.collides && !at(b.bottom - 2 * TS - 4)?.collides) this.climbTo = lip.pixelY;
+    }
+    if (this.climbTo != null) {                     // rising onto it, as up a stair, still walking forward
+      if (!dirX || this.frozen || b.bottom <= this.climbTo - 0.5) { if (b.velocity.y < 0) p.setVelocityY(0); this.climbTo = null; }
+      else { p.setVelocityY(-200); b.velocity.x = dirX * 110; this.stepping = 4; }
     }
     if (pressed.jump) this.buf = 6; pressed.jump = false;
     if (ground) this.airJumps = 1;
@@ -3988,7 +3992,12 @@ class Play extends Phaser.Scene {
     if (this.ramDug) { r.setVelocityX(0); r.glow.setPosition(r.x, r.y + 2); return; }
     const vx = r.x >= end ? 0 : d > 150 ? 0 : Phaser.Math.Clamp((p.x + 80 - r.x) * 2.2, 0, 140);
     r.setVelocityX(vx); r.setFlipX(d > 150);
-    if (vx > 8 && r.body.blocked.right && r.body.blocked.down) r.setVelocityY(-280);   // hop up the rise
+    if (vx > 8 && r.climbTo == null && r.body.blocked.right && r.body.blocked.down) {   // the lip of a rise: how high does it go?
+      const fx = r.body.right + 2; let top = null;
+      for (let up = 0; up < 3; up++) { const t = this.layer.getTileAtWorldXY(fx, r.body.bottom - 4 - up * TS); if (!t?.collides) break; top = t.pixelY; }
+      if (top != null && r.body.bottom - top <= 2 * TS + 1) r.climbTo = top;
+    }
+    if (r.climbTo != null) { if (vx <= 8 || r.body.bottom <= r.climbTo - 0.5) { if (r.body.velocity.y < 0) r.setVelocityY(0); r.climbTo = null; } else { r.setVelocityY(-170); r.setVelocityX(Math.max(vx, 50)); } }
     if (vx > 8 || !r.body.blocked.down) { if (r.anims.currentAnim?.key !== 'ram-walk' || !r.anims.isPlaying) r.play('ram-walk'); r.anims.timeScale = Math.max(0.8, vx / 62); }
     else { r.anims.stop(); r.setFrame(0); }
     if (d > 150 && !this.toldRamWait) { this.toldRamWait = true; toast('The ram stops and looks back for you.'); }
