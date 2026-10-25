@@ -4543,6 +4543,10 @@ const CODEX = [
     road: ['It crawls low, then <b>leaps</b>: jump the leap, and strike as it lands.'],
     facts: [['Blows', '2'], ['Seen in', 'Khan VI, the horde']] }
 ];
+const MET_AT = { rostam: 1, rakhsh: 1, simurgh: 1, ram: 2, kavus: 7, jackal: 1, div: 1, scorpion: 2, vulture: 2, bat: 3, serpent: 4, spearman: 5, divwarrior: 6, firediv: 6, ghul: 6 };
+const metAt = c => c.k || MET_AT[c.id] || 1;
+const known = c => unlocked() >= metAt(c) || location.hash === '#debug' && location.search.includes('allcodex');
+const LOCKED_FA = '؟';
 const CODEX_GROUPS = [['hero', 'Heroes and allies', 'پهلوانان'], ['boss', 'The seven foes', 'هفت خوان'], ['foe', 'On the road', 'دیوان و ددان']];
 const mini = ([src, n, h], size, cls = '') => `<i class="spr ${cls}" style="--n:${n};--s:${size}px;--src:url(assets/${src}.png)" data-n="${n}" data-key="${src.split('/').pop()}"></i>`;
 // the miniatures move at their in-game speed: walkers and fliers loop, attacks play once and then the foe waits a few seconds
@@ -4572,9 +4576,16 @@ const codexFace = (c, size) => c.port ? `<img class="cdx-face" src="assets/ui/po
 function showGuide(i) {
   gpg = (i + CODEX.length) % CODEX.length; const c = CODEX[gpg], road = c.road || GUIDE.find(g => g.k === c.k)?.how || [];
   $('gtabs').innerHTML = CODEX_GROUPS.map(([grp, label, fa]) => `<div class="cdx-grp"><p class="cdx-gh"><span lang="fa">${fa}</span>${label}</p>${CODEX.map((x, j) => x.group !== grp ? '' :
-    `<button class="cdx-it${j === gpg ? ' sel' : ''}" data-g="${j}" aria-current="${j === gpg}">${codexFace(x, 36)}<span>${x.name}</span></button>`).join('')}</div>`).join('');
+    `<button class="cdx-it${j === gpg ? ' sel' : ''}${known(x) ? '' : ' locked'}" data-g="${j}" aria-current="${j === gpg}" aria-label="${known(x) ? x.name : 'Locked: reach Khan ' + ROMAN[metAt(x)]}">${codexFace(x, 36)}<span>${known(x) ? x.name : 'Khan ' + ROMAN[metAt(x)]}</span></button>`).join('')}</div>`).join('');
   $('gtabs').querySelectorAll('button').forEach(b => b.onclick = () => showGuide(+b.dataset.g));
   $('gtabs').querySelector('.sel')?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+  if (!known(c)) {                                       // not yet met: a shadow, and where the road will bring them
+    $('gleaf').innerHTML = `<article class="cdx-card cdx-${c.group} cdx-locked">
+      <div class="cdx-hero" style="--bg:url('${storyArt(c.bg)}')"><div class="cdx-stage">${mini(c.art, 200, 'cdx-spr still')}</div>
+        <div class="cdx-id"><p class="cdx-chip">Not yet met</p><p class="cdx-fa" lang="fa">${LOCKED_FA}</p><h2>Unknown</h2><p class="cdx-title">This page of the book is still sealed.</p></div></div>
+      <div class="cdx-seal"><span class="cdx-lock" aria-hidden="true">&#128274;</span><p>Ride on to <b>Khan ${ROMAN[metAt(c)]}, ${NAMES[metAt(c)][0]}</b> to meet them, and their story will be written here.</p></div></article>`;
+    $('gcount').textContent = `${gpg + 1} of ${CODEX.length} · ${CODEX.filter(known).length} met`; $('gleaf').scrollTop = 0; animateSprites($('s-guide'), 's-guide'); return;
+  }
   const said = c.say && (LINES[c.say] || (c.say.startsWith('rostam-') ? ['Rostam', ROSTAM_SAYS[c.say.slice(7)]] : null));
   const chip = c.group === 'hero' ? 'Hero and ally' : c.group === 'boss' ? `Khan ${ROMAN[c.k]} &middot; the ${['', 'first', 'second', 'third', 'fourth', 'fifth', 'sixth', 'seventh'][c.k]} labour` : 'Foe of the road';
   $('gleaf').innerHTML = `<article class="cdx-card cdx-${c.group}">
@@ -4585,7 +4596,7 @@ function showGuide(i) {
       <section><h3>${c.group === 'boss' ? 'How to beat it' : c.group === 'foe' ? 'How to face it' : 'On the road'}</h3><ul>${road.map(r => `<li>${r}</li>`).join('')}</ul></section></div>
     <dl class="cdx-facts">${c.facts.map(([a, b]) => `<div><dt>${a}</dt><dd>${b}</dd></div>`).join('')}</dl></article>`;
   $('gleaf').querySelector('.cdx-listen')?.addEventListener('click', e => { audio(); narrate(e.currentTarget.dataset.say); });
-  $('gcount').textContent = `${gpg + 1} of ${CODEX.length}`;
+  $('gcount').textContent = `${gpg + 1} of ${CODEX.length} · ${CODEX.filter(known).length} met`;
   refreshControlLabels($('gleaf')); $('gleaf').scrollTop = 0; animateSprites($('s-guide'), 's-guide');
 }
 function openGuide(n) {
@@ -4612,7 +4623,7 @@ function renderHero() {
   if ($('heroGo')) $('heroGo').onclick = () => { pick = done >= LABOURS ? 1 : next; renderMap(); $('rideBtn').click(); };
   $('heroStats').innerHTML = [[`${done}<i>/7</i>`, 'labours won'], [`${stars}<i>/21</i>`, 'stars'], [`${fe}<i>/21</i>`, 'Simurgh feathers']].map(([v, l]) => `<li><b>${v}</b><span>${l}</span></li>`).join('');
   $('castRow').innerHTML = CODEX.filter(c => c.group !== 'foe' && c.id !== 'ram').map(c =>
-    `<button class="jcast-it jc-${c.group}" data-cdx="${c.id}" aria-label="${c.name}: open their page">${codexFace(c, 56)}<span class="jc-fa" lang="fa">${c.fa}</span><b>${c.name}</b><small>${c.group === 'boss' ? 'Khan ' + ROMAN[c.k] : 'Hero'}</small></button>`).join('');
+    `<button class="jcast-it jc-${c.group}${known(c) ? '' : ' locked'}" data-cdx="${c.id}" aria-label="${known(c) ? c.name + ': open their page' : 'Locked: reach Khan ' + ROMAN[metAt(c)]}">${codexFace(c, 56)}<span class="jc-fa" lang="fa">${known(c) ? c.fa : LOCKED_FA}</span><b>${known(c) ? c.name : 'Unknown'}</b><small>${known(c) ? (c.group === 'boss' ? 'Khan ' + ROMAN[c.k] : 'Hero') : '&#128274; Khan ' + ROMAN[metAt(c)]}</small></button>`).join('');
   $('castRow').querySelectorAll('[data-cdx]').forEach(b => b.onclick = () => openGuide(b.dataset.cdx));
   animateSprites($('s-map'), 's-map');
 }

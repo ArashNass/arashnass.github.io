@@ -757,6 +757,13 @@ body.calm #banner.on{animation-name:banCalm}@keyframes banCalm{0%{opacity:0}15%,
 #s-map .map-scroll{display:flex;align-items:center;background:#0b1622}
 .spr.still{background-position:0 0!important;background-size:calc(var(--n) * 100%) 100%!important;background-origin:border-box}
 .jcast-it .spr.still,.cdx-it .spr.still{border-radius:50%;overflow:hidden;clip-path:circle(50%)}
+
+/* pages of the book not yet reached: a shadow and a seal */
+.locked .cdx-face,.locked .spr,.cdx-locked .cdx-spr{filter:brightness(0) drop-shadow(0 0 1px #e7c98799)!important;opacity:.75}
+.jcast-it.locked,.cdx-it.locked{opacity:.7}.jcast-it.locked b{color:#9fa8b0}#gtabs .cdx-it.locked span{color:#6b4f2a;font-style:italic}
+.cdx-locked .cdx-hero:before{filter:grayscale(1) brightness(.35) blur(1px)}
+.cdx-seal{display:flex;align-items:center;gap:14px;padding:16px 18px;border:1px dashed #c9a65a80;border-radius:12px;background:#ffffff08;font:400 17px/1.5 'EB Garamond',Georgia,serif;color:#e9e1cf}
+.cdx-seal p{margin:0}.cdx-lock{font-size:28px;filter:grayscale(.3)}
 </style>
 
 <script defer src="/assets/engagement.js?v=1"></script>
@@ -1094,6 +1101,6 @@ body.calm #banner.on{animation-name:banCalm}@keyframes banCalm{0%{opacity:0}15%,
 <script src="boot.js?v=92"></script>
 <script src="assets/vendor/phaser-3.80.1.min.js" data-game-script="engine"></script>
 <script src="journey-events.js?v=123" data-game-script="journey"></script>
-<script src="game.js?v=164" data-game-script="game"></script>
+<script src="game.js?v=165" data-game-script="game"></script>
 </body>
 </html>
