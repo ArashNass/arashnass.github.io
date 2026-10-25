@@ -292,6 +292,54 @@
       "sha256": "5a1ae720260c77ebbc60bda3e2aaee2a796c57d5223574bdb53b584a1a950498",
       "voice": "Brian - Deep, Resonant and Comforting",
       "voice_id": "Gubgw9l4dtIoQA9YZHgx"
+    },
+    {
+      "id": "khan2-prayer",
+      "duration": 8.256,
+      "sha256": "d75d8a2706b0d44ac47adbb6d1472ac6a834e22fa95fdff68b39b7b62ef74386",
+      "kind": "panel",
+      "text": "Rostam fell to his knees in the burning sand. With the last of his strength he raised his hands and prayed for mercy."
+    },
+    {
+      "id": "khan2-ram",
+      "duration": 7.568,
+      "sha256": "cebd2531c87dfb40586967193f3b55d411f3484dae54ec6f228d4a068747f2da",
+      "kind": "panel",
+      "text": "Out of the storm came a ram, glowing like the dawn. Where a beast walks, there must be water."
+    },
+    {
+      "id": "khan2-water",
+      "duration": 9.129,
+      "sha256": "bb822940c6569fec5fba7962957ca7369966181de10fa8cd1d92aa5e7579c709",
+      "kind": "panel",
+      "text": "The ram stopped at a dry rock and pawed the sand. Here, hidden from the sun, lay the water. And its guardian."
+    },
+    {
+      "id": "rostam-pray",
+      "duration": 3.108,
+      "sha256": "65353e0670a4992a6bb27d8c7463f38e42070e8fd3f91dfe9f0f29db7d3893d8",
+      "kind": "character",
+      "text": "O Lord, You alone can save me now.",
+      "voice": "Brian - Deep, Resonant and Comforting",
+      "voice_id": "Gubgw9l4dtIoQA9YZHgx"
+    },
+    {
+      "id": "rostam-thanks",
+      "duration": 2.189,
+      "sha256": "f2a1478f976d86dbc5f7a90f6c54fa119910d7dcab2374591f8fa866af142ab5",
+      "kind": "character",
+      "text": "Blessed be the One who sent you.",
+      "voice": "Brian - Deep, Resonant and Comforting",
+      "voice_id": "Gubgw9l4dtIoQA9YZHgx"
+    },
+    {
+      "id": "rostam-thirst",
+      "duration": 2.22,
+      "sha256": "de9d9e3a3cd02c542073b1292c6d74de99bd6a1b4560d59cdb3a86545054415f",
+      "kind": "character",
+      "text": "Water… I need water.",
+      "voice": "Brian - Deep, Resonant and Comforting",
+      "voice_id": "Gubgw9l4dtIoQA9YZHgx"
     }
   ]
 }
