@@ -260,7 +260,7 @@
     stage5(time, dt) {
       const s = this.s, p = s.player;
       this.volley(time);
-      if (this.phase === 'approach' && p.x >= 50 * 16 && p.x < 106 * 16 && s.atk <= 0 && !s.heavyGo && !(s.dodgeT > 0)) {
+      if (this.phase === 'approach' && !s.noPursuit && p.x >= 50 * 16 && p.x < 106 * 16 && s.atk <= 0 && !s.heavyGo && !(s.dodgeT > 0)) {
         this.phase = 'pursuit'; this.next = time + 1000; this.mount(true);
         this.scout = this.actor('olad-walk', p.x + 155, this.floor(p.x + 155), 112, 5).setFlipX(false);
         this.target(this.scout, () => new Phaser.Geom.Rectangle(this.scout.x - 18, this.scout.y - 75, 36, 75), () => {

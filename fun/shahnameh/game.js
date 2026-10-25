@@ -64,7 +64,7 @@ const FPS = { 'rostam-land': 16, 'rostam-turn': 14, 'rostam-climb': 12, 'rostam-
   'divwarrior-walk': 8, 'divwarrior-smash': 13, 'arzhang-walk': 7, 'arzhang-smash': 9,
   'whitediv-walk': 6, 'whitediv-smash': 11, 'whitediv-throw': 10, 'whitediv-die': 7, 'arzhang-die': 7, 'firediv-walk': 9, 'firediv-throw': 14, 'ghul-crawl': 14, 'ghul-leap': 14, 'serpent-strike': 16, 'scorpion-sting': 16, 'kavus-sight': 6 };
 // on-screen frame height in game pixels; equal to the PixelLab frame size so sprites draw 1:1
-const SIZE = { queen: 150, rider: 124, rostam: 112, lion: 148, jackal: 108, div: 108, scorpion: 86, vulture: 92, ram: 86, dragon: 136, rakhsh: 128, bat: 108, serpent: 92, hag: 108, beauty: 108, spearman: 140, olad: 112, divwarrior: 100, arzhang: 136, whitediv: 204, firediv: 104, ghul: 100 };
+const SIZE = { queen: 150, rider: 124, rostam: 112, lion: 148, jackal: 108, div: 108, scorpion: 86, vulture: 92, ram: 86, dragon: 136, rakhsh: 128, bat: 108, serpent: 92, hag: 108, beauty: 108, spearman: 140, olad: 92, divwarrior: 100, arzhang: 136, whitediv: 204, firediv: 104, ghul: 100 };
 const BODY = { queen: [0.62, 0.42], rider: [0.3, 0.5], rostam: [0.143, 0.393], lion: [0.5, 0.36], jackal: [0.3, 0.22], div: [0.22, 0.34], scorpion: [0.4, 0.22], vulture: [0.33, 0.2], ram: [0.4, 0.4],
   dragon: [0.46, 0.42], rakhsh: [0.5, 0.5], bat: [0.32, 0.24], serpent: [0.31, 0.31], hag: [0.27, 0.42], beauty: [0.2, 0.47], spearman: [0.115, 0.386], olad: [0.17, 0.49], divwarrior: [0.31, 0.64], arzhang: [0.3, 0.7], whitediv: [0.2667, 0.3867], firediv: [0.2, 0.6], ghul: [0.5, 0.36] };
 const V = 102;
@@ -1902,6 +1902,7 @@ function setMuted(m) {
   A.muted = m; store.set('sh-muted', m ? '1' : '0'); if (A.master) A.master.gain.value = m || A.background ? 0 : 0.8; if (m) hush(true);
   if (typeof storyReading !== 'undefined') refreshStoryListen();
   $('muteIco').setAttribute('d', m ? 'M4 9v6h4l5 4V5L8 9z M17 9l5 6 M22 9l-5 6' : 'M4 9v6h4l5 4V5L8 9z M16 9a4 4 0 0 1 0 6 M19 6a8 8 0 0 1 0 12');
+  if ($('cineSound')) { $('cineSound').setAttribute('aria-pressed', String(!m)); $('cineSound').querySelector('.spk-l').textContent = m ? 'Sound off' : 'Sound on'; }
   if ($('journeySound')) { $('journeySound').querySelector('.spk-l').textContent = m ? 'Sound off' : 'Sound on'; $('journeySound').setAttribute('aria-pressed', String(!m)); }
   music(!m && game && game.scene.isActive('play') && playing);
 }
@@ -2157,6 +2158,7 @@ class Play extends Phaser.Scene {
     if (cur === 7 && !rush && LIVE) this.lullCave();
     this.setupTrial();
     if (!window.ShahnamehJourney) throw new Error('The journey encounters could not load.');
+    this.noPursuit = LIVE;   // Khan V: Olad is first met in his own arena, not in a chase before it
     if (!rush) this.journey = window.ShahnamehJourney.create(this, cur, { hint, toast, banner, sfx, unearth, TS, W, H });
     if (rush) this.rushSetup();
     if (R) { lv.resume?.(this); toast(R.well ? 'Rostam rises again beside the well.' : 'Rostam rises again beside the sacred fire.'); }
@@ -5097,6 +5099,7 @@ function setNarrator(on, readScene = false) {
   if (on && readScene && !A.muted && cine && !cine.credits) cineShow(cine.i);
 }
 $('setNarrator').onclick = () => setNarrator(!narratorEnabled());
+$('cineSound').onclick = () => $('muteBtn').click();
 $('cineNarrator').onclick = () => setNarrator(!narratorEnabled(), true);
 // the readings play through the game's own sound engine (unlocked by the first click, so no browser blocks them),
 // each decoded once and kept
@@ -5171,7 +5174,7 @@ function cinema(name, done, start = 0, panels = null) {
   cine.from?.classList.add('hidden'); $('credits').classList.add('hidden'); $('cineSkip').textContent = 'Skip ›';
   ov.querySelector('.cdots').innerHTML = P.map((_, k) => `<i title="Picture ${k + 1}" data-k="${k}"></i>`).join('');
   imgs.forEach(im => im.classList.remove('on'));
-  ov.classList.remove('hidden'); refreshNarratorControls(); music(true); P.forEach(([img]) => voiceBuf(img)?.catch(() => {})); cineNext(); $('cineNext').focus();
+  ov.classList.remove('hidden'); refreshNarratorControls(); $('cineSound').setAttribute('aria-pressed', String(!A.muted)); $('cineSound').querySelector('.spk-l').textContent = A.muted ? 'Sound off' : 'Sound on'; music(true); P.forEach(([img]) => voiceBuf(img)?.catch(() => {})); cineNext(); $('cineNext').focus();
 }
 function cineShow(i) {
   const c = cine, [img, fa, text] = c.P[i], ov = $('s-cine'), imgs = ov.querySelectorAll('.cimg'), im = imgs[i % 2], old = imgs[(i + 1) % 2];
