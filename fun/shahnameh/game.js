@@ -43,6 +43,8 @@ const ART = {
   // Khan VII
   'whitediv-walk': 'k7/whitediv-walk.png', 'whitediv-smash': 'k7/whitediv-smash.png', 'whitediv-throw': 'k7/whitediv-throw.png', 'whitediv-die': 'k7/whitediv-die.png', 'kavus-sight': 'k7/kavus-sight.png'
 };
+Object.assign(ART, { 'rostam-pray': 'rostam-pray.png', 'rostam-kneel-drink': 'rostam-kneel-drink.png', 'rostam-thirst': 'rostam-thirst.png',
+  'ram-idle': 'k2/ram-idle.png', 'ram-look': 'k2/ram-look.png', 'ram-paw': 'k2/ram-paw.png', 'ram-appear': 'k2/ram-appear.png', 'rakhsh-trot': 'k3/rakhsh-trot.png', 'rakhsh-drink': 'k3/rakhsh-drink.png' });
 Object.assign(ART, { 'lion-dazed': 'lion-dazed.png', 'queen-dazed': 'k2/queen-dazed.png', 'dragon-dazed': 'k3/dragon-dazed.png', 'hag-dazed': 'k4/hag-dazed.png',
   'olad-dazed': 'k5/olad-dazed.png', 'arzhang-dazed': 'k6/arzhang-dazed.png', 'whitediv-dazed': 'k7/whitediv-dazed.png', 'witch-transform': 'k4/witch-transform.png', 'ride-mount': 'k3/ride-mount.png' });
 Object.assign(ART, { 'lion-pounce': 'lion-pounce.png', 'lion-swipe': 'lion-swipe.png', 'olad-throw': 'k5/olad-throw.png', 'olad-guard': 'k5/olad-guard.png',
@@ -52,7 +54,7 @@ Object.assign(ART, { 'lion-pounce': 'lion-pounce.png', 'lion-swipe': 'lion-swipe
 Object.assign(ART, { 'rostam-sleep': 'rostam-sleep.png', 'rostam-rise': 'rostam-rise.png', 'div-sleep': 'div-sleep.png', 'rostam-lasso': 'rostam-lasso.png', 'rakhsh-idle': 'k3/rakhsh-idle.png', 'divwarrior-sleep': 'k6/divwarrior-sleep.png' });
 // Painted replacements retain the original texture dimensions and collision footprints.
 const PAINTED = ['bg-reeds', 'bg-hills', 'bg-mist', 'fg-reeds', 'knife', 'arrow', 'fireball', 'icicle', 'icespike', 'boulder'];
-const FPS = { 'rostam-lasso': 40, 'rakhsh-idle': 3, 'divwarrior-sleep': 2, 'rostam-sleep': 2, 'rostam-rise': 6, 'div-sleep': 2, 'queen-walk': 10, 'queen-sting': 14, 'queen-spit': 12, 'queen-die': 7, 'rostam-dodge': 22, 'rostam-heavy': 14, 'simurgh-fly': 9, 'lion-die': 6, 'dragon-die': 6, 'hag-die': 6, 'rostam-idle': 5, 'rostam-run': 14, 'rostam-jump': 6, 'rostam-attack': 24, 'rostam-hurt': 10, 'lion-walk': 9, 'lion-run': 14, 'lion-roar': 6, 'jackal-run': 12, 'div-hop': 8, 'coin-spin': 8, 'fire-burn': 10,
+const FPS = { 'rostam-pray': 4, 'rostam-thirst': 9, 'ram-idle': 3, 'rakhsh-trot': 9, 'rakhsh-drink': 4, 'rostam-lasso': 40, 'rakhsh-idle': 3, 'divwarrior-sleep': 2, 'rostam-sleep': 2, 'rostam-rise': 6, 'div-sleep': 2, 'queen-walk': 10, 'queen-sting': 14, 'queen-spit': 12, 'queen-die': 7, 'rostam-dodge': 22, 'rostam-heavy': 14, 'simurgh-fly': 9, 'lion-die': 6, 'dragon-die': 6, 'hag-die': 6, 'rostam-idle': 5, 'rostam-run': 14, 'rostam-jump': 6, 'rostam-attack': 24, 'rostam-hurt': 10, 'lion-walk': 9, 'lion-run': 14, 'lion-roar': 6, 'jackal-run': 12, 'div-hop': 8, 'coin-spin': 8, 'fire-burn': 10,
   'scorpion-crawl': 10, 'vulture-fly': 10, 'ram-walk': 8, 'rostam-drink': 6, 'rostam-fall': 7, 'rostam-victory': 8, 'rostam-anoint': 6, 'ride-gallop': 12, 'ride-strike': 18, 'ride-rear': 11,
   'dragon-move': 7, 'dragon-fire': 9, 'rakhsh-gallop': 12, 'rakhsh-rear': 9, 'bat-fly': 14,
   'serpent': 8, 'hag-cast': 10, 'beauty-idle': 4,
@@ -770,6 +772,21 @@ function hangRing(map) {
   for (let k = a; k <= b; k++) if (map[r][k] === '.') map[r][k] = '=';
   for (const k of [a + 1, b - 1]) if (map[r - 1][k] === '.') map[r - 1][k] = 'c';
 }
+// Khan II: the dunes slope. Where the ground steps up or down a single tile, the two cells on the low side take a slope
+// tile (assets/k2/slopes.png): 1, 2 a gentle rise in two halves, 4, 5 a gentle fall (3 and 6 are the steep pair).
+// Bodies on a slope are carried along its surface. The plinths of the old riddle are levelled
+const SLOPE_Y = [null, x => 15 - (x >> 1), x => 8 - ((x + 1) >> 1), x => 15 - x, x => 8 + (x >> 1), x => (x + 1) >> 1, x => x];
+function cutSlopes(map) {
+  const C = map[0].length, slopes = {}, top = c => { for (let r = 1; r < ROWS; r++) if (map[r][c] === '#') return r; return null; }, pit = c => map[15]?.[c] === '^';
+  for (const [a, b] of PLINTHS) for (let c = a; c <= b; c++) for (let r = 0; r < 14; r++) if (map[r][c] === '#') map[r][c] = '.';
+  const free = (c, r) => c >= 0 && c < C && map[r][c] === '.' && !slopes[c + ',' + r];
+  for (let c = 2; c < C - 2; c++) {
+    const a = top(c - 1), b = top(c); if (a == null || b == null || pit(c - 1) || pit(c)) continue;
+    if (b === a - 1 && top(c - 2) === a && !pit(c - 2) && free(c - 2, b) && free(c - 1, b)) { slopes[(c - 2) + ',' + b] = 1; slopes[(c - 1) + ',' + b] = 2; }
+    else if (b === a + 1 && top(c + 1) === b && !pit(c + 1) && free(c, a) && free(c + 1, a)) { slopes[c + ',' + a] = 5; slopes[(c + 1) + ',' + a] = 4; }
+  }
+  return slopes;
+}
 const STANDS = {
   1: { at: 52.5, L: 40, R: 60, waves: [['j', 'j'], ['j', 'd', 'j'], ['d', 'J', 'j']], foe: { j: 'jackal', d: 'div' }, lead: 0xd9a46a, fa: 'آتشِ نیستان', title: 'Hold the fire', held: 'The fire holds',
     start: () => `The pack closes on the fire! When a jackal <b>drops its head</b>, ${touch ? 'dodge' : keyHTML('dodge') + ' dodge'} or jump the lunge, then strike while it pants.`,
@@ -978,7 +995,7 @@ const LEVELS = {
   2: {
     hud: 'Khan II &middot; The Desert', winTitle: 'Water in the wilderness', name: 'The Burning Desert', fa: 'بیابانِ بی‌آب', bossName: 'The Scorpion Queen', bossFa: 'ملکهٔ کژدم', tiles: 'tiles-2', map: map2,
     load(L, q) {
-      L.image('tiles-2', 'assets/k2/tiles.png' + q); L.image('k2-far', 'assets/k2/far.png' + q); L.image('k2-oasis', 'assets/k2/oasis.png' + q);
+      L.image('tiles-2', 'assets/k2/tiles.png' + q); L.spritesheet('k2-slopes', 'assets/k2/slopes.png' + q, { frameWidth: 16, frameHeight: 16 }); L.image('k2-far', 'assets/k2/far.png' + q); L.image('k2-oasis', 'assets/k2/oasis.png' + q);
       L.image('well', 'assets/k2/well.png' + q); L.image('bell', 'assets/k2/bell.png' + q);
       for (let i = 0; i < 4; i++) L.image('tower-' + i, `assets/k2/tower-${i}.png${q}`);
     },
@@ -1050,6 +1067,7 @@ const LEVELS = {
       stormRocks(s, k);
       // thirst: water drains in the heat, twice as fast in the storm
       if (!s.frozen && (!s.prayed || (LIVE && s.ram && !s.ramDug)) && !s.bossOn) s.water = Math.max(0, s.water - k * (0.045 + s.stormOn * 0.045) * (gentle() ? 0.6 : legend() ? 1.3 : 1));
+      if (s.water < 25 && !s.saidThirst && LIVE) { s.saidThirst = true; rostamSays('thirst'); } else if (s.water > 50) s.saidThirst = false;
       if (s.water <= 0) { s.thirstT += k; if (s.thirstT > 150) { s.thirstT = 0; s.hurt(p.x, true); toast('Rostam is dying of thirst. Find water!'); } }
       s.renderWater();
       if (!s.prayed && s.ramAt && p.x > s.ramAt.x) s.prayForWater();
@@ -1939,7 +1957,7 @@ class Play extends Phaser.Scene {
   create() {
     // the scene object is reused from labour to labour: forget whatever the last one left behind
     for (const k of ['dark', 'lights', 'lamp', 'wall', 'wallR', 'stars', 'pose', 'swingFx', 'witch', 'unmasked', 'olad', 'rakhsh', 'dragonSeen', 'horde', 'hordeDone',
-      'gates', 'hordeBat', 'toldRock', 'toldFarr', 'toldOffer', 'atAltar', 'bossT', 'maceHit', 'toldIce', 'chargeWarn', 'toldCharge', 'shards', 'shardG', 'mark', 'markGlow', 'markOpen', 'bossHeart', 'bossHeartT', 'floorWarn', 'highWarn', 'regrow', 'drums', 'sky', 'flashA', 'intro', 'fgReeds', 'mound', 'swirl', 'qx', 'puddles', 'combo', 'comboT', 'heavy', 'heavyGo', 'chargeT', 'chargeFull', 'chargeGlow', 'dodgeT', 'dodgeCd', 'dodgeDir', 'whiteDown', 'ended', 'mounted', 'prayed', 'drank', 'toldImmune', 'toldDeflect', 'toldVenom', 'cage', 'kavus', 'stones', 'puzzle', 'springOpen', 'pool', 'victory', 'attackBuf', 'dodgeBuf', 'counterT', 'counterStrike', 'dodgeRewarded', 'trial', 'nearTrial', 'journey', 'siege', 'siegeDone', 'ally', 'phase2', 'streak', 'didDouble', 'rocks', 'rockT', 'poppies', 'drowsy', 'toldPoppy', 'oladAlly', 'rope', 'ropeG', 'lassoCd', 'toldBossLasso', 'sleeper', 'snore', 'guard', 'prologue', 'prologueOn', 'ringObj', 'grapple', 'toldBossHold', 'oladBind', 'sleepers', 'toldSleep', 'saidLow', 'ramDug', 'ramAmbush', 'toldRamWait', 'climbTo', 'rakhshDrinks', 'shove']) delete this[k];
+      'gates', 'hordeBat', 'toldRock', 'toldFarr', 'toldOffer', 'atAltar', 'bossT', 'maceHit', 'toldIce', 'chargeWarn', 'toldCharge', 'shards', 'shardG', 'mark', 'markGlow', 'markOpen', 'bossHeart', 'bossHeartT', 'floorWarn', 'highWarn', 'regrow', 'drums', 'sky', 'flashA', 'intro', 'fgReeds', 'mound', 'swirl', 'qx', 'puddles', 'combo', 'comboT', 'heavy', 'heavyGo', 'chargeT', 'chargeFull', 'chargeGlow', 'dodgeT', 'dodgeCd', 'dodgeDir', 'whiteDown', 'ended', 'mounted', 'prayed', 'drank', 'toldImmune', 'toldDeflect', 'toldVenom', 'cage', 'kavus', 'stones', 'puzzle', 'springOpen', 'pool', 'victory', 'attackBuf', 'dodgeBuf', 'counterT', 'counterStrike', 'dodgeRewarded', 'trial', 'nearTrial', 'journey', 'siege', 'siegeDone', 'ally', 'phase2', 'streak', 'didDouble', 'rocks', 'rockT', 'poppies', 'drowsy', 'toldPoppy', 'oladAlly', 'rope', 'ropeG', 'lassoCd', 'toldBossLasso', 'sleeper', 'snore', 'guard', 'prologue', 'prologueOn', 'ringObj', 'grapple', 'toldBossHold', 'oladBind', 'sleepers', 'toldSleep', 'saidLow', 'ramDug', 'ramAmbush', 'toldRamWait', 'climbTo', 'rakhshDrinks', 'shove', 'saidThirst']) delete this[k];
     refreshLassoBtn();
     // turn loaded strips into square frames; anything missing falls back to placeholder art
     for (const k of ['decor-' + cur]) if (this.textures.exists(k) && this.textures.get(k).frameTotal < 3) { const t = this.textures.get(k), h = t.getSourceImage().height; for (let i = 0; i < Math.round(t.getSourceImage().width / h); i++) t.add(i, 0, i * h, 0, h, h); }
@@ -1954,15 +1972,17 @@ class Play extends Phaser.Scene {
     }
     const lv = this.lv, map = lv.map(), C = map[0].length;
     if (LIVE && !rush) hangRing(map);
+    this.slopes = LIVE && !rush && this.lv.smoothSteps ? cutSlopes(map) : {};
     $('lbl').innerHTML = lv.hud; $('waterPill').classList.add('hidden'); $('bossName').textContent = lv.bossName || lv.name;
     this.levelW = C * TS;
     for (const [k, f] of Object.entries(FX)) if (!this.anims.exists('fx-' + k)) this.anims.create({ key: 'fx-' + k, frames: this.anims.generateFrameNumbers('fx-' + k, { start: 0, end: f.n - 1 }), frameRate: f.fps, repeat: f.loop ? -1 : 0 });
     lv.backdrop(this);
-    const data = map.map((row, r) => row.map((ch, c) => { const t = ch === '#' ? (r > 0 && map[r - 1][c] === '#' ? 1 : 0) : ch === '=' ? 2 : ch === '^' ? 3 : -1; return t < 0 ? t : t + (lv.tileShift?.(c) || 0); }));
+    const data = map.map((row, r) => row.map((ch, c) => { const t = ch === '#' ? (r > 0 && (map[r - 1][c] === '#' || this.slopes[c + ',' + (r - 1)]) ? 1 : 0) : ch === '=' ? 2 : ch === '^' ? 3 : -1; return t < 0 ? t : t + (lv.tileShift?.(c) || 0); }));
     const tm = this.make.tilemap({ data, tileWidth: TS, tileHeight: TS });
     const ts = tm.addTilesetImage(lv.tiles, lv.tiles, TS, TS, 0, 0);
     this.layer = tm.createLayer(0, ts, 0, 0);
     this.layer.setCollision([0, 1, 2, 4, 5, 6]);
+    for (const [k, t] of Object.entries(this.slopes)) { const [c, r] = k.split(',').map(Number); if (this.textures.exists('k2-slopes')) this.add.image(c * TS, r * TS, 'k2-slopes', t - 1).setOrigin(0).setDepth(0.5); }
     this.layer.forEachTile(t => { if (t.index % 4 === 2) t.setCollision(false, false, true, false); });
     // the ground darkens with depth below its surface, each tile a shade apart, so the earth has body rather than a pattern
     const rnd = (a, b) => { const v = Math.sin(a * 127.1 + b * 311.7) * 43758.5453; return v - Math.floor(v); };
@@ -1976,7 +1996,7 @@ class Play extends Phaser.Scene {
     if (this.textures.exists('decor-' + cur)) {
       const dt = this.textures.get('decor-' + cur), n = dt.frameTotal - 1;
       for (let c = 0; c < map[0].length; c++) for (let r = 1; r < map.length; r++) {
-        if (map[r][c] !== '#' || map[r - 1][c] !== '.' || rnd(c, r) > 0.5 || (cur === 2 && r < 14 && PLINTHS.some(([a, b]) => c >= a && c <= b))) continue;
+        if (map[r][c] !== '#' || map[r - 1][c] !== '.' || this.slopes[c + ',' + (r - 1)] || rnd(c, r) > 0.5 || (cur === 2 && r < 14 && PLINTHS.some(([a, b]) => c >= a && c <= b))) continue;
         const front = rnd(c + 7, r) < 0.18, d = this.add.image(c * TS + 8 + (rnd(c, r + 3) - 0.5) * 8, r * TS + 1, 'decor-' + cur, Math.floor(rnd(c + 3, r) * n))
           .setOrigin(0.5, 1).setScale(front ? 0.8 : 0.66 + rnd(c, r + 5) * 0.16).setDepth(front ? 6 : 1).setFlipX(rnd(c, r + 9) < 0.5);
         if (front) d.setAlpha(0.95);
@@ -2053,6 +2073,7 @@ class Play extends Phaser.Scene {
     move('div-pounce', 'div-strike', 3, 5, 12); move('rostam-farr', 'rostam-farr', 0, 7, 14);
     // a boss's opening: the dazed loop that says strike now; the witch's unmasking; Rostam vaulting into the saddle
     for (const k of ['lion', 'queen', 'dragon', 'hag', 'olad', 'arzhang', 'whitediv']) move(k + '-dazed', k + '-dazed', 0, 5, 6, -1);
+    move('rostam-sip', 'rostam-kneel-drink', 0, 7, 5); move('ram-glance', 'ram-look', 0, 5, 6); move('ram-pawing', 'ram-paw', 0, 5, 8); move('ram-arrive', 'ram-appear', 0, 7, 6);
     move('witch-transform', 'witch-transform', 0, 7, 8); move('ride-mount', 'ride-mount', 0, 5, 11);
     // the canvas is drawn at twice the world's resolution so finer sprite art keeps its detail. The camera zooms from its
     // top-left corner, so scrollX stays the left edge of the view and screen-fixed layers keep their places; its follow
@@ -2311,6 +2332,22 @@ class Play extends Phaser.Scene {
       this.fx('shock', p.x + this.face * 30, y + 1, { depth: 8 });
     });
     p.once('animationcomplete', () => { this.heavyGo = false; if (this.pose === 'rostam-heavy') this.pose = null; this.heavy = null; });
+  }
+  // a body on a slope cell stands on its surface
+  slopeSnap(o) {
+    const b = o.body; if (!b?.enable || !b.allowGravity || b.velocity.y < -1) { if (o) o.onSlope = false; return; }
+    const x = b.center.x, c = Math.floor(x / TS), feet = b.bottom, lx = Math.max(0, Math.min(15, Math.floor(x - c * TS)));
+    for (const r of [Math.floor((feet - 1) / TS), Math.floor((feet + 9) / TS)]) {
+      const t = this.slopes[c + ',' + r]; if (!t) continue;
+      const sy = r * TS + SLOPE_Y[t](lx), d = sy - feet;
+      if (d <= 1 && d >= -12 || (o.onSlope && d > 0 && d <= 10)) { o.y += d; b.position.y += d; b.prev.y += d; b.prevFrame.y += d; b.velocity.y = 0; b.blocked.down = true; o.onSlope = true; return; }
+    }
+    o.onSlope = false;
+  }
+  slopeTick() {
+    if (!this.slopes || !Object.keys(this.slopes).length) return;
+    this.slopeSnap(this.player); if (this.ram?.body) this.slopeSnap(this.ram);
+    for (const f of this.foes.getChildren()) if (f.active) this.slopeSnap(f);
   }
   // hold a wind-up frame of an attack strip (a tell), or play an animation when it exists, else a fallback
   hold(o, tex, frame) { if (!this.textures.exists(tex)) return; if (o.texture.key !== tex || o.anims.isPlaying) { o.anims.stop(); o.setTexture(tex, frame); } else if (o.frame.name !== frame) o.setFrame(frame); }
@@ -2932,6 +2969,7 @@ class Play extends Phaser.Scene {
     const k = delta / 16.67, p = this.player, b = p.body;
     this.lv.scroll(this, this.cam.scrollX, time); this.drawShards(delta); this.tickSky(delta / 16.67, time);
     if (!playing || this.done) { if (this.done && this.hp <= 0) p.setVelocityX(0); return; }
+    this.slopeTick();
     this.inv = Math.max(0, this.inv - k); p.setAlpha(this.inv > 0 && Math.floor(this.inv / 5) % 2 ? 0.35 : 1);
     if (this.frozen) { pressed.jump = pressed.attack = false; this.buf = this.attackBuf = this.dodgeBuf = 0; }
     const dirX = this.frozen ? 0 : (keys.right ? 1 : 0) - (keys.left ? 1 : 0), ground = b.blocked.down;
@@ -3065,7 +3103,7 @@ class Play extends Phaser.Scene {
     if (p.y > ROWS * TS + 60) { this.inv = 0; this.hurt(p.x, false, 'terrain'); if (this.hp > 0) { p.setPosition(this.respawn.x, this.respawn.y - 4 - 0.47 * p.displayHeight); p.setVelocity(0); this.inv = 80; } }
     // animation
     const M = this.mounted, swinging = p.anims.isPlaying && /attack|strike/.test(p.anims.currentAnim?.key || '');
-    const anim = this.pose || (this.atk > 0 || (M && swinging) ? (M ? 'ride-strike' : 'rostam-attack') : M ? 'ride-gallop' : this.inv > 70 ? 'rostam-hurt' : !ground ? 'rostam-jump' : Math.abs(b.velocity.x) > 15 ? 'rostam-run' : 'rostam-idle');
+    const anim = this.pose || (this.atk > 0 || (M && swinging) ? (M ? 'ride-strike' : 'rostam-attack') : M ? 'ride-gallop' : this.inv > 70 ? 'rostam-hurt' : !ground ? 'rostam-jump' : Math.abs(b.velocity.x) > 15 ? (cur === 2 && this.water < 25 && this.anims.exists('rostam-thirst') ? 'rostam-thirst' : 'rostam-run') : 'rostam-idle');
     if (p.anims.currentAnim?.key !== anim && !(/attack|strike/.test(anim) && p.anims.isPlaying)) p.play(anim);
     if (anim === 'ride-gallop') { if (ground && Math.abs(b.velocity.x) > 15) p.anims.resume(); else { p.anims.pause(); if (!ground) p.setFrame(2); } }
     if (anim === 'rostam-jump') p.setFrame(b.velocity.y < 0 ? 0 : 1);
@@ -3982,27 +4020,36 @@ class Play extends Phaser.Scene {
   // Khan II, as Ferdowsi tells it, in held beats: Rostam falls to his knees in the storm and prays; the waste goes still,
   // the music falls away, and after a long breath a ram appears in a shaft of light on the dune ahead
   prayLive() {
-    this.prayed = true; this.frozen = true; const p = this.player, now = A.ctx?.currentTime ?? 0;
+    this.prayed = true; this.frozen = true; const p = this.player, now = A.ctx?.currentTime ?? 0, at = (ms, fn) => this.time.delayedCall(ms, () => { if (!this.done) fn(); });
     p.setVelocityX(0); hint(null); $('toast').classList.remove('on');
     this.banish(p.x - 24 * TS, this.levelW);                                   // every creature of the waste is gone
     if (A.bus) { A.bus.gain.cancelScheduledValues(now); A.bus.gain.setTargetAtTime(0.12, now, 0.9); }
-    this.pose = 'rostam-fall'; p.play({ key: 'rostam-fall', frameRate: 4 }); this.time.delayedCall(800, () => { if (this.pose === 'rostam-fall') { p.anims.stop(); p.setFrame(3); } });
-    this.time.delayedCall(1200, () => { banner('نیایش', 'The prayer'); hint('Rostam falls to his knees in the burning sand and prays: <b>\u201cO Lord, You alone can save me now.\u201d</b>'); });
+    // he sinks to his knees, lays down the mace and lifts his hands
+    this.pose = 'rostam-fall'; p.play({ key: 'rostam-fall', frameRate: 6 });
+    at(650, () => { this.pose = 'rostam-pray'; p.play('rostam-pray'); });
+    at(1300, () => { banner('نیایش', 'The prayer'); rostamSays('pray'); });
+    // the story's painting, and its reading
+    at(4200, () => cinema('pray2', () => { game.scene.resume('play'); playing = true; at(400, () => this.ramArrives()); }));
+  }
+  // out of the light, a ram; it looks at the kneeling hero, and turns toward the open waste
+  ramArrives() {
+    const p = this.player, at = (ms, fn) => this.time.delayedCall(ms, () => { if (!this.done) fn(); });
     const x = p.x + 8 * TS, y = (this.groundAt(x) ?? 14) * TS;
-    this.time.delayedCall(4200, () => {
-      this.fx('beam', x, y + 1, { depth: 4 }); sfx('fire'); this.cam.flash(500, 255, 236, 180);
-      const r = this.ram = this.physics.add.sprite(x, y - 30, 'ram-walk', 0).setAlpha(0).setDepth(4).setFlipX(true);
-      this.fit(r, 'ram'); this.physics.add.collider(r, this.layer, null, o => !o.back);
-      this.tweens.add({ targets: r, alpha: 1, duration: 1200 });
-      r.glow = this.add.image(x, y - 22, 'glow').setScale(1.4).setBlendMode(Phaser.BlendModes.ADD).setDepth(3).setTint(0xfff0b0).setAlpha(0);
-      this.tweens.add({ targets: r.glow, alpha: 1, duration: 1200 });
+    this.fx('beam', x, y + 1, { depth: 4 }); sfx('fire'); this.cam.flash(500, 255, 236, 180);
+    const r = this.ram = this.physics.add.sprite(x, y - 30, 'ram-appear', 0).setDepth(4).setFlipX(true);
+    this.fit(r, 'ram'); this.physics.add.collider(r, this.layer, null, o => !o.back);
+    if (this.anims.exists('ram-arrive')) { r.play('ram-arrive'); r.once('animationcomplete', () => r.active && r.play('ram-idle')); } else { r.setTexture('ram-walk', 0); r.setAlpha(0); this.tweens.add({ targets: r, alpha: 1, duration: 1200 }); }
+    r.glow = this.add.image(x, y - 22, 'glow').setScale(1.4).setBlendMode(Phaser.BlendModes.ADD).setDepth(3).setTint(0xfff0b0).setAlpha(0);
+    this.tweens.add({ targets: r.glow, alpha: 1, duration: 1200 });
+    const go = () => at(600, () => {
+      if (this.ram?.active) { this.ram.setFlipX(false); this.playIf(this.ram, 'ram-glance'); }
+      at(1400, () => {
+        this.pose = null; this.frozen = false; this.fx('dust', p.x, p.body.bottom, { depth: 6 });
+        if (A.bus && A.ctx) { const t = A.ctx.currentTime; A.bus.gain.cancelScheduledValues(t); A.bus.gain.setTargetAtTime(1, t, 1.2); }
+        hint('<b>Follow the ram.</b> It knows where the water is, and your thirst will not wait.');
+      });
     });
-    this.time.delayedCall(6200, () => { banner('میش', 'A ram, glowing like the dawn'); hint('It looks at Rostam, then turns toward the open waste.'); this.ram?.setFlipX(false); });
-    this.time.delayedCall(8000, () => {
-      if (this.done) return; this.pose = null; this.frozen = false; this.fx('dust', p.x, p.body.bottom, { depth: 6 });
-      if (A.bus && A.ctx) { const t = A.ctx.currentTime; A.bus.gain.cancelScheduledValues(t); A.bus.gain.setTargetAtTime(1, t, 1.2); }
-      hint('<b>Follow the ram.</b> It knows where the water is, and your thirst will not wait.');
-    });
+    at(1700, () => { banner('میش', 'A ram, glowing like the dawn'); if (!say('khan2-ram', { then: go })) at(1600, go); });
   }
   ramGuide(k) {
     if (LIVE) return this.ramLeads(k);
@@ -4023,6 +4070,7 @@ class Play extends Phaser.Scene {
   ramLeads(k) {
     const r = this.ram, p = this.player, d = r.x - p.x, end = this.springAt.x - TS;
     if (this.ramDug) { r.setVelocityX(0); r.glow.setPosition(r.x, r.y + 2); return; }
+    if (this.frozen) { r.setVelocityX(0); r.glow.setPosition(r.x, r.y + 2); return; }   // it waits while Rostam kneels
     const vx = r.x >= end ? 0 : d > 170 ? 0 : d < 24 ? 100 : 66;   // it walks on ahead at its own pace, waits when Rostam is far behind
     r.setVelocityX(vx); r.setFlipX(d > 170);
     if (vx > 8 && r.climbTo == null && r.body.blocked.right && r.body.blocked.down) {   // the lip of a rise: how high does it go?
@@ -4032,8 +4080,8 @@ class Play extends Phaser.Scene {
     }
     if (r.climbTo != null) { if (vx <= 8 || r.body.bottom <= r.climbTo - 0.5) { if (r.body.velocity.y < 0) r.setVelocityY(0); r.climbTo = null; } else { r.setVelocityY(-170); r.setVelocityX(Math.max(vx, 50)); } }
     if (vx > 8 || !r.body.blocked.down) { if (r.anims.currentAnim?.key !== 'ram-walk' || !r.anims.isPlaying) r.play('ram-walk'); r.anims.timeScale = Math.max(0.8, vx / 62); }
-    else { r.anims.stop(); r.setFrame(0); }
-    if (d > 170 && !this.toldRamWait) { this.toldRamWait = true; toast('The ram stops and looks back for you.'); }
+    else if (!/ram-(idle|glance)/.test(r.anims.currentAnim?.key || '') || !r.anims.isPlaying) r.play(this.anims.exists('ram-idle') ? 'ram-idle' : 'ram-walk');
+    if (d > 170 && !r.lookedBack) { r.lookedBack = true; this.playIf(r, 'ram-glance'); if (!this.toldRamWait) { this.toldRamWait = true; toast('The ram stops and looks back for you.'); } } else if (d < 120) r.lookedBack = false;
     r.glow.setPosition(r.x, r.y + 2);
   }
   // at the dry rock the ram stops and paws the sand; it looks back at Rostam; then the sand trembles, the music falls
@@ -4041,9 +4089,13 @@ class Play extends Phaser.Scene {
   ramDigs() {
     this.ramDug = true; const r = this.ram, at = (ms, fn) => this.time.delayedCall(ms, () => { if (!this.done) fn(); });
     r.setVelocityX(0); r.setFlipX(false); r.anims.stop(); r.setFrame(0); hint(null);
-    for (let i = 0; i < 3; i++) at(i * 520, () => { if (!r.active) return; this.tweens.add({ targets: r, y: r.y - 5, yoyo: true, duration: 140 }); this.fx('dust', r.x + 12, r.body.bottom, { depth: 6 }); });
-    at(1700, () => { r.setFlipX(true); banner('چشمه', 'The hidden water'); hint('The ram stops at a dry rock and paws the sand. <b>The water is here.</b>'); });
-    at(3600, () => {
+    for (let i = 0; i < 2; i++) at(i * 900, () => { if (!r.active) return; this.playIf(r, 'ram-pawing'); at(350, () => this.fx('dust', r.x + 14, r.body.bottom, { depth: 6 })); });
+    let trembled = false; const tremble = () => { if (!trembled) { trembled = true; at(300, () => this.sandTrembles()); } };
+    at(1900, () => { r.setFlipX(true); this.playIf(r, 'ram-glance'); banner('چشمه', 'The hidden water'); if (!say('khan2-water', { then: tremble })) at(2400, tremble); });
+  }
+  sandTrembles() {
+    const r = this.ram, at = (ms, fn) => this.time.delayedCall(ms, () => { if (!this.done) fn(); });
+    {
       this.cam.shake(1500, 0.005); sfx('rock'); this.time.delayedCall(500, () => sfx('rock'));
       if (A.bus && A.ctx) { const t = A.ctx.currentTime; A.bus.gain.cancelScheduledValues(t); A.bus.gain.setTargetAtTime(0.1, t, 0.6); }
       hint('The sand trembles under your feet. <b>Something stirs beneath it\u2026</b>');
@@ -4051,8 +4103,8 @@ class Play extends Phaser.Scene {
       const p = this.player; if (p.x > 152 * TS) { this.frozen = true; p.setVelocityY(-230); this.shove = { vx: -190, until: this.time.now + 650 }; this.fx('dust', p.x, p.body.bottom, { depth: 6 }); this.time.delayedCall(750, () => { this.frozen = false; }); }
       r.setFlipX(false); r.play('ram-walk'); r.body.setAllowGravity(false); r.body.enable = false;
       this.tweens.add({ targets: [r, r.glow], x: '+=' + 7 * TS, alpha: 0, duration: 1300, ease: 'Sine.easeIn' });   // it bolts away
-    });
-    at(5400, () => {
+    }
+    at(1800, () => {
       this.banish(this.springAt.x - 30 * TS, this.levelW);
       if (A.bus && A.ctx) { const t = A.ctx.currentTime; A.bus.gain.cancelScheduledValues(t); A.bus.gain.setTargetAtTime(1, t, 0.4); }
       this.startQueen();
@@ -4066,11 +4118,11 @@ class Play extends Phaser.Scene {
     at(2600, () => { this.springFlows(); banner('آب', 'Water from the rock'); });
     at(4200, () => {                                       // the ram comes back to watch over the water
       const r = this.ram; if (!r) return; r.clearTint(); r.body.enable = false; r.setPosition(sx - 14 * TS, (this.groundAt(sx - 14 * TS) ?? 14) * TS - r.displayHeight * (0.97 - r.originY) - 2); r.setDepth(3.4);   // on the rise behind, watching, as in the picture
-      r.setFlipX(true); r.anims.stop(); r.setFrame(0); this.tweens.add({ targets: r, alpha: 1, duration: 900 }); r.glow?.setPosition(r.x, r.y + 2); if (r.glow) this.tweens.add({ targets: r.glow, alpha: 0.8, duration: 900 });
+      r.setFlipX(true); r.play(this.anims.exists('ram-idle') ? 'ram-idle' : 'ram-walk'); this.tweens.add({ targets: r, alpha: 1, duration: 900 }); r.glow?.setPosition(r.x, r.y + 2); if (r.glow) this.tweens.add({ targets: r.glow, alpha: 0.8, duration: 900 });
     });
     at(4600, () => {                                       // and Rakhsh trots in to drink
-      const y = 14 * TS + 2, k = this.rakhshDrinks = this.add.sprite(this.cam.scrollX - 60, y, 'rakhsh-gallop', 0).setOrigin(0.5, 0.97).setDepth(3.6).setScale(RAKHSH1).play('rakhsh-gallop');
-      sfx('neigh'); this.tweens.add({ targets: k, x: sx - 3 * TS, duration: 1800, ease: 'Sine.easeOut', onComplete: () => { if (k.active) k.play('rakhsh-idle'); } });
+      const y = 14 * TS + 2, k = this.rakhshDrinks = this.add.sprite(this.cam.scrollX - 60, y, 'rakhsh-trot', 0).setOrigin(0.5, 0.97).setDepth(3.6).setScale(RAKHSH1).play(this.anims.exists('rakhsh-trot') ? 'rakhsh-trot' : 'rakhsh-gallop');
+      sfx('neigh'); this.tweens.add({ targets: k, x: sx - 3 * TS, duration: 2600, ease: 'Sine.easeOut', onComplete: () => { if (k.active) k.play(this.anims.exists('rakhsh-drink') ? 'rakhsh-drink' : 'rakhsh-idle'); } });
     });
     at(6800, () => { this.springOpen = true; hint('<b>Walk to the water</b> and drink.'); });
   }
@@ -4323,10 +4375,11 @@ class Play extends Phaser.Scene {
   reachSpring() {
     if (LIVE) {
       this.drank = true; this.frozen = true; const p = this.player; p.setVelocityX(0); this.face = 1; p.setFlipX(false); p.body.reset(this.springAt.x + 6, p.y); this.cam.pan(this.springAt.x - 2 * TS, this.cam.midPoint.y, 600, 'Sine.easeInOut');   // at the water's edge, the scene framed
-      this.pose = 'rostam-fall'; p.play({ key: 'rostam-fall', frameRate: 5 }); this.time.delayedCall(700, () => { p.anims.stop(); p.setFrame(3); });
-      this.time.delayedCall(900, () => { this.fx('splash', p.x + 18, p.body.bottom - 2, { depth: 6 }); sfx('coin'); this.water = 100; this.renderWater(); });
-      this.time.delayedCall(1700, () => this.cam.fadeOut(1100, 0, 0, 0));
-      this.time.delayedCall(2900, () => this.win({ destroy() {} }));
+      this.pose = 'rostam-sip'; if (this.anims.exists('rostam-sip')) p.play('rostam-sip'); else { p.play({ key: 'rostam-fall', frameRate: 5 }); }
+      this.time.delayedCall(700, () => { this.fx('splash', p.x + 18, p.body.bottom - 2, { depth: 6 }); sfx('coin'); this.water = 100; this.renderWater(); });
+      this.time.delayedCall(2000, () => rostamSays('thanks'));
+      this.time.delayedCall(4300, () => this.cam.fadeOut(1100, 0, 0, 0));
+      this.time.delayedCall(5500, () => this.win({ destroy() {} }));
       return;
     }
     this.drank = true; this.frozen = true; const p = this.player; p.setVelocityX(0); this.banish(p.x - 10 * TS, this.levelW);
@@ -4826,6 +4879,7 @@ $('farrBtn').onclick = () => { const sc = game.scene.getScene('play'); if (playi
 const CINE = {
   intro1: [["khan1-intro", "شیر نیستان", "After a long day on the road to Mazandaran, Rostam slept among the reeds. Rakhsh grazed nearby, but in the darkness a lion watched. While the hero dreamed, his faithful horse stood guard."]],
   guard1: [["khan1-intro", "شیر نیستان", "After a long day on the road to Mazandaran, Rostam slept among the reeds. Rakhsh grazed nearby, but in the darkness a lion watched. While the hero dreamed, his faithful horse stood guard."]],
+  pray2: [["khan2-prayer", "نیایش", "Rostam fell to his knees in the burning sand. With the last of his strength he raised his hands and prayed for mercy."]],
   wake1: [["khan1-wake", "رستم", "The roar of the fight broke Rostam's sleep. He rose, took up his ox-head mace, and stood beside Rakhsh."]],
   outro1: [["khan1-outro", "شیر نیستان", "The lion of the reeds lay defeated. Rostam rested a hand on faithful Rakhsh, his companion through the night. Together they turned toward the desert, where a fiercer thirst awaited."]],
   intro2: [["khan2-intro", "بیابان بی‌آب", "The sun burned over an endless waste. Rostam and Rakhsh pressed on without water, until strength began to leave them. The hero who had faced armies now bowed his head and prayed for a spring."]],
@@ -4872,9 +4926,9 @@ function rushElapsed() { return performance.now() - rush.t0 - rush.pausedMs - (r
 function startRush() { rush = { n: 1, t0: performance.now(), pausedMs: 0, pauseAt: null, hp: null, splits: [] }; begin(1, false, true); }
 // the narrator: recorded readings, one file per picture in assets/voice (open1.mp3 ... end3.mp3). A picture is read
 // aloud only if its name is in VOICED, so a missing recording never leaves a gap; the music sinks beneath the voice
-const VOICED = new Set(['khan5-lasso', 'khan7-noon', 'open1', 'open2', 'open3', 'open4', 'open5', 'open6', 'end1', 'end2', 'end3', 'khan1', 'khan2', 'khan3', 'khan4', 'khan5', 'khan6', 'khan7', 'win1', 'win2', 'win3', 'win4', 'win5', 'win6', 'fall1', 'fall2', 'fall3', 'queen1', 'queen2', 'witch1', 'witch2', 'olad1', 'olad2', 'arzhang1', 'arzhang2', 'white1', 'white2', 'white3', 'kavus1', 'khan1-intro', 'khan1-outro', 'khan2-intro', 'khan2-outro', 'khan3-intro', 'khan3-outro', 'khan4-intro', 'khan4-outro', 'khan5-intro', 'khan5-outro', 'khan6-intro', 'khan6-outro', 'khan7-intro', 'tale-1-1', 'tale-1-2', 'tale-1-3', 'tale-1-4', 'tale-1-5', 'tale-3-1', 'tale-3-2', 'tale-4-1', 'tale-4-2', 'tale-5-1', 'tale-5-2', 'tale-6-1', 'tale-6-2', 'tale-7-1', 'tale-7-2', 'tale-2-1', 'tale-2-2']);
+const VOICED = new Set(['khan2-prayer', 'khan2-ram', 'khan2-water', 'khan5-lasso', 'khan7-noon', 'open1', 'open2', 'open3', 'open4', 'open5', 'open6', 'end1', 'end2', 'end3', 'khan1', 'khan2', 'khan3', 'khan4', 'khan5', 'khan6', 'khan7', 'win1', 'win2', 'win3', 'win4', 'win5', 'win6', 'fall1', 'fall2', 'fall3', 'queen1', 'queen2', 'witch1', 'witch2', 'olad1', 'olad2', 'arzhang1', 'arzhang2', 'white1', 'white2', 'white3', 'kavus1', 'khan1-intro', 'khan1-outro', 'khan2-intro', 'khan2-outro', 'khan3-intro', 'khan3-outro', 'khan4-intro', 'khan4-outro', 'khan5-intro', 'khan5-outro', 'khan6-intro', 'khan6-outro', 'khan7-intro', 'tale-1-1', 'tale-1-2', 'tale-1-3', 'tale-1-4', 'tale-1-5', 'tale-3-1', 'tale-3-2', 'tale-4-1', 'tale-4-2', 'tale-5-1', 'tale-5-2', 'tale-6-1', 'tale-6-2', 'tale-7-1', 'tale-7-2', 'tale-2-1', 'tale-2-2']);
 // the narrator's line as each labour begins, shown as a subtitle while he speaks
-const KHAN_LINES = {"khan1": "The first labour. Rostam lay down to sleep among the reeds, while Rakhsh grazed nearby… and in the thicket, a lion was watching.", "khan2": "The second labour: the burning desert. No water. No shade. Not a single bird in the sky… only the sand, and whatever waits beneath it.", "khan3": "The third labour. Night fell, and out of the dark came a dragon eighty cubits long: a beast that only Rakhsh could see.", "khan4": "The fourth labour. In a green garden a feast was laid, and a beautiful lady poured the wine. But in Mazandaran… beauty is rarely what it seems.", "khan5": "The fifth labour. Rostam rode into the lands of Olad: a warden who did not take kindly to strangers.", "khan6": "The sixth labour. At the gates of Mazandaran stood Arzhang, chief of the Divs, with an army of demons at his back.", "khan7": "The seventh labour. Beyond seven mountains, in a cave as dark as night… the White Div was waiting."};
+const KHAN_LINES = {"khan2-ram": "Out of the storm came a ram, glowing like the dawn. Where a beast walks, there must be water.", "khan2-water": "The ram stopped at a dry rock and pawed the sand. Here, hidden from the sun, lay the water. And its guardian.", "khan1": "The first labour. Rostam lay down to sleep among the reeds, while Rakhsh grazed nearby… and in the thicket, a lion was watching.", "khan2": "The second labour: the burning desert. No water. No shade. Not a single bird in the sky… only the sand, and whatever waits beneath it.", "khan3": "The third labour. Night fell, and out of the dark came a dragon eighty cubits long: a beast that only Rakhsh could see.", "khan4": "The fourth labour. In a green garden a feast was laid, and a beautiful lady poured the wine. But in Mazandaran… beauty is rarely what it seems.", "khan5": "The fifth labour. Rostam rode into the lands of Olad: a warden who did not take kindly to strangers.", "khan6": "The sixth labour. At the gates of Mazandaran stood Arzhang, chief of the Divs, with an army of demons at his back.", "khan7": "The seventh labour. Beyond seven mountains, in a cave as dark as night… the White Div was waiting."};
 let sayId = 0, voiceEl = null;
 const narratorEnabled = () => SET.narrator && SET.voice > 0;
 function refreshNarratorControls() {
@@ -4925,7 +4979,7 @@ function narrate(key, then) {
 // what the foes and the king say aloud, shown as a subtitle with the speaker's name
 // Rostam speaks at a few great moments only: a boss's entrance, its fall, the Simurgh's call, binding Olad, a fire's
 // stand, and his first brush with death in a labour. Each is read once its file is in assets/voice
-const ROSTAM_SAYS = { boss: 'Come then, and meet the son of Zal!', win: 'It is done. On, Rakhsh!', farr: 'Simurgh, lend me your light!', bind: 'Yield, Olad. Your life is in my noose.', stand: 'Let them come to the fire.', low: 'Not yet… not while Iran waits.' };
+const ROSTAM_SAYS = { pray: 'O Lord, You alone can save me now.', thanks: 'Blessed be the One who sent you.', thirst: 'Water… I need water.', boss: 'Come then, and meet the son of Zal!', win: 'It is done. On, Rakhsh!', farr: 'Simurgh, lend me your light!', bind: 'Yield, Olad. Your life is in my noose.', stand: 'Let them come to the fire.', low: 'Not yet… not while Iran waits.' };
 let rostamFace = '../rostam';
 fetch(`assets/ui/port/rostam.png?v=${V}`, { method: 'HEAD' }).then(r => { if (r.ok) rostamFace = 'rostam'; }).catch(() => {});
 for (const k of Object.keys(ROSTAM_SAYS)) fetch(`assets/voice/rostam-${k}.mp3?v=${V}`, { method: 'HEAD' }).then(r => { if (r.ok) VOICED.add('rostam-' + k); }).catch(() => {});
