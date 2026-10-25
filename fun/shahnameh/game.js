@@ -1116,7 +1116,7 @@ const LEVELS = {
       'Fire altars and marsh lights push back the dark.', 'Bats dive at you. Swing as they swoop.', 'Two roast lambs wait on the high ledges.']
   },
   4: {
-    hud: 'Khan IV &middot; The Witch', winTitle: 'The witch unmasked', name: 'The Enchanted Garden', fa: 'زنِ جادو', bossName: 'The Witch', bossFa: 'زنِ جادو', tiles: 'tiles-4', map: map4,
+    hud: 'Khan IV &middot; The Witch', winTitle: 'The witch unmasked', name: 'The Enchanted Garden', fa: 'زنِ جادوگر', bossName: 'The Witch', bossFa: 'زنِ جادوگر', tiles: 'tiles-4', map: map4,
     load(L, q) { L.image('tiles-4', 'assets/k4/tiles.png' + q); L.image('k4-far', 'assets/k4/far.png' + q); L.image('altar', 'assets/altar.png' + q); },
     backdrop(s) {
       s.add.image(0, 0, 'k4-far').setOrigin(0).setScrollFactor(0);
@@ -4430,7 +4430,7 @@ const GUIDE = [
     tale: 'A dragon eighty cubits long ruled the night. Twice Rakhsh woke Rostam to warn him, and twice the dragon vanished into the dark. The third time God let Rostam see it, and with Rakhsh biting its neck he struck off its head.',
     how: ['You ride <b>Rakhsh</b>: faster, with a longer reach from the saddle.', 'The dragon <b>hides in the dark</b>; while hidden, blows pass through it.', 'When <b>Rakhsh rears and neighs</b> it is revealed. Read the warning: it can breathe flame, lunge or spit a spread of fireballs. Keep moving after it aims.', 'Wounded, it stays visible and may <b>flash gold before a follow-up lunge</b>. It still leaves a recovery window.'],
     more: [['k3/bat-fly', 8, 108, 'Bat', 'Darts down at you. Swing as it swoops, even over your head.']] },
-  { k: 4, fa: 'زنِ جادو', name: 'The Witch', art: ['k4/hag-cast', 8, 108],
+  { k: 4, fa: 'زنِ جادوگر', name: 'The Witch', art: ['k4/hag-cast', 8, 108],
     tale: 'In a green garden Rostam found wine, a lute and a feast. A beautiful woman came to share it, but when he spoke the name of God her face turned black. She was a witch, and the feast was a trap.',
     how: ['At the feast, <b>stand by the lady and strike</b> to speak the name of God.', 'Unmasked, she flies and hurls <b>green curses</b>: <b>strike them to send them back</b> at her, or jump them.', '<b>Strike her when she is solid</b>. A reflected curse dazes her: close in and strike. Purple mist warns that she will vanish; she leaves time to react after reappearing. She changes her curses if you stay still or keep jumping. Hurt, she calls up serpents.'],
     more: [['k4/serpent', 8, 108, 'Serpent', 'Sways, then lunges. Hit it as it rears.'], ['k3/bat-fly', 8, 108, 'Bat', 'Strike it as it swoops.']] },
@@ -4489,7 +4489,7 @@ const CODEX = [
   { id: 'dragon', group: 'boss', k: 3, fa: 'اژدها', name: 'The Dragon', title: 'Eighty cubits long, and hidden by the night', art: ['k3/dragon-fire', 8], port: 'dragon', bg: 'khan3-intro',
     lore: 'In the third labour a dragon eighty cubits long came out of the dark, a beast no lion or elephant dared approach. Twice Rakhsh stamped and woke his master; twice the dragon vanished and Rostam, seeing nothing, rebuked his horse. The third time God let the hero see it. Rakhsh tore at its shoulder with his teeth while Rostam struck off its head, and a river of venom poured across the plain.',
     facts: [['Sense', 'Only Rakhsh sees it in the dark'], ['Weak when', 'Revealed and exposed'], ['Beware', 'Marked fire, and its lunge'], ['Labour', 'Khan III']] },
-  { id: 'witch', group: 'boss', k: 4, fa: 'زنِ جادو', name: 'The Witch', title: 'A lady of the garden, until God\'s name is spoken', art: ['k4/hag-cast', 8], port: 'hag', bg: 'khan4-intro', say: 'witch2',
+  { id: 'witch', group: 'boss', k: 4, fa: 'زنِ جادوگر', name: 'The Witch', title: 'A lady of the garden, until God\'s name is spoken', art: ['k4/hag-cast', 8], port: 'hag', bg: 'khan4-intro', say: 'witch2',
     lore: 'Rostam came to a green garden beside a stream where a feast was laid: roast meat, bread and wine, and a lute. He took up the lute and sang of his own hard road. A sorceress heard him and came to him as a beautiful young woman. Rostam gave thanks to God for the gift, and at the holy name her face turned black and hideous. He caught her in his lasso and cut her in two.',
     facts: [['Disguise', 'The Lady of the Garden'], ['Unmask', 'Strike near her: the name of God'], ['Weak to', 'Her own curses, turned back'], ['Labour', 'Khan IV']] },
   { id: 'olad', group: 'boss', k: 5, fa: 'اولاد', name: 'Olad', title: 'Young warden of the green marches, and their sword', art: ['k5/olad-throw', 6], port: 'olad', bg: 'khan5-intro', say: 'olad1',
