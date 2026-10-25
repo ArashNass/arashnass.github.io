@@ -192,9 +192,9 @@
     {
       "id": "tale-6-2",
       "kind": "tale",
-      "text": "The Host Scatters\n\nArzhang came out of his tent at the noise. Rostam rode him down, seized him by the head, and tore it from his shoulders, then flung it among the Divs. At the sight the whole host lost heart; they fled, trampling one another, and the camp was empty before noon.\n\nRostam rode on to the city where Kay Kavus lay blind in chains. The king told him that the White Div waited in a cave beyond the seven mountains, and that only the blood of the White Div's heart could cure his eyes.\n\nIn the game the camp fights back: survive three waves of the horde, then face Arzhang himself.",
-      "duration": 40.908,
-      "sha256": "906ede5b648a238da4c7d38cc87f78f78aea1cf408da65e27f7c2eab2861afc9",
+      "text": "The Host Scatters\n\nArzhang came out of his tent at the noise. Rostam rode him down, seized him by the head, and tore it from his shoulders, then flung it among the Divs. At the sight the whole host lost heart; they fled, trampling one another, and the camp was empty before noon.\n\nRostam rode on to the city where Kay Kavus lay blind in chains. The king told him that the White Div waited in a cave beyond the seven mountains, and that only the blood of the White Div’s heart could cure his eyes.\n\nIn the game the camp fights back: survive six waves of the horde, then face Arzhang himself.",
+      "duration": 40.782,
+      "sha256": "e0f8082acf857ca55eaed19d6afe3a0ca8569b56fd325ae24f643a0c2caf7bf0",
       "pending_correction": "The final gameplay note says three waves; current visible text correctly says six. Retake this recording in the original ElevenLabs voice when voice settings become available."
     },
     {
@@ -238,6 +238,60 @@
       "text": "At blazing noon the Div guards slept. Olad guided Rostam to the cavern; beyond the dying fire, the hero would face the White Div alone.",
       "duration": 11.233,
       "sha256": "5a782212de1683957281eeb9dcd772e56259cad930386238271ed0b6c20880d5"
+    },
+    {
+      "id": "rostam-boss",
+      "kind": "character",
+      "text": "Come then, and meet the son of Zal!",
+      "duration": 2.554,
+      "sha256": "3646119abf733ccdc86a9e9f14e82bfba32ac97af1cc8b28a2d2824fa7964cd6",
+      "voice": "Brian - Deep, Resonant and Comforting",
+      "voice_id": "Gubgw9l4dtIoQA9YZHgx"
+    },
+    {
+      "id": "rostam-win",
+      "kind": "character",
+      "text": "It is done. On, Rakhsh!",
+      "duration": 2.524,
+      "sha256": "7d6fedd7a9711389fb07243cb6a61f57f2d6dd9aa51bb446d6e0dcb5eb8fb294",
+      "voice": "Brian - Deep, Resonant and Comforting",
+      "voice_id": "Gubgw9l4dtIoQA9YZHgx"
+    },
+    {
+      "id": "rostam-farr",
+      "kind": "character",
+      "text": "Simurgh, lend me your light!",
+      "duration": 2.22,
+      "sha256": "255a187c0e3cb3f1e11d1325e070e53f688b162fd8500284fa7ad45e0bef0a32",
+      "voice": "Brian - Deep, Resonant and Comforting",
+      "voice_id": "Gubgw9l4dtIoQA9YZHgx"
+    },
+    {
+      "id": "rostam-bind",
+      "kind": "character",
+      "text": "Yield, Olad. Your life is in my noose.",
+      "duration": 3.592,
+      "sha256": "bb295bc2fbff18945c9e8329e49eb83e3a6624bc22613a5beea0285ba1d03b33",
+      "voice": "Brian - Deep, Resonant and Comforting",
+      "voice_id": "Gubgw9l4dtIoQA9YZHgx"
+    },
+    {
+      "id": "rostam-stand",
+      "kind": "character",
+      "text": "Let them come to the fire.",
+      "duration": 1.487,
+      "sha256": "b461f5c8d639948daaad448466462b93778c1c92f65d5bb89e35fd0a90d54a8c",
+      "voice": "Brian - Deep, Resonant and Comforting",
+      "voice_id": "Gubgw9l4dtIoQA9YZHgx"
+    },
+    {
+      "id": "rostam-low",
+      "kind": "character",
+      "text": "Not yet… not while Iran waits.",
+      "duration": 2.699,
+      "sha256": "5a1ae720260c77ebbc60bda3e2aaee2a796c57d5223574bdb53b584a1a950498",
+      "voice": "Brian - Deep, Resonant and Comforting",
+      "voice_id": "Gubgw9l4dtIoQA9YZHgx"
     }
   ]
 }

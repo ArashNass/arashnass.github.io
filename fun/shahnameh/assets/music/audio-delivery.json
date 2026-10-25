@@ -1,0 +1,109 @@
+{
+  "provider": "ElevenLabs",
+  "music_model": "Music v2.5",
+  "voice_model": "Eleven v4",
+  "rostam_voice": {
+    "name": "Brian - Deep, Resonant and Comforting",
+    "id": "Gubgw9l4dtIoQA9YZHgx"
+  },
+  "narrator_voice": {
+    "name": "Cave Monster - Deep Terrifying Monster",
+    "id": "HASaEuIpR5CVuLzDK1E1"
+  },
+  "music_processing": "Lossless WAV sources; 1 second circular overlap-add, rotated to a low-energy zero crossing, then two-pass loudnorm and MP3 44.1 kHz / 192 kbps. No overall fade-in or fade-out. Gapless Xing/LAME metadata retained.",
+  "review_limit": "All playback kept muted. Decode, loudness, duration, boundary and silence checks passed; musical phrasing, instrument authenticity, pronunciation and emotional delivery still need a listening review before merge. A numerical boundary check alone does not establish a musically seamless loop.",
+  "music": [
+    {
+      "file": "music/boss-persian.mp3",
+      "duration": 111.0,
+      "sample_rate": 44100,
+      "bitrate_kbps": 192,
+      "integrated_lufs": -16.25,
+      "true_peak_dbtp": -2.19,
+      "join_delta": 0.001179,
+      "head_rms": 0.126345,
+      "tail_rms": 0.118708,
+      "sha256": "7648c2012150b581cf33ffb8404765eb9b86870db8ed74b5c01b63751fc33ffe"
+    },
+    {
+      "file": "music/war-camp.mp3",
+      "duration": 89.0,
+      "sample_rate": 44100,
+      "bitrate_kbps": 192,
+      "integrated_lufs": -16.34,
+      "true_peak_dbtp": -1.24,
+      "join_delta": 0.000274,
+      "head_rms": 0.114915,
+      "tail_rms": 0.09884,
+      "sha256": "3e4365f42f941dba60d4c5628a33393708995e96e4f9562d0fdf7601bc8d6226"
+    },
+    {
+      "file": "music/cave.mp3",
+      "duration": 89.0,
+      "sample_rate": 44100,
+      "bitrate_kbps": 192,
+      "integrated_lufs": -16.33,
+      "true_peak_dbtp": -1.74,
+      "join_delta": 0.00011,
+      "head_rms": 0.107101,
+      "tail_rms": 0.079249,
+      "sha256": "13782d4551ae14e519226f59c1c6b412d0914e398fad89f70714e7cb9813af80"
+    }
+  ],
+  "voices": [
+    {
+      "id": "rostam-boss",
+      "duration": 2.554,
+      "sha256": "3646119abf733ccdc86a9e9f14e82bfba32ac97af1cc8b28a2d2824fa7964cd6",
+      "leading_silence": 0.0282,
+      "trailing_silence": 0.0217
+    },
+    {
+      "id": "rostam-win",
+      "duration": 2.524,
+      "sha256": "7d6fedd7a9711389fb07243cb6a61f57f2d6dd9aa51bb446d6e0dcb5eb8fb294",
+      "leading_silence": 0.0257,
+      "trailing_silence": 0.0084
+    },
+    {
+      "id": "rostam-farr",
+      "duration": 2.22,
+      "sha256": "255a187c0e3cb3f1e11d1325e070e53f688b162fd8500284fa7ad45e0bef0a32",
+      "leading_silence": 0.02,
+      "trailing_silence": 0.0007
+    },
+    {
+      "id": "rostam-bind",
+      "duration": 3.592,
+      "sha256": "bb295bc2fbff18945c9e8329e49eb83e3a6624bc22613a5beea0285ba1d03b33",
+      "leading_silence": 0.029,
+      "trailing_silence": 0.017
+    },
+    {
+      "id": "rostam-stand",
+      "duration": 1.487,
+      "sha256": "b461f5c8d639948daaad448466462b93778c1c92f65d5bb89e35fd0a90d54a8c",
+      "leading_silence": 0.0234,
+      "trailing_silence": 0.0099
+    },
+    {
+      "id": "rostam-low",
+      "duration": 2.699,
+      "sha256": "5a1ae720260c77ebbc60bda3e2aaee2a796c57d5223574bdb53b584a1a950498",
+      "leading_silence": 0.0093,
+      "trailing_silence": 0.0185
+    },
+    {
+      "id": "tale-6-2",
+      "duration": 40.782,
+      "sha256": "e0f8082acf857ca55eaed19d6afe3a0ca8569b56fd325ae24f643a0c2caf7bf0",
+      "leading_silence": 0.0295,
+      "trailing_silence": 0.026
+    }
+  ],
+  "source_projects": {
+    "boss-persian": "https://elevenlabs.io/app/music/project/opRqMOKHvLvyCs84G5tq?selectedSongId=nLVpcvPlgGrfMgBJVP4P",
+    "war-camp": "https://elevenlabs.io/app/music/project/t2T2BDB3kTyanzItVFTd?selectedSongId=GYbfes1DvUT0rkdKHKwr",
+    "cave": "https://elevenlabs.io/app/music/project/OLQ22BahRa2o3efhykAV?selectedSongId=0ElojAkSCC7FGdVkSXSH"
+  }
+}
