@@ -1905,7 +1905,7 @@ function setMuted(m) {
   if (typeof storyReading !== 'undefined') refreshStoryListen();
   $('muteIco').setAttribute('d', m ? 'M4 9v6h4l5 4V5L8 9z M17 9l5 6 M22 9l-5 6' : 'M4 9v6h4l5 4V5L8 9z M16 9a4 4 0 0 1 0 6 M19 6a8 8 0 0 1 0 12');
   if ($('cineSound')) { $('cineSound').setAttribute('aria-pressed', String(!m)); $('cineSound').querySelector('.spk-l').textContent = m ? 'Sound off' : 'Sound on'; }
-  if ($('journeySound')) { $('journeySound').querySelector('.spk-l').textContent = m ? 'Sound off' : 'Sound on'; $('journeySound').setAttribute('aria-pressed', String(!m)); }
+  refreshMusicBtn();
   music(!m && game && game.scene.isActive('play') && playing);
 }
 
@@ -5023,7 +5023,18 @@ function renderDiff() { const d = store.get('sh-diff') || 'hero'; $('journeyDiff
 document.querySelectorAll('[data-diff]').forEach(b => b.onclick = () => { store.set('sh-diff', b.dataset.diff); renderDiff(); sfx('coin'); });
 function closeMap() { $('s-map').classList.add('hidden'); if (mapFrom) { mapFrom.classList.remove('hidden'); mapFrom.querySelector('.btn')?.focus(); } else openMap(false); }
 document.querySelectorAll('[data-map]').forEach(b => b.onclick = openMap);
-$('journeySound').onclick = () => $('muteBtn').click();
+// the landing page's button is for the music alone; the voices and the sounds of the road keep their own settings
+function musicOn() { return !A.muted && SET.music > 0; }
+function refreshMusicBtn() {
+  const b = $('journeySound'); if (!b) return; const on = musicOn();
+  b.querySelector('.spk-l').textContent = on ? 'Music on' : 'Music off'; b.setAttribute('aria-pressed', String(on));
+}
+$('journeySound').onclick = () => {
+  if (musicOn()) { SET.musicWas = SET.music; SET.music = 0; }
+  else { if (!SET.music) SET.music = SET.musicWas || 70; if (A.muted) setMuted(false); }
+  saveSet(); applySettings();
+};
+refreshMusicBtn();
 $('mapClose').onclick = closeMap; $('rideBtn').onclick = () => { if (pick === 1 && !store.get('sh-prologue')) { store.set('sh-prologue', '1'); cinema('opening', () => begin(1)); } else begin(pick); };
 $('mapTale').onclick = () => openStory(0, pick);
 $('castAll').onclick = () => openGuide('rostam');
@@ -5292,7 +5303,7 @@ $('prologueBtn').onclick = openClips; $('clipClose').onclick = closeClips; $('cl
 let setFrom = null, rebind = null;
 function applySettings() {
   if (A.music) A.music.gain.value = 0.7 * SET.music / 70; if (A.fx) A.fx.gain.value = 0.85 * SET.fx / 85;
-  document.body.classList.toggle('calm', !SET.flash);
+  document.body.classList.toggle('calm', !SET.flash); refreshMusicBtn();
 }
 function renderSettings() {
   $('setMusic').value = SET.music; $('setFx').value = SET.fx; $('setMusicV').textContent = SET.music + '%'; $('setFxV').textContent = SET.fx + '%'; $('setVoice').closest('label').hidden = !VOICED.size; $('setVoice').value = SET.voice; $('setVoiceV').textContent = SET.voice ? SET.voice + '%' : 'Off';
