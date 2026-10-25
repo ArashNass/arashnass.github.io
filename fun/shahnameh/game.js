@@ -106,7 +106,12 @@ const hasLasso = () => store.get('sh-lasso') === '1' || unlocked() >= 6;
 const refreshLassoBtn = () => document.querySelector('.tb.lasso')?.classList.toggle('hidden', !hasLasso());
 const ROMAN = ['', 'I', 'II', 'III', 'IV', 'V', 'VI', 'VII'];
 
-const W = 480, H = 270, TS = 16, ROWS = 17;
+// the view is 270 world pixels tall; on a phone wider than 16:9 it widens to match the screen (up to 600), showing
+// more of the road instead of dark bars at the sides
+const H = 270, W = (() => { try {
+  const t = matchMedia('(pointer:coarse)').matches || 'ontouchstart' in window, a = Math.max(screen.width, screen.height) / Math.min(screen.width, screen.height);
+  return t && a > 16 / 9 + 0.03 ? Math.min(600, Math.round(H * a / 2) * 2) : 480;
+} catch (e) { return 480; } })(), TS = 16, ROWS = 17;
 const OUT = '#1a0f2e';
 const PAL = { skin: '#e2a574', tiger: '#e9a43c', stripe: '#3a1f10', chain: '#a9b4c8', red: '#b8303f', boot: '#5a3418', helm: '#f1ead8', beard: '#2a1a12', mace: '#e8c25a', wood: '#7a4a22' };
 
@@ -1052,7 +1057,7 @@ const LEVELS = {
     backdrop(s) {
       // the far desert is drawn in 2px bands so each band can waver: heat shimmer above the dunes
       const t = s.textures.get('k2-far');
-      if (!t.has('band0')) for (let y = 0; y < H; y += 2) t.add('band' + y, 0, 0, y, W, 2);
+      if (!t.has('band0')) for (let y = 0; y < H; y += 2) t.add('band' + y, 0, 0, y, t.source[0].width, 2);
       s.bands = [];
       for (let y = 0; y < H; y += 2) s.bands.push(s.add.image(0, y, 'k2-far', 'band' + y).setOrigin(0).setScrollFactor(0));
       s.oasis = s.add.image(0, 0, 'k2-oasis').setOrigin(0).setScrollFactor(0).setAlpha(0);
@@ -2062,6 +2067,9 @@ class Play extends Phaser.Scene {
     this.levelW = C * TS;
     for (const [k, f] of Object.entries(FX)) if (!this.anims.exists('fx-' + k)) this.anims.create({ key: 'fx-' + k, frames: this.anims.generateFrameNumbers('fx-' + k, { start: 0, end: f.n - 1 }), frameRate: f.fps, repeat: f.loop ? -1 : 0 });
     lv.backdrop(this);
+    // a widened view: the painted backdrops (480 wide) are scaled to cover it
+    if (W > 480) for (const o of this.children.list) if (o.type === 'Image' && o.scrollFactorX === 0 && o.originX === 0 && o.width >= 300 && o.width < W)
+      o.height < H / 2 ? o.setScale(W / o.width, 1) : o.setScale(Math.max(W / o.width, H / o.height));
     const data = map.map((row, r) => row.map((ch, c) => { const t = ch === '#' ? (r > 0 && (map[r - 1][c] === '#' || this.slopes[c + ',' + (r - 1)]) ? 1 : 0) : ch === '=' ? 2 : ch === '^' ? 3 : -1; return t < 0 ? t : t + (lv.tileShift?.(c) || 0); }));
     const tm = this.make.tilemap({ data, tileWidth: TS, tileHeight: TS });
     const ts = tm.addTilesetImage(lv.tiles, lv.tiles, TS, TS, 0, 0);
@@ -3312,7 +3320,7 @@ class Play extends Phaser.Scene {
   stormSky() {
     const S = this.lv.sky; if (!S || this.sky) return;
     const list = this.children.list;
-    let at = 0; list.forEach((o, i) => { if (o.type === 'Image' && o.scrollFactorX === 0 && o.depth === 0 && o.width >= W) at = i + 1; });
+    let at = 0; list.forEach((o, i) => { if (o.type === 'Image' && o.scrollFactorX === 0 && o.depth === 0 && o.displayWidth >= W - 1) at = i + 1; });
     const put = o => { o.setScrollFactor(0); this.children.moveTo(o, Math.min(at++, list.length - 1)); return o; };
     const [sx, sy] = S.sun;
     const sky = this.sky = { S, v: 0, calm: false, boltT: 90, time: 0, mids: list.filter(o => o.type === 'TileSprite' && o.scrollFactorX === 0 && o.depth === 0) };
