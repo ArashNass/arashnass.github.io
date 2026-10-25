@@ -2217,6 +2217,7 @@ class Play extends Phaser.Scene {
     this.light(h, 0.5, 0.1); return h;
   }
   combatWord(text, color = '#ffe7a2') {
+    if (isPhone()) return;
     const p = this.player, word = this.add.text(p.x, p.body.top - 12, text, { fontFamily: 'Georgia, serif', fontSize: '10px', color, stroke: '#181125', strokeThickness: 3, resolution: 4 }).setOrigin(0.5, 1).setDepth(14);
     this.tweens.add({ targets: word, y: word.y - 18, alpha: 0, delay: 250, duration: 650, onComplete: () => word.destroy() });
   }
@@ -2226,7 +2227,7 @@ class Play extends Phaser.Scene {
     const glow = this.add.image(x, y - 27, 'glow').setScale(0.55).setTint(0xffdc87).setAlpha(0.65).setBlendMode(Phaser.BlendModes.ADD).setDepth(3);
     const marker = this.add.image(x, y - 27, 'feather').setScale(0.2).setTint(0xffdf8d).setDepth(4);
     this.tweens.add({ targets: [marker, glow], y: y - 32, yoyo: true, repeat: -1, duration: 1000, ease: 'Sine.easeInOut' });
-    const label = this.add.text(x, y - 80, 'Simurgh trial', { fontFamily: 'Georgia, serif', fontSize: '9px', color: '#ffe5a0', stroke: '#181125', strokeThickness: 3, resolution: 4 }).setOrigin(0.5, 1).setDepth(10);
+    const label = this.add.text(x, y - 80, 'Simurgh trial', { fontFamily: 'Georgia, serif', fontSize: '9px', color: '#ffe5a0', stroke: '#181125', strokeThickness: 3, resolution: 4 }).setOrigin(0.5, 1).setDepth(10).setVisible(!isPhone());
     const ribbonFrame = this.add.rectangle(W / 2, 39, 180, 16, 0x181125, 0.95).setStrokeStyle(1, 0xcaa65e).setScrollFactor(0).setDepth(13).setVisible(false);
     const ribbon = this.add.text(W / 2, 39, '', { fontFamily: 'Georgia, serif', fontSize: '9px', color: '#ffe5a0', padding: { x: 6, y: 2 }, resolution: 4 }).setOrigin(0.5).setScrollFactor(0).setDepth(14).setVisible(false);
     this.trial = { cfg, x, y, marker, glow, label, ribbon, ribbonFrame, state: 'ready', sparks: [], count: 0, best: trialRecords()[cur]?.best || 0 };
@@ -5458,10 +5459,10 @@ function hint(html) {
   const h = $('hint'); if (!html) { h.classList.add('hidden'); h.dataset.t = ''; return; }
   if (h.dataset.t === html) return; h.dataset.t = html; h.innerHTML = html; refreshControlLabels(h);
   h.classList.remove('hidden', 'new', 'dim'); void h.offsetWidth; h.classList.add('new');
-  h.classList.remove('full'); clearTimeout(hint.t); hint.t = setTimeout(() => h.classList.add('dim'), isPhone() ? 4500 : 7000);
+  h.classList.remove('full', 'tucked'); hint.at = Date.now(); clearTimeout(hint.t); hint.t = setTimeout(() => h.classList.add(isPhone() ? 'tucked' : 'dim'), isPhone() ? 3500 : 7000);
 }
-$('hint').addEventListener('click', () => { if (!isPhone()) return; const h = $('hint'); h.classList.toggle('full'); h.classList.remove('dim'); clearTimeout(hint.t); hint.t = setTimeout(() => h.classList.add('dim'), 6000); });
-function toast(msg) { if ($('sub').classList.contains('on')) return; const t = $('toast'); t.textContent = controlText(msg); t.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('on'), 3200); }
+$('hint').addEventListener('click', () => { if (!isPhone()) return; const h = $('hint'), open = h.classList.contains('tucked'); h.classList.remove('dim', 'tucked'); h.classList.toggle('full', open); clearTimeout(hint.t); if (open) hint.t = setTimeout(() => h.classList.add('tucked'), 6000); else h.classList.add('tucked'); });
+function toast(msg) { if ($('sub').classList.contains('on')) return; if (isPhone() && Date.now() - (hint.at || 0) < 1800) return; const t = $('toast'); t.textContent = controlText(msg); t.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('on'), isPhone() ? 2400 : 3200); }
 function banner(fa, name, ep = '') {
   const lv = LEVELS[cur], b = $('banner');
   b.querySelector('.fa').textContent = fa || lv.bossFa || lv.fa; b.querySelector('h2').textContent = name || lv.bossName || lv.name;

@@ -967,6 +967,14 @@ body.phone.gutters #touch .tb{background:rgba(16,28,80,.55)}
 body.phone.gutters #touch .act .strike{background:rgba(120,30,20,.6)}
 /* Phaser centres the canvas itself; the page must not centre it a second time (it pushed the picture to the right) */
 #game{display:block!important}
+/* phones: the hint tucks into a small gold "i" at the top left; tap it to read it again */
+body.phone #hint.tucked{left:max(12px,env(safe-area-inset-left));top:calc(max(6px,env(safe-area-inset-top)) + 44px);transform:none;width:34px;height:34px;max-width:none;padding:0;border-radius:50%;
+  font-size:0;line-height:0;color:transparent;display:grid;place-items:center;overflow:hidden;opacity:.92;background:#efe0bc;animation:none;cursor:pointer}
+body.phone #hint.tucked b{display:none}
+body.phone #hint.tucked:before{content:"i";font:italic 700 19px/1 'EB Garamond',Georgia,serif;color:#7a2e1a}
+body.phone #boss:not(.hidden)~#hint.tucked{top:calc(max(6px,env(safe-area-inset-top)) + 44px)}
+body.phone #toast{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+body.phone #banner.on{animation-duration:2.6s}
 </style>
 
 <script defer src="/assets/engagement.js?v=1"></script>
@@ -1298,6 +1306,6 @@ body.phone.gutters #touch .act .strike{background:rgba(120,30,20,.6)}
 <script src="boot.js?v=92"></script>
 <script src="assets/vendor/phaser-3.80.1.min.js" data-game-script="engine"></script>
 <script src="journey-events.js?v=124" data-game-script="journey"></script>
-<script src="game.js?v=203" data-game-script="game"></script>
+<script src="game.js?v=204" data-game-script="game"></script>
 </body>
 </html>
