@@ -233,6 +233,7 @@
       body.updateFromGameObject(); p.y += foot - body.bottom; body.updateFromGameObject();
       body.prev.copy(body.position); body.prevFrame.copy(body.position); body.autoFrame.copy(body.position);
       p.setVelocity(vx, vy); p.play(on ? 'ride-gallop' : 'rostam-idle');
+      if (on && s.anims.exists('ride-mount')) { s.pose = 'ride-mount'; p.play('ride-mount'); s.time.delayedCall(560, () => { if (s.pose === 'ride-mount') s.pose = null; }); }
       this.mountedByJourney = on;
     }
     // Khan V: the border watch. Between the first fires, archers on the far hills loose volleys at Rostam: marks on

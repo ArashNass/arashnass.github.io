@@ -718,6 +718,13 @@ body.calm #banner.on{animation-name:banCalm}@keyframes banCalm{0%{opacity:0}15%,
 .cdx-facts dd{font:600 14px/1.35 'EB Garamond',Georgia,serif;color:#f4ead2;margin:0}
 @media (max-width:760px){.cdx{grid-template-columns:1fr}.cdx-list{display:flex;gap:6px;overflow-x:auto;overflow-y:hidden;padding-bottom:4px}.cdx-grp{display:contents}.cdx-gh{display:none}.cdx-it{flex:none;width:auto;flex-direction:column;font-size:11px;padding:4px 6px}.cdx-it span{max-width:72px;text-align:center}
  .cdx-hero{grid-template-columns:1fr;justify-items:center;text-align:center}.cdx-stage .spr.cdx-spr,.cdx-boss .cdx-stage .spr.cdx-spr{--s:150px!important}.cdx-cols{grid-template-columns:1fr}.cdx-quote{flex-direction:column;align-items:flex-start}}
+
+.deadArt{display:block;width:min(100%,520px);height:auto;margin:0 auto 12px;border-radius:12px;border:1px solid #c4a66d60;box-shadow:0 14px 40px #000a}
+@media (max-height:620px){.deadArt{max-height:34vh;width:auto;max-width:100%}}
+#s-temple .templePage{background-image:linear-gradient(180deg,#0b122030,#0b122090 38%,#0b1220e0 62%,#0b1220f0),url(assets/cine/temple.png?v=93);background-size:cover;background-position:center top}
+#gifts li{position:relative;padding-left:62px;min-height:52px}
+#s-temple .templePage h2,#s-temple .templePage .kick,#s-temple .templePage .fa,#s-temple .purse{text-shadow:0 2px 6px #000,0 0 3px #000}
+.giftIco{position:absolute;left:4px;top:4px;width:48px;height:48px;image-rendering:pixelated;filter:drop-shadow(0 2px 4px #0008)}
 </style>
 
 <script defer src="/assets/engagement.js?v=1"></script>
@@ -782,6 +789,7 @@ body.calm #banner.on{animation-name:banCalm}@keyframes banCalm{0%{opacity:0}15%,
 </section>
 <section class="ov hidden" id="s-dead">
   <div class="page">
+    <img class="deadArt" src="assets/cine/fall.png?v=93" alt="Rostam on one knee, leaning on his mace, beneath a glowing Simurgh feather" width="1672" height="941" loading="lazy">
     <p class="kick">Even heroes fall</p>
     <h2>Rise again, Rostam</h2>
     <p class="story" id="deadTip">The road to Mazandaran is long. Try once more.</p>
@@ -1064,7 +1072,7 @@ body.calm #banner.on{animation-name:banCalm}@keyframes banCalm{0%{opacity:0}15%,
 </section>
 <script src="boot.js?v=92"></script>
 <script src="assets/vendor/phaser-3.80.1.min.js" data-game-script="engine"></script>
-<script src="journey-events.js?v=122" data-game-script="journey"></script>
-<script src="game.js?v=154" data-game-script="game"></script>
+<script src="journey-events.js?v=123" data-game-script="journey"></script>
+<script src="game.js?v=155" data-game-script="game"></script>
 </body>
 </html>

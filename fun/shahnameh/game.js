@@ -43,6 +43,8 @@ const ART = {
   // Khan VII
   'whitediv-walk': 'k7/whitediv-walk.png', 'whitediv-smash': 'k7/whitediv-smash.png', 'whitediv-throw': 'k7/whitediv-throw.png', 'whitediv-die': 'k7/whitediv-die.png', 'kavus-sight': 'k7/kavus-sight.png'
 };
+Object.assign(ART, { 'lion-dazed': 'lion-dazed.png', 'queen-dazed': 'k2/queen-dazed.png', 'dragon-dazed': 'k3/dragon-dazed.png', 'hag-dazed': 'k4/hag-dazed.png',
+  'olad-dazed': 'k5/olad-dazed.png', 'arzhang-dazed': 'k6/arzhang-dazed.png', 'whitediv-dazed': 'k7/whitediv-dazed.png', 'witch-transform': 'k4/witch-transform.png', 'ride-mount': 'k3/ride-mount.png' });
 Object.assign(ART, { 'lion-pounce': 'lion-pounce.png', 'lion-swipe': 'lion-swipe.png', 'olad-throw': 'k5/olad-throw.png', 'olad-guard': 'k5/olad-guard.png',
   'arzhang-charge': 'k6/arzhang-charge.png', 'arzhang-stomp': 'k6/arzhang-stomp.png', 'whitediv-roar': 'k7/whitediv-roar.png', 'dragon-lunge': 'k3/dragon-lunge.png',
   'hag-vanish': 'k4/hag-vanish.png', 'queen-burrow': 'k2/queen-burrow.png', 'jackal-lunge': 'jackal-lunge.png', 'bat-dive': 'k3/bat-dive.png', 'vulture-dive': 'k2/vulture-dive.png',
@@ -2050,6 +2052,9 @@ class Play extends Phaser.Scene {
     move('dragon-lunge', 'dragon-lunge', 0, 5, 10); move('hag-vanish', 'hag-vanish', 0, 5, 11); move('queen-burrow', 'queen-burrow', 0, 5, 9);
     move('jackal-leap', 'jackal-lunge', 2, 5, 12); move('bat-dive', 'bat-dive', 0, 3, 12, -1); move('vulture-dive', 'vulture-dive', 0, 3, 12, -1);
     move('div-pounce', 'div-strike', 3, 5, 12); move('rostam-farr', 'rostam-farr', 0, 7, 14);
+    // a boss's opening: the dazed loop that says strike now; the witch's unmasking; Rostam vaulting into the saddle
+    for (const k of ['lion', 'queen', 'dragon', 'hag', 'olad', 'arzhang', 'whitediv']) move(k + '-dazed', k + '-dazed', 0, 5, 6, -1);
+    move('witch-transform', 'witch-transform', 0, 7, 8); move('ride-mount', 'ride-mount', 0, 5, 11);
     // the canvas is drawn at twice the world's resolution so finer sprite art keeps its detail. The camera zooms from its
     // top-left corner, so scrollX stays the left edge of the view and screen-fixed layers keep their places; its follow
     // offset centres Rostam, and the bounds and tile culling are worked out for the zoomed view
@@ -2310,6 +2315,7 @@ class Play extends Phaser.Scene {
   }
   // hold a wind-up frame of an attack strip (a tell), or play an animation when it exists, else a fallback
   hold(o, tex, frame) { if (!this.textures.exists(tex)) return; if (o.texture.key !== tex || o.anims.isPlaying) { o.anims.stop(); o.setTexture(tex, frame); } else if (o.frame.name !== frame) o.setFrame(frame); }
+  daze(o, key) { if (this.anims.exists(key)) { o.play(key); return true; } o.anims.stop(); return false; }
   playIf(o, key, fallback) { if (this.anims.exists(key)) o.play(key); else if (fallback) o.play(fallback); }
   // Rostam's lasso (kamand), won from Olad: thrown ahead, it catches the first thing in its path. A foe is dragged to his
   // feet and left reeling, a flier pulled out of the air; a provision out of reach is drawn in. A boss is too strong to
@@ -2815,7 +2821,7 @@ class Play extends Phaser.Scene {
   allyRest(r) { this.allyWake(r); r.play('rakhsh-idle'); }
   allyWake(r) { r.breath?.remove(); r.breath = null; r.stamp?.remove(); r.stamp = null; r.anims.timeScale = 1; r.setScale(r.scaleX); }
   lionOpening(l, state, frames) {
-    l.state = state; l.tm = frames; l.intent = ''; l.setVelocityX(0); l.play('lion-walk'); l.anims.pause(); l.setTint(0xffd8a0);
+    l.state = state; l.tm = frames; l.intent = ''; l.setVelocityX(0); if (!this.anims.exists('lion-dazed')) { l.play('lion-walk'); l.anims.pause(); } else l.play('lion-dazed'); l.setTint(0xffd8a0);
     this.stars?.destroy(); this.stars = this.fx('stun', l.x, l.body.top - 6, { depth: 10, follow: l });
     this.fx('dust', l.x, l.body.bottom, { depth: 8 });
   }
@@ -3347,7 +3353,7 @@ class Play extends Phaser.Scene {
         }
         sfx('fire');
       }
-      if (d.tm <= 0) { d.clearTint(); d.play('dragon-move'); d.state = 'exposed'; d.tm = 66; d.intent = ''; }
+      if (d.tm <= 0) { d.clearTint(); this.daze(d, 'dragon-dazed') || d.play('dragon-move'); d.state = 'exposed'; d.tm = 66; d.intent = ''; }
     } else if (d.state === 'breath') {
       d.setVelocityX(0);
       if (!d.fired && d.tm < 50) {
@@ -3360,7 +3366,7 @@ class Play extends Phaser.Scene {
     } else if (d.state === 'coil') {
       d.setVelocityX(0); if (d.tm <= 0) { d.clearTint(); d.state = 'lunge'; d.tm = 36; this.playIf(d, 'dragon-lunge', 'dragon-move'); d.setVelocityX(d.dir * 250); }
     } else if (d.state === 'lunge') {
-      if (d.tm <= 0 || (d.dir < 0 ? d.body.blocked.left || d.hitKeep : d.body.blocked.right)) { d.setVelocityX(0); d.state = 'exposed'; d.tm = seen ? 50 : 85; this.cam.shake(200, 0.01); }
+      if (d.tm <= 0 || (d.dir < 0 ? d.body.blocked.left || d.hitKeep : d.body.blocked.right)) { d.setVelocityX(0); d.state = 'exposed'; d.tm = seen ? 50 : 85; this.daze(d, 'dragon-dazed'); this.cam.shake(200, 0.01); }
     } else if (d.state === 'exposed') {
       d.setVelocityX(0);
       if (d.tm <= 0) { d.state = 'lurk'; d.tm = (seen ? 55 : 95) + Math.random() * 30; if (!seen) this.tweens.add({ targets: d, alpha: 0.05, duration: 600 }); }
@@ -3380,7 +3386,7 @@ class Play extends Phaser.Scene {
     w.calm = () => w.state === 'reel'; w.open = w.calm;
     w.onBack = () => {
       this.damage(w, 1, true); if (w.hp <= 0) return;
-      w.state = 'reel'; w.tm = 70; w.intent = ''; w.setVelocity(0); w.setTint(0xffdfa0); w.anims.stop();
+      w.state = 'reel'; w.tm = 70; w.intent = ''; w.setVelocity(0); w.setTint(0xffdfa0); this.daze(w, 'hag-dazed');
       this.stars?.destroy(); this.stars = this.fx('stun', w.x, w.body.top - 4, { depth: 10, follow: w });
       hint('Her curse rebounds! <b>She is dazed: close in and strike.</b>');
     };
@@ -3396,12 +3402,14 @@ class Play extends Phaser.Scene {
     banner('به نامِ یزدان', 'In the name of God'); this.cam.flash(500, 255, 255, 255); sfx('roar'); this.time.delayedCall(700, () => say('witch2'));
     for (let i = 0; i < 3; i++) this.time.delayedCall(i * 120, () => this.fx('poof', w.x + (i - 1) * 16, w.body.bottom - 20, { depth: 10 }));
     this.time.delayedCall(450, () => {
-      w.setTexture('hag-cast', 0); this.fit(w, 'hag'); w.play('hag-cast'); w.body.setAllowGravity(false); w.setVelocity(0);
+      if (this.anims.exists('witch-transform')) { w.setTexture('witch-transform', 0); this.fit(w, 'hag'); w.play('witch-transform'); w.once('animationcomplete', () => { if (w.active && w.state === 'float') w.play('hag-cast'); }); }
+      else { w.setTexture('hag-cast', 0); this.fit(w, 'hag'); w.play('hag-cast'); }
+      w.body.setAllowGravity(false); w.setVelocity(0);
       w.baseY = w.y - 20; w.state = 'float'; w.tm = 60; w.tx = w.x; $('bossName').textContent = 'The Witch';
       toast('The beauty withers into a hideous witch! She shrieks a curse.');
       hint('A witch! <b>Strike her green curses</b> to send them back at her, or jump them. When she is solid, <b>strike her</b>.');
     });
-    this.time.delayedCall(1300, () => { this.frozen = false; });
+    this.time.delayedCall(1700, () => { this.frozen = false; });   // after the transformation
   }
   witchAI() {
     const w = this.witch, p = this.player; if (!this.unmasked || w.state === undefined) return;
@@ -3438,7 +3446,7 @@ class Play extends Phaser.Scene {
       }
     } else if (w.state === 'reel') {
       w.setVelocity(0); this.stars?.setPosition(w.x, w.body.top - 4);
-      if (w.tm <= 0) { w.clearTint(); this.stars?.destroy(); this.stars = null; w.state = 'float'; w.tm = 54; w.tx = Phaser.Math.Clamp(p.x + (p.x < w.x ? 120 : -120), this.wall.x + 55, this.wallR.x - 55); }
+      if (w.tm <= 0) { w.clearTint(); this.stars?.destroy(); this.stars = null; if (w.anims.currentAnim?.key === 'hag-dazed') { w.anims.stop(); w.setTexture('hag-cast', 0); } w.state = 'float'; w.tm = 54; w.tx = Phaser.Math.Clamp(p.x + (p.x < w.x ? 120 : -120), this.wall.x + 55, this.wallR.x - 55); }
     } else if (w.state === 'vanish') {
       w.setVelocity(0); w.setTint(0xd8a0ff); if (!w.vanishing) { w.vanishing = true; this.playIf(w, 'hag-vanish'); }
       if (w.tm <= 0) { w.vanishing = false; w.clearTint(); w.state = 'blink'; w.tm = 30; this.fx('poof', w.x, w.y + 10, { depth: 10 }); w.setAlpha(0); w.body.enable = false; }
@@ -3462,7 +3470,7 @@ class Play extends Phaser.Scene {
     o.immune = () => o.state !== 'open' && Math.sign(this.player.x - o.x) === o.dir && this.player.body.bottom > o.body.top + 12;
     o.calm = () => o.state === 'open';
     o.immuneMsg = 'Olad catches your blow on his shield! Dodge his swing, then strike while he glows. Or leap over him and strike his back.';
-    o.onBack = () => { this.damage(o, 1, true); if (o.hp > 0) { o.state = 'open'; o.tm = 75; o.intent = ''; o.anims.stop(); o.setVelocityX(0); o.setTint(0xffd0a0); } };
+    o.onBack = () => { this.damage(o, 1, true); if (o.hp > 0) { o.state = 'open'; o.tm = 75; o.intent = ''; this.daze(o, 'olad-dazed'); o.setVelocityX(0); o.setTint(0xffd0a0); } };
     o.keep = KEEP5; o.lines = { intro: 'olad1' }; o.ai = () => this.oladAI(); o.onDown = () => this.oladYields();
     this.arena(112 * TS, o, 9); this.olad = o;
     toast('Olad rides out to meet you, sword drawn: "Who are you, to cross the marches of Mazandaran?"');
@@ -3493,7 +3501,7 @@ class Play extends Phaser.Scene {
         const sh = this.shoot(x, y, Math.cos(a) * 180, Math.sin(a) * 180, 'knife', { life: 2400 }); sh.setRotation(a); sh.curse = true; sfx('swing');
       }
     } else if (o.state === 'knife') {
-      o.setVelocityX(0); if (o.tm <= 0) { o.state = 'open'; o.tm = 65; o.intent = ''; o.setTint(0xffd0a0); }
+      o.setVelocityX(0); if (o.tm <= 0) { o.state = 'open'; o.tm = 65; o.intent = ''; this.daze(o, 'olad-dazed'); o.setTint(0xffd0a0); }
     } else if (o.state === 'retreat') {
       o.setVelocityX(-o.dir * 105); if (o.tm <= 0 || (o.dir > 0 ? o.body.blocked.left : o.body.blocked.right)) { const ledge = this.bossRead(o).ledge; o.state = ledge ? 'knifeReady' : 'ready'; o.tm = ledge ? 48 : 40; o.attackMove = ledge ? 'knife' : 'thrust'; this.bossAim(o, ledge ? 'Knife drawn: dodge or parry' : 'Sword levelled: a long thrust'); o.setVelocityX(0); }
     } else if (o.state === 'ready') {
@@ -3504,7 +3512,7 @@ class Play extends Phaser.Scene {
       if (!o.hit && o.tm < 20) { o.hit = true; const reach = o.attackMove === 'thrust' ? 68 : 42; this.hazard(o.dir > 0 ? o.x + 4 : o.x - reach - 4, o.body.top + 4, reach, 30, 140); }
       // after the swing his sword hangs low and he is open for a moment
       if (o.tm <= 0 && o.comboLeft > 0) { o.comboLeft--; o.attackMove = 'slash'; o.intent = 'Second swing: keep clear'; o.state = 'ready'; o.tm = 36; o.setVelocityX(0); o.anims.stop(); o.setFrame(0); hint('Olad draws back for a <b>second swing</b>. Keep clear, then strike!'); }
-      else if (o.tm <= 0) { o.state = 'open'; o.tm = 84; o.intent = ''; o.setVelocityX(0); o.anims.stop(); o.setFrame(0); o.setTint(0xffd0a0); hint('Olad\'s guard is down: <b>strike now!</b>'); }
+      else if (o.tm <= 0) { o.state = 'open'; o.tm = 84; o.intent = ''; o.setVelocityX(0); this.daze(o, 'olad-dazed') || o.setFrame(0); o.setTint(0xffd0a0); hint('Olad\'s guard is down: <b>strike now!</b>'); }
     } else if (o.state === 'open') {
       o.setVelocityX(0); if (o.tm <= 0) { o.clearTint(); o.state = 'guard'; o.tm = 30 + Math.random() * 20; this.playIf(o, 'olad-guard');
         hint('Shield up again. When he <b>flashes, step back</b>, then <b>strike while he glows</b>, or leap over him and hit his back.'); }
@@ -3658,14 +3666,14 @@ class Play extends Phaser.Scene {
     } else if (a.state === 'stompReady') {
       a.setVelocityX(0); a.stompWarn?.setAlpha(0.18 + 0.3 * Math.abs(Math.sin(a.tm * 0.25))); this.hold(a, 'arzhang-stomp', a.tm > 30 ? 0 : a.tm > 15 ? 1 : 2); if (a.tm <= 0) { this.playIf(a, 'arzhang-slam'); a.stompWarn?.destroy(); a.stompWarn = null; a.clearTint(); this.hazard((a.stompX ?? a.x) - 82, 14 * TS - 25, 164, 25, 200); this.fx('shock', a.x, 14 * TS, { depth: 8 }); a.state = 'stomp'; a.tm = 18; sfx('hit'); }
     } else if (a.state === 'stomp') {
-      if (a.tm <= 0) { a.state = 'rest'; a.tm = 80; a.intent = ''; a.setTint(0xffc0a0); this.stars = this.fx('stun', a.x, a.body.top - 4, { depth: 10, follow: a }); }
+      if (a.tm <= 0) { a.state = 'rest'; a.tm = 80; a.intent = ''; this.daze(a, 'arzhang-dazed'); a.setTint(0xffc0a0); this.stars = this.fx('stun', a.x, a.body.top - 4, { depth: 10, follow: a }); }
     } else if (a.state === 'raise') {
       const w = a.combo[0] === 'split' ? this.floorWarn : this.highWarn; w.setAlpha(0.18 + 0.32 * Math.abs(Math.sin(a.tm * 0.25)));
       if (a.tm <= 0) { a.state = 'smash'; a.tm = a.combo[0] === 'split' ? 34 : 30; a.combo[0] === 'split' ? this.splitFloor(a) : this.sweepHigh(a); a.combo.shift(); }
     } else if (a.state === 'smash') {
       if (a.tm <= 0) {
         if (a.combo.length) this.windUp(a, a.combo[0] === 'split' ? Math.max(hurt ? 52 : 60, this.reachT(127, 131)) : hurt ? 52 : 60);   // the second blow comes quicker
-        else { a.state = 'rest'; a.tm = hurt ? 120 : 140; a.anims.stop(); a.setFrame(4); a.setTint(0xffc0a0); a.setVelocityX(0);
+        else { a.state = 'rest'; a.tm = hurt ? 120 : 140; this.daze(a, 'arzhang-dazed') || a.setFrame(4); a.setTint(0xffc0a0); a.setVelocityX(0);
           this.stars = this.fx('stun', a.x, a.body.top - 4, { depth: 10, follow: a }); hint('Arzhang <b>rests on his axe: strike him now!</b>'); }
       }
     } else if (a.state === 'rest') {
@@ -3693,7 +3701,7 @@ class Play extends Phaser.Scene {
       }
       if (b.dir < 0 ? b.body.blocked.left : b.body.blocked.right) {
         // into the wall: the cave shakes and he reels
-        b.setVelocityX(0); b.anims.timeScale = 1; b.anims.stop(); b.setFrame(0); b.state = 'dazed'; b.tm = 110; b.setTint(0xffe0a0);
+        b.setVelocityX(0); b.anims.timeScale = 1; this.daze(b, walk.replace('-walk', '-dazed')) || b.setFrame(0); b.state = 'dazed'; b.tm = 110; b.setTint(0xffe0a0);
         this.cam.shake(450, 0.018); sfx('hit'); sfx('drum'); this.fx('dust', b.x + b.dir * 30, b.body.bottom, { depth: 8 });
         this.stars = this.fx('stun', b.x, b.body.top - 4, { depth: 10, follow: b }); hint('He crashed into the wall and is <b>dazed: strike him now!</b>');
       } else if (b.tm <= 0) { b.setVelocityX(0); b.anims.timeScale = 1; b.state = 'walk'; b.tm = 70; b.chargeCd = 360; }
@@ -3865,7 +3873,7 @@ class Play extends Phaser.Scene {
     } else if (w.state === 'roar') {
       w.setVelocityX(0);
       if (w.tm <= 0 && this.time.now >= (w.frostUntil || 0)) {
-        w.state = 'spent'; w.tm = mad ? 85 : 105; w.intent = ''; w.anims.stop(); w.setTint(0xbfe0ff);
+        w.state = 'spent'; w.tm = mad ? 85 : 105; w.intent = ''; this.daze(w, 'whitediv-dazed'); w.setTint(0xbfe0ff);
         this.stars?.destroy(); this.stars = this.fx('stun', w.x, w.body.top - 4, { depth: 10, follow: w });
         hint('The ice has fallen. <b>He is spent: close in and strike!</b>');
       }
@@ -4120,7 +4128,7 @@ class Play extends Phaser.Scene {
     q.lines = { intro: 'queen1', rage: 'queen2' };
     // her own venom, knocked back by the mace, stuns her: an opening as good as a stuck sting
     q.onBack = () => { if (q.state === 'under' || !q.body.enable) return; this.damage(q, 1, true); if (q.hp <= 0) return;
-      q.state = 'stuck'; q.tm = 110; q.setVelocityX(0); q.anims.stop(); q.setTexture('queen-sting', 5); q.setTint(0xb8ff90); this.stars?.destroy(); this.stars = this.fx('stun', q.x, q.body.top - 4, { depth: 10, follow: q });
+      q.state = 'stuck'; q.tm = 110; q.setVelocityX(0); this.daze(q, 'queen-dazed') || q.setTexture('queen-sting', 5); q.setTint(0xb8ff90); this.stars?.destroy(); this.stars = this.fx('stun', q.x, q.body.top - 4, { depth: 10, follow: q });
       if (!this.toldVenom) { this.toldVenom = true; toast('Her own venom stuns her! Strike while she reels.'); } }; q.kickable = () => ['walk', 'turn', 'aim', 'sting', 'spit'].includes(q.state) && !q.sinking; q.ai = () => this.queenAI(); q.onDown = () => { this.stars?.destroy(); this.stars = null; this.mound?.destroy(); this.swirl?.destroy(); this.puddles?.forEach(o => o.destroy()); this.bossFall(q, () => this.queenFallen()); };
     this.arena(138 * TS, q, 9); this.light(q, 1.6); this.recede();
     hint('The <b>Scorpion Queen</b> patrols the sand. When her <b>stinger glows green, step back</b>: when it <b>sticks in the sand, strike!</b> Jump over her as she passes.');
@@ -4248,7 +4256,7 @@ class Play extends Phaser.Scene {
         for (let i = 0; i < 6; i++) this.fx('dust', q.x + (i - 2.5) * 16, floorY, { depth: 8 });
       }
     } else if (q.state === 'surfacing') {
-      q.setVelocityX(0); if (q.tm <= 0) { q.state = 'surfaced'; q.tm = mad ? 64 : 80; this.stars?.destroy(); this.stars = this.fx('stun', q.x, q.body.top - 4, { depth: 10, follow: q }); }
+      q.setVelocityX(0); if (q.tm <= 0) { q.state = 'surfaced'; q.tm = mad ? 64 : 80; this.daze(q, 'queen-dazed'); this.stars?.destroy(); this.stars = this.fx('stun', q.x, q.body.top - 4, { depth: 10, follow: q }); }
     } else if (q.state === 'surfaced') {
       q.setVelocityX(0); this.stars?.setPosition(Math.round(q.x), Math.round(q.body.top - 4));
       if (q.tm <= 0) { this.stars?.destroy(); this.stars = null; q.state = 'walk'; q.stingCd = 30; q.play('queen-walk'); }
@@ -4743,7 +4751,7 @@ function renderTemple() {
   const u = upg(), have = purse(); $('purseN').textContent = have;
   $('gifts').innerHTML = UPGRADES.map(g => {
     const lvl = u[g.id] || 0, cost = g.costs[lvl];
-    return `<li><h3>${g.name}<span>${g.fa}</span></h3><p>${g.desc}${g.costs.length > 1 ? ` (${lvl} of ${g.costs.length})` : ''}</p>` +
+    return `<li><img class="giftIco" src="assets/ui/gift-${g.id}.png?v=${V}" alt="" width="48" height="48"><h3>${g.name}<span>${g.fa}</span></h3><p>${g.desc}${g.costs.length > 1 ? ` (${lvl} of ${g.costs.length})` : ''}</p>` +
       (cost == null ? '<span class="owned">Granted</span>' : `<button class="btn2" data-gift="${g.id}" ${have < cost ? 'disabled' : ''}>Offer ${cost}</button>`) + '</li>';
   }).join('');
   $('gifts').querySelectorAll('[data-gift]').forEach(b => b.onclick = () => {
