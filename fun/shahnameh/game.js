@@ -1004,7 +1004,7 @@ const LEVELS = {
     },
     // two roast lambs on the high perches heal; dates and fruit everywhere else
     food: (c, r, n) => (c === 77 && r === 9) || (c === 94 && r === 10) ? 'lamb' : n % 4 === 3 ? 'dates' : FOOD[1 + (n % 3)],
-    epithet: 'She guards the only water in the waste, and nothing that drinks there lives',
+    epithet: 'She guards the only water in the waste, and nothing that drinks there lives', smoothSteps: true,
     sky: { veil: 0x3a1806, cloud: 0xc07a34, glow: 0xffb040, sun: [0.74, 0.3], bolt: 0xffe0a0, every: [240, 380], edge: 0x5a2804, fx: 'dust', paint: 'k2/storm.png' },
     hearts: [110, 142],                              // one before the sandstorm, one where the storm parts
     parse(s, ch, x, y) {
@@ -1032,6 +1032,7 @@ const LEVELS = {
         st.bell = s.add.image(x, by, 'bell').setOrigin(0.5, 0.06).setDepth(2.1).setScale(TOWER.bellScale);
         st.glow = s.add.image(x, by + 8, 'glow').setScale(1.2).setBlendMode(Phaser.BlendModes.ADD).setDepth(3).setAlpha(0);
         st.aura = s.add.image(x, st.y - st.displayHeight * 0.45, 'glow').setScale(1.4, 2.6).setBlendMode(Phaser.BlendModes.ADD).setDepth(1.9).setAlpha(0).setTint(ELEMENTS[i].tint);
+        if (LIVE) st.bell.setVisible(false);
         st.el = i; st.footY = r * TS; return st;
       });
       hint('Your <b>water</b> (blue bar, top right) drains in the heat. <b>Walk past a well</b> to drink your fill; water skins give a sip. If it runs dry you lose hearts.');
@@ -1047,17 +1048,18 @@ const LEVELS = {
       if (s.stormOn > 0.3 && !s.prayed && !s.stormHinted) { s.stormHinted = true; hint('A <b>sandstorm</b>! The wind pushes you back, water drains twice as fast, and it rolls <b>rocks</b> at you: jump them or smash them.'); }
       stormRocks(s, k);
       // thirst: water drains in the heat, twice as fast in the storm
-      if (!s.frozen && !s.prayed && !s.bossOn) s.water = Math.max(0, s.water - k * (0.045 + s.stormOn * 0.045) * (gentle() ? 0.6 : legend() ? 1.3 : 1));
+      if (!s.frozen && (!s.prayed || (LIVE && s.ram && !s.ramDug)) && !s.bossOn) s.water = Math.max(0, s.water - k * (0.045 + s.stormOn * 0.045) * (gentle() ? 0.6 : legend() ? 1.3 : 1));
       if (s.water <= 0) { s.thirstT += k; if (s.thirstT > 150) { s.thirstT = 0; s.hurt(p.x, true); toast('Rostam is dying of thirst. Find water!'); } }
       s.renderWater();
       if (!s.prayed && s.ramAt && p.x > s.ramAt.x) s.prayForWater();
       if (s.ram) s.ramGuide(k);
-      if (s.ram && !s.puzzle && p.x > 143 * TS && s.ram.x >= s.ramStand - 10) s.startStones();
+      if (LIVE) { if (s.ram && !s.ramDug && s.ram.x >= s.springAt.x - 2 * TS && p.x > s.ram.x - 9 * TS) s.ramDigs(); }
+      else if (s.ram && !s.puzzle && p.x > 143 * TS && s.ram.x >= s.ramStand - 10) s.startStones();
       if (s.springOpen && !s.drank && p.x > s.springAt.x - 6 && b.blocked.down) s.reachSpring();
     },
     win: 'Rostam drinks from the spring the ram revealed and gives thanks. Refreshed, he rides on toward the dragon of the third labour.',
     tips: ['Mounds in the sand hide scorpions. When one shudders, step back: it bursts out with its sting raised.', 'In the sandstorm, jump the rolling rocks or smash them with your mace.', 'Water drains in the heat. Water skins refill a little; the wells refill it all.', 'Vultures circle, then dive. Strike them as they swoop low.',
-      'Scorpions take two blows, and lash out with their sting up close. Jump on them, or strike twice and step back.', 'In the sandstorm the wind pushes you back. Keep moving forward.', 'At the bell towers, watch the order the ram rings them, then stand at each tower and press Down (or tap Ring) in that order.', 'If your water runs dry you lose a heart every few seconds.']
+      'Scorpions take two blows, and lash out with their sting up close. Jump on them, or strike twice and step back.', 'In the sandstorm the wind pushes you back. Keep moving forward.', 'After you pray, follow the ram closely: it leads you to the water, and your thirst keeps draining until you drink.', 'If your water runs dry you lose a heart every few seconds.']
   },
   3: {
     epithet: 'No lion or elephant dares cross the plain where it sleeps', hud: 'Khan III &middot; The Dragon', winTitle: 'The dragon is slain', name: 'The Dragon of the Night', fa: 'اژدها', bossName: 'The Dragon', tiles: 'tiles-3', map: map3, mounted: true,
@@ -1936,7 +1938,7 @@ class Play extends Phaser.Scene {
   create() {
     // the scene object is reused from labour to labour: forget whatever the last one left behind
     for (const k of ['dark', 'lights', 'lamp', 'wall', 'wallR', 'stars', 'pose', 'swingFx', 'witch', 'unmasked', 'olad', 'rakhsh', 'dragonSeen', 'horde', 'hordeDone',
-      'gates', 'hordeBat', 'toldRock', 'toldFarr', 'toldOffer', 'atAltar', 'bossT', 'maceHit', 'toldIce', 'chargeWarn', 'toldCharge', 'shards', 'shardG', 'mark', 'markGlow', 'markOpen', 'bossHeart', 'bossHeartT', 'floorWarn', 'highWarn', 'regrow', 'drums', 'sky', 'flashA', 'intro', 'fgReeds', 'mound', 'swirl', 'qx', 'puddles', 'combo', 'comboT', 'heavy', 'heavyGo', 'chargeT', 'chargeFull', 'chargeGlow', 'dodgeT', 'dodgeCd', 'dodgeDir', 'whiteDown', 'ended', 'mounted', 'prayed', 'drank', 'toldImmune', 'toldDeflect', 'toldVenom', 'cage', 'kavus', 'stones', 'puzzle', 'springOpen', 'pool', 'victory', 'attackBuf', 'dodgeBuf', 'counterT', 'counterStrike', 'dodgeRewarded', 'trial', 'nearTrial', 'journey', 'siege', 'siegeDone', 'ally', 'phase2', 'streak', 'didDouble', 'rocks', 'rockT', 'poppies', 'drowsy', 'toldPoppy', 'oladAlly', 'rope', 'ropeG', 'lassoCd', 'toldBossLasso', 'sleeper', 'snore', 'guard', 'prologue', 'prologueOn', 'ringObj', 'grapple', 'toldBossHold', 'oladBind', 'sleepers', 'toldSleep', 'saidLow']) delete this[k];
+      'gates', 'hordeBat', 'toldRock', 'toldFarr', 'toldOffer', 'atAltar', 'bossT', 'maceHit', 'toldIce', 'chargeWarn', 'toldCharge', 'shards', 'shardG', 'mark', 'markGlow', 'markOpen', 'bossHeart', 'bossHeartT', 'floorWarn', 'highWarn', 'regrow', 'drums', 'sky', 'flashA', 'intro', 'fgReeds', 'mound', 'swirl', 'qx', 'puddles', 'combo', 'comboT', 'heavy', 'heavyGo', 'chargeT', 'chargeFull', 'chargeGlow', 'dodgeT', 'dodgeCd', 'dodgeDir', 'whiteDown', 'ended', 'mounted', 'prayed', 'drank', 'toldImmune', 'toldDeflect', 'toldVenom', 'cage', 'kavus', 'stones', 'puzzle', 'springOpen', 'pool', 'victory', 'attackBuf', 'dodgeBuf', 'counterT', 'counterStrike', 'dodgeRewarded', 'trial', 'nearTrial', 'journey', 'siege', 'siegeDone', 'ally', 'phase2', 'streak', 'didDouble', 'rocks', 'rockT', 'poppies', 'drowsy', 'toldPoppy', 'oladAlly', 'rope', 'ropeG', 'lassoCd', 'toldBossLasso', 'sleeper', 'snore', 'guard', 'prologue', 'prologueOn', 'ringObj', 'grapple', 'toldBossHold', 'oladBind', 'sleepers', 'toldSleep', 'saidLow', 'ramDug', 'ramAmbush', 'toldRamWait']) delete this[k];
     refreshLassoBtn();
     // turn loaded strips into square frames; anything missing falls back to placeholder art
     for (const k of ['decor-' + cur]) if (this.textures.exists(k) && this.textures.get(k).frameTotal < 3) { const t = this.textures.get(k), h = t.getSourceImage().height; for (let i = 0; i < Math.round(t.getSourceImage().width / h); i++) t.add(i, 0, i * h, 0, h, h); }
@@ -2931,6 +2933,11 @@ class Play extends Phaser.Scene {
     if (dirX) this.face = dirX;
     const drowsy = this.drowsy > time, tv = dirX * (this.mounted ? 165 : 125) * (drowsy ? 0.5 : 1); b.velocity.x += (tv - b.velocity.x) * (1 - Math.pow(ground ? 0.7 : 0.85, k));   // Rakhsh outruns any man
     this.coyote = ground ? 6 : Math.max(0, this.coyote - k);
+    // on the dunes a rise one tile high is stepped up, not jumped: walking into its lip lifts Rostam onto it
+    if (this.lv.smoothSteps && LIVE && ground && dirX && !this.frozen && !this.mounted && (dirX > 0 ? b.blocked.right : b.blocked.left)) {
+      const fx = dirX > 0 ? b.right + 2 : b.left - 2, at = y => this.layer.getTileAtWorldXY(fx, y), lip = at(b.bottom - 4);
+      if (lip?.collides && lip.index % 4 !== 3 && !at(b.bottom - TS - 4)?.collides && !at(b.bottom - 2 * TS - 4)?.collides) { p.setVelocityY(-250); b.velocity.x = dirX * 125; this.stepping = 14; }
+    }
     if (pressed.jump) this.buf = 6; pressed.jump = false;
     if (ground) this.airJumps = 1;
     if (this.buf > 0 && this.coyote > 0) { p.setVelocityY(drowsy ? -270 : -335); this.coyote = 0; this.buf = 0; sfx('jump'); this.fx('dust', p.x, b.bottom, { depth: 6 }); }
@@ -2942,7 +2949,8 @@ class Play extends Phaser.Scene {
     this.buf = Math.max(0, this.buf - k);
     if (ground && !this.wasGround && this.fallV > 200) this.fx('dust', p.x, b.bottom, { depth: 6 });
     this.wasGround = ground; this.fallV = b.velocity.y;
-    if (!keys.jump && b.velocity.y < -120) p.setVelocityY(b.velocity.y * Math.pow(0.85, k));
+    this.stepping = Math.max(0, (this.stepping || 0) - k);
+    if (!keys.jump && !this.stepping && b.velocity.y < -120) p.setVelocityY(b.velocity.y * Math.pow(0.85, k));   // a step up is not cut short
     this.cool -= k;
     this.counterT = Math.max(0, (this.counterT || 0) - k);
     this.attackBuf = pressed.attack && !this.frozen ? 7 : Math.max(0, (this.attackBuf || 0) - k);
@@ -3955,10 +3963,11 @@ class Play extends Phaser.Scene {
     this.time.delayedCall(3600, () => {
       this.player.anims.resume(); this.pose = null; this.frozen = false;
       toast('A ram, glowing like the dawn. It turns, and waits. Follow it.');
-      hint('<b>Follow the glowing ram</b>: it knows where the water is.');
+      hint(LIVE ? '<b>Follow the glowing ram</b> to the water. Your thirst does not wait: keep up, and watch the sand.' : '<b>Follow the glowing ram</b>: it knows where the water is.');
     });
   }
   ramGuide(k) {
+    if (LIVE) return this.ramLeads(k);
     const r = this.ram, p = this.player, d = r.x - p.x, end = this.ramStand;   // past the four towers, where it can watch them
     // it keeps a little ahead of Rostam, hurrying if he presses on, and turns to wait if he falls far behind
     // once it reaches the towers it walks steadily past them to its post on their far side, Rostam or no
@@ -3970,6 +3979,45 @@ class Play extends Phaser.Scene {
     r.glow.setPosition(r.x, r.y + 2);
     // among the towers it steps back into the background, smaller and in shadow, so the towers and Rostam stand out
     if (!r.back && r.x > 145 * TS && r.body.blocked.down) { r.back = true; r.body.setAllowGravity(false); r.setVelocityY(0); r.setDepth(1.5); r.glow.setDepth(1.4); this.tweens.add({ targets: r.glow, alpha: 0.5, duration: 900 }); r.setTint(0xd0c0a8); }
+  }
+  // As Ferdowsi tells it: the ram leads the dying hero to a spring. It keeps a little ahead along the dunes, hopping
+  // up each rise; if Rostam falls far behind it turns and waits. The desert does not let them pass quietly: scorpions
+  // burst from the sand along its path, and a vulture comes down out of the haze
+  ramLeads(k) {
+    const r = this.ram, p = this.player, d = r.x - p.x, end = this.springAt.x - TS;
+    if (this.ramDug) { r.setVelocityX(0); r.glow.setPosition(r.x, r.y + 2); return; }
+    const vx = r.x >= end ? 0 : d > 150 ? 0 : Phaser.Math.Clamp((p.x + 80 - r.x) * 2.2, 0, 140);
+    r.setVelocityX(vx); r.setFlipX(d > 150);
+    if (vx > 8 && r.body.blocked.right && r.body.blocked.down) r.setVelocityY(-280);   // hop up the rise
+    if (vx > 8 || !r.body.blocked.down) { if (r.anims.currentAnim?.key !== 'ram-walk' || !r.anims.isPlaying) r.play('ram-walk'); r.anims.timeScale = Math.max(0.8, vx / 62); }
+    else { r.anims.stop(); r.setFrame(0); }
+    if (d > 150 && !this.toldRamWait) { this.toldRamWait = true; toast('The ram stops and looks back for you.'); }
+    r.glow.setPosition(r.x, r.y + 2);
+    // ambushes along the way, each sprung once as the ram passes
+    this.ramAmbush ||= [[133, 'a'], [137, 'v'], [142, 'a'], [153, 'a']];
+    for (const am of this.ramAmbush) if (!am.done && r.x > (am[0] - 3) * TS) {
+      am.done = true; const x = (am[0] + 2) * TS + TS / 2, y = (this.groundAt(x) ?? 14) * TS;
+      if (am[1] === 'v') this.spawnFoe('vulture', x + 4 * TS, 6 * TS); else bury(this, this.spawnFoe('scorpion', x, y));
+    }
+  }
+  // at the dry rock the ram stops and paws at the sand: the water is here, and so is its guardian
+  ramDigs() {
+    this.ramDug = true; const r = this.ram; r.setVelocityX(0); r.setFlipX(false); r.anims.stop(); r.setFrame(0); hint(null);
+    toast('The ram stops at a dry rock and paws the sand. The water is here... and the ground begins to tremble.');
+    for (let i = 0; i < 4; i++) this.time.delayedCall(i * 280, () => { if (!r.active) return; this.tweens.add({ targets: r, y: r.y - 6, yoyo: true, duration: 120 }); this.fx('dust', r.x + 10, r.body.bottom, { depth: 6 }); sfx('rock'); });
+    this.time.delayedCall(1300, () => {
+      if (this.done) return; this.banish(this.springAt.x - 30 * TS, this.levelW);
+      this.tweens.add({ targets: r, x: this.springAt.x + 2.5 * TS, duration: 700, ease: 'Sine.easeOut' });   // it springs aside
+      this.startQueen();
+    });
+  }
+  // the guardian is dead, and the water bursts from the rock
+  springFlows() {
+    this.water = 100; this.renderWater(); sfx('win');
+    const x = this.springAt.x + 26, y = this.springAt.y;
+    this.cam.flash(350, 200, 240, 255); this.fx('beam', x, y + 1, { depth: 4 });
+    for (let k = 0; k < 4; k++) this.time.delayedCall(k * 220, () => this.fx('splash', x + (k - 1.5) * 14, y + 1, { depth: 6 }));
+    this.tweens.add({ targets: this.pool, alpha: 1, duration: 900, onComplete: () => this.tweens.add({ targets: this.pool, alpha: 0.85, yoyo: true, repeat: -1, duration: 900, ease: 'Sine.easeInOut' }) });
   }
   // the mace meets a curse and sends it back where it came from, faster
   deflect(sh) {
@@ -4198,8 +4246,8 @@ class Play extends Phaser.Scene {
     }
   }
   queenFallen() {
-    this.springOpen = true; this.boss = null;
-    toast('The Scorpion Queen is slain. The spring runs clear.'); hint('<b>Walk into the spring</b> to drink.');
+    this.springOpen = true; this.boss = null; if (LIVE) this.springFlows();
+    toast(LIVE ? 'The Scorpion Queen is slain, and water bursts from the rock!' : 'The Scorpion Queen is slain. The spring runs clear.'); hint('<b>Walk into the spring</b> to drink.');
   }
   // foes in a stretch of the level vanish in smoke
   banish(x0, x1) {
@@ -4300,7 +4348,7 @@ const CODEX = [
     facts: [['Nest', 'Mount Alborz'], ['Raised', 'Zal, Rostam\'s father'], ['Gift', 'Feathers to burn in need'], ['First seen', 'Every labour']] },
   { id: 'ram', group: 'hero', fa: 'میش', name: 'The Ram of the Spring', title: 'A guide sent to a dying man in the waste', art: ['k2/ram-walk', 8], bg: 'khan2-intro',
     lore: 'In the second labour there was no monster, only thirst. Rostam and Rakhsh crossed a waterless desert until the hero fell, his tongue cracked, and he prayed for mercy. A ram passed by him, and Rostam understood that where a beast goes there must be water. He followed it and found a spring. He blessed the ram, drank, and let Rakhsh drink.',
-    road: ['When the sandstorm parts, the ram appears and leads you on.', 'At the four bell towers it <b>rings the bells in order</b>. Watch, then ring them the same way to open the spring.'],
+    road: ['When Rostam falls to his knees and prays, the ram appears and <b>leads him to the hidden water</b>. Keep up: your thirst does not wait.', 'Scorpions burst from the sand along its path, and a vulture hunts overhead. Where it paws the sand, the water\'s guardian rises.'],
     facts: [['Labour', 'Khan II, the burning desert'], ['Gift', 'The hidden spring'], ['First seen', 'Khan II']] },
   { id: 'kavus', group: 'hero', fa: 'کی‌کاووس', name: 'Kay Kavus', title: 'King of Iran, blinded by the White Div', art: ['k7/kavus-sight', 9], port: 'kavus', bg: 'end2', say: 'kavus1',
     lore: 'Kay Kavus was a proud king, easily flattered. A Div disguised as a minstrel sang to him of Mazandaran\'s gardens and treasure, and he marched his army there against every warning. The White Div answered with a storm of sorcery: when it lifted, the king and all his warriors were blind and in chains. Only the blood of the White Div\'s heart, dropped into their eyes, could give them back their sight.',
