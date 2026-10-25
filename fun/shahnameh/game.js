@@ -5516,6 +5516,9 @@ if (location.hash === '#selftest') (async () => {
     const stuck = s.foes.getChildren().filter(f => { if (!f.active || !f.body.enable || !f.body.allowGravity) return false; const b = f.body; if (f.y > 20 * TS) return true;
       for (let x = b.left + 3; x <= b.right - 3; x += 6) for (let y = b.top + 3; y <= b.bottom - 4; y += 6) { const t = tile(x, y); if (t && (t.collides || t.index % 4 === 2)) return true; } return false; });
     say(!stuck.length, `Khan ${ROMAN[n]}: no foe stuck in the ground or a platform${stuck.length ? ` (${stuck.map(f => f.kind + '@' + Math.round(f.x / TS)).join(', ')})` : ''}`);
+    // Teleport probes must not ignite checkpoints and start a fire stand: its arena
+    // would clamp Rostam away from the foe being tested. Checkpoint geometry is checked above.
+    s.altars.forEach(a => { a.lit = true; });
     // every foe on its own: Rostam stands beside it on open ground, and it must reach him and land a blow within seven
     // seconds, without sticking in the ground (a foe with no open ground near it, such as a bird over a pit, is skipped)
     { const top = x => { for (let r = 2; r < 17; r++) { const t = tile(x, r * TS + 2); if (t && t.collides) return r; } return 99; };
