@@ -3052,7 +3052,7 @@ class Play extends Phaser.Scene {
       this.turnFrom = this.face; this.motionKey = 'rostam-turn'; this.motionUntil = time + 210;
     }
     if (dirX) this.face = dirX;
-    const drowsy = this.drowsy > time, tv = dirX * (this.mounted ? 165 : 125) * (drowsy ? 0.5 : 1); b.velocity.x += (tv - b.velocity.x) * (1 - Math.pow(ground ? 0.7 : 0.85, k));   // Rakhsh outruns any man
+    const drowsy = this.drowsy > time, tv = dirX * (this.mounted ? 165 : 125) * (drowsy ? 0.5 : 1) * (cur === 2 && this.water < 25 ? 0.75 : 1); b.velocity.x += (tv - b.velocity.x) * (1 - Math.pow(ground ? 0.7 : 0.85, k));   // Rakhsh outruns any man
     if (this.shove && this.time.now < this.shove.until) b.velocity.x = this.shove.vx;   // thrown, he cannot help it
     this.coyote = ground ? 6 : Math.max(0, this.coyote - k);
     // on the dunes a rise one tile high is stepped up, not jumped: walking into its lip lifts Rostam onto it
@@ -4696,13 +4696,18 @@ const CODEX = [
   { id: 'ghul', group: 'foe', fa: 'غول', name: 'Ghul', title: 'A crawling fiend of the waste places', art: ['k6/ghul-leap', 9], bg: 'khan6-intro',
     lore: 'In Persian folklore the ghul haunts deserts and ruins, a shape-changer that leads travellers astray. In the game ghuls crawl with Arzhang\'s horde.',
     road: ['It crawls low, then <b>leaps</b>: jump the leap, and strike as it lands.'],
-    facts: [['Blows', '2'], ['Seen in', 'Khan VI, the horde']] }
+    facts: [['Blows', '2'], ['Seen in', 'Khan VI, the horde']] },
+  {"id": "dragon-warning", "road": ["Let each warning finish. The third reveals the dragon before the duel begins."], "group": "moment", "k": 3, "fa": "هشدارِ رخش", "name": "Rakhsh’s Three Warnings", "title": "Trust the companion who sees what you cannot", "art": ["k3/rakhsh-rear", 8], "port": "rakhsh", "bg": "khan3-reveal", "say": "rostam-rakhsh", "lore": "Twice Rakhsh woke Rostam, and twice the dragon vanished before the hero could see it. At the third warning the darkness lifted. Horse and rider faced the dragon together.", "facts": [["Moment", "The third warning"], ["Labour", "Khan III"]]},
+  {"id": "feast-song", "road": ["Rostam plays the tanbur before the lady approaches. Strike near her to speak the name of God."], "group": "moment", "k": 4, "fa": "آوازِ رستم", "name": "The Song at the Feast", "title": "A quiet song before the enchantment breaks", "art": ["rostam-tanbur", 6], "port": "rostam", "bg": "khan4-intro", "say": "khan4-feast", "lore": "Rostam found a feast and a lute beside a stream. He sat and sang of his hard road. A sorceress approached in the form of a beautiful lady, but the name of God exposed her disguise.", "facts": [["Instrument", "Tanbur"], ["Labour", "Khan IV"]]},
+  {"id": "olad-guide", "road": ["Follow Olad to the exit. He waits ahead if you fall behind."], "group": "moment", "k": 5, "fa": "اولادِ راهنما", "name": "Olad the Guide", "title": "Mercy turns a defeated rival into a guide", "art": ["k5/olad-bound", 8], "port": "olad", "bg": "khan5-lasso", "lore": "Caught in Rostam’s noose, Olad accepted his life on one condition: he would show the road to the Divs. Bound by the lasso, he leads ahead and waits when Rostam falls behind. His knowledge opens the way through Mazandaran.", "facts": [["Bond", "The lasso and a promise"], ["Labour", "Khan V"]]},
+  {"id": "rostam-warcry", "road": ["The war cry finishes before the first horde wave begins."], "group": "moment", "k": 6, "fa": "خروشِ رستم", "name": "The War Cry", "title": "One champion challenges a whole host", "art": ["rostam-roar", 6], "port": "rostam", "bg": "khan6-intro", "say": "rostam-warcry", "lore": "At Arzhang’s camp Rostam proclaimed his name. His terrible shout shook the host. The game holds that challenge before the horde closes around the fires.", "facts": [["Challenge", "I am Rostam! Who will stand against me?"], ["Labour", "Khan VI"]]},
+  {"id": "kavus-restored", "road": ["Bring the heart-blood to the king after defeating the White Div. The restoration closes the journey."], "group": "moment", "k": 7, "fa": "بیناییِ کاووس", "name": "The King Sees Again", "title": "The purpose of the seven labours fulfilled", "art": ["k7/kavus-sight", 9], "port": "kavus", "bg": "khan7-sight", "say": "khan7-sight", "lore": "Rostam brought the White Div’s heart-blood to Kay Kavus. With it he restored the king’s sight, ending the blindness laid on Iran’s army. The captive king could look upon his rescuer again.", "facts": [["Cure", "The White Div’s heart-blood"], ["Labour", "Khan VII"]]}
 ];
 const MET_AT = { rostam: 1, rakhsh: 1, simurgh: 1, ram: 2, kavus: 7, jackal: 1, div: 1, scorpion: 2, vulture: 2, bat: 3, serpent: 4, spearman: 5, divwarrior: 6, firediv: 6, ghul: 6 };
 const metAt = c => c.k || MET_AT[c.id] || 1;
 const known = c => unlocked() >= metAt(c) || location.hash === '#debug' && location.search.includes('allcodex');
 const LOCKED_FA = '؟';
-const CODEX_GROUPS = [['hero', 'Heroes and allies', 'پهلوانان'], ['boss', 'The seven foes', 'هفت خوان'], ['foe', 'On the road', 'دیوان و ددان']];
+const CODEX_GROUPS = [['hero', 'Heroes and allies', 'پهلوانان'], ['boss', 'The seven foes', 'هفت خوان'], ['foe', 'On the road', 'دیوان و ددان'], ['moment', 'Moments of the journey', 'رویدادهای سفر']];
 const mini = ([src, n, h], size, cls = '') => `<i class="spr ${cls}" style="--n:${n};--s:${size}px;--src:url(assets/${src}.png)" data-n="${n}" data-key="${src.split('/').pop()}"></i>`;
 // the miniatures move at their in-game speed: walkers and fliers loop, attacks play once and then the foe waits a few seconds
 let sprTimer = 0;
@@ -4742,7 +4747,7 @@ function showGuide(i) {
     $('gcount').textContent = `${gpg + 1} of ${CODEX.length} · ${CODEX.filter(known).length} met`; $('gleaf').scrollTop = 0; animateSprites($('s-guide'), 's-guide'); return;
   }
   const said = c.say && (LINES[c.say] || (c.say.startsWith('rostam-') ? ['Rostam', ROSTAM_SAYS[c.say.slice(7)]] : null));
-  const chip = c.group === 'hero' ? 'Hero and ally' : c.group === 'boss' ? `Khan ${ROMAN[c.k]} &middot; the ${['', 'first', 'second', 'third', 'fourth', 'fifth', 'sixth', 'seventh'][c.k]} labour` : 'Foe of the road';
+  const chip = c.group === 'moment' ? `Khan ${ROMAN[c.k]} · a moment of the journey` : c.group === 'hero' ? 'Hero and ally' : c.group === 'boss' ? `Khan ${ROMAN[c.k]} &middot; the ${['', 'first', 'second', 'third', 'fourth', 'fifth', 'sixth', 'seventh'][c.k]} labour` : 'Foe of the road';
   $('gleaf').innerHTML = `<article class="cdx-card cdx-${c.group}">
     <div class="cdx-hero" style="--bg:url('${storyArt(c.bg)}')"><div class="cdx-stage">${mini(c.art, 200, 'cdx-spr')}</div>
       <div class="cdx-id"><p class="cdx-chip">${chip}</p><p class="cdx-fa" lang="fa">${c.fa}</p><h2>${c.name}</h2><p class="cdx-title">${c.title}</p></div></div>
@@ -4777,7 +4782,7 @@ function renderHero() {
   if ($('heroGo')) $('heroGo').innerHTML = fresh ? 'Begin the journey' : done >= LABOURS ? 'Ride the road again' : `Continue <small>Khan ${ROMAN[next]} &middot; ${NAMES[next][0]}</small>`;
   if ($('heroGo')) $('heroGo').onclick = () => { pick = done >= LABOURS ? 1 : next; renderMap(); $('rideBtn').click(); };
   $('heroStats').innerHTML = [[`${done}<i>/7</i>`, 'labours won'], [`${stars}<i>/21</i>`, 'stars'], [`${fe}<i>/21</i>`, 'Simurgh feathers']].map(([v, l]) => `<li><b>${v}</b><span>${l}</span></li>`).join('');
-  $('castRow').innerHTML = CODEX.filter(c => c.group !== 'foe' && c.id !== 'ram').map(c =>
+  $('castRow').innerHTML = CODEX.filter(c => ['hero', 'boss'].includes(c.group) && c.id !== 'ram').map(c =>
     `<button class="jcast-it jc-${c.group}${known(c) ? '' : ' locked'}" data-cdx="${c.id}" aria-label="${known(c) ? c.name + ': open their page' : 'Locked: reach Khan ' + ROMAN[metAt(c)]}">${codexFace(c, 56)}<span class="jc-fa" lang="fa">${known(c) ? c.fa : LOCKED_FA}</span><b>${known(c) ? c.name : 'Unknown'}</b><small>${known(c) ? (c.group === 'boss' ? 'Khan ' + ROMAN[c.k] : 'Hero') : '&#128274; Khan ' + ROMAN[metAt(c)]}</small></button>`).join('');
   $('castRow').querySelectorAll('[data-cdx]').forEach(b => b.onclick = () => openGuide(b.dataset.cdx));
   animateSprites($('s-map'), 's-map');
