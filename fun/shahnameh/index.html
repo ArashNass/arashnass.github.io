@@ -788,6 +788,14 @@ body.calm #banner.on{animation-name:banCalm}@keyframes banCalm{0%{opacity:0}15%,
 @media (max-width:700px),(max-height:520px){#s-cine .cframe{bottom:calc(8vh + 96px)}}
 .csound{left:calc(max(16px,env(safe-area-inset-left)) + 150px);right:auto;display:inline-flex;align-items:center;gap:6px}
 .csound[aria-pressed="false"] .spk-on,.csound[aria-pressed="true"] .spk-off{display:none}
+
+/* the three end menus (labour won, fallen, paused) share one layout: the main action, then the same choices */
+.endMenu{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;max-width:520px;margin:14px auto 0}
+.endMenu>.btn{grid-column:1/-1}
+.endMenu>*{width:100%;margin:0}
+.endMenu>.mapBack{grid-column:auto}
+.endMenu>.hidden{display:none}
+@media (max-width:520px){.endMenu{grid-template-columns:1fr}}
 </style>
 
 <script defer src="/assets/engagement.js?v=1"></script>
@@ -847,7 +855,7 @@ body.calm #banner.on{animation-name:banCalm}@keyframes banCalm{0%{opacity:0}15%,
     <div class="wstars" id="winStars"></div>
     <div class="stats" id="winStats"></div>
     <p id="winBest"></p>
-    <div class="menu"><button class="btn" id="nextBtn">Next labour</button><button class="btn2" id="againBtn">Play again</button><button class="btn2" data-map>The seven labours</button></div>
+    <div class="menu endMenu"><button class="btn" id="nextBtn">Next labour</button><button class="btn2" id="againBtn">Restart the labour</button><button class="btn2" data-story>Read the tale</button><button class="btn2" data-guide>Heroes &amp; Foes</button><button class="btn2" data-help>How to play</button><button class="btn2" data-settings>Settings</button><button class="btn2 mapBack" data-map>&#8962; Journey map</button></div>
   </div>
 </section>
 <section class="ov hidden" id="s-dead">
@@ -856,7 +864,7 @@ body.calm #banner.on{animation-name:banCalm}@keyframes banCalm{0%{opacity:0}15%,
     <p class="kick">Even heroes fall</p>
     <h2>Rise again, Rostam</h2>
     <p class="story" id="deadTip">The road to Mazandaran is long. Try once more.</p>
-    <div class="menu"><button class="btn" id="retryBtn">Try again</button><button class="btn2 hidden" id="freshBtn">Start the labour again</button><button class="btn2" data-story>Read the tale</button><button class="btn2" data-guide>Heroes &amp; Foes</button></div>
+    <div class="menu endMenu"><button class="btn" id="retryBtn">Try again</button><button class="btn2 hidden" id="freshBtn">Restart the labour</button><button class="btn2" data-story>Read the tale</button><button class="btn2" data-guide>Heroes &amp; Foes</button><button class="btn2" data-help>How to play</button><button class="btn2" data-settings>Settings</button><button class="btn2 mapBack" data-map>&#8962; Journey map</button></div>
   </div>
 </section>
 
@@ -864,14 +872,8 @@ body.calm #banner.on{animation-name:banCalm}@keyframes banCalm{0%{opacity:0}15%,
   <div class="page">
     <p class="kick">The road waits</p>
     <h2>Menu</h2>
-    <div class="menu">
-      <button class="btn" id="resumeBtn">Continue</button>
-      <button class="btn2" data-map>Journey map</button>
-      <button class="btn2" data-story>Read the tale</button>
-      <button class="btn2" data-guide>Heroes &amp; Foes</button>
-      <button class="btn2" data-help>How to play</button>
-      <button class="btn2" data-settings>Settings</button>
-      <button class="btn2" id="restartBtn">Restart the labour</button>
+    <div class="menu endMenu">
+      <button class="btn" id="resumeBtn">Continue</button><button class="btn2" id="restartBtn">Restart the labour</button><button class="btn2" data-story>Read the tale</button><button class="btn2" data-guide>Heroes &amp; Foes</button><button class="btn2" data-help>How to play</button><button class="btn2" data-settings>Settings</button><button class="btn2 mapBack" data-map>&#8962; Journey map</button>
     </div>
     <div class="keys deskonly"><kbd>Esc</kbd> or <kbd>P</kbd> to pause &middot; <kbd>M</kbd> sound</div>
   </div>
@@ -1125,6 +1127,6 @@ body.calm #banner.on{animation-name:banCalm}@keyframes banCalm{0%{opacity:0}15%,
 <script src="boot.js?v=92"></script>
 <script src="assets/vendor/phaser-3.80.1.min.js" data-game-script="engine"></script>
 <script src="journey-events.js?v=124" data-game-script="journey"></script>
-<script src="game.js?v=181" data-game-script="game"></script>
+<script src="game.js?v=182" data-game-script="game"></script>
 </body>
 </html>
