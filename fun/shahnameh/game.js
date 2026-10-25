@@ -207,8 +207,9 @@ function buildMap() {
   // fire's clearing (48 to 59) stays open ground, so the pack can always reach Rostam there.
   row(64, 65, 7, '='); row(68, 69, 5, '='); row(72, 73, 4, '=');
   put(3, 13, 'P');
-  [[8, 12], [10, 11], [12, 12], [22, 11], [23, 10], [24, 11], [43, 10], [44, 9], [45, 10], [62, 9], [67, 8], [75, 8], [76, 8], [80, 5], [81, 5],
-    [64, 6], [65, 6], [68, 4], [69, 4], [72, 3]].forEach(([c, r]) => put(c, r, 'c'));
+  // Thirteen deliberate provisions: eight on the road before the marsh, five on its rafts and banks.
+  [[8, 12], [12, 12], [19, 12], [26, 12], [39, 12], [43, 12], [48, 12], [57, 12],
+    [62, 9], [67, 8], [75, 8], [80, 5], [83, 12]].forEach(([c, r]) => put(c, r, 'c'));
   // One jackal teaches the lunge, a pair tests it, the Div comes alone, then a jackal and a Div together.
   put(16, 13, 'j'); put(30, 13, 'j'); put(34, 13, 'j'); put(45, 13, 'd'); put(74, 13, 'd'); put(79, 13, 'j');
   put(27, 13, 'F'); put(52, 13, 'F'); put(110, 12, 'L');
@@ -835,34 +836,53 @@ function fireStand(s, S) {
   banner(S.fa, S.title); hint(S.start()); s.time.delayedCall(600, () => rostamSays('stand'));
   trackGame('stand_start', { level_name: String(cur) });
 }
+// Reserve a clear entry, and recheck it after the warning so running at the marker cannot cause a contact hit.
+function waveClear(s, g, x) {
+  const gap = Math.min(6 * TS, (g.R - g.L) / 2 - 26);
+  return Math.abs(s.player.x - x) >= gap && !s.foes.getChildren().some(f => f.active && f.body.enable && Math.abs(f.x - x) < 2 * TS);
+}
+function waveSpot(s, g, side) {
+  for (const dir of [side, -side]) for (const inset of [26, 58, 90]) {
+    const x = dir < 0 ? g.L + inset : g.R - inset;
+    if (x <= g.L + 18 || x >= g.R - 18 || !waveClear(s, g, x) || g.entries.some(at => Math.abs(at - x) < 2 * TS)) continue;
+    const r = s.groundAt(x), t = r != null && s.layer.getTileAtWorldXY(x, r * TS + 2);
+    if (t?.collides && t.index % 4 !== 3) return x;
+  }
+  return null;
+}
 function standTick(s) {
   const g = s.siege; if (!g) return;
   const b = s.player.body, S = g.S, N = S.waves.length;
   if (b.left < g.L + 4) { b.x += g.L + 4 - b.left; if (b.velocity.x < 0) b.velocity.x = 0; }
   if (b.right > g.R - 4) { b.x -= b.right - (g.R - 4); if (b.velocity.x > 0) b.velocity.x = 0; }
-  if (s.time.now < g.next) return;
+  if (s.time.now < g.next || g.pending > 0) return;
   if (g.live.some(f => f.active && f.body.enable)) return;
+  // The breather starts when the wave is cleared, rather than when it spawned.
+  if (g.wave > 0 && g.wave < N && !g.waiting) { g.waiting = true; g.next = s.time.now + 1700; return; }
   if (g.wave < N) {
-    const list = S.waves[g.wave++]; g.live = []; g.next = s.time.now + list.length * 380 + 900;
+    const list = S.waves[g.wave++]; g.live = []; g.entries = []; g.pending = list.length; g.waiting = false; g.next = s.time.now + list.length * 380 + 900;
     toast(S.wave(g.wave, N));
-    list.forEach((k, i) => s.time.delayedCall(i * 380, () => {
+    list.forEach((k, i) => { const enter = () => {
       if (s.siege !== g || s.done) return;
-      const side = i % 2 ? 1 : -1, edge = side < 0 ? g.L + 26 : g.R - 26;
-      const x = Math.abs(s.player.x - edge) < 50 ? edge - side * 70 : edge, y = (s.groundAt(x) ?? 14) * TS;
+      const side = i % 2 ? 1 : -1, x = waveSpot(s, g, side);
+      if (x == null) { s.time.delayedCall(250, enter); return; }
+      g.entries.push(x); const y = (s.groundAt(x) ?? 14) * TS;
       const kind = S.foe[k.toLowerCase()], flies = ['bat', 'vulture'].includes(kind);
       const mark = s.add.ellipse(x, y - 2, 30, 7, 0xffb84d, 0.45).setStrokeStyle(1, 0xffe7a2).setDepth(7);
       s.tweens.add({ targets: mark, alpha: 0.15, yoyo: true, repeat: 2, duration: 80 });
       s.time.delayedCall(480, () => {
         mark.destroy(); if (s.siege !== g || s.done) return;
+        g.entries.splice(g.entries.indexOf(x), 1);
+        if (!waveClear(s, g, x)) { s.time.delayedCall(250, enter); return; }
         s.fx('dust', x, y, { depth: 8 }); s.fx('poof', x, (flies ? y - 70 : y) - 8, { depth: 9 });
         const f = s.spawnFoe(kind, x, flies ? y - 70 : y);
         if (k !== k.toLowerCase()) {                               // the leader: larger, tinted, and two blows harder to kill
           f.hp = FOES[kind].hp + 2; f.setScale(f.scaleX * 1.22); f.setTint(S.lead); f.leader = true;
           if (f.body.allowGravity) { f.y = y - 1 - 0.47 * f.displayHeight; f.body.reset(x, f.y); }
         }
-        f.roam = [g.L + 6, g.R - 6]; f.dir = -side; f.setFlipX(f.dir < 0); f.jt = 30 + i * 20; g.live.push(f);
+        f.roam = [g.L + 6, g.R - 6]; f.dir = -side; f.setFlipX(f.dir < 0); f.jt = 30 + i * 20; g.live.push(f); g.pending--;
       });
-    }));
+    }; s.time.delayedCall(i * 380, enter); });
     return;
   }
   // the stand is won: the flames die down, and a roast lamb lies by the fire
@@ -964,7 +984,7 @@ function heldBeat(s, { fa, title, text, voice, min = 1800, pose }, then) {
 const LEVELS = {
   1: {
     epithet: 'It hunts the reeds by night, and nothing that comes there leaves', hud: 'Khan I &middot; The Lion', winTitle: 'The lion is slain', name: 'The Lion of the Reeds', fa: 'شیرِ نیستان', tiles: 'tiles-1', map: buildMap,
-    smoothSteps: true,
+    smoothSteps: true, feathers: [[24, 10], [69, 3], [87, 11]],
     load(L, q) {
       L.spritesheet('k1-slopes', 'assets/slopes.png' + q, { frameWidth: 16, frameHeight: 16 });
       L.image('tiles-1', 'assets/tiles.png' + q);
@@ -989,7 +1009,7 @@ const LEVELS = {
       s.reeds.tilePositionX = Math.round(sx * 0.7); s.fgReeds.tilePositionX = Math.round(sx * 1.25);
     },
     // roast lamb on the high perches, fruit and bread everywhere else
-    food: (c, r, n) => (c === 44 && r === 8) || (c === 80 && r === 5) ? 'lamb' : FOOD[1 + (n % 3)],
+    food: (c, r, n) => c === 80 && r === 5 ? 'lamb' : FOOD[1 + (n % 3)],
     create(s) {
       for (const fx of [14, 37, 58, 76, 98, 118]) s.add.sprite(fx * TS, 160, 'fx-fireflies').play({ key: 'fx-fireflies', startFrame: fx % 16 }).setDepth(11).setAlpha(0.9);
       s.khan1Beat = 0;
@@ -2022,7 +2042,7 @@ class Play extends Phaser.Scene {
     if (LIVE && !rush && cur === 1) for (let c = 89; c <= 92; c++) if (map[10][c] === '=') map[10][c] = '.';
     if (LIVE && !rush && hasLasso()) hangRing(map);
     // fewer, more meaningful provisions: of two side by side, one is kept (a roast lamb always stays)
-    if (LIVE && !rush) map.forEach((row, r) => row.forEach((ch, c) => { if (ch === 'c' && lv.food(c, r, 0) !== 'lamb' && (row[c - 1] === 'c' || (c * 7 + r) % 3 === 0)) row[c] = '.'; }));
+    if (LIVE && !rush && cur !== 1) map.forEach((row, r) => row.forEach((ch, c) => { if (ch === 'c' && lv.food(c, r, 0) !== 'lamb' && (row[c - 1] === 'c' || (c * 7 + r) % 3 === 0)) row[c] = '.'; }));
     this.slopes = LIVE && !rush && this.lv.smoothSteps ? cutSlopes(map) : {};
     $('lbl').innerHTML = lv.hud; $('waterPill').classList.add('hidden'); $('bossName').textContent = lv.bossName || lv.name;
     this.levelW = C * TS;
@@ -2071,7 +2091,7 @@ class Play extends Phaser.Scene {
     for (let k = 0; k < 3; k++) {
       const inK = ([c]) => c >= k * third && c < (k + 1) * third, high = (a, b) => a[1] - b[1] || b[0] - a[0];
       const pool = spots.filter(inK).sort(high), alt = ledges.filter(inK).sort(high);   // a high provision, or failing that a high ledge
-      const at = pool[0] || alt[0]; if (at) this.featherAt.set(at[0] + ',' + at[1], k);
+      const at = lv.feathers?.[k] || pool[0] || alt[0]; if (at) this.featherAt.set(at[0] + ',' + at[1], k);
     }
     for (const [key, k] of this.featherAt) { const [c, r] = key.split(',').map(Number); if (map[r][c] !== 'c') this.hiddenFeather(c * TS + TS / 2, r * TS + TS - 10, k); }
     map.forEach((row, r) => row.forEach((ch, c) => {
@@ -2632,14 +2652,6 @@ class Play extends Phaser.Scene {
     this.time.delayedCall(6000, () => { smoke.stop(); this.time.delayedCall(1600, () => smoke.destroy()); });
   }
   hitStop(ms) { this.physics.world.pause(); this.anims.pauseAll(); this.time.delayedCall(ms, () => { this.physics.world.resume(); this.anims.resumeAll(); }); }
-  roarRings(l) {
-    const x = l.x + (l.flipX ? -30 : 30), y = l.y - 4;
-    for (let i = 0; i < 3; i++) {
-      const g = this.add.ellipse(x, y, 10, 12).setStrokeStyle(2, 0xf6dc8c, 0.9).setDepth(9);
-      this.tweens.add({ targets: g, scaleX: 9, scaleY: 7, alpha: 0, delay: i * 160, duration: 650, ease: 'Quad.easeOut', onComplete: () => g.destroy() });
-    }
-    this.cam.shake(400, 0.006);
-  }
   startBoss() {
     this.bossOn = true; this.stormSky();
     const x0 = 86 * TS;
@@ -2651,7 +2663,7 @@ class Play extends Phaser.Scene {
     l.calm = () => ['stun', 'recover'].includes(l.state); l.contact = () => ['charge', 'pounce'].includes(l.state);
     l.immune = () => !l.calm(); l.immuneMsg = 'The lion\'s hide turns your blow. Jump its charge so it runs into the rocks, then strike while it is dazed.';
     this.physics.add.collider(l, this.layer, null, onFloor); this.physics.add.collider(l, [this.wall, this.wallR]);
-    sfx('roar'); this.roarRings(l);
+    sfx('roar'); this.cam.shake(400, 0.006);
     $('boss').classList.remove('hidden'); this.bossBar(); this.bossIntro(l);
     hint('<b>Roar:</b> it will charge, leap it so it hits the rocks. <b>Gold crouch:</b> a pounce. <b>Orange paw:</b> a swipe. Strike while the stars circle its head.');
   }
@@ -2845,7 +2857,7 @@ class Play extends Phaser.Scene {
         if (!move) { l.tm = 8; return; }
         this.bossAim(l, { roar: 'Roar: a charge is coming', crouch: 'Low crouch: a hunting leap', pawReady: 'Raised paw: step clear', circle: 'The lion circles you', quake: 'It rears: jump the shockwave' }[move]);
         l.state = move; l.tm = move === 'roar' ? 44 : move === 'circle' ? 30 : move === 'quake' ? 50 : 36; l.setVelocityX(0); l.anims.stop(); l.setFrame(0);
-        if (move === 'roar') { l.play('lion-roar'); sfx('roar'); this.roarRings(l); }
+        if (move === 'roar') { l.play('lion-roar'); sfx('roar'); this.cam.shake(400, 0.006); }
         else if (move === 'quake') { l.play('lion-roar'); l.setTint(0xffe2a8); l.quaked = false; }
         else if (move === 'circle') l.play('lion-walk');
       }
@@ -2895,7 +2907,7 @@ class Play extends Phaser.Scene {
   lionMeetsRakhsh(l) {
     if (this.ally?.active) { l.mad = true; return; }    // he is already here
     this.phase2 = true; this.intro = true; this.frozen = true; this.player.setVelocityX(0);
-    l.setVelocityX(0); l.clearTint(); l.play('lion-roar'); sfx('roar'); this.roarRings(l); this.cam.shake(500, 0.01);
+    l.setVelocityX(0); l.clearTint(); l.play('lion-roar'); sfx('roar'); this.cam.shake(500, 0.01);
     const y = 14 * TS + 2, post = this.cam.scrollX + 7 * TS;
     const r = this.ally = this.add.sprite(this.cam.scrollX - 70, y, 'rakhsh-gallop', 0).setOrigin(0.5, 0.97).setDepth(3.6).setScale(RAKHSH1).play('rakhsh-gallop');   // behind the fight; his full size, as when he rides to the rescue in the other labours
     r.post = post; r.state = 'enter'; r.next = 0;
@@ -3247,10 +3259,8 @@ class Play extends Phaser.Scene {
       if (this.intro) { B.setVelocityX?.(0); if (B.anims?.isPlaying && B.anims.currentAnim?.key?.endsWith('walk')) { B.anims.stop(); B.setFrame(0); } } else B.ai();
       if (B.faceRostam && B.body.enable) B.setFlipX(B.dir < 0);   // keep the artwork aligned with the committed attack
       this.bossBar(); this.bossMark(B, time);
-      // below half strength a boss burns with rage: red fire flickers up behind it
+      // Rage is heard and acted; only dazed stars sit over the boss sprite.
       if (B.lines?.rage && B.hp > 0 && B.hp <= B.max / 2) say(B.lines.rage, { once: true });
-      if (!B.rageFx && B.hp <= B.max / 2 && B.body.enable) { B.rageFx = this.fx('rage', B.x, B.body.bottom, { depth: B.depth - 0.05 }).setAlpha(0).setScale(Math.max(1.2, B.displayHeight / 88)); this.tweens.add({ targets: B.rageFx, alpha: 0.78, duration: 800 }); }
-      B.rageFx?.setPosition(Math.round(B.x), Math.round(B.body.bottom)).setVisible(B.body.enable && B.alpha > 0.5 && !B.sinking);
       // a boss never comes within mace reach of its arena's corner ledge: that ledge is a refuge, not a perch to strike from
       B.hitKeep = false;
       if (B.keep && B.body.enable && B.x < B.keep * TS) { B.x = B.keep * TS; if (B.body.velocity.x < 0) B.setVelocityX(0); B.hitKeep = true; }
