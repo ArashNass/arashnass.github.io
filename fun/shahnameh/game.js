@@ -1142,7 +1142,7 @@ const LEVELS = {
       'Fire altars and marsh lights push back the dark.', 'Bats dive at you. Swing as they swoop.', 'Two roast lambs wait on the high ledges.']
   },
   4: {
-    hud: 'Khan IV &middot; The Witch', winTitle: 'The witch unmasked', name: 'The Enchanted Garden', fa: 'زنِ جادو', bossName: 'The Witch', bossFa: 'زنِ جادو', tiles: 'tiles-4', map: map4,
+    hud: 'Khan IV &middot; The Witch', winTitle: 'The witch unmasked', name: 'The Enchanted Garden', fa: 'زنِ جادوگر', bossName: 'The Witch', bossFa: 'زنِ جادوگر', tiles: 'tiles-4', map: map4,
     load(L, q) { L.image('tiles-4', 'assets/k4/tiles.png' + q); L.image('k4-far', 'assets/k4/far.png' + q); L.image('altar', 'assets/altar.png' + q); },
     backdrop(s) {
       s.add.image(0, 0, 'k4-far').setOrigin(0).setScrollFactor(0);
@@ -1889,7 +1889,7 @@ function setMuted(m) {
   A.muted = m; store.set('sh-muted', m ? '1' : '0'); if (A.master) A.master.gain.value = m || A.background ? 0 : 0.8; if (m) hush(true);
   if (typeof storyReading !== 'undefined') refreshStoryListen();
   $('muteIco').setAttribute('d', m ? 'M4 9v6h4l5 4V5L8 9z M17 9l5 6 M22 9l-5 6' : 'M4 9v6h4l5 4V5L8 9z M16 9a4 4 0 0 1 0 6 M19 6a8 8 0 0 1 0 12');
-  if ($('journeySound')) { $('journeySound').textContent = m ? 'Sound off' : 'Sound on'; $('journeySound').setAttribute('aria-pressed', String(!m)); }
+  if ($('journeySound')) { $('journeySound').querySelector('.spk-l').textContent = m ? 'Sound off' : 'Sound on'; $('journeySound').setAttribute('aria-pressed', String(!m)); }
   music(!m && game && game.scene.isActive('play') && playing);
 }
 
@@ -4529,7 +4529,7 @@ const GUIDE = [
     tale: 'A dragon eighty cubits long ruled the night. Twice Rakhsh woke Rostam to warn him, and twice the dragon vanished into the dark. The third time God let Rostam see it, and with Rakhsh biting its neck he struck off its head.',
     how: ['You ride <b>Rakhsh</b>: faster, with a longer reach from the saddle.', 'The dragon <b>hides in the dark</b>; while hidden, blows pass through it.', 'When <b>Rakhsh rears and neighs</b> it is revealed. Read the warning: it can breathe flame, lunge or spit a spread of fireballs. Keep moving after it aims.', 'Wounded, it stays visible and may <b>flash gold before a follow-up lunge</b>. It still leaves a recovery window.'],
     more: [['k3/bat-fly', 8, 108, 'Bat', 'Darts down at you. Swing as it swoops, even over your head.']] },
-  { k: 4, fa: 'زنِ جادو', name: 'The Witch', art: ['k4/hag-cast', 8, 108],
+  { k: 4, fa: 'زنِ جادوگر', name: 'The Witch', art: ['k4/hag-cast', 8, 108],
     tale: 'In a green garden Rostam found wine, a lute and a feast. A beautiful woman came to share it, but when he spoke the name of God her face turned black. She was a witch, and the feast was a trap.',
     how: ['At the feast, <b>stand by the lady and strike</b> to speak the name of God.', 'Unmasked, she flies and hurls <b>green curses</b>: <b>strike them to send them back</b> at her, or jump them.', '<b>Strike her when she is solid</b>. A reflected curse dazes her: close in and strike. Purple mist warns that she will vanish; she leaves time to react after reappearing. She changes her curses if you stay still or keep jumping. Hurt, she calls up serpents.'],
     more: [['k4/serpent', 8, 108, 'Serpent', 'Sways, then lunges. Hit it as it rears.'], ['k3/bat-fly', 8, 108, 'Bat', 'Strike it as it swoops.']] },
@@ -4588,7 +4588,7 @@ const CODEX = [
   { id: 'dragon', group: 'boss', k: 3, fa: 'اژدها', name: 'The Dragon', title: 'Eighty cubits long, and hidden by the night', art: ['k3/dragon-fire', 8], port: 'dragon', bg: 'khan3-intro',
     lore: 'In the third labour a dragon eighty cubits long came out of the dark, a beast no lion or elephant dared approach. Twice Rakhsh stamped and woke his master; twice the dragon vanished and Rostam, seeing nothing, rebuked his horse. The third time God let the hero see it. Rakhsh tore at its shoulder with his teeth while Rostam struck off its head, and a river of venom poured across the plain.',
     facts: [['Sense', 'Only Rakhsh sees it in the dark'], ['Weak when', 'Revealed and exposed'], ['Beware', 'Marked fire, and its lunge'], ['Labour', 'Khan III']] },
-  { id: 'witch', group: 'boss', k: 4, fa: 'زنِ جادو', name: 'The Witch', title: 'A lady of the garden, until God\'s name is spoken', art: ['k4/hag-cast', 8], port: 'hag', bg: 'khan4-intro', say: 'witch2',
+  { id: 'witch', group: 'boss', k: 4, fa: 'زنِ جادوگر', name: 'The Witch', title: 'A lady of the garden, until God\'s name is spoken', art: ['k4/hag-cast', 8], port: 'hag', bg: 'khan4-intro', say: 'witch2',
     lore: 'Rostam came to a green garden beside a stream where a feast was laid: roast meat, bread and wine, and a lute. He took up the lute and sang of his own hard road. A sorceress heard him and came to him as a beautiful young woman. Rostam gave thanks to God for the gift, and at the holy name her face turned black and hideous. He caught her in his lasso and cut her in two.',
     facts: [['Disguise', 'The Lady of the Garden'], ['Unmask', 'Strike near her: the name of God'], ['Weak to', 'Her own curses, turned back'], ['Labour', 'Khan IV']] },
   { id: 'olad', group: 'boss', k: 5, fa: 'اولاد', name: 'Olad', title: 'Young warden of the green marches, and their sword', art: ['k5/olad-throw', 6], port: 'olad', bg: 'khan5-intro', say: 'olad1',
@@ -4642,6 +4642,10 @@ const CODEX = [
     road: ['It crawls low, then <b>leaps</b>: jump the leap, and strike as it lands.'],
     facts: [['Blows', '2'], ['Seen in', 'Khan VI, the horde']] }
 ];
+const MET_AT = { rostam: 1, rakhsh: 1, simurgh: 1, ram: 2, kavus: 7, jackal: 1, div: 1, scorpion: 2, vulture: 2, bat: 3, serpent: 4, spearman: 5, divwarrior: 6, firediv: 6, ghul: 6 };
+const metAt = c => c.k || MET_AT[c.id] || 1;
+const known = c => unlocked() >= metAt(c) || location.hash === '#debug' && location.search.includes('allcodex');
+const LOCKED_FA = '؟';
 const CODEX_GROUPS = [['hero', 'Heroes and allies', 'پهلوانان'], ['boss', 'The seven foes', 'هفت خوان'], ['foe', 'On the road', 'دیوان و ددان']];
 const mini = ([src, n, h], size, cls = '') => `<i class="spr ${cls}" style="--n:${n};--s:${size}px;--src:url(assets/${src}.png)" data-n="${n}" data-key="${src.split('/').pop()}"></i>`;
 // the miniatures move at their in-game speed: walkers and fliers loop, attacks play once and then the foe waits a few seconds
@@ -4649,7 +4653,7 @@ let sprTimer = 0;
 const sprTimers = {};
 function animateSprites(root, ov) {
   clearInterval(sprTimers[ov]);
-  const els = [...root.querySelectorAll('.spr')].map((el, i) => {
+  const els = [...root.querySelectorAll('.spr:not(.still)')].map((el, i) => {
     const key = el.dataset.key, n = +el.dataset.n;
     return { el, n, fps: FPS[key] || 10, attack: /smash|slash|thrust|fire|cast|roar|throw|strike|sting|pounce|charge|rear|attack|leap|dive|lunge/.test(key), t0: performance.now() - i * 700, last: -1 };
   });
@@ -4667,13 +4671,20 @@ function animateSprites(root, ov) {
 }
 const animateMinis = () => animateSprites($('gleaf'), 's-guide');
 // a character's face: their portrait where one is painted, else their own sprite
-const codexFace = (c, size) => c.port ? `<img class="cdx-face" src="assets/ui/port/${c.port}.png?v=${V}" alt="" width="${size}" height="${size}">` : mini(c.art, size, 'cdx-mini');
+const codexFace = (c, size) => c.port ? `<img class="cdx-face" src="assets/ui/port/${c.port}.png?v=${V}" alt="" width="${size}" height="${size}">` : mini(c.art, size, 'cdx-mini still');
 function showGuide(i) {
   gpg = (i + CODEX.length) % CODEX.length; const c = CODEX[gpg], road = c.road || GUIDE.find(g => g.k === c.k)?.how || [];
   $('gtabs').innerHTML = CODEX_GROUPS.map(([grp, label, fa]) => `<div class="cdx-grp"><p class="cdx-gh"><span lang="fa">${fa}</span>${label}</p>${CODEX.map((x, j) => x.group !== grp ? '' :
-    `<button class="cdx-it${j === gpg ? ' sel' : ''}" data-g="${j}" aria-current="${j === gpg}">${codexFace(x, 36)}<span>${x.name}</span></button>`).join('')}</div>`).join('');
+    `<button class="cdx-it${j === gpg ? ' sel' : ''}${known(x) ? '' : ' locked'}" data-g="${j}" aria-current="${j === gpg}" aria-label="${known(x) ? x.name : 'Locked: reach Khan ' + ROMAN[metAt(x)]}">${codexFace(x, 36)}<span>${known(x) ? x.name : 'Khan ' + ROMAN[metAt(x)]}</span></button>`).join('')}</div>`).join('');
   $('gtabs').querySelectorAll('button').forEach(b => b.onclick = () => showGuide(+b.dataset.g));
   $('gtabs').querySelector('.sel')?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+  if (!known(c)) {                                       // not yet met: a shadow, and where the road will bring them
+    $('gleaf').innerHTML = `<article class="cdx-card cdx-${c.group} cdx-locked">
+      <div class="cdx-hero" style="--bg:url('${storyArt(c.bg)}')"><div class="cdx-stage">${mini(c.art, 200, 'cdx-spr still')}</div>
+        <div class="cdx-id"><p class="cdx-chip">Not yet met</p><p class="cdx-fa" lang="fa">${LOCKED_FA}</p><h2>Unknown</h2><p class="cdx-title">This page of the book is still sealed.</p></div></div>
+      <div class="cdx-seal"><span class="cdx-lock" aria-hidden="true">&#128274;</span><p>Ride on to <b>Khan ${ROMAN[metAt(c)]}, ${NAMES[metAt(c)][0]}</b> to meet them, and their story will be written here.</p></div></article>`;
+    $('gcount').textContent = `${gpg + 1} of ${CODEX.length} · ${CODEX.filter(known).length} met`; $('gleaf').scrollTop = 0; animateSprites($('s-guide'), 's-guide'); return;
+  }
   const said = c.say && (LINES[c.say] || (c.say.startsWith('rostam-') ? ['Rostam', ROSTAM_SAYS[c.say.slice(7)]] : null));
   const chip = c.group === 'hero' ? 'Hero and ally' : c.group === 'boss' ? `Khan ${ROMAN[c.k]} &middot; the ${['', 'first', 'second', 'third', 'fourth', 'fifth', 'sixth', 'seventh'][c.k]} labour` : 'Foe of the road';
   $('gleaf').innerHTML = `<article class="cdx-card cdx-${c.group}">
@@ -4684,7 +4695,7 @@ function showGuide(i) {
       <section><h3>${c.group === 'boss' ? 'How to beat it' : c.group === 'foe' ? 'How to face it' : 'On the road'}</h3><ul>${road.map(r => `<li>${r}</li>`).join('')}</ul></section></div>
     <dl class="cdx-facts">${c.facts.map(([a, b]) => `<div><dt>${a}</dt><dd>${b}</dd></div>`).join('')}</dl></article>`;
   $('gleaf').querySelector('.cdx-listen')?.addEventListener('click', e => { audio(); narrate(e.currentTarget.dataset.say); });
-  $('gcount').textContent = `${gpg + 1} of ${CODEX.length}`;
+  $('gcount').textContent = `${gpg + 1} of ${CODEX.length} · ${CODEX.filter(known).length} met`;
   refreshControlLabels($('gleaf')); $('gleaf').scrollTop = 0; animateSprites($('s-guide'), 's-guide');
 }
 function openGuide(n) {
@@ -4707,11 +4718,11 @@ const bestOf = n => +(store.get(n === 1 ? 'sh-best' : 'sh-best-' + n) || 0);
 function renderHero() {
   const u = unlocked(), S = starsOf(), done = Object.keys(S).length, stars = Object.values(S).reduce((a, b) => a + b, 0), fe = Object.keys(feathers()).length;
   const next = Math.min(u, LABOURS), fresh = !done && u === 1;
-  $('heroGo').innerHTML = fresh ? 'Begin the journey' : done >= LABOURS ? 'Ride the road again' : `Continue <small>Khan ${ROMAN[next]} &middot; ${NAMES[next][0]}</small>`;
-  $('heroGo').onclick = () => { pick = done >= LABOURS ? 1 : next; renderMap(); $('rideBtn').click(); };
+  if ($('heroGo')) $('heroGo').innerHTML = fresh ? 'Begin the journey' : done >= LABOURS ? 'Ride the road again' : `Continue <small>Khan ${ROMAN[next]} &middot; ${NAMES[next][0]}</small>`;
+  if ($('heroGo')) $('heroGo').onclick = () => { pick = done >= LABOURS ? 1 : next; renderMap(); $('rideBtn').click(); };
   $('heroStats').innerHTML = [[`${done}<i>/7</i>`, 'labours won'], [`${stars}<i>/21</i>`, 'stars'], [`${fe}<i>/21</i>`, 'Simurgh feathers']].map(([v, l]) => `<li><b>${v}</b><span>${l}</span></li>`).join('');
   $('castRow').innerHTML = CODEX.filter(c => c.group !== 'foe' && c.id !== 'ram').map(c =>
-    `<button class="jcast-it jc-${c.group}" data-cdx="${c.id}" aria-label="${c.name}: open their page">${codexFace(c, 56)}<span class="jc-fa" lang="fa">${c.fa}</span><b>${c.name}</b><small>${c.group === 'boss' ? 'Khan ' + ROMAN[c.k] : 'Hero'}</small></button>`).join('');
+    `<button class="jcast-it jc-${c.group}${known(c) ? '' : ' locked'}" data-cdx="${c.id}" aria-label="${known(c) ? c.name + ': open their page' : 'Locked: reach Khan ' + ROMAN[metAt(c)]}">${codexFace(c, 56)}<span class="jc-fa" lang="fa">${known(c) ? c.fa : LOCKED_FA}</span><b>${known(c) ? c.name : 'Unknown'}</b><small>${known(c) ? (c.group === 'boss' ? 'Khan ' + ROMAN[c.k] : 'Hero') : '&#128274; Khan ' + ROMAN[metAt(c)]}</small></button>`).join('');
   $('castRow').querySelectorAll('[data-cdx]').forEach(b => b.onclick = () => openGuide(b.dataset.cdx));
   animateSprites($('s-map'), 's-map');
 }
@@ -4920,7 +4931,7 @@ function openMap(e) {
   mapFrom = document.querySelector('.ov:not(.hidden):not(#s-map)'); mapFrom?.classList.add('hidden');
   $('s-map').classList.toggle('home', !mapFrom); $('mapClose').classList.toggle('hidden', !mapFrom);   // the map is also the home screen
   pick = Math.min(unlocked(), LABOURS); if (!LEVELS[pick]) pick = cur;
-  renderMap(); renderDiff(); $('s-map').classList.remove('hidden'); renderHero(); $('s-map').scrollTop = 0; $('heroGo').focus({ preventScroll: true }); if (!mapFrom) embers();
+  renderMap(); renderDiff(); $('s-map').classList.remove('hidden'); renderHero(); $('s-map').scrollTop = 0; $('rideBtn').focus({ preventScroll: true }); if (!mapFrom) embers();
 }
 // embers and sparks rising over the home screen's panorama; the loop runs only while the home map is on screen
 let embRun = false;
@@ -4952,7 +4963,7 @@ document.querySelectorAll('[data-map]').forEach(b => b.onclick = openMap);
 $('journeySound').onclick = () => $('muteBtn').click();
 $('mapClose').onclick = closeMap; $('rideBtn').onclick = () => { if (pick === 1 && !store.get('sh-prologue')) { store.set('sh-prologue', '1'); cinema('opening', () => begin(1)); } else begin(pick); };
 $('mapTale').onclick = () => openStory(0, pick);
-$('heroCast').onclick = () => openGuide('rostam'); $('castAll').onclick = () => openGuide('rostam');
+$('castAll').onclick = () => openGuide('rostam');
 // the Fire Temple: provisions offered for lasting gifts. The game waits while Rostam stands at the fire.
 function renderTemple() {
   const u = upg(), have = purse(); $('purseN').textContent = have;
@@ -5105,6 +5116,7 @@ function say(k, { once = false, sub = true, then } = {}) {
 function sayIntro(n) { say('khan' + n, { once: true }); }
 function cineAdvanceAfter(ms) {
   const c = cine; if (!c) return;
+  if (c.shownAt) ms = Math.max(ms, c.shownAt + 9000 - Date.now());   // no picture leaves before it has been seen
   clearTimeout(c.auto); c.autoRemaining = null; c.autoDue = Date.now() + ms;
   if (A.background) { c.auto = 0; c.autoRemaining = ms; return; }
   c.auto = setTimeout(() => { if (cine === c) { c.auto = 0; cineNext(); } }, ms);
@@ -5134,15 +5146,15 @@ function cineShow(i) {
   ov.querySelectorAll('.cdots i').forEach((d, k) => d.classList.toggle('on', k === i));
   const cap = ov.querySelector('.ccap'); cap.classList.remove('done'); cap.querySelector('.fa').textContent = fa; const p = cap.querySelector('p'); p.textContent = '';
   // the narration types out, a few letters at a time; the next picture follows on its own after a reading pause
-  clearInterval(c.typing); clearTimeout(c.auto); c.autoRemaining = null; let n = 0;
+  clearInterval(c.typing); clearTimeout(c.auto); c.autoRemaining = null; c.shownAt = Date.now(); let n = 0;
   // with the narrator on, the words appear at his pace and the next picture waits for him to finish
-  const panel = i, a = narrate(img, () => { if (cine === c && c.i === panel) { c.speaking = false; if (!c.typing) cineAdvanceAfter(1400); } });
+  const panel = i, a = narrate(img, () => { if (cine === c && c.i === panel) { c.speaking = false; if (!c.typing) cineAdvanceAfter(3500); } });
   c.speaking = !!a;
   c.typing = setInterval(() => {
     if (A.background) return;
-    n = c.speaking ? (a.duration ? Math.floor(text.length * (A.ctx.currentTime * 1000 - a.t0) / (a.duration * 900)) : 0) : n + 2;
+    n = c.speaking ? (a.duration ? Math.floor(text.length * (A.ctx.currentTime * 1000 - a.t0) / (a.duration * 900)) : 0) : n + 1;
     p.textContent = text.slice(0, n);
-    if (n >= text.length) { clearInterval(c.typing); c.typing = 0; p.textContent = text; cap.classList.add('done'); if (!c.speaking) cineAdvanceAfter(2600 + text.length * 32); }
+    if (n >= text.length) { clearInterval(c.typing); c.typing = 0; p.textContent = text; cap.classList.add('done'); if (!c.speaking) cineAdvanceAfter(4000 + text.length * 45); }
   }, 28);
 }
 function cineNext() {
