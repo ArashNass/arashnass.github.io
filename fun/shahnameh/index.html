@@ -732,10 +732,10 @@ body.calm #banner.on{animation-name:banCalm}@keyframes banCalm{0%{opacity:0}15%,
 .spk{width:18px;height:18px;flex:none}.spk path{fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}.spk .spk-body{fill:currentColor}
 .journey-sound[aria-pressed="false"] .spk-on{display:none}.journey-sound[aria-pressed="true"] .spk-off{display:none}
 /* the map and its card share one frame */
-.journey-main{position:relative;gap:0!important;border:2px solid #c9a65a;border-radius:18px;padding:6px;background:#0d1520;box-shadow:0 0 0 1px #00000080,0 0 0 5px #0d1520,0 0 0 6px #c9a65a66,0 24px 70px #0008}
-.journey-main .map-scroll{border:0;border-radius:12px 0 0 12px;box-shadow:none}
-.journey-main .journey-card{border:0;border-left:1px solid #c9a65a55;border-radius:0 12px 12px 0;box-shadow:none}
-@media (max-width:900px){.journey-main .map-scroll{border-radius:12px 12px 0 0}.journey-main .journey-card{border-left:0;border-top:1px solid #c9a65a55;border-radius:0 0 12px 12px}}
+.journey-main{position:relative;gap:0!important;border-style:solid;border-width:26px;border-image:url(assets/ui/frame.png) 40 round;padding:0;background:#0d1520 padding-box;filter:drop-shadow(0 18px 36px #0009)}
+.journey-main .map-scroll{border:0;border-radius:0;box-shadow:none}
+.journey-main .journey-card{border:0;border-left:2px solid #c9a65a;border-radius:0;box-shadow:none}
+@media (max-width:900px){.journey-main{border-width:16px}.journey-main .journey-card{border-left:0;border-top:2px solid #c9a65a}}
 .journey-map{position:relative}
 .map-stats{position:absolute;left:14px;top:12px;z-index:3;display:flex;gap:14px;list-style:none;margin:0;padding:7px 14px;border:1px solid #c9a65a80;border-radius:12px;background:#0b1220d0;backdrop-filter:blur(3px)}
 .map-stats li{display:flex;flex-direction:column;align-items:center}
@@ -1084,6 +1084,6 @@ body.calm #banner.on{animation-name:banCalm}@keyframes banCalm{0%{opacity:0}15%,
 <script src="boot.js?v=92"></script>
 <script src="assets/vendor/phaser-3.80.1.min.js" data-game-script="engine"></script>
 <script src="journey-events.js?v=123" data-game-script="journey"></script>
-<script src="game.js?v=159" data-game-script="game"></script>
+<script src="game.js?v=160" data-game-script="game"></script>
 </body>
 </html>
