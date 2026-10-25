@@ -4282,41 +4282,143 @@ const GUIDE = [
     more: [['k3/rakhsh-gallop', 8, 104, 'Rakhsh', 'Carries Rostam through the third labour, and rears to warn of the dragon.'], ['simurgh-fly', 9, 150, 'The Simurgh', 'Drops a feather after every victory. Take it to end the labour.']] }
 ];
 let gpg = 0, guideFrom = null;
+// The Book of Heroes and Foes: one leaf for every soul on the road. lore: what Ferdowsi tells (or, where the game invents,
+// says so); road: how they fight in the game; facts: a few lines at a glance; art: the strip and frame count shown;
+// bg: the story painting behind them; say: a voiced line they speak, if any. A boss's road tips come from GUIDE
+const CODEX = [
+  { id: 'rostam', group: 'hero', fa: 'رستم', name: 'Rostam', title: 'Tahamtan, the mighty-bodied, champion of Iran', art: ['rostam-attack', 8], port: 'rostam', bg: 'open5', say: 'rostam-boss',
+    lore: 'Son of Zal and the princess Rudabeh, Rostam was so great a child that the Simurgh herself told his father how he must be brought into the world. As a boy he killed a maddened white elephant with a single blow of his grandfather Sam\'s ox-headed mace. Over his mail he wears the <em>babr-e bayan</em>, a beast-skin coat that neither fire nor water can pierce. When King Kavus lay blind in Mazandaran, Rostam chose the short and terrible road to save him: seven labours in as many days.',
+    road: ['Three quick strikes end in a heavy finisher. <b>Hold Strike</b> until the mace glows, then let go for a blow that breaks a foe\'s attack.', 'Dodge through a blow just as it lands for a <b>perfect dodge</b>: golden Farr and a stronger counterstrike.', 'Jump, then <b>jump again in the air</b>. Land on a foe to strike it twice as hard.', 'From the fifth labour he carries <b>Olad\'s lasso</b>: it drags foes to his feet, pulls fliers from the sky and hauls him up to golden rings.'],
+    facts: [['Weapon', 'The ox-headed mace of Sam'], ['Home', 'Zabulistan'], ['Father', 'Zal the white-haired'], ['First seen', 'Every labour']] },
+  { id: 'rakhsh', group: 'hero', fa: 'رخش', name: 'Rakhsh', title: 'The lightning-coloured horse no other rider could tame', art: ['k3/rakhsh-rear', 8], port: 'rakhsh', bg: 'khan1-outro',
+    lore: 'Young Rostam tested every horse in his father\'s herds by pressing his hand on its back; each one sank under him, until a rose-red colt with saffron flecks stood firm. That was Rakhsh, whose name means lightning. On the first night of the labours, while his master slept, Rakhsh fought the lion of the reeds alone and trampled it. In the dragon\'s darkness he woke Rostam three times, and was scolded for it twice, before the hero finally saw the beast.',
+    road: ['In the first labour he guards the sleeping Rostam, and gallops in at the lion\'s <b>half strength</b> to fight at his side: lure the lion into his charge.', 'Through the dragon\'s night you <b>ride him</b>: faster, with a longer reach from the saddle.', 'Gather <b>eight provisions</b> in a labour and he is well fed: he gallops in to kick the boss once.'],
+    facts: [['Coat', 'Rose-red, flecked with saffron'], ['Name', 'Lightning'], ['Fought', 'The lion and the dragon'], ['First seen', 'Khan I']] },
+  { id: 'simurgh', group: 'hero', fa: 'سیمرغ', name: 'The Simurgh', title: 'The great bird of Mount Alborz, guardian of Zal\'s house', art: ['simurgh-fly', 9], bg: 'open6',
+    lore: 'When Zal was born with hair as white as an old man\'s, his father left him on the slopes of Mount Alborz. The Simurgh carried the child to her nest and raised him among her young. When he returned to the world of men she gave him three of her feathers: burn one, she said, and I will come. A feather burned at Rostam\'s birth brought her wisdom; generations later her counsel would save Rostam himself.',
+    road: ['Every provision fills your golden <b>Farr</b>. When it is full, press Farr and her light strikes every foe on screen.', 'Three <b>Simurgh feathers</b> hide in every labour, often on high ledges. Find all three for a perfect labour.', 'Golden feathers marked <b>Simurgh trial</b> open optional routes: three sparks against the clock.'],
+    facts: [['Nest', 'Mount Alborz'], ['Raised', 'Zal, Rostam\'s father'], ['Gift', 'Feathers to burn in need'], ['First seen', 'Every labour']] },
+  { id: 'ram', group: 'hero', fa: 'میش', name: 'The Ram of the Spring', title: 'A guide sent to a dying man in the waste', art: ['k2/ram-walk', 8], bg: 'khan2-intro',
+    lore: 'In the second labour there was no monster, only thirst. Rostam and Rakhsh crossed a waterless desert until the hero fell, his tongue cracked, and he prayed for mercy. A ram passed by him, and Rostam understood that where a beast goes there must be water. He followed it and found a spring. He blessed the ram, drank, and let Rakhsh drink.',
+    road: ['When the sandstorm parts, the ram appears and leads you on.', 'At the four bell towers it <b>rings the bells in order</b>. Watch, then ring them the same way to open the spring.'],
+    facts: [['Labour', 'Khan II, the burning desert'], ['Gift', 'The hidden spring'], ['First seen', 'Khan II']] },
+  { id: 'kavus', group: 'hero', fa: 'کی‌کاووس', name: 'Kay Kavus', title: 'King of Iran, blinded by the White Div', art: ['k7/kavus-sight', 9], port: 'kavus', bg: 'end2', say: 'kavus1',
+    lore: 'Kay Kavus was a proud king, easily flattered. A Div disguised as a minstrel sang to him of Mazandaran\'s gardens and treasure, and he marched his army there against every warning. The White Div answered with a storm of sorcery: when it lifted, the king and all his warriors were blind and in chains. Only the blood of the White Div\'s heart, dropped into their eyes, could give them back their sight.',
+    road: ['He waits in a cage beyond the White Div\'s arena. Break the cage after the last battle, and the seven labours are done.'],
+    facts: [['Throne', 'Iran'], ['Curse', 'Blindness, by sorcery'], ['Cure', 'The White Div\'s heart-blood'], ['First seen', 'Khan VII']] },
+
+  { id: 'lion', group: 'boss', k: 1, fa: 'شیرِ نیستان', name: 'The Lion of the Reeds', title: 'It hunts the reeds by night, and nothing that comes there leaves', art: ['lion-pounce', 8], port: 'lion', bg: 'khan1-intro',
+    lore: 'Rostam lay down to sleep in a reed bed, with Rakhsh grazing close by. A lion whose lair it was came out of the thicket, saw the horse, and sprang. Rakhsh reared, struck it on the head with his hooves and tore it with his teeth until it died. When Rostam woke he scolded his horse: if you had fallen, how would I carry my mace and my tiger-skin to Mazandaran?',
+    facts: [['Strength', '8 blows on the hero\'s road'], ['Ally', 'Rakhsh joins at half strength'], ['Weak when', 'Stars circle its head'], ['Labour', 'Khan I']] },
+  { id: 'queen', group: 'boss', k: 2, fa: 'ملکهٔ کژدم', name: 'The Scorpion Queen', title: 'She guards the only water in the waste', art: ['k2/queen-sting', 9], port: 'queen', bg: 'khan2-intro', say: 'queen1',
+    lore: 'Ferdowsi\'s second labour is thirst itself: a desert so dry that no bird crossed it, where Rostam fell and prayed, and a ram led him to a spring. The game gives that spring a keeper: a queen of the scorpions who rises from the sand where the water hides, and her children with her.',
+    facts: [['Armour', 'Turns blows while she patrols'], ['Weak when', 'Her sting is stuck in the sand'], ['Beware', 'Venom, and eruptions from below'], ['Labour', 'Khan II']] },
+  { id: 'dragon', group: 'boss', k: 3, fa: 'اژدها', name: 'The Dragon', title: 'Eighty cubits long, and hidden by the night', art: ['k3/dragon-fire', 8], port: 'dragon', bg: 'khan3-intro',
+    lore: 'In the third labour a dragon eighty cubits long came out of the dark, a beast no lion or elephant dared approach. Twice Rakhsh stamped and woke his master; twice the dragon vanished and Rostam, seeing nothing, rebuked his horse. The third time God let the hero see it. Rakhsh tore at its shoulder with his teeth while Rostam struck off its head, and a river of venom poured across the plain.',
+    facts: [['Sense', 'Only Rakhsh sees it in the dark'], ['Weak when', 'Revealed and exposed'], ['Beware', 'Marked fire, and its lunge'], ['Labour', 'Khan III']] },
+  { id: 'witch', group: 'boss', k: 4, fa: 'زنِ جادو', name: 'The Witch', title: 'A lady of the garden, until God\'s name is spoken', art: ['k4/hag-cast', 8], port: 'hag', bg: 'khan4-intro', say: 'witch2',
+    lore: 'Rostam came to a green garden beside a stream where a feast was laid: roast meat, bread and wine, and a lute. He took up the lute and sang of his own hard road. A sorceress heard him and came to him as a beautiful young woman. Rostam gave thanks to God for the gift, and at the holy name her face turned black and hideous. He caught her in his lasso and cut her in two.',
+    facts: [['Disguise', 'The Lady of the Garden'], ['Unmask', 'Strike near her: the name of God'], ['Weak to', 'Her own curses, turned back'], ['Labour', 'Khan IV']] },
+  { id: 'olad', group: 'boss', k: 5, fa: 'اولاد', name: 'Olad', title: 'Young warden of the green marches, and their sword', art: ['k5/olad-throw', 6], port: 'olad', bg: 'khan5-intro', say: 'olad1',
+    lore: 'Olad kept the borderlands of Mazandaran, and when a stranger let his horse graze in the fields he rode out with his warriors. Rostam scattered them, caught Olad in his lasso, and offered him his life for a promise: to show the way to the Div chieftains and to the White Div\'s cave. Olad kept his word, and after the war Rostam made him king of Mazandaran.',
+    facts: [['Guard', 'His shield turns blows from the front'], ['Weak when', 'His guard is down, or from behind'], ['Fate', 'Bound by the lasso, then a guide'], ['Labour', 'Khan V']] },
+  { id: 'arzhang', group: 'boss', k: 6, fa: 'اَرژنگِ دیو', name: 'Arzhang Div', title: 'Chieftain of the Div host, who breaks men with his axe', art: ['k6/arzhang-charge', 8], port: 'arzhang', bg: 'khan6-intro', say: 'arzhang1',
+    lore: 'Olad led Rostam by night to the camp of Arzhang, the Divs\' commander. At dawn Rostam rode in roaring a war cry so terrible that it shook the camp. Arzhang came out of his tent; Rostam seized him by the head, tore it from his shoulders and flung it among the Divs. At the sight the whole host fled, and the road to the captive king lay open.',
+    facts: [['Host', 'Six waves of Divs at the gates'], ['Weak when', 'Dazed after charging the wall'], ['Beware', 'His charge, the stomp, and split floors'], ['Labour', 'Khan VI']] },
+  { id: 'white', group: 'boss', k: 7, fa: 'دیوِ سپید', name: 'The White Div', title: 'Master of Mazandaran, who blinded a king and all his army', art: ['k7/whitediv-roar', 6], port: 'white', bg: 'khan7-intro', say: 'white1',
+    lore: 'Beyond seven mountains, in a cave as dark as night, the White Div slept, vast as a mountain, his hair white as snow. Olad told Rostam to wait for noon, when the heat sends the Divs to sleep. Rostam slew the guards and went into the dark alone. They fought until both bled, then Rostam lifted the Div and dashed him to the ground, struck, and drew out his heart. Its blood restored the sight of Kay Kavus and his army.',
+    facts: [['Lair', 'A cave beyond seven mountains'], ['Weak when', 'His club is stuck in the ice'], ['Beware', 'Falling ice, and his rage below half'], ['Labour', 'Khan VII']] },
+
+  { id: 'jackal', group: 'foe', fa: 'شغال', name: 'Jackal', title: 'Scavenger of the lion\'s reeds', art: ['jackal-lunge', 6], bg: 'khan1-intro',
+    lore: 'Where the lion of the reeds hunted, the jackals followed for its leavings. In the game they run in packs, and they are the first foes Rostam meets.',
+    road: ['It <b>drops its head</b> before it lunges: dodge or jump the lunge, then strike while it pants.', 'A pack closes on the fire in the reeds; the leader is larger and takes three blows.'],
+    facts: [['Blows', '1 (the pack leader 3)'], ['Seen in', 'Khans I, II, III and V']] },
+  { id: 'div', group: 'foe', fa: 'دیو', name: 'Blue Div', title: 'A lesser demon of Mazandaran', art: ['div-strike', 6], bg: 'khan6-intro',
+    lore: 'In Persian lore the Divs are creatures of Ahriman, the spirit of destruction: demons of many shapes, some huge and some small, who serve the darkness. Mazandaran was their country.',
+    road: ['It sinks on its haunches, then <b>pounces</b>: step away, and strike as it lands.', 'In the White Div\'s cave they <b>sleep at noon</b>. Slip past, or strike a sleeper for a double blow.'],
+    facts: [['Blows', '2'], ['Seen in', 'Khans I, VI and VII']] },
+  { id: 'scorpion', group: 'foe', fa: 'کژدم', name: 'Scorpion', title: 'Child of the Scorpion Queen', art: ['k2/scorpion-sting', 9], bg: 'khan2-intro',
+    lore: 'An invention of the game\'s desert: the Scorpion Queen\'s brood, buried in the hot sand around the hidden water.',
+    road: ['Mounds in the sand hide them. When one <b>shudders</b>, step back: it bursts out with its sting raised.', 'Bait the sting, step back, then strike twice.'],
+    facts: [['Blows', '2'], ['Seen in', 'Khan II']] },
+  { id: 'vulture', group: 'foe', fa: 'کرکس', name: 'Vulture', title: 'It circles the thirsty, waiting', art: ['k2/vulture-dive', 4], bg: 'khan2-intro',
+    lore: 'In the waste where no bird flew, only the carrion birds kept watch over a man dying of thirst.',
+    road: ['A <b>golden flash</b> warns of its dive. Keep a landing clear and swing as it swoops low.', 'The lasso pulls it out of the sky, stunned.'],
+    facts: [['Blows', '1'], ['Seen in', 'Khan II']] },
+  { id: 'bat', group: 'foe', fa: 'خفاش', name: 'Bat', title: 'Wings of the dark places', art: ['k3/bat-fly', 8], bg: 'khan3-intro',
+    lore: 'Bats haunt the game\'s dark places: the dragon\'s night, the witch\'s garden, the Div camp and the White Div\'s cave.',
+    road: ['A golden flash warns of a dive. Swing as it swoops low.', 'Fliers pulled down by the lasso are left reeling.'],
+    facts: [['Blows', '1'], ['Seen in', 'Khans III, IV, VI and VII']] },
+  { id: 'serpent', group: 'foe', fa: 'مار', name: 'Garden Serpent', title: 'The witch\'s guardian among the roses', art: ['k4/serpent-strike', 9], bg: 'khan4-intro',
+    lore: 'The enchanted garden is not as kind as it looks: serpents lie coiled in the open beds, keepers of the witch\'s feast.',
+    road: ['Its <b>raised head</b> warns of a lunge. Step back, then strike as it rears.', 'Sleep-poppies grow beside them: strike a bud before it opens.'],
+    facts: [['Blows', '2'], ['Seen in', 'Khan IV']] },
+  { id: 'spearman', group: 'foe', fa: 'نیزه‌دار', name: 'Olad\'s Spearman', title: 'A border guard of the green marches', art: ['k5/spearman-thrust', 6], bg: 'khan5-intro',
+    lore: 'When Olad rode out against the stranger he brought his warriors with him. Ferdowsi says Rostam went among them like a lion among deer.',
+    road: ['A long reach: wait for the <b>thrust</b>, then close in before he draws back.', 'Draw the jackals away from the spears, and keep room to retreat.'],
+    facts: [['Blows', '2'], ['Seen in', 'Khan V']] },
+  { id: 'divwarrior', group: 'foe', fa: 'دیوِ جنگی', name: 'Div Warrior', title: 'A club-bearer of Arzhang\'s host', art: ['k6/divwarrior-smash', 8], bg: 'khan6-intro',
+    lore: 'The great Divs of Arzhang\'s camp, armed with clubs and horns, who scattered when their chieftain fell.',
+    road: ['Bait the club, <b>jump the shockwave</b> it sends along the ground, then strike its slow-turning back.', 'A heavy blow breaks its swing. It takes three blows.'],
+    facts: [['Blows', '3'], ['Seen in', 'Khans VI and VII']] },
+  { id: 'firediv', group: 'foe', fa: 'دیوِ آتش', name: 'Fire Div', title: 'A thrower of flame from the war camp', art: ['k6/firediv-throw', 9], bg: 'khan6-intro',
+    lore: 'Among the horde at the gates of Mazandaran come Divs that hurl fire: one of the six waves Rostam must break before Arzhang will face him.',
+    road: ['It throws fire in an arc: keep moving, and close in between throws.'],
+    facts: [['Blows', '2'], ['Seen in', 'Khan VI, the horde']] },
+  { id: 'ghul', group: 'foe', fa: 'غول', name: 'Ghul', title: 'A crawling fiend of the waste places', art: ['k6/ghul-leap', 9], bg: 'khan6-intro',
+    lore: 'In Persian folklore the ghul haunts deserts and ruins, a shape-changer that leads travellers astray. In the game ghuls crawl with Arzhang\'s horde.',
+    road: ['It crawls low, then <b>leaps</b>: jump the leap, and strike as it lands.'],
+    facts: [['Blows', '2'], ['Seen in', 'Khan VI, the horde']] }
+];
+const CODEX_GROUPS = [['hero', 'Heroes and allies', 'پهلوانان'], ['boss', 'The seven foes', 'هفت خوان'], ['foe', 'On the road', 'دیوان و ددان']];
 const mini = ([src, n, h], size, cls = '') => `<i class="spr ${cls}" style="--n:${n};--s:${size}px;--src:url(assets/${src}.png)" data-n="${n}" data-key="${src.split('/').pop()}"></i>`;
 // the miniatures move at their in-game speed: walkers and fliers loop, attacks play once and then the foe waits a few seconds
 let sprTimer = 0;
-function animateMinis() {
-  clearInterval(sprTimer);
-  const els = [...$('gleaf').querySelectorAll('.spr')].map((el, i) => {
+const sprTimers = {};
+function animateSprites(root, ov) {
+  clearInterval(sprTimers[ov]);
+  const els = [...root.querySelectorAll('.spr')].map((el, i) => {
     const key = el.dataset.key, n = +el.dataset.n;
-    return { el, n, fps: FPS[key] || 10, attack: /smash|slash|thrust|fire|cast|roar/.test(key), t0: performance.now() - i * 700, last: -1 };
+    return { el, n, fps: FPS[key] || 10, attack: /smash|slash|thrust|fire|cast|roar|throw|strike|sting|pounce|charge|rear|attack|leap|dive|lunge/.test(key), t0: performance.now() - i * 700, last: -1 };
   });
   const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const tick = () => {
-    if ($('s-guide').classList.contains('hidden')) return clearInterval(sprTimer);
+    if ($(ov).classList.contains('hidden')) return clearInterval(sprTimers[ov]);
     const now = performance.now();
     for (const a of els) {
-      const play = a.n / a.fps * 1000, cycle = a.attack ? play + 2600 : play, t = (now - a.t0) % cycle;
+      const play = a.n / a.fps * 1000, cycle = a.attack ? play + 1600 : play, t = (now - a.t0) % cycle;
       const f = still || t >= play ? 0 : Math.floor(t / 1000 * a.fps) % a.n;
       if (f !== a.last) { a.last = f; a.el.style.backgroundPositionX = `calc(var(--s) * ${-f})`; }
     }
   };
-  tick(); sprTimer = setInterval(tick, 25);
+  tick(); sprTimers[ov] = setInterval(tick, 25);
 }
+const animateMinis = () => animateSprites($('gleaf'), 's-guide');
+// a character's face: their portrait where one is painted, else their own sprite
+const codexFace = (c, size) => c.port ? `<img class="cdx-face" src="assets/ui/port/${c.port}.png?v=${V}" alt="" width="${size}" height="${size}">` : mini(c.art, size, 'cdx-mini');
 function showGuide(i) {
-  gpg = (i + GUIDE.length) % GUIDE.length; const g = GUIDE[gpg];
-  $('gtabs').innerHTML = GUIDE.map((x, j) => `<button class="${j === gpg ? 'sel' : ''}" data-g="${j}" aria-label="${x.kick || 'Khan ' + ROMAN[x.k]}: ${x.name}">${x.tab || ROMAN[x.k]}</button>`).join('');
+  gpg = (i + CODEX.length) % CODEX.length; const c = CODEX[gpg], road = c.road || GUIDE.find(g => g.k === c.k)?.how || [];
+  $('gtabs').innerHTML = CODEX_GROUPS.map(([grp, label, fa]) => `<div class="cdx-grp"><p class="cdx-gh"><span lang="fa">${fa}</span>${label}</p>${CODEX.map((x, j) => x.group !== grp ? '' :
+    `<button class="cdx-it${j === gpg ? ' sel' : ''}" data-g="${j}" aria-current="${j === gpg}">${codexFace(x, 36)}<span>${x.name}</span></button>`).join('')}</div>`).join('');
   $('gtabs').querySelectorAll('button').forEach(b => b.onclick = () => showGuide(+b.dataset.g));
-  $('gleaf').innerHTML = `<div class="gcard"><div class="gport k${g.k}">${g.k === 1 || g.k === 3 ? `<img class="foePortrait" src="assets/ui/port/${g.k === 1 ? 'lion' : 'dragon'}.png?v=${V}" alt="${g.name}">` : mini(g.art, 180)}</div>
-    <div class="gtext"><div class="fa">${g.fa}</div><h2>${g.name}</h2><p class="kick">${g.kick || `Khan ${ROMAN[g.k]} &middot; ${NAMES[g.k][0]}`}</p><p class="gtale">${g.tale}</p></div></div>
-    <div class="ghow"><h3>${g.k ? 'How to beat it' : 'How they help'} ${g.k ? '<span class="gkey"><i class="kz"></i>stars: dazed, strike now</span>' : ''}</h3><ol>${g.how.map(h => `<li>${h}</li>`).join('')}</ol></div>
-    <h3 class="galso">${g.k ? 'Also on this road' : 'Who they are'}</h3><div class="gmore">${g.more.map(([src, n, h, name, tip]) => `<div>${name === 'Rakhsh' ? `<img class="foePortrait small" src="assets/ui/port/rakhsh.png?v=${V}" alt="Rakhsh">` : mini([src, n, h], 64)}<p><b>${name}</b>${tip}</p></div>`).join('')}</div>`;
-  refreshControlLabels($('gleaf')); $('gleaf').scrollTop = 0; animateMinis();
+  $('gtabs').querySelector('.sel')?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+  const said = c.say && (LINES[c.say] || (c.say.startsWith('rostam-') ? ['Rostam', ROSTAM_SAYS[c.say.slice(7)]] : null));
+  const chip = c.group === 'hero' ? 'Hero and ally' : c.group === 'boss' ? `Khan ${ROMAN[c.k]} &middot; the ${['', 'first', 'second', 'third', 'fourth', 'fifth', 'sixth', 'seventh'][c.k]} labour` : 'Foe of the road';
+  $('gleaf').innerHTML = `<article class="cdx-card cdx-${c.group}">
+    <div class="cdx-hero" style="--bg:url('${storyArt(c.bg)}')"><div class="cdx-stage">${mini(c.art, 200, 'cdx-spr')}</div>
+      <div class="cdx-id"><p class="cdx-chip">${chip}</p><p class="cdx-fa" lang="fa">${c.fa}</p><h2>${c.name}</h2><p class="cdx-title">${c.title}</p></div></div>
+    ${said ? `<blockquote class="cdx-quote"><span>\u201c${said[1]}\u201d</span>${VOICED.has(c.say) ? `<button class="cdx-listen" data-say="${c.say}" aria-label="Hear ${c.name}">&#9654; Hear it</button>` : ''}</blockquote>` : ''}
+    <div class="cdx-cols"><section><h3>In the Shahnameh</h3><p>${c.lore}</p></section>
+      <section><h3>${c.group === 'boss' ? 'How to beat it' : c.group === 'foe' ? 'How to face it' : 'On the road'}</h3><ul>${road.map(r => `<li>${r}</li>`).join('')}</ul></section></div>
+    <dl class="cdx-facts">${c.facts.map(([a, b]) => `<div><dt>${a}</dt><dd>${b}</dd></div>`).join('')}</dl></article>`;
+  $('gleaf').querySelector('.cdx-listen')?.addEventListener('click', e => { audio(); narrate(e.currentTarget.dataset.say); });
+  $('gcount').textContent = `${gpg + 1} of ${CODEX.length}`;
+  refreshControlLabels($('gleaf')); $('gleaf').scrollTop = 0; animateSprites($('s-guide'), 's-guide');
 }
 function openGuide(n) {
   if (playing) setPaused(true);
   guideFrom = document.querySelector('.ov:not(.hidden):not(#s-guide)'); guideFrom?.classList.add('hidden');
-  $('s-guide').classList.remove('hidden'); showGuide(Math.max(0, GUIDE.findIndex(g => g.k === n))); $('gNext').focus();
+  $('s-guide').classList.remove('hidden'); showGuide(Math.max(0, typeof n === 'string' ? CODEX.findIndex(c => c.id === n) : CODEX.findIndex(c => c.k === n))); $('gNext').focus();
 }
 function closeGuide() { $('s-guide').classList.add('hidden'); if (guideFrom) { guideFrom.classList.remove('hidden'); guideFrom.querySelector('.btn')?.focus(); } else openMap(false); }
 // where each labour sits on the night map (percent of its width and height): river reeds, desert, the dragon's hills, garden, castle, Div camp, cave
@@ -4329,6 +4431,18 @@ const feathers = () => { try { return JSON.parse(store.get('sh-feathers') || '{}
 const starsOf = () => { try { return JSON.parse(store.get('sh-stars') || '{}'); } catch (e) { return {}; } };
 const legendsOf = () => { try { return JSON.parse(store.get('sh-legend') || '{}'); } catch (e) { return {}; } };
 const bestOf = n => +(store.get(n === 1 ? 'sh-best' : 'sh-best-' + n) || 0);
+// the welcome at the top of the journey page: where the hero stands, and the way on
+function renderHero() {
+  const u = unlocked(), S = starsOf(), done = Object.keys(S).length, stars = Object.values(S).reduce((a, b) => a + b, 0), fe = Object.keys(feathers()).length;
+  const next = Math.min(u, LABOURS), fresh = !done && u === 1;
+  $('heroGo').innerHTML = fresh ? 'Begin the journey' : done >= LABOURS ? 'Ride the road again' : `Continue <small>Khan ${ROMAN[next]} &middot; ${NAMES[next][0]}</small>`;
+  $('heroGo').onclick = () => { pick = done >= LABOURS ? 1 : next; renderMap(); $('rideBtn').click(); };
+  $('heroStats').innerHTML = [[`${done}<i>/7</i>`, 'labours won'], [`${stars}<i>/21</i>`, 'stars'], [`${fe}<i>/21</i>`, 'Simurgh feathers']].map(([v, l]) => `<li><b>${v}</b><span>${l}</span></li>`).join('');
+  $('castRow').innerHTML = CODEX.filter(c => c.group !== 'foe' && c.id !== 'ram').map(c =>
+    `<button class="jcast-it jc-${c.group}" data-cdx="${c.id}" aria-label="${c.name}: open their page">${codexFace(c, 56)}<span class="jc-fa" lang="fa">${c.fa}</span><b>${c.name}</b><small>${c.group === 'boss' ? 'Khan ' + ROMAN[c.k] : 'Hero'}</small></button>`).join('');
+  $('castRow').querySelectorAll('[data-cdx]').forEach(b => b.onclick = () => openGuide(b.dataset.cdx));
+  animateSprites($('s-map'), 's-map');
+}
 function renderMap() {
   const u = unlocked(), F = feathers(), road = $('road'), opening = $('s-map').classList.contains('hidden');
   road.querySelectorAll(':scope > :not(.road-fx)').forEach(e => e.remove());   // the living map layer stays between renders
@@ -4534,7 +4648,7 @@ function openMap(e) {
   mapFrom = document.querySelector('.ov:not(.hidden):not(#s-map)'); mapFrom?.classList.add('hidden');
   $('s-map').classList.toggle('home', !mapFrom); $('mapClose').classList.toggle('hidden', !mapFrom);   // the map is also the home screen
   pick = Math.min(unlocked(), LABOURS); if (!LEVELS[pick]) pick = cur;
-  renderMap(); renderDiff(); $('s-map').classList.remove('hidden'); $('rideBtn').focus(); if (!mapFrom) embers();
+  renderMap(); renderDiff(); $('s-map').classList.remove('hidden'); renderHero(); $('s-map').scrollTop = 0; $('heroGo').focus({ preventScroll: true }); if (!mapFrom) embers();
 }
 // embers and sparks rising over the home screen's panorama; the loop runs only while the home map is on screen
 let embRun = false;
@@ -4566,6 +4680,7 @@ document.querySelectorAll('[data-map]').forEach(b => b.onclick = openMap);
 $('journeySound').onclick = () => $('muteBtn').click();
 $('mapClose').onclick = closeMap; $('rideBtn').onclick = () => { if (pick === 1 && !store.get('sh-prologue')) { store.set('sh-prologue', '1'); cinema('opening', () => begin(1)); } else begin(pick); };
 $('mapTale').onclick = () => openStory(0, pick);
+$('heroCast').onclick = () => openGuide('rostam'); $('castAll').onclick = () => openGuide('rostam');
 // the Fire Temple: provisions offered for lasting gifts. The game waits while Rostam stands at the fire.
 function renderTemple() {
   const u = upg(), have = purse(); $('purseN').textContent = have;

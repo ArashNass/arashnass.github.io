@@ -647,6 +647,77 @@ body.calm #banner.on{animation-name:banCalm}@keyframes banCalm{0%{opacity:0}15%,
 #streakPill.bump{animation:streakBump .28s ease-out}@keyframes streakBump{40%{transform:scale(1.18)}}
 @media (max-width:760px){#streakPill .sx{display:none}}
 @media (prefers-reduced-motion:reduce){#streakPill.bump{animation:none}}
+
+/* the welcome on the journey page */
+.jhero{position:relative;display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr);align-items:end;min-height:340px;border:1px solid #d6b5745c;border-radius:18px;overflow:hidden;background:#0b1220 url(assets/bg/far.png) center 70%/cover no-repeat;image-rendering:pixelated;box-shadow:0 24px 70px #0007;isolation:isolate}
+.jhero:before{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(90deg,#070b16f0 0%,#070b16b8 40%,#070b1630 72%,transparent),linear-gradient(0deg,#0a0d14 0%,#0a0d14 9%,transparent 30%)}
+.jhero-copy{padding:34px 38px 30px;max-width:620px}
+.jhero-kick{font:600 11px/1.6 Inter,sans-serif;letter-spacing:.18em;text-transform:uppercase;color:#d6b574;margin:0 0 4px}
+.jhero-fa{font:700 clamp(34px,4.6vw,58px)/1.7 'Noto Nastaliq Urdu',serif;color:#f1d48a;margin:0;text-shadow:0 0 28px #e8b76755,0 3px 0 #2a1608}
+.jhero-line{font:400 clamp(15px,1.5vw,18px)/1.6 'EB Garamond',Georgia,serif;color:#e9e1cf;margin:2px 0 18px}
+.jhero-cta{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+.jhero-cta .btn small{display:block;font:600 10px/1.3 Inter,sans-serif;letter-spacing:.08em;opacity:.85;margin-top:2px}
+.jhero-stats{display:flex;gap:22px;list-style:none;padding:0;margin:20px 0 0}
+.jhero-stats li{display:flex;flex-direction:column}
+.jhero-stats b{font:700 22px/1.1 Cinzel,serif;color:#f6dc8c}.jhero-stats b i{font-style:normal;font-size:13px;color:#bca36a}
+.jhero-stats span{font:600 10px/1.5 Inter,sans-serif;letter-spacing:.12em;text-transform:uppercase;color:#b5c0c4}
+.jhero-stage{position:relative;height:100%;min-height:300px}
+.jhero-stage .spr{position:absolute;background-color:transparent;box-shadow:none;border-radius:0}
+.jh-rakhsh{right:6%;bottom:6px;filter:drop-shadow(0 8px 10px #000a)}
+.jh-rostam{right:42%;bottom:8px;filter:drop-shadow(0 8px 10px #000a)}
+.jh-simurgh{right:8%;top:10px;animation:jhfly 9s ease-in-out infinite;opacity:.95}
+@keyframes jhfly{0%,100%{transform:translate(0,0) scaleX(-1)}50%{transform:translate(-90px,16px) scaleX(-1)}}
+.jh-fire{position:absolute;right:20%;bottom:0;width:300px;height:70px;background:radial-gradient(ellipse at center bottom,#ffb35a55,transparent 70%);pointer-events:none}
+@media (prefers-reduced-motion:reduce){.jh-simurgh{animation:none}}
+@media (max-width:900px){.jhero{grid-template-columns:1fr;min-height:0}.jhero-stage{min-height:170px}.jhero-stage .spr{--s:140px!important}.jh-simurgh{--s:96px!important}.jhero-copy{padding:8px 22px 24px}}
+@media (max-width:520px){.jhero-stats{gap:14px}.jhero-stats b{font-size:18px}.jhero-cta .btn,.jhero-cta .btn2{flex:1 1 100%}}
+/* the cast beneath the map */
+.jcast{border:1px solid #c4a66d35;border-radius:18px;background:linear-gradient(155deg,#1a2633f2,#101923f5);padding:18px 20px 20px}
+.jcast-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px}
+.jcast-head h2{font:700 18px/1.3 Cinzel,serif;color:#f1e6c8;margin:0}
+.jcast-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(86px,1fr));gap:10px}
+.jcast-it{display:flex;flex-direction:column;align-items:center;gap:2px;padding:12px 6px 10px;border:1px solid #c4a66d40;border-radius:14px;background:radial-gradient(circle at 50% 18%,#25384c,#121c28 72%);color:#f2ead8;cursor:pointer;transition:transform .15s,border-color .15s,box-shadow .15s}
+.jcast-it:hover,.jcast-it:focus-visible{transform:translateY(-3px);border-color:#e8c25a;box-shadow:0 10px 24px #0008,0 0 0 1px #e8c25a55}
+.jcast-it.jc-boss{background:radial-gradient(circle at 50% 18%,#3b2230,#1a1219 72%)}
+.jcast-it .cdx-face,.jcast-it .spr{width:56px;height:56px;border-radius:50%;border:1px solid #e7c98780;image-rendering:pixelated;background-color:#0e1824}
+.jcast-it .jc-fa{font:700 14px/1.9 'Noto Nastaliq Urdu',serif;color:#e7c987;margin-top:4px}
+.jcast-it b{font:700 12px/1.25 Cinzel,serif;text-align:center}
+.jcast-it small{font:600 9px/1.4 Inter,sans-serif;letter-spacing:.12em;text-transform:uppercase;color:#9fb0b8}
+/* the Book of Heroes and Foes */
+#gleaf .cdx-card{display:flex;flex-direction:column;gap:14px;margin:0;padding:14px;border-radius:14px;border:1px solid #c4a66d50;background:linear-gradient(170deg,#18222f,#0e1520);box-shadow:0 10px 30px #0006;text-align:left;max-width:none}
+#gtabs .cdx-it{color:#3b2814}#gtabs .cdx-it:hover{background:#7a4a1a14}#gtabs .cdx-it.sel{background:#7a4a1a26;border-color:#8a5a1a;color:#24160a}
+#gtabs .cdx-gh{color:#7a4a1a;border-color:#7a4a1a55}#gtabs .cdx-gh span{color:#8a3a10}
+.guidePage{width:min(100%,1080px)}
+.cdx{display:grid;grid-template-columns:220px minmax(0,1fr);gap:16px;min-height:0;flex:1}
+.cdx-list{overflow:auto;min-height:0;padding-right:4px;scrollbar-width:thin}
+.cdx-gh{display:flex;justify-content:space-between;align-items:baseline;font:600 10px/1.5 Inter,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#bca36a;margin:10px 4px 6px;border-bottom:1px solid #bca36a40;padding-bottom:3px}
+.cdx-gh span{font:700 13px/1.6 'Noto Nastaliq Urdu',serif;letter-spacing:0;text-transform:none;color:#e7c987}
+.cdx-it{display:flex;align-items:center;gap:9px;width:100%;padding:5px 8px;margin:2px 0;border:1px solid transparent;border-radius:10px;background:none;color:#e9e1cf;font:600 13px/1.2 'EB Garamond',Georgia,serif;text-align:left;cursor:pointer}
+.cdx-it:hover{background:#ffffff0d}.cdx-it.sel{background:#e8c25a1f;border-color:#e8c25a80;color:#fff3cf}
+.cdx-it .cdx-face,.cdx-it .spr{width:36px;height:36px;border-radius:50%;flex:none;image-rendering:pixelated;border:1px solid #e7c98766;background-color:#0e1824}
+.cdx-card{display:flex;flex-direction:column;gap:14px;padding-bottom:6px}
+.cdx-hero{position:relative;display:grid;grid-template-columns:auto 1fr;align-items:end;gap:18px;min-height:230px;padding:14px 22px 16px;border-radius:14px;overflow:hidden;isolation:isolate;border:1px solid #c4a66d50;background:#0b1220}
+.cdx-hero:before{content:"";position:absolute;inset:0;z-index:-2;background:var(--bg) center/cover no-repeat;filter:saturate(.9)}
+.cdx-hero:after{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(90deg,#070b16b0,#070b16e8 60%),linear-gradient(0deg,#070b16f0,transparent 70%)}
+.cdx-stage .spr.cdx-spr{background-color:transparent;box-shadow:none;border-radius:0;filter:drop-shadow(0 6px 8px #000c)}
+.cdx-boss .cdx-stage .spr.cdx-spr{--s:220px!important}
+.cdx-id .cdx-fa{font:700 26px/1.8 'Noto Nastaliq Urdu',serif;color:#f1d48a;margin:0}
+.cdx-id h2{font:700 clamp(22px,2.6vw,32px)/1.15 Cinzel,serif;color:#fff3d6;margin:0 0 6px}
+.cdx-title{font:italic 400 16px/1.45 'EB Garamond',Georgia,serif;color:#e2d6bb;margin:0}
+.cdx-chip{display:inline-block;font:600 10px/1.5 Inter,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#1a1208;background:#e8c25a;border-radius:20px;padding:2px 10px;margin:0 0 4px}
+.cdx-boss .cdx-chip{background:#e07a5a;color:#1a0806}.cdx-foe .cdx-chip{background:#9fb0b8}
+.cdx-quote{display:flex;align-items:center;justify-content:space-between;gap:14px;margin:0;padding:10px 16px;border-left:3px solid #e8c25a;background:#e8c25a12;border-radius:0 10px 10px 0;font:italic 400 17px/1.5 'EB Garamond',Georgia,serif;color:#f4ead2}
+.cdx-listen{flex:none;font:600 11px/1 Inter,sans-serif;letter-spacing:.06em;color:#1a1208;background:#f6dc8c;border:0;border-radius:20px;padding:8px 12px;cursor:pointer}
+.cdx-cols{display:grid;grid-template-columns:1.15fr 1fr;gap:18px}
+.cdx-cols h3{font:700 13px/1.4 Cinzel,serif;letter-spacing:.06em;color:#e7c987;margin:0 0 6px}
+.cdx-cols p{font:400 16px/1.6 'EB Garamond',Georgia,serif;color:#e9e1cf;margin:0}
+.cdx-cols ul{margin:0;padding-left:18px;font:400 15px/1.55 'EB Garamond',Georgia,serif;color:#e9e1cf}.cdx-cols li{margin-bottom:6px}
+.cdx-facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin:0}
+.cdx-facts div{border:1px solid #c4a66d35;border-radius:10px;padding:8px 12px;background:#ffffff08}
+.cdx-facts dt{font:600 9px/1.5 Inter,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#9fb0b8}
+.cdx-facts dd{font:600 14px/1.35 'EB Garamond',Georgia,serif;color:#f4ead2;margin:0}
+@media (max-width:760px){.cdx{grid-template-columns:1fr}.cdx-list{display:flex;gap:6px;overflow-x:auto;overflow-y:hidden;padding-bottom:4px}.cdx-grp{display:contents}.cdx-gh{display:none}.cdx-it{flex:none;width:auto;flex-direction:column;font-size:11px;padding:4px 6px}.cdx-it span{max-width:72px;text-align:center}
+ .cdx-hero{grid-template-columns:1fr;justify-items:center;text-align:center}.cdx-stage .spr.cdx-spr,.cdx-boss .cdx-stage .spr.cdx-spr{--s:150px!important}.cdx-cols{grid-template-columns:1fr}.cdx-quote{flex-direction:column;align-items:flex-start}}
 </style>
 
 <script defer src="/assets/engagement.js?v=1"></script>
@@ -693,7 +764,7 @@ body.calm #banner.on{animation-name:banCalm}@keyframes banCalm{0%{opacity:0}15%,
     <h1>The Seven Labours of Rostam</h1>
     <p class="kick">Khan I &middot; The Lion of the Reeds</p>
     <p class="story">King Kay Kavus lies captive in Mazandaran, land of the Divs. <em>Rostam</em> sets out on the shortest and most perilous road. On the first night, among the reeds, a great lion stirs&hellip;</p>
-    <div class="btns"><button class="btn" id="playBtn">Begin</button><button class="btn2" data-map>The seven labours</button><button class="btn2" data-story>Read the tale</button><button class="btn2" data-guide>Book of Foes</button></div>
+    <div class="btns"><button class="btn" id="playBtn">Begin</button><button class="btn2" data-map>The seven labours</button><button class="btn2" data-story>Read the tale</button><button class="btn2" data-guide>Heroes &amp; Foes</button></div>
     <div class="keys deskonly"><kbd data-action-key="left">&larr;</kbd> <kbd data-action-key="right">&rarr;</kbd> move &middot; <kbd data-action-key="jump">&uarr; / Space</kbd> jump (twice for a super jump) &middot; <kbd data-action-key="attack">X</kbd> strike with the ox-head mace</div>
     <div class="keys touchonly">On-screen buttons to move, jump and strike.<br>Turn your phone sideways for the best view.</div>
   </div>
@@ -714,7 +785,7 @@ body.calm #banner.on{animation-name:banCalm}@keyframes banCalm{0%{opacity:0}15%,
     <p class="kick">Even heroes fall</p>
     <h2>Rise again, Rostam</h2>
     <p class="story" id="deadTip">The road to Mazandaran is long. Try once more.</p>
-    <div class="menu"><button class="btn" id="retryBtn">Try again</button><button class="btn2 hidden" id="freshBtn">Start the labour again</button><button class="btn2" data-story>Read the tale</button><button class="btn2" data-guide>Book of Foes</button></div>
+    <div class="menu"><button class="btn" id="retryBtn">Try again</button><button class="btn2 hidden" id="freshBtn">Start the labour again</button><button class="btn2" data-story>Read the tale</button><button class="btn2" data-guide>Heroes &amp; Foes</button></div>
   </div>
 </section>
 
@@ -726,7 +797,7 @@ body.calm #banner.on{animation-name:banCalm}@keyframes banCalm{0%{opacity:0}15%,
       <button class="btn" id="resumeBtn">Continue</button>
       <button class="btn2" data-map>Journey map</button>
       <button class="btn2" data-story>Read the tale</button>
-      <button class="btn2" data-guide>Book of Foes</button>
+      <button class="btn2" data-guide>Heroes &amp; Foes</button>
       <button class="btn2" data-help>How to play</button>
       <button class="btn2" data-settings>Settings</button>
       <button class="btn2" id="restartBtn">Restart the labour</button>
@@ -814,13 +885,13 @@ body.calm #banner.on{animation-name:banCalm}@keyframes banCalm{0%{opacity:0}15%,
     <div class="btns"><button class="btn" id="templeDone">Return to the road</button></div>
   </div>
 </section>
-<section class="ov hidden" id="s-guide" role="dialog" aria-modal="true" aria-label="The Book of Foes">
+<section class="ov hidden" id="s-guide" role="dialog" aria-modal="true" aria-label="The Book of Heroes and Foes">
   <div class="page guidePage">
-    <button class="x" id="guideClose" aria-label="Close the Book of Foes">&times;</button>
-    <div class="gtop"><span class="fa">دیونامه</span><span class="kick">The Book of Foes</span></div>
-    <nav class="gtabs" id="gtabs" aria-label="Labours"></nav>
-    <div class="gleaf" id="gleaf" tabindex="0"></div>
-    <div class="pager"><button class="btn2" id="gPrev">&larr; Back</button><span class="kick">Seven labours, seven foes</span><button class="btn2" id="gNext">Next &rarr;</button></div>
+    <button class="x" id="guideClose" aria-label="Close the book">&times;</button>
+    <div class="gtop"><span class="fa">پهلوان‌نامه</span><span class="kick">The Book of Heroes and Foes</span></div>
+    <div class="cdx"><nav class="cdx-list" id="gtabs" aria-label="Characters"></nav>
+    <div class="gleaf" id="gleaf" tabindex="0"></div></div>
+    <div class="pager"><button class="btn2" id="gPrev">&larr; Back</button><span class="kick" id="gcount"></span><button class="btn2" id="gNext">Next &rarr;</button></div>
   </div>
 </section>
 <section class="ov hidden" id="s-map" role="dialog" aria-modal="true" aria-label="The seven labours">
@@ -832,12 +903,26 @@ body.calm #banner.on{animation-name:banCalm}@keyframes banCalm{0%{opacity:0}15%,
         <button id="journeyMenu" class="journey-nav-link journey-menu" aria-expanded="false"><span aria-hidden="true">&#9776;</span>Menu</button>
         <button id="prologueBtn" class="journey-nav-link">Story scenes</button>
         <button class="journey-nav-link" data-help>Controls</button>
-        <button class="journey-nav-link" data-guide>Book of Foes</button>
+        <button class="journey-nav-link" data-guide>Heroes &amp; Foes</button>
         <button class="journey-nav-link" data-settings>Settings</button>
         <button id="journeySound" class="journey-sound" aria-label="Toggle sound" aria-pressed="false">Sound on</button>
         <button id="mapClose" class="journey-close" aria-label="Close">&times;</button>
       </nav>
     </header>
+    <section class="jhero" aria-label="Welcome">
+      <div class="jhero-copy">
+        <p class="jhero-kick">A pixel-art epic from Ferdowsi's Shahnameh</p>
+        <p class="jhero-fa" lang="fa">هفت خوانِ رستم</p>
+        <p class="jhero-line">Seven trials. One hero. A blinded king waiting in the dark.<br>Ride the short and terrible road to Mazandaran.</p>
+        <div class="jhero-cta"><button class="btn" id="heroGo">Begin the journey</button><button class="btn2" id="heroCast">Meet the heroes &amp; foes</button></div>
+        <ul class="jhero-stats" id="heroStats" aria-label="Your journey so far"></ul>
+      </div>
+      <div class="jhero-stage" aria-hidden="true">
+        <i class="spr jh-rakhsh" style="--n:4;--s:210px;--src:url(assets/k3/rakhsh-idle.png)" data-n="4" data-key="rakhsh-idle"></i>
+        <i class="spr jh-rostam" style="--n:4;--s:205px;--src:url(assets/rostam-idle.png)" data-n="4" data-key="rostam-idle"></i>
+        <span class="jh-fire"></span>
+      </div>
+    </section>
     <div class="journey-map-heading"><div><h2>Your Journey to Mazandaran</h2></div></div>
     <div class="journey-main">
       <section class="journey-map" aria-label="The road to Mazandaran">
@@ -852,6 +937,10 @@ body.calm #banner.on{animation-name:banCalm}@keyframes banCalm{0%{opacity:0}15%,
         </div>
       </aside>
     </div>
+    <section class="jcast" aria-label="Heroes and foes">
+      <div class="jcast-head"><h2>Heroes &amp; foes of the road</h2><button class="journey-nav-link" id="castAll">Open the book</button></div>
+      <div class="jcast-row" id="castRow"></div>
+    </section>
     <footer class="journey-footer"><a href="/fun/" class="journey-back">← The Funfair</a><div class="journey-extras"><button id="rushBtn" class="hidden">Boss rush</button></div></footer>
   </div>
 </section>
@@ -976,6 +1065,6 @@ body.calm #banner.on{animation-name:banCalm}@keyframes banCalm{0%{opacity:0}15%,
 <script src="boot.js?v=92"></script>
 <script src="assets/vendor/phaser-3.80.1.min.js" data-game-script="engine"></script>
 <script src="journey-events.js?v=122" data-game-script="journey"></script>
-<script src="game.js?v=151" data-game-script="game"></script>
+<script src="game.js?v=152" data-game-script="game"></script>
 </body>
 </html>
