@@ -862,6 +862,34 @@ body.calm #banner.on{animation-name:banCalm}@keyframes banCalm{0%{opacity:0}15%,
 .clipSeal span{display:grid;place-items:center;width:44px;height:44px;border-radius:50%;border:1px solid #c9a65a90;background:#0b1220;font-size:18px;opacity:.85}
 #s-clips .clip.locked:after{display:none}
 #s-clips .clip.locked span{color:#8fa0ae;font-style:italic}
+/* the end credits: names rolling up between heroes who stride in from either side */
+.roll.cr{position:fixed;inset:0;width:auto;margin:0;padding:0;overflow:hidden;background:radial-gradient(ellipse at 50% 110%,#5a1d0c 0,#1a0d10 38%,#07090f 75%)}
+.cr-sky{position:absolute;inset:0;pointer-events:none}
+.cr-sky i{position:absolute;bottom:-10px;width:3px;height:3px;border-radius:50%;background:#ffb85a;box-shadow:0 0 8px 2px #ff8a2a99;animation:crEmber var(--d) linear var(--w) infinite}
+@keyframes crEmber{0%{transform:translate(0,0);opacity:0}10%{opacity:1}100%{transform:translate(var(--x),-105vh);opacity:0}}
+.cr-bird{position:absolute;top:7%;left:-200px;width:192px;height:192px;background:url(assets/simurgh-fly.png) 0 0/auto 100% no-repeat;image-rendering:pixelated;animation:crBirdFlap .9s steps(9) infinite,crBirdFly 22s linear 3s infinite;opacity:.9;filter:drop-shadow(0 0 18px #ffd27a55)}
+@keyframes crBirdFlap{to{background-position-x:-1728px}}
+@keyframes crBirdFly{0%{transform:translate(0,0)}50%{transform:translate(calc(50vw + 100px),40px)}100%{transform:translate(calc(100vw + 400px),-20px)}}
+.cr-col{position:absolute;left:50%;top:0;bottom:0;width:min(560px,86vw);transform:translateX(-50%);-webkit-mask-image:linear-gradient(180deg,transparent 0,#000 14%,#000 86%,transparent 100%);mask-image:linear-gradient(180deg,transparent 0,#000 14%,#000 86%,transparent 100%)}
+.cr-track{position:absolute;left:0;right:0;top:0;text-align:center;transform:translateY(55vh);animation:crRoll 48s linear .4s forwards}
+@keyframes crRoll{from{transform:translateY(55vh)}to{transform:translateY(calc(-100% + 58vh))}}
+.cr-track section{margin:0 0 42px}
+.cr-track h3{font:600 11px/1.6 Inter,sans-serif;letter-spacing:.24em;text-transform:uppercase;color:#e3b25a;margin:0 0 8px}
+.cr-track p{font:400 18px/1.7 'EB Garamond',Georgia,serif;color:#efe6d4;margin:0}
+.cr-track .credit-heading{margin:0 0 70px}
+.cr-track .credit-footer{margin-top:90px;font:italic 400 20px/1.5 'EB Garamond',Georgia,serif;color:#f3dfa8}
+.cr-track .credit-footer .fa{font-size:42px;color:#e9c977;margin-bottom:6px}
+.cr-hero{position:absolute;margin:0;width:clamp(150px,22vw,300px);display:flex;flex-direction:column;align-items:center;pointer-events:none}
+.cr-hero img{width:100%;height:clamp(200px,40vh,380px);object-fit:contain;image-rendering:pixelated;filter:drop-shadow(0 0 22px #ff9a3a40) drop-shadow(0 14px 18px #000c)}
+.cr-hero figcaption{margin-top:8px;font:700 13px/1.3 Cinzel,serif;letter-spacing:.12em;text-transform:uppercase;color:#f3dfa8;text-align:center;text-shadow:0 2px 6px #000}
+.cr-hero figcaption span{display:block;font:400 20px/1.3 'Vazirmatn','Noto Naskh Arabic',serif;letter-spacing:0;color:#e9c977}
+.cr-l{left:3vw;animation:crInL 6.2s cubic-bezier(.2,.8,.2,1) forwards}
+.cr-r{right:3vw;animation:crInR 6.2s cubic-bezier(.2,.8,.2,1) forwards}
+.cr-r img{transform:scaleX(-1)}
+@keyframes crInL{0%{transform:translateX(-120%) rotate(var(--tilt));opacity:0}14%{transform:translateX(0) rotate(var(--tilt));opacity:1}50%{transform:translate(12px,-10px) rotate(var(--tilt))}84%{transform:translateX(0) rotate(var(--tilt));opacity:1}100%{transform:translateX(-60%) rotate(var(--tilt));opacity:0}}
+@keyframes crInR{0%{transform:translateX(120%) rotate(var(--tilt));opacity:0}14%{transform:translateX(0) rotate(var(--tilt));opacity:1}50%{transform:translate(-12px,-10px) rotate(var(--tilt))}84%{transform:translateX(0) rotate(var(--tilt));opacity:1}100%{transform:translateX(60%) rotate(var(--tilt));opacity:0}}
+@media (max-width:900px){.cr-hero{opacity:.55;width:34vw}.cr-hero img{height:30vh}.cr-col{width:min(520px,70vw)}}
+@media (prefers-reduced-motion:reduce){.cr-track{animation:none;top:0;position:relative;padding:12vh 0}.cr-col{overflow:auto}.cr-sky i,.cr-bird{display:none}}
 </style>
 
 <script defer src="/assets/engagement.js?v=1"></script>
@@ -1192,6 +1220,6 @@ body.calm #banner.on{animation-name:banCalm}@keyframes banCalm{0%{opacity:0}15%,
 <script src="boot.js?v=92"></script>
 <script src="assets/vendor/phaser-3.80.1.min.js" data-game-script="engine"></script>
 <script src="journey-events.js?v=124" data-game-script="journey"></script>
-<script src="game.js?v=196" data-game-script="game"></script>
+<script src="game.js?v=197" data-game-script="game"></script>
 </body>
 </html>

@@ -5094,16 +5094,19 @@ const CINE = {
     ['end3', 'جهان‌پهلوان', 'In the hall of kings, Kay Kavus honoured Rostam before the whole court, and old Zal wept with pride. Seven labours. Seven terrors. And the hero had overcome them all. Here ends the tale… but the Book of Kings has many more.']
   ]
 };
+// the end credits: a rolling column of names over a night of embers, an action theme beneath, and the heroes of the
+// Shahnameh striding in from the left and the right at random places while the names pass between them
 const CREDITS = `<header class="credit-heading"><p class="credit-eyebrow">A journey through Ferdowsi’s Shahnameh</p><div class="fa" lang="fa">هفت خوانِ رستم</div><h2>The Seven Labours of Rostam</h2><p class="credit-thanks">Thank you for playing.</p></header>
-  <section class="credit-cast" aria-label="Legendary heroes">
-    <figure><img src="assets/ui/cast-sohrab.png?v=${V}" alt="Sohrab with his sword and shield" width="1020" height="1542"><figcaption>Sohrab</figcaption></figure>
-    <figure><img class="credit-hero" src="assets/ui/title-rostam.png?v=${V}" alt="Rostam in his tiger-skin coat" width="360" height="300"><figcaption>Rostam</figcaption></figure>
-    <figure><img src="assets/ui/cast-arash.png?v=${V}" alt="Arash the Archer with his bow and arrow" width="1020" height="1542"><figcaption>Arash the Archer</figcaption></figure>
-  </section>
-  <div class="credit-details"><section><h3>Created by</h3><p>Arash Nassirpour</p><h3>Inspired by</h3><p>Ferdowsi’s <em>Shahnameh</em><br>The Book of Kings, c. 1010 CE</p></section>
-  <section><h3>Music &amp; sound</h3><p>Faramarz Payvar &amp; Hossein Dehlavi<br>“Concertino for Santur” (Wikimedia Commons, public domain)<br>Manoochehr Sadeghi &amp; Hossein Dehlavi<br>“Concertino for Santur” (CC BY-SA 3.0)<br>Mohammad R. Azadehfar, santur (CC BY-SA 4.0)<br>Leyth, “Segah” on setar (CC BY-SA 3.0)<br>I. Mazia, duduk (CC BY-SA 4.0)<br>Pixabay · alex-morgan<br>“Battle Boss Fight Game Music”<br>OpenGameArt · “100 CC0 SFX #2”</p></section>
-  <section><h3>Voices</h3><p>ElevenLabs</p><h3>Game engine</h3><p>Phaser 3</p></section></div>
-  <footer class="credit-footer">The road waits for the next hero.</footer>`;
+  <section><h3>Created by</h3><p>Arash Nassirpour</p></section>
+  <section><h3>Inspired by</h3><p>Ferdowsi’s <em>Shahnameh</em><br>The Book of Kings, c. 1010 CE</p></section>
+  <section><h3>Heroes of the road</h3><p>Rostam, son of Zal<br>Rakhsh, the lightning-coloured<br>The Simurgh of Mount Alborz<br>Kay Kavus, King of Iran<br>Olad, the guide</p></section>
+  <section><h3>Foes of the road</h3><p>The Lion of the Reeds<br>The Scorpion Queen<br>The Dragon<br>The Witch<br>Arzhang Div<br>The White Div</p></section>
+  <section><h3>Original score &amp; voices</h3><p>ElevenLabs Music &amp; Eleven v4</p></section>
+  <section><h3>Persian recordings</h3><p>Faramarz Payvar &amp; Hossein Dehlavi<br>“Concertino for Santur” (Wikimedia Commons, public domain)<br>Manoochehr Sadeghi &amp; Hossein Dehlavi<br>“Concertino for Santur” (CC BY-SA 3.0)<br>Mohammad R. Azadehfar, santur (CC BY-SA 4.0)<br>Leyth, “Segah” on setar (CC BY-SA 3.0)<br>I. Mazia, duduk (CC BY-SA 4.0)</p></section>
+  <section><h3>Music &amp; sound</h3><p>Pixabay · alex-morgan<br>“Battle Boss Fight Game Music”<br>OpenGameArt · “100 CC0 SFX #2”</p></section>
+  <section><h3>Game engine</h3><p>Phaser 3</p></section>
+  <footer class="credit-footer"><div class="fa" lang="fa">پایان</div>The road waits for the next hero.</footer>`;
+const CREDIT_CAST = [['title-rostam', 'Rostam', 'رستم'], ['cast-sohrab', 'Sohrab', 'سهراب'], ['cast-arash', 'Arash the Archer', 'آرش کمانگیر'], ['title-rakhsh', 'Rakhsh', 'رخش']];
 let cine = null;
 // the boss rush: the seven foes one after another, from each arena's door; hearts carry over, one restored between
 let rush = null;
@@ -5241,16 +5244,31 @@ function cineNext() {
 }
 function rollCredits() {
   const c = cine; clearTimeout(c.auto); c.auto = 0; c.autoRemaining = null; c.credits = true; hush();
-  const r = $('roll'); r.innerHTML = CREDITS;
-  const cast = r.querySelector('.credit-cast'), heroes = [...cast.children];
-  for (let i = heroes.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [heroes[i], heroes[j]] = [heroes[j], heroes[i]]; }
-  cast.append(...heroes); $('credits').classList.remove('hidden'); $('credits').scrollTop = 0;
+  const r = $('roll'); r.className = 'roll cr';
+  r.innerHTML = `<div class="cr-sky" aria-hidden="true">${Array.from({ length: 28 }, () => `<i style="left:${Math.random() * 100}%;--d:${6 + Math.random() * 8}s;--w:${-Math.random() * 14}s;--x:${Math.random() * 60 - 30}px"></i>`).join('')}</div>
+    <i class="cr-bird" aria-hidden="true"></i><div class="cr-cast" aria-hidden="true"></div>
+    <div class="cr-col"><div class="cr-track">${CREDITS}</div></div>`;
+  $('credits').classList.remove('hidden'); $('credits').scrollTop = 0;
   $('cineSkip').textContent = 'Finish ›'; $('cineSkip').focus({ preventScroll: true });
-  // Keep this short gallery still and readable; Finish remains available throughout.
-  r.style.removeProperty('--roll-duration'); r.style.animation = 'none';
+  // the music: the White Div's battle theme, the boldest piece in the game
+  if (audio() && !A.muted) { A.want = true; setTrack('k7-boss'); }
+  // the heroes stride in, side after side, each at a new height, and stride out again
+  const cast = r.querySelector('.cr-cast'), still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let side = Math.random() < 0.5, deck = [];
+  const enter = () => {
+    if (!deck.length) deck = CREDIT_CAST.slice().sort(() => Math.random() - 0.5);
+    const [img, name, fa] = deck.pop(); side = !side;
+    const f = document.createElement('figure'); f.className = 'cr-hero ' + (side ? 'cr-l' : 'cr-r');
+    f.style.top = (6 + Math.random() * 40) + '%'; f.style.setProperty('--tilt', (Math.random() * 4 - 2) + 'deg');
+    f.innerHTML = `<img src="assets/ui/${img}.png?v=${V}" alt=""><figcaption><span lang="fa">${fa}</span>${name}</figcaption>`;
+    cast.append(f); setTimeout(() => f.remove(), 6200);
+  };
+  if (!still) { enter(); c.castTimer = setInterval(enter, 3400); }
+  r.querySelector('.cr-track').addEventListener('animationend', () => { clearInterval(c.castTimer); r.classList.add('cr-done'); }, { once: true });
 }
 function cineEnd() {
-  const c = cine; if (!c) return; hush(); cine = null; clearInterval(c.typing); clearTimeout(c.auto);
+  const c = cine; if (!c) return; hush(); cine = null; clearInterval(c.typing); clearTimeout(c.auto); clearInterval(c.castTimer);
+  if (c.credits) { $('roll').className = 'roll'; $('roll').innerHTML = ''; if (A.ctx) pickTrack(); }
   $('s-cine').classList.add('hidden'); $('credits').classList.add('hidden');
   if (c.from && !c.done) c.from.classList.remove('hidden');
   if (!c.done && c.sceneActive) { game.scene.resume('play'); playing = c.wasPlaying; }
