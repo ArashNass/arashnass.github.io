@@ -4716,14 +4716,14 @@ function animateSprites(root, ov) {
   clearInterval(sprTimers[ov]);
   const els = [...root.querySelectorAll('.spr:not(.still)')].map((el, i) => {
     const key = el.dataset.key, n = +el.dataset.n;
-    return { el, n, fps: FPS[key] || 10, attack: /smash|slash|thrust|fire|cast|roar|throw|strike|sting|pounce|charge|rear|attack|leap|dive|lunge/.test(key), t0: performance.now() - i * 700, last: -1 };
+    return { el, n, fps: FPS[key] || 10, attack: /smash|slash|thrust|fire|cast|roar|throw|strike|sting|pounce|charge|rear|attack|leap|dive|lunge/.test(key), rest: +el.dataset.rest || 0, t0: performance.now() - i * 700, last: -1 };
   });
   const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const tick = () => {
     if ($(ov).classList.contains('hidden')) return clearInterval(sprTimers[ov]);
     const now = performance.now();
     for (const a of els) {
-      const play = a.n / a.fps * 1000, cycle = a.attack ? play + 1600 : play, t = (now - a.t0) % cycle;
+      const play = a.n / a.fps * 1000, cycle = a.rest ? play + a.rest : a.attack ? play + 1600 : play,   // data-rest: play once, then stand still a while t = (now - a.t0) % cycle;
       const f = still || t >= play ? 0 : Math.floor(t / 1000 * a.fps) % a.n;
       if (f !== a.last) { a.last = f; a.el.style.backgroundPositionX = `calc(var(--s) * ${-f})`; }
     }

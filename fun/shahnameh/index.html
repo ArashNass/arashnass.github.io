@@ -742,11 +742,11 @@ body.calm #banner.on{animation-name:banCalm}@keyframes banCalm{0%{opacity:0}15%,
 .map-stats b{font:700 16px/1.1 Cinzel,serif;color:#f6dc8c}.map-stats b i{font-style:normal;font-size:11px;color:#bca36a}
 .map-stats span{font:600 8px/1.5 Inter,sans-serif;letter-spacing:.12em;text-transform:uppercase;color:#b5c0c4}
 /* the hero and his horse at the foot of the page, the mountain behind them */
-.jduo{position:relative;height:300px;margin-top:6px;isolation:isolate}
+.jduo{position:relative;height:360px;margin-top:6px;isolation:isolate}
 .jduo:before{content:"";position:absolute;inset:-20px -16px 0;z-index:-1;background:url(assets/bg/far.png) right 62%/cover no-repeat;image-rendering:pixelated;opacity:.85;-webkit-mask-image:linear-gradient(90deg,transparent 0%,#000 35%,#000 80%,transparent 100%),linear-gradient(0deg,transparent 0%,#000 40%,#000 85%,transparent 100%);-webkit-mask-composite:source-in;mask-image:linear-gradient(90deg,transparent 0%,#000 35%,#000 80%,transparent 100%),linear-gradient(0deg,transparent 0%,#000 40%,#000 85%,transparent 100%);mask-composite:intersect}
 .jduo .spr{position:absolute;bottom:0;background-color:transparent;box-shadow:none;border-radius:0;filter:drop-shadow(0 6px 8px #000a)}
-.jd-rostam{left:4%;z-index:2}.jd-rakhsh{left:calc(4% + 64px);z-index:1}
-@media (max-width:600px){.jduo{height:200px}.jduo .spr{--s:160px!important}.jd-rakhsh{left:calc(4% + 28px)}.map-stats{gap:8px;padding:5px 9px;left:8px;top:8px}.map-stats b{font-size:13px}}
+.jd-rostam{left:4%;z-index:2}.jd-rakhsh{left:calc(4% + 80px);z-index:1}
+@media (max-width:600px){.jduo{height:230px}.jduo .spr{--s:190px!important}.jd-rakhsh{left:calc(4% + 28px)}.map-stats{gap:8px;padding:5px 9px;left:8px;top:8px}.map-stats b{font-size:13px}}
 
 /* the labour card never scrolls: it shows everything, and the map stretches beside it */
 #s-map .journey-main{align-items:stretch;height:auto!important;max-height:none!important;grid-template-rows:auto!important}
@@ -1049,8 +1049,8 @@ body.calm #banner.on{animation-name:banCalm}@keyframes banCalm{0%{opacity:0}15%,
       <div class="jcast-row" id="castRow"></div>
     </section>
     <div class="jduo" aria-hidden="true">
-      <i class="spr jd-rostam" style="--n:4;--s:230px;--src:url(assets/rostam-idle.png)" data-n="4" data-key="rostam-idle"></i>
-      <i class="spr jd-rakhsh" style="--n:4;--s:250px;--src:url(assets/k3/rakhsh-idle.png)" data-n="4" data-key="rakhsh-idle"></i>
+      <i class="spr jd-rostam" style="--n:4;--s:290px;--src:url(assets/rostam-idle.png)" data-n="4" data-rest="4200" data-key="rostam-idle"></i>
+      <i class="spr jd-rakhsh" style="--n:4;--s:315px;--src:url(assets/k3/rakhsh-idle.png)" data-n="4" data-rest="6500" data-key="rakhsh-idle"></i>
     </div>
     <footer class="journey-footer"><a href="/fun/" class="journey-back">← The Funfair</a><div class="journey-extras"><button id="rushBtn" class="hidden">Boss rush</button></div></footer>
   </div>
@@ -1176,6 +1176,6 @@ body.calm #banner.on{animation-name:banCalm}@keyframes banCalm{0%{opacity:0}15%,
 <script src="boot.js?v=92"></script>
 <script src="assets/vendor/phaser-3.80.1.min.js" data-game-script="engine"></script>
 <script src="journey-events.js?v=124" data-game-script="journey"></script>
-<script src="game.js?v=187" data-game-script="game"></script>
+<script src="game.js?v=188" data-game-script="game"></script>
 </body>
 </html>
