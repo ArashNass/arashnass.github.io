@@ -942,7 +942,7 @@ body.calm #banner.on{animation-name:banCalm}@keyframes banCalm{0%{opacity:0}15%,
   <button class="cnext" id="cineNext" aria-label="Next picture"></button>
   <div class="ccap" aria-live="polite"><div class="fa"></div><p></p><span class="chint">Click, tap or press Space to go on</span></div>
   <div class="cdots" aria-hidden="true"></div>
-  <button class="cskip cvoice" id="cineNarrator" aria-pressed="true">Narrator on</button><button class="cskip csound" id="cineSound" aria-label="Sound on or off" aria-pressed="true"><svg class="spk" viewBox="0 0 24 24" aria-hidden="true"><path class="spk-body" d="M4 9.5h3.2L12 5.5v13l-4.8-4H4z"/><path class="spk-on" d="M15.5 9a4.2 4.2 0 0 1 0 6M18.2 6.4a8 8 0 0 1 0 11.2"/><path class="spk-off" d="M16 9.5l5 5M21 9.5l-5 5"/></svg><span class="spk-l">Sound on</span></button><button class="cskip" id="cineSkip">Skip &rsaquo;</button>
+  <button class="cskip cvoice" id="cineNarrator" aria-pressed="true">Narrator on</button><button class="cskip csound" id="cineSound" aria-label="Sound on or off" aria-pressed="true"><svg class="spk" viewBox="0 0 24 24" aria-hidden="true"><path class="spk-body" d="M4 9.5h3.2L12 5.5v13l-4.8-4H4z"/><path class="spk-on" d="M15.5 9a4.2 4.2 0 0 1 0 6M18.2 6.4a8 8 0 0 1 0 11.2"/><path class="spk-off" d="M16 9.5l5 5M21 9.5l-5 5"/></svg><span class="spk-l">Music on</span></button><button class="cskip" id="cineSkip">Skip &rsaquo;</button>
   <div class="credits hidden" id="credits"><div class="roll" id="roll"></div></div>
 </section>
 <section class="ov hidden" id="s-clips" role="dialog" aria-modal="true" aria-label="The tale in pictures">
@@ -1026,7 +1026,7 @@ body.calm #banner.on{animation-name:banCalm}@keyframes banCalm{0%{opacity:0}15%,
         <button id="prologueBtn" class="journey-nav-link">Story scenes</button>
         <button class="journey-nav-link" data-help>Controls</button>
         <button class="journey-nav-link" data-settings>Settings</button>
-        <button id="journeySound" class="journey-nav-link journey-sound" aria-label="Toggle sound" aria-pressed="false"><svg class="spk" viewBox="0 0 24 24" aria-hidden="true"><path class="spk-body" d="M4 9.5h3.2L12 5.5v13l-4.8-4H4z"/><path class="spk-on" d="M15.5 9a4.2 4.2 0 0 1 0 6M18.2 6.4a8 8 0 0 1 0 11.2"/><path class="spk-off" d="M16 9.5l5 5M21 9.5l-5 5"/></svg><span class="spk-l">Sound on</span></button>
+        <button id="journeySound" class="journey-nav-link journey-sound" aria-label="Toggle music" aria-pressed="false"><svg class="spk" viewBox="0 0 24 24" aria-hidden="true"><path class="spk-body" d="M4 9.5h3.2L12 5.5v13l-4.8-4H4z"/><path class="spk-on" d="M15.5 9a4.2 4.2 0 0 1 0 6M18.2 6.4a8 8 0 0 1 0 11.2"/><path class="spk-off" d="M16 9.5l5 5M21 9.5l-5 5"/></svg><span class="spk-l">Sound on</span></button>
         <button id="mapClose" class="journey-close" aria-label="Close">&times;</button>
       </nav>
     </header>
@@ -1176,6 +1176,6 @@ body.calm #banner.on{animation-name:banCalm}@keyframes banCalm{0%{opacity:0}15%,
 <script src="boot.js?v=92"></script>
 <script src="assets/vendor/phaser-3.80.1.min.js" data-game-script="engine"></script>
 <script src="journey-events.js?v=124" data-game-script="journey"></script>
-<script src="game.js?v=189" data-game-script="game"></script>
+<script src="game.js?v=190" data-game-script="game"></script>
 </body>
 </html>
