@@ -43,6 +43,7 @@ const ART = {
   // Khan VII
   'whitediv-walk': 'k7/whitediv-walk.png', 'whitediv-smash': 'k7/whitediv-smash.png', 'whitediv-throw': 'k7/whitediv-throw.png', 'whitediv-die': 'k7/whitediv-die.png', 'kavus-sight': 'k7/kavus-sight.png'
 };
+Object.assign(ART, { 'rostam-tanbur': 'rostam-tanbur.png', 'rostam-roar': 'rostam-roar.png', 'olad-bound': 'k5/olad-bound.png' });
 Object.assign(ART, { 'rostam-pray': 'rostam-pray.png', 'rostam-kneel-drink': 'rostam-kneel-drink.png', 'rostam-thirst': 'rostam-thirst.png',
   'ram-idle': 'k2/ram-idle.png', 'ram-look': 'k2/ram-look.png', 'ram-paw': 'k2/ram-paw.png', 'ram-appear': 'k2/ram-appear.png', 'rakhsh-trot': 'k3/rakhsh-trot.png', 'rakhsh-drink': 'k3/rakhsh-drink.png' });
 Object.assign(ART, { 'lion-dazed': 'lion-dazed.png', 'queen-dazed': 'k2/queen-dazed.png', 'dragon-dazed': 'k3/dragon-dazed.png', 'hag-dazed': 'k4/hag-dazed.png',
@@ -54,7 +55,7 @@ Object.assign(ART, { 'lion-pounce': 'lion-pounce.png', 'lion-swipe': 'lion-swipe
 Object.assign(ART, { 'rostam-sleep': 'rostam-sleep.png', 'rostam-rise': 'rostam-rise.png', 'div-sleep': 'div-sleep.png', 'rostam-lasso': 'rostam-lasso.png', 'rakhsh-idle': 'k3/rakhsh-idle.png', 'divwarrior-sleep': 'k6/divwarrior-sleep.png' });
 // Painted replacements retain the original texture dimensions and collision footprints.
 const PAINTED = ['bg-reeds', 'bg-hills', 'bg-mist', 'fg-reeds', 'knife', 'arrow', 'fireball', 'icicle', 'icespike', 'boulder'];
-const FPS = { 'rostam-pray': 4, 'rostam-thirst': 9, 'ram-idle': 3, 'rakhsh-trot': 9, 'rakhsh-drink': 4, 'rostam-lasso': 40, 'rakhsh-idle': 3, 'divwarrior-sleep': 2, 'rostam-sleep': 2, 'rostam-rise': 6, 'div-sleep': 2, 'queen-walk': 10, 'queen-sting': 14, 'queen-spit': 12, 'queen-die': 7, 'rostam-dodge': 22, 'rostam-heavy': 14, 'simurgh-fly': 9, 'lion-die': 6, 'dragon-die': 6, 'hag-die': 6, 'rostam-idle': 5, 'rostam-run': 14, 'rostam-jump': 6, 'rostam-attack': 24, 'rostam-hurt': 10, 'lion-walk': 9, 'lion-run': 14, 'lion-roar': 6, 'jackal-run': 12, 'div-hop': 8, 'coin-spin': 8, 'fire-burn': 10,
+const FPS = { 'rostam-tanbur': 5, 'rostam-roar': 8, 'olad-bound': 9, 'rostam-pray': 4, 'rostam-thirst': 9, 'ram-idle': 3, 'rakhsh-trot': 9, 'rakhsh-drink': 4, 'rostam-lasso': 40, 'rakhsh-idle': 3, 'divwarrior-sleep': 2, 'rostam-sleep': 2, 'rostam-rise': 6, 'div-sleep': 2, 'queen-walk': 10, 'queen-sting': 14, 'queen-spit': 12, 'queen-die': 7, 'rostam-dodge': 22, 'rostam-heavy': 14, 'simurgh-fly': 9, 'lion-die': 6, 'dragon-die': 6, 'hag-die': 6, 'rostam-idle': 5, 'rostam-run': 14, 'rostam-jump': 6, 'rostam-attack': 24, 'rostam-hurt': 10, 'lion-walk': 9, 'lion-run': 14, 'lion-roar': 6, 'jackal-run': 12, 'div-hop': 8, 'coin-spin': 8, 'fire-burn': 10,
   'scorpion-crawl': 10, 'vulture-fly': 10, 'ram-walk': 8, 'rostam-drink': 6, 'rostam-fall': 7, 'rostam-victory': 8, 'rostam-anoint': 6, 'ride-gallop': 12, 'ride-strike': 18, 'ride-rear': 11,
   'dragon-move': 7, 'dragon-fire': 9, 'rakhsh-gallop': 12, 'rakhsh-rear': 9, 'bat-fly': 14,
   'serpent': 8, 'hag-cast': 10, 'beauty-idle': 4,
@@ -65,7 +66,7 @@ const FPS = { 'rostam-pray': 4, 'rostam-thirst': 9, 'ram-idle': 3, 'rakhsh-trot'
 const SIZE = { queen: 150, rider: 124, rostam: 112, lion: 148, jackal: 108, div: 108, scorpion: 86, vulture: 92, ram: 86, dragon: 136, rakhsh: 128, bat: 108, serpent: 92, hag: 108, beauty: 108, spearman: 140, olad: 112, divwarrior: 100, arzhang: 136, whitediv: 204, firediv: 104, ghul: 100 };
 const BODY = { queen: [0.62, 0.42], rider: [0.3, 0.5], rostam: [0.143, 0.393], lion: [0.5, 0.36], jackal: [0.3, 0.22], div: [0.22, 0.34], scorpion: [0.4, 0.22], vulture: [0.33, 0.2], ram: [0.4, 0.4],
   dragon: [0.46, 0.42], rakhsh: [0.5, 0.5], bat: [0.32, 0.24], serpent: [0.31, 0.31], hag: [0.27, 0.42], beauty: [0.2, 0.47], spearman: [0.115, 0.386], olad: [0.17, 0.49], divwarrior: [0.31, 0.64], arzhang: [0.3, 0.7], whitediv: [0.2667, 0.3867], firediv: [0.2, 0.6], ghul: [0.5, 0.36] };
-const V = 93;
+const V = 94;
 const RAKHSH1 = 128 / 229;                                               // Rakhsh's scale in Khan I: his strip is 229 px, the horse a little larger than the lion
 const REVISED_STORY_ART = new Set(['khan1-intro', 'khan4-intro', 'khan4-outro', 'khan5-intro', 'khan5-outro', 'khan7-intro', 'end2']);
 let wakeArt = false, lionPrologueSeen = false;
@@ -933,6 +934,31 @@ function poppyTick(s, k, time) {
     }
   }
 }
+// A story beat stops the world, not the scene clock: animations, captions and voice still finish.
+// Silent play gets a reading hold; failed/interrupted speech has a bounded fallback. Shutdown cancels it.
+function heldBeat(s, { fa, title, text, voice, min = 1800, pose }, then) {
+  const token = {}, wasFrozen = !!s.frozen; let elapsed = false, spoken = false, finished = false;
+  s.storyHold = token; s.frozen = true; s.player.setVelocity(0); s.atk = 0;
+  for (const k in keys) keys[k] = false;
+  for (const k in pressed) pressed[k] = false;
+  s.physics.pause(); banner(fa, title); hint(text);
+  if (pose && s.anims.exists(pose)) { s.pose = pose; s.player.play(pose); }
+  const finish = () => {
+    if (finished || s.storyHold !== token) return;
+    finished = true; guard.remove(); reading?.remove(); minimum.remove();
+    s.events.off('shutdown', cancel); s.storyHold = null; s.physics.resume(); s.frozen = wasFrozen;
+    if (s.pose === pose) s.pose = null;
+    if (!s.done) then?.();
+  };
+  const maybe = () => { if (elapsed && spoken) finish(); };
+  const cancel = () => { finished = true; if (s.storyHold === token) { s.storyHold = null; s.physics.resume(); } };
+  const minimum = s.time.delayedCall(min, () => { elapsed = true; maybe(); });
+  const guard = s.time.delayedCall(45000, finish); let reading = null;
+  s.events.once('shutdown', cancel);
+  if (!voice || !say(voice, { then: () => { spoken = true; maybe(); } }))
+    reading = s.time.delayedCall(Math.max(min, Math.min(9000, text.replace(/<[^>]*>/g, '').length * 38)), () => { spoken = true; maybe(); });
+}
+
 const LEVELS = {
   1: {
     epithet: 'It hunts the reeds by night, and nothing that comes there leaves', hud: 'Khan I &middot; The Lion', winTitle: 'The lion is slain', name: 'The Lion of the Reeds', fa: 'شیرِ نیستان', tiles: 'tiles-1', map: buildMap,
@@ -1152,7 +1178,7 @@ const LEVELS = {
     update(s, k, time, p) {
       if (!s.bossOn) poppyTick(s, k, time);
       if (!s.bossOn && p.x > 33 * TS - 90 && !s.toldPoppy) { s.toldPoppy = true; hint('<b>Sleep-poppies.</b> Their violet pollen makes you drowsy and slow. Strike a bud before it opens.'); }
-      if (!s.bossOn && p.x > 114 * TS) s.startWitch();
+      if (!s.bossOn && p.x > 114 * TS && p.body.blocked.down) s.startWitch();
       if (s.witch && !s.unmasked && Math.abs(p.x - s.witch.x) < 95 && s.atk > 14) s.unmask();
     },
     win: 'The witch is struck down and her garden withers to thorns. Rostam rides on into the green land of Mazandaran, where the warden Olad keeps watch.',
@@ -1172,7 +1198,7 @@ const LEVELS = {
     create(s) { toast('Morning in Mazandaran. The fields are green, and the warden Olad keeps watch with his men.'); hint('Spearmen have a long reach. <b>Close in right after they thrust</b>.'); },
     sky: { veil: 0x0e161e, cloud: 0x5a6a7c, glow: 0xffe0a0, sun: [0.8, 0.2], bolt: 0xe8f0ff, every: [130, 230], edge: 0x0a1018, fx: 'rain', dim: 0.4, paint: 'k5/storm.png' },
     fires: [107], hearts: [105],
-    update(s, k, time, p) { if (!s.bossOn && p.x > 114 * TS) s.startOlad(); },
+    update(s, k, time, p) { if (!s.bossOn && !s.guideDone && p.x > 114 * TS) s.startOlad(); },
     win: 'Rostam lassos Olad and spares his life. Olad swears to guide him to the camp of Arzhang Div and to the White Div\'s cave, and he is promised the throne of Mazandaran.',
     tips: ['Olad\'s shield blocks blows from the front. Step back when he flashes, then strike while he glows. His back is always open.', 'In every boss fight, the boss bar flashes Strike now! when your blow will land.', 'Spearmen have a long reach. Close in after their thrust.',
       'Land on a foe from above to strike twice as hard.', 'Fire altars mark where you return if you fall.']
@@ -1957,7 +1983,8 @@ class Play extends Phaser.Scene {
   create() {
     // the scene object is reused from labour to labour: forget whatever the last one left behind
     for (const k of ['dark', 'lights', 'lamp', 'wall', 'wallR', 'stars', 'pose', 'swingFx', 'witch', 'unmasked', 'olad', 'rakhsh', 'dragonSeen', 'horde', 'hordeDone',
-      'gates', 'hordeBat', 'toldRock', 'toldFarr', 'toldOffer', 'atAltar', 'bossT', 'maceHit', 'toldIce', 'chargeWarn', 'toldCharge', 'shards', 'shardG', 'mark', 'markGlow', 'markOpen', 'bossHeart', 'bossHeartT', 'floorWarn', 'highWarn', 'regrow', 'drums', 'sky', 'flashA', 'intro', 'fgReeds', 'mound', 'swirl', 'qx', 'puddles', 'combo', 'comboT', 'heavy', 'heavyGo', 'chargeT', 'chargeFull', 'chargeGlow', 'dodgeT', 'dodgeCd', 'dodgeDir', 'whiteDown', 'ended', 'mounted', 'prayed', 'drank', 'toldImmune', 'toldDeflect', 'toldVenom', 'cage', 'kavus', 'stones', 'puzzle', 'springOpen', 'pool', 'victory', 'attackBuf', 'dodgeBuf', 'counterT', 'counterStrike', 'dodgeRewarded', 'trial', 'nearTrial', 'journey', 'siege', 'siegeDone', 'ally', 'phase2', 'streak', 'didDouble', 'rocks', 'rockT', 'poppies', 'drowsy', 'toldPoppy', 'oladAlly', 'rope', 'ropeG', 'lassoCd', 'toldBossLasso', 'sleeper', 'snore', 'guard', 'prologue', 'prologueOn', 'ringObj', 'grapple', 'toldBossHold', 'oladBind', 'sleepers', 'toldSleep', 'saidLow', 'ramDug', 'ramAmbush', 'toldRamWait', 'climbTo', 'rakhshDrinks', 'shove', 'saidThirst']) delete this[k];
+      'gates', 'hordeBat', 'toldRock', 'toldFarr', 'toldOffer', 'atAltar', 'bossT', 'maceHit', 'toldIce', 'chargeWarn', 'toldCharge', 'shards', 'shardG', 'mark', 'markGlow', 'markOpen', 'bossHeart', 'bossHeartT', 'floorWarn', 'highWarn', 'regrow', 'drums', 'sky', 'flashA', 'intro', 'fgReeds', 'mound', 'swirl', 'qx', 'puddles', 'combo', 'comboT', 'heavy', 'heavyGo', 'chargeT', 'chargeFull', 'chargeGlow', 'dodgeT', 'dodgeCd', 'dodgeDir', 'whiteDown', 'ended', 'mounted', 'prayed', 'drank', 'toldImmune', 'toldDeflect', 'toldVenom', 'cage', 'kavus', 'stones', 'puzzle', 'springOpen', 'pool', 'victory', 'attackBuf', 'dodgeBuf', 'counterT', 'counterStrike', 'dodgeRewarded', 'trial', 'nearTrial', 'journey', 'siege', 'siegeDone', 'ally', 'phase2', 'streak', 'didDouble', 'rocks', 'rockT', 'poppies', 'drowsy', 'toldPoppy', 'oladAlly', 'rope', 'ropeG', 'lassoCd', 'toldBossLasso', 'sleeper', 'snore', 'guard', 'prologue', 'prologueOn', 'ringObj', 'grapple', 'toldBossHold', 'oladBind', 'sleepers', 'toldSleep', 'saidLow', 'ramDug', 'ramAmbush', 'toldRamWait', 'climbTo', 'rakhshDrinks', 'shove', 'saidThirst', 'storyHold', 'dragonStoryDone', 'dragonStoryOn', 'feastDone', 'feastOn', 'warcryDone', 'oladGuide', 'guideDone']) delete this[k];
+    this.physics.resume();
     refreshLassoBtn();
     // turn loaded strips into square frames; anything missing falls back to placeholder art
     for (const k of ['decor-' + cur]) if (this.textures.exists(k) && this.textures.get(k).frameTotal < 3) { const t = this.textures.get(k), h = t.getSourceImage().height; for (let i = 0; i < Math.round(t.getSourceImage().width / h); i++) t.add(i, 0, i * h, 0, h, h); }
@@ -2073,6 +2100,7 @@ class Play extends Phaser.Scene {
     move('div-pounce', 'div-strike', 3, 5, 12); move('rostam-farr', 'rostam-farr', 0, 7, 14);
     // a boss's opening: the dazed loop that says strike now; the witch's unmasking; Rostam vaulting into the saddle
     for (const k of ['lion', 'queen', 'dragon', 'hag', 'olad', 'arzhang', 'whitediv']) move(k + '-dazed', k + '-dazed', 0, 5, 6, -1);
+    move('rostam-warcry', 'rostam-roar', 0, 5, 8);
     move('rostam-sip', 'rostam-kneel-drink', 0, 7, 5); move('ram-glance', 'ram-look', 0, 5, 6); move('ram-pawing', 'ram-paw', 0, 5, 8); move('ram-arrive', 'ram-appear', 0, 7, 6);
     move('witch-transform', 'witch-transform', 0, 7, 8); move('ride-mount', 'ride-mount', 0, 5, 11);
     // the canvas is drawn at twice the world's resolution so finer sprite art keeps its detail. The camera zooms from its
@@ -2968,6 +2996,7 @@ class Play extends Phaser.Scene {
   update(time, delta) {
     const k = delta / 16.67, p = this.player, b = p.body;
     this.lv.scroll(this, this.cam.scrollX, time); this.drawShards(delta); this.tickSky(delta / 16.67, time);
+    if (this.storyHold) { this.physics.pause(); this.drawDark(); return; }
     if (!playing || this.done) { if (this.done && this.hp <= 0) p.setVelocityX(0); return; }
     this.slopeTick();
     this.inv = Math.max(0, this.inv - k); p.setAlpha(this.inv > 0 && Math.floor(this.inv / 5) % 2 ? 0.35 : 1);
@@ -3143,6 +3172,7 @@ class Play extends Phaser.Scene {
     routeCue(this, p);
     this.lv.update?.(this, k, time, p, b);
     this.journey?.tick(time, delta);
+    if (this.oladGuide) this.guideOlad();
     // projectiles expire; hazard zones (fire breath, shockwaves) hurt while they last
     for (const sh of this.shots.getChildren()) if (time > sh.die) sh.destroy(); else if (sh.spin) sh.angle += sh.spin * k;
     this.hazards = this.hazards.filter(z => { if (time >= z.until) return false; if (z.move) z.r.x += z.move * k; if (Phaser.Geom.Intersects.RectangleToRectangle(b, z.r)) this.hurt(z.r.centerX); return time < z.until; });
@@ -3329,7 +3359,26 @@ class Play extends Phaser.Scene {
     this.time.delayedCall(at + 900, () => then ? then() : this.reward(B.x));
   }
   /* ---- Khan III: Rakhsh and the dragon that hides in the dark ---- */
+  dragonStory() {
+    if (this.dragonStoryOn) return; this.dragonStoryOn = true;
+    const p = this.player, shadow = this.add.sprite(Math.min(p.x + 220, this.levelW - 70), p.y - 35, 'dragon-move', 0).setDepth(4).setFlipX(true).setAlpha(0);
+    shadow.setScale(SIZE.dragon / this.textures.get('dragon-move').getSourceImage().height);
+    let n = 0;
+    const warn = () => {
+      n++; shadow.setAlpha(n === 3 ? 0.9 : 0.22).setTint(0x75628e); sfx('neigh');
+      const horse = this.rakhsh; if (horse?.active) { horse.setVelocityX?.(0); horse.play('rakhsh-rear'); }
+      heldBeat(this, { fa: 'رخش', title: `Rakhsh warns Rostam · ${n} / 3`,
+        text: n < 3 ? '<b>Rakhsh rears.</b> A vast shape stirs, then vanishes before Rostam can see it.' : '<b>The third warning.</b> This time the dragon cannot hide.',
+        voice: n < 3 ? 'rostam-rakhsh' : null, min: 2400, pose: this.mounted ? 'ride-rear' : 'rostam-idle' }, () => {
+        shadow.setAlpha(0);
+        if (n < 3) warn();
+        else { shadow.destroy(); cinema('reveal3', () => { if (!this.sys.isActive()) game.scene.resume('play'); playing = true; this.dragonStoryDone = true; this.dragonStoryOn = false; this.startDragon(); }); }
+      });
+    };
+    warn();
+  }
   startDragon() {
+    if (LIVE && !rush && !this.dragonStoryDone) { this.dragonStory(); return; }
     if (!this.mounted) {
       const r = this.rakhsh = this.physics.add.sprite(this.rakhshAt.x - 220, this.rakhshAt.y - 40, 'rakhsh-gallop', 0).setDepth(4);
       this.fit(r, 'rakhsh'); this.physics.add.collider(r, this.layer); r.play('rakhsh-gallop'); r.setVelocityX(180);
@@ -3418,7 +3467,16 @@ class Play extends Phaser.Scene {
     p.once('animationcomplete', () => { if (this.pose === 'ride-rear') this.pose = null; });
   }
   /* ---- Khan IV: the feast, the name of God, and the witch ---- */
+  feastStory() {
+    if (this.feastOn) return; this.feastOn = true;
+    this.player.body.reset(this.feastAt.x - 25, this.player.y);
+    heldBeat(this, { fa: 'تنبور', title: 'The song at the feast', pose: 'rostam-tanbur', min: 3000,
+      text: '<b>Rostam sits at the feast and plays the tanbur.</b> A beautiful lady hears his song and approaches.', voice: 'khan4-feast' }, () => {
+      this.feastOn = false; this.feastDone = true; this.startWitch();
+    });
+  }
   startWitch() {
+    if (LIVE && !rush && !this.feastDone) { this.feastStory(); return; }
     const w = this.witch = this.physics.add.sprite(this.witchAt.x, this.witchAt.y - 40, 'beauty-idle', 0).setDepth(4).setFlipX(true);
     this.fit(w, 'beauty'); w.play('beauty-idle'); w.immune = () => !this.unmasked || w.alpha < 0.5; w.noMark = () => !this.unmasked; w.immuneMsg = 'She only smiles. Speak the name of God: stand near her and strike.';
     w.calm = () => w.state === 'reel'; w.open = w.calm;
@@ -3434,7 +3492,11 @@ class Play extends Phaser.Scene {
     toast('A lovely woman steps from the pavilion and offers you a cup of wine. Stand near her and strike to give thanks in the name of God.');
     hint('The lady offers you wine. <b>Stand close to her and strike</b> to give thanks in the name of God, and see what she really is.');
   }
-  unmask() {
+  unmask(spoken = false) {
+    if (LIVE && !rush && !spoken) {
+      if (this.storyHold) return;
+      heldBeat(this, { fa: 'به نامِ یزدان', title: 'In the name of God', text: '<b>Rostam gives thanks:</b> “In the name of God, the Merciful.”', voice: 'rostam-god', min: 2000 }, () => this.unmask(true)); return;
+    }
     // at the name of God her true face shows
     const w = this.witch; this.unmasked = true; this.frozen = true; this.player.setVelocity(0);
     banner('به نامِ یزدان', 'In the name of God'); this.cam.flash(500, 255, 255, 255); sfx('roar'); this.time.delayedCall(700, () => say('witch2'));
@@ -3582,11 +3644,45 @@ class Play extends Phaser.Scene {
     };
     this.time.addEvent({ delay: 16, repeat: 40, callback: draw });
     if (first) this.time.delayedCall(3600, () => hint(`<b>Rostam's lasso is yours.</b> Press ${touch ? 'the lasso button' : keyHTML('lasso')} to throw it: it drags a foe to your feet, reeling, where your next blow lands harder; it pulls fliers from the sky and draws in provisions out of reach.`));
-    this.time.delayedCall(700, () => rostamSays('bind', () => { toast('Olad yields: "Spare me, and I will lead you to Arzhang Div and to the White Div\'s cave."'); say('olad2'); }));
-    this.time.delayedCall(3400, () => { this.frozen = false; rope.clear().lineStyle(2, 0xc8a060, 1).strokeEllipse(o.x, o.y - 4, 30, 14); this.reward(o.x); });
+    if (LIVE && !rush) {
+      this.time.delayedCall(700, () => heldBeat(this, { fa: 'کمند', title: 'Yield, Olad', text: '<b>Rostam spares Olad:</b> “Yield, Olad. Your life is in my noose.”', voice: 'rostam-bind', min: 2200 }, () => {
+        heldBeat(this, { fa: 'اولاد', title: 'A captive becomes a guide', text: '<b>Olad keeps his promise.</b> Follow him to the road beyond the marches.', voice: 'olad2', min: 2200 }, () => { rope.destroy(); this.frozen = false; this.leadOlad(); });
+      }));
+    } else {
+      this.time.delayedCall(700, () => rostamSays('bind', () => { toast('Olad yields: "Spare me, and I will lead you to Arzhang Div and to the White Div\'s cave."'); say('olad2'); }));
+      this.time.delayedCall(3400, () => { this.frozen = false; rope.clear().lineStyle(2, 0xc8a060, 1).strokeEllipse(o.x, o.y - 4, 30, 14); this.reward(o.x); });
+    }
+  }
+  leadOlad() {
+    const o = this.olad; this.boss = null; this.bossOn = false; this.guideDone = true;
+    o.body.enable = true; o.body.setAllowGravity(true); o.setTexture('olad-bound', 0); this.fit(o, 'olad');
+    o.hp = 0; o.clearTint(); o.play('olad-bound'); o.setFlipX(false);
+    this.physics.add.collider(o, this.layer, null, onFloor);
+    this.oladGuide = { actor: o, end: Math.min(this.levelW - 7 * TS, Math.max(o.x + 9 * TS, this.player.x + 10 * TS)), stuck: 0, lastX: o.x };
+    this.banish(this.player.x - 3 * TS, this.levelW); this.cam.startFollow(this.player, true, 0.12, 0.12, W / 2, H / 2);
+    hint('<b>Follow Olad.</b> Bound by the lasso, he leads the way to Arzhang’s camp.');
+  }
+  guideOlad() {
+    const g = this.oladGuide, o = g.actor, p = this.player;
+    if (!o?.active || this.done) { this.oladGuide = null; return; }
+    const distance = o.x - p.x;
+    if (o.x >= g.end && Math.abs(distance) < 100) { o.setVelocityX(0); o.anims.pause(); this.oladGuide = null; this.reward(o.x); return; }
+    const vx = o.x >= g.end || distance > 170 ? 0 : distance < 35 ? 95 : 65;
+    o.setVelocityX(vx); o.setFlipX(distance > 170);
+    if (vx && o.body.blocked.right && o.body.blocked.down) o.setVelocityY(-260);
+    if (vx) o.anims.resume(); else o.anims.pause();
+    g.stuck = vx && Math.abs(o.x - g.lastX) < 0.2 ? g.stuck + this.game.loop.delta : 0; g.lastX = o.x;
+    if (g.stuck > 2200 || o.y > ROWS * TS + 30) {
+      const x = Math.min(g.end, Math.max(o.x + TS, p.x + 4 * TS)), r = this.groundAt(x);
+      if (r != null) o.body.reset(x, r * TS - o.displayHeight * (0.97 - o.originY)); g.stuck = 0;
+    }
   }
   /* ---- Khan VI: the horde, and Arzhang Div ---- */
   startHorde() {
+    if (LIVE && !rush && !this.warcryDone) {
+      this.warcryDone = true;
+      heldBeat(this, { fa: 'رستم', title: 'The champion’s war cry', pose: this.mounted ? 'ride-rear' : 'rostam-warcry', text: '<b>Rostam’s challenge shakes the camp.</b> The horde is about to answer.', voice: 'rostam-warcry', min: 2300 }, () => { this.cam.shake(650, 0.012); this.startHorde(); }); return;
+    }
     // gates of fire close behind and before Rostam while the Divs come in waves
     this.horde = { wave: 0, live: [] }; const x = this.hordeAt.x;
     this.gates = [x - 13 * TS, x + 13 * TS].map((gx, i) => {
@@ -3983,7 +4079,10 @@ class Play extends Phaser.Scene {
       banner('کاووس شاه', 'The king sees again');
     });
     // the king speaks; two seconds after his last word the tale goes on in pictures
-    let told = false; const tell = () => { if (told) return; told = true; this.time.delayedCall(2000, () => cinema('ending', () => this.win({ destroy() {} }))); };
+    let told = false; const tell = () => { if (told) return; told = true;
+      const end = () => this.time.delayedCall(2000, () => cinema('ending', () => this.win({ destroy() {} })));
+      if (LIVE && !rush) cinema('sight7', () => { game.scene.resume('play'); playing = true; end(); }); else end();
+    };
     this.time.delayedCall(T0 + 2900, () => {
       if (this.anims.exists('rostam-victory')) { this.pose = 'rostam-victory'; p.anims.stop(); p.play('rostam-victory'); }
       toast('"Rostam!" cries Kay Kavus. "My eyes are opened, and Iran is saved."');
@@ -4877,6 +4976,8 @@ $('offerBtn').onclick = () => { if (!playing) return; const s = game.scene.getSc
 $('farrBtn').onclick = () => { const sc = game.scene.getScene('play'); if (playing && sc?.farr >= 100) sc.farrBlast(); };
 // The tale in pictures: the prologue, a painting before and after each labour, and the final ending and credits.
 const CINE = {
+  reveal3: [['khan3-reveal', 'اژدها', 'Twice Rakhsh woke Rostam, and twice the dragon vanished into the night. At the third warning, light broke through the darkness. Rostam saw the dragon at last, and stood beside his faithful horse.']],
+  sight7: [['khan7-sight', 'بیناییِ کاووس', 'Rostam placed a drop of the White Div’s heart-blood in the king’s eyes. The darkness lifted. Kay Kavus saw his champion again, and the long road to Mazandaran had brought hope back to Iran.']],
   intro1: [["khan1-intro", "شیر نیستان", "After a long day on the road to Mazandaran, Rostam slept among the reeds. Rakhsh grazed nearby, but in the darkness a lion watched. While the hero dreamed, his faithful horse stood guard."]],
   guard1: [["khan1-intro", "شیر نیستان", "After a long day on the road to Mazandaran, Rostam slept among the reeds. Rakhsh grazed nearby, but in the darkness a lion watched. While the hero dreamed, his faithful horse stood guard."]],
   pray2: [["khan2-prayer", "نیایش", "Rostam fell to his knees in the burning sand. With the last of his strength he raised his hands and prayed for mercy."]],
@@ -4926,7 +5027,7 @@ function rushElapsed() { return performance.now() - rush.t0 - rush.pausedMs - (r
 function startRush() { rush = { n: 1, t0: performance.now(), pausedMs: 0, pauseAt: null, hp: null, splits: [] }; begin(1, false, true); }
 // the narrator: recorded readings, one file per picture in assets/voice (open1.mp3 ... end3.mp3). A picture is read
 // aloud only if its name is in VOICED, so a missing recording never leaves a gap; the music sinks beneath the voice
-const VOICED = new Set(['khan2-prayer', 'khan2-ram', 'khan2-water', 'khan5-lasso', 'khan7-noon', 'open1', 'open2', 'open3', 'open4', 'open5', 'open6', 'end1', 'end2', 'end3', 'khan1', 'khan2', 'khan3', 'khan4', 'khan5', 'khan6', 'khan7', 'win1', 'win2', 'win3', 'win4', 'win5', 'win6', 'fall1', 'fall2', 'fall3', 'queen1', 'queen2', 'witch1', 'witch2', 'olad1', 'olad2', 'arzhang1', 'arzhang2', 'white1', 'white2', 'white3', 'kavus1', 'khan1-intro', 'khan1-outro', 'khan2-intro', 'khan2-outro', 'khan3-intro', 'khan3-outro', 'khan4-intro', 'khan4-outro', 'khan5-intro', 'khan5-outro', 'khan6-intro', 'khan6-outro', 'khan7-intro', 'tale-1-1', 'tale-1-2', 'tale-1-3', 'tale-1-4', 'tale-1-5', 'tale-3-1', 'tale-3-2', 'tale-4-1', 'tale-4-2', 'tale-5-1', 'tale-5-2', 'tale-6-1', 'tale-6-2', 'tale-7-1', 'tale-7-2', 'tale-2-1', 'tale-2-2']);
+const VOICED = new Set(['khan3-reveal', 'khan4-feast', 'khan7-sight', 'rostam-rakhsh', 'rostam-god', 'rostam-warcry', 'khan2-prayer', 'khan2-ram', 'khan2-water', 'khan5-lasso', 'khan7-noon', 'open1', 'open2', 'open3', 'open4', 'open5', 'open6', 'end1', 'end2', 'end3', 'khan1', 'khan2', 'khan3', 'khan4', 'khan5', 'khan6', 'khan7', 'win1', 'win2', 'win3', 'win4', 'win5', 'win6', 'fall1', 'fall2', 'fall3', 'queen1', 'queen2', 'witch1', 'witch2', 'olad1', 'olad2', 'arzhang1', 'arzhang2', 'white1', 'white2', 'white3', 'kavus1', 'khan1-intro', 'khan1-outro', 'khan2-intro', 'khan2-outro', 'khan3-intro', 'khan3-outro', 'khan4-intro', 'khan4-outro', 'khan5-intro', 'khan5-outro', 'khan6-intro', 'khan6-outro', 'khan7-intro', 'tale-1-1', 'tale-1-2', 'tale-1-3', 'tale-1-4', 'tale-1-5', 'tale-3-1', 'tale-3-2', 'tale-4-1', 'tale-4-2', 'tale-5-1', 'tale-5-2', 'tale-6-1', 'tale-6-2', 'tale-7-1', 'tale-7-2', 'tale-2-1', 'tale-2-2']);
 // the narrator's line as each labour begins, shown as a subtitle while he speaks
 const KHAN_LINES = {"khan2-ram": "Out of the storm came a ram, glowing like the dawn. Where a beast walks, there must be water.", "khan2-water": "The ram stopped at a dry rock and pawed the sand. Here, hidden from the sun, lay the water. And its guardian.", "khan1": "The first labour. Rostam lay down to sleep among the reeds, while Rakhsh grazed nearby… and in the thicket, a lion was watching.", "khan2": "The second labour: the burning desert. No water. No shade. Not a single bird in the sky… only the sand, and whatever waits beneath it.", "khan3": "The third labour. Night fell, and out of the dark came a dragon eighty cubits long: a beast that only Rakhsh could see.", "khan4": "The fourth labour. In a green garden a feast was laid, and a beautiful lady poured the wine. But in Mazandaran… beauty is rarely what it seems.", "khan5": "The fifth labour. Rostam rode into the lands of Olad: a warden who did not take kindly to strangers.", "khan6": "The sixth labour. At the gates of Mazandaran stood Arzhang, chief of the Divs, with an army of demons at his back.", "khan7": "The seventh labour. Beyond seven mountains, in a cave as dark as night… the White Div was waiting."};
 let sayId = 0, voiceEl = null;
@@ -4979,18 +5080,21 @@ function narrate(key, then) {
 // what the foes and the king say aloud, shown as a subtitle with the speaker's name
 // Rostam speaks at a few great moments only: a boss's entrance, its fall, the Simurgh's call, binding Olad, a fire's
 // stand, and his first brush with death in a labour. Each is read once its file is in assets/voice
-const ROSTAM_SAYS = { pray: 'O Lord, You alone can save me now.', thanks: 'Blessed be the One who sent you.', thirst: 'Water… I need water.', boss: 'Come then, and meet the son of Zal!', win: 'It is done. On, Rakhsh!', farr: 'Simurgh, lend me your light!', bind: 'Yield, Olad. Your life is in my noose.', stand: 'Let them come to the fire.', low: 'Not yet… not while Iran waits.' };
+const ROSTAM_SAYS = { rakhsh: 'Why do you wake me, Rakhsh?', god: 'In the name of God, the Merciful', warcry: 'I am Rostam! Who will stand against me?',  pray: 'O Lord, You alone can save me now.', thanks: 'Blessed be the One who sent you.', thirst: 'Water… I need water.', boss: 'Come then, and meet the son of Zal!', win: 'It is done. On, Rakhsh!', farr: 'Simurgh, lend me your light!', bind: 'Yield, Olad. Your life is in my noose.', stand: 'Let them come to the fire.', low: 'Not yet… not while Iran waits.' };
 let rostamFace = '../rostam';
 fetch(`assets/ui/port/rostam.png?v=${V}`, { method: 'HEAD' }).then(r => { if (r.ok) rostamFace = 'rostam'; }).catch(() => {});
 for (const k of Object.keys(ROSTAM_SAYS)) fetch(`assets/voice/rostam-${k}.mp3?v=${V}`, { method: 'HEAD' }).then(r => { if (r.ok) VOICED.add('rostam-' + k); }).catch(() => {});
 // speak, and carry on when done (or at once, when the line is silent: no file, muted, or the narrator off)
 function rostamSays(k, then) { if (!say('rostam-' + k, { then })) then?.(); }
+const STORY_BEAT_LINES = {
+  'khan4-feast': 'Rostam sat at the feast and took up the tanbur. His song rose through the enchanted garden. A beautiful lady came to share the wine, but her welcome hid a dark enchantment.'
+};
 const LINES = {"queen1": ["The Scorpion Queen", "Thirsty, little man? Then come… and drink."], "queen2": ["The Scorpion Queen", "My children… will feast on your bones!"], "witch1": ["The Lady of the Garden", "Sit, brave traveller. Eat… drink… and rest awhile."], "witch2": ["The Witch", "You see me now, do you? Then see your death!"], "olad1": ["Olad", "Who are you, to cross the marches of Mazandaran?"], "olad2": ["Olad", "Enough! Spare me… and I will lead you to the White Div."], "arzhang1": ["Arzhang Div", "Who dares walk into my camp? I will grind your bones for my supper!"], "arzhang2": ["Arzhang Div", "You will pay for every drop of my blood!"], "white1": ["The White Div", "So… the son of Zal comes at last."], "white2": ["The White Div", "I have broken kings, little hero. I will break you."], "white3": ["The White Div", "No… this cannot be…"], "kavus1": ["Kay Kavus", "Rostam! My eyes… my eyes are opened! Iran is saved!"]};
 // a spoken line, with its words as a subtitle; once only = never again this visit (an entrance, a labour's opening)
 const said = new Set();
 function say(k, { once = false, sub = true, then } = {}) {
   if (once && said.has(k)) return false; said.add(k);
-  const el = $('sub'), L = LINES[k] || (k.startsWith('rostam-') ? ['Rostam', ROSTAM_SAYS[k.slice(7)]] : null), text = L ? `<b>${L[0]}:</b> \u201c${L[1]}\u201d` : KHAN_LINES[k];
+  const el = $('sub'), L = LINES[k] || (k.startsWith('rostam-') ? ['Rostam', ROSTAM_SAYS[k.slice(7)]] : null), text = L ? `<b>${L[0]}:</b> \u201c${L[1]}\u201d` : STORY_BEAT_LINES[k] || KHAN_LINES[k];
   // the speaker's face beside the words: the storyteller for the narrator's lines
   const who = { queen: 'queen', witch1: 'beauty', witch2: 'hag', olad: 'olad', arzhang: 'arzhang', white: 'white', kavus: 'kavus' }, face = k.startsWith('rostam-') ? rostamFace : who[k] || who[k.replace(/\d+$/, '')] || 'narrator';
   const a = narrate(k, () => { el.classList.remove('on'); then?.(); });

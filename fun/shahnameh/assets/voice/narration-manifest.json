@@ -340,6 +340,54 @@
       "text": "Water… I need water.",
       "voice": "Brian - Deep, Resonant and Comforting",
       "voice_id": "Gubgw9l4dtIoQA9YZHgx"
+    },
+    {
+      "id": "khan3-reveal",
+      "duration": 14.522,
+      "sha256": "679ab27c78fa0c88d938bbd30985379002efd648da53d8f5c8eabec637dedbc6",
+      "kind": "panel",
+      "text": "Twice Rakhsh woke Rostam, and twice the dragon vanished into the night. At the third warning, light broke through the darkness. Rostam saw the dragon at last, and stood beside his faithful horse."
+    },
+    {
+      "id": "khan4-feast",
+      "duration": 12.946,
+      "sha256": "0162252d4ff871a6dc56482781662bc01b4b490eb1d4c53c017c47646dfff4b0",
+      "kind": "panel",
+      "text": "Rostam sat at the feast and took up the tanbur. His song rose through the enchanted garden. A beautiful lady came to share the wine, but her welcome hid a dark enchantment."
+    },
+    {
+      "id": "khan7-sight",
+      "duration": 13.26,
+      "sha256": "ccffc98d901230e8382cd6959ba69b7be88b6c6efe5dc598b15592ef56d3c59e",
+      "kind": "panel",
+      "text": "Rostam placed a drop of the White Div’s heart-blood in the king’s eyes. The darkness lifted. Kay Kavus saw his champion again, and the long road to Mazandaran had brought hope back to Iran."
+    },
+    {
+      "id": "rostam-rakhsh",
+      "duration": 1.507,
+      "sha256": "6ecf98532f463c3c90ed1b39983f3269c909d9f56111351ebff1507f4adedd67",
+      "kind": "character",
+      "text": "Why do you wake me, Rakhsh?",
+      "voice": "Brian - Deep, Resonant and Comforting",
+      "voice_id": "Gubgw9l4dtIoQA9YZHgx"
+    },
+    {
+      "id": "rostam-god",
+      "duration": 2.275,
+      "sha256": "d9e5f8f87043aee89671eb2b2607f36f07ce89f82f8bb9fbcd1cca70865e886c",
+      "kind": "character",
+      "text": "In the name of God, the Merciful",
+      "voice": "Brian - Deep, Resonant and Comforting",
+      "voice_id": "Gubgw9l4dtIoQA9YZHgx"
+    },
+    {
+      "id": "rostam-warcry",
+      "duration": 2.953,
+      "sha256": "f62db3c4710de14f4b2924d9c80e8378f63a7a97ce7af6e9f9c335b61f22bf08",
+      "kind": "character",
+      "text": "I am Rostam! Who will stand against me?",
+      "voice": "Brian - Deep, Resonant and Comforting",
+      "voice_id": "Gubgw9l4dtIoQA9YZHgx"
     }
   ]
 }
