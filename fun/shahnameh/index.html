@@ -890,6 +890,14 @@ body.calm #banner.on{animation-name:banCalm}@keyframes banCalm{0%{opacity:0}15%,
 @keyframes crInR{0%{transform:translateX(120%) rotate(var(--tilt));opacity:0}14%{transform:translateX(0) rotate(var(--tilt));opacity:1}50%{transform:translate(-12px,-10px) rotate(var(--tilt))}84%{transform:translateX(0) rotate(var(--tilt));opacity:1}100%{transform:translateX(60%) rotate(var(--tilt));opacity:0}}
 @media (max-width:900px){.cr-hero{opacity:.55;width:34vw}.cr-hero img{height:30vh}.cr-col{width:min(520px,70vw)}}
 @media (prefers-reduced-motion:reduce){.cr-track{animation:none;top:0;position:relative;padding:12vh 0}.cr-col{overflow:auto}.cr-sky i,.cr-bird{display:none}}
+/* story paintings (all 16:9): as large as the screen allows, trimming at most ~6% from any edge, never more */
+#s-cine .cframe{inset:0!important;top:0!important;bottom:0!important}
+#s-cine .cimg{object-fit:fill!important;left:50%!important;top:50%!important;right:auto!important;bottom:auto!important;aspect-ratio:16/9;height:auto!important;
+  width:min(max(100vw,177.78vh),calc(min(100vw,177.78vh) * 1.12))!important;translate:-50% -50%;transform-origin:50% 50%}
+#s-cine .cimg.on{animation:burnsGentle var(--d,14s) ease-out forwards!important}
+@keyframes burnsGentle{from{transform:scale(1)}to{transform:scale(1.02)}}
+#s-cine .cframe:after{content:"";position:absolute;left:0;right:0;bottom:0;height:34vh;background:linear-gradient(0deg,#000d 0,#0008 45%,transparent 100%);pointer-events:none;z-index:2}
+#s-cine .cbar{display:none}
 </style>
 
 <script defer src="/assets/engagement.js?v=1"></script>
@@ -1220,6 +1228,6 @@ body.calm #banner.on{animation-name:banCalm}@keyframes banCalm{0%{opacity:0}15%,
 <script src="boot.js?v=92"></script>
 <script src="assets/vendor/phaser-3.80.1.min.js" data-game-script="engine"></script>
 <script src="journey-events.js?v=124" data-game-script="journey"></script>
-<script src="game.js?v=197" data-game-script="game"></script>
+<script src="game.js?v=198" data-game-script="game"></script>
 </body>
 </html>
