@@ -816,12 +816,12 @@ function fireStand(s, S) {
   // the burning reeds hold Rostam and the pack inside by position, not by a physics wall he could climb by jumping into it
   const wall = (x, floor) => {
     // a tapering column of flame, each tongue on its own beat so the reeds seem to burn rather than stack
-    const flames = [[0, 0, 1.5], [-5, 13, 1.3], [5, 24, 1.15], [-3, 36, 1], [3, 47, 0.85], [0, 57, 0.65]].map(([dx, up, sc], i) => {
+    const flames = Array.from({ length: 26 }, (_, i) => [((i * 7) % 13) - 6, i * 9, Math.max(0.8, 1.6 - i * 0.03)]).map(([dx, up, sc], i) => {
       const f = s.fx('fire', x + dx, floor - up, { depth: 7 - i * 0.01 }).setScale(sc).setAlpha(0); if (S.flame) f.setTint(S.flame);
       f.anims.setProgress(Math.random()); f.anims.timeScale = 0.8 + Math.random() * 0.5;
-      s.tweens.add({ targets: f, alpha: 1 - i * 0.08, delay: i * 60, duration: 220 }); return f;
+      s.tweens.add({ targets: f, alpha: Math.max(0.4, 1 - i * 0.045), delay: i * 40, duration: 220 }); return f;
     });
-    const glow = s.add.image(x, floor - 40, 'glow').setScale(1.6, 2.6).setTint(S.flame ?? 0xff8a3a).setBlendMode(Phaser.BlendModes.ADD).setDepth(6).setAlpha(0.7);
+    const glow = s.add.image(x, floor - 90, 'glow').setScale(1.8, 6).setTint(S.flame ?? 0xff8a3a).setBlendMode(Phaser.BlendModes.ADD).setDepth(6).setAlpha(0.7);
     if (s.dark) s.light(glow, 1.5, 0.08);
     s.fx('dust', x, floor, { depth: 8 }); return { flames, glow };
   };
@@ -1998,7 +1998,10 @@ class Play extends Phaser.Scene {
       if (!this.anims.exists(k)) this.anims.create({ key: k, frames: this.anims.generateFrameNumbers(k, { start: 0, end: Math.max(0, n - 1) }), frameRate: FPS[k], repeat: /attack|hurt|roar|jump|thrust|slash|kneel|smash|throw|fire|rear|sight|strike|sting|die|leap|heavy|dodge|fall|rise|lasso|victory|anoint/.test(k) ? 0 : -1 });
     }
     const lv = this.lv, map = lv.map(), C = map[0].length;
-    if (LIVE && !rush) hangRing(map);
+    // the golden rings and their sky ledges appear only once Rostam carries the lasso that reaches them
+    if (LIVE && !rush && hasLasso()) hangRing(map);
+    // fewer, more meaningful provisions: of two side by side, one is kept (a roast lamb always stays)
+    if (LIVE && !rush) map.forEach((row, r) => row.forEach((ch, c) => { if (ch === 'c' && lv.food(c, r, 0) !== 'lamb' && (row[c - 1] === 'c' || (c * 7 + r) % 3 === 0)) row[c] = '.'; }));
     this.slopes = LIVE && !rush && this.lv.smoothSteps ? cutSlopes(map) : {};
     $('lbl').innerHTML = lv.hud; $('waterPill').classList.add('hidden'); $('bossName').textContent = lv.bossName || lv.name;
     this.levelW = C * TS;
@@ -2128,7 +2131,7 @@ class Play extends Phaser.Scene {
     this.physics.add.overlap(this.player, this.shots, (pl, sh) => { if (!sh.active || sh.back) return; this.hurt(sh.x); this.fx('hit', sh.x, sh.y, { depth: 10 }); sh.destroy(); });
     lv.create?.(this);
     setupEncounters(this);
-    if (LIVE && !rush && RINGS[cur]) {
+    if (LIVE && !rush && RINGS[cur] && hasLasso()) {
       const [c, r] = RINGS[cur], x = c * TS + TS / 2, y = (r - 2) * TS + 6;
       const ring = this.ringObj = this.add.image(x, y, 'lasso-ring').setOrigin(0.5, 0.62).setScale(0.65).setDepth(3);
       const glow = this.add.image(x, y, 'glow').setScale(0.5).setTint(0xffd27a).setBlendMode(Phaser.BlendModes.ADD).setAlpha(0.5).setDepth(2.9);
