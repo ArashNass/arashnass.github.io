@@ -300,10 +300,10 @@ function map5() {
   const pit = (a, b) => { ground(a, b, 16); row(a, b, 15, '^'); };
   ground(0, 22, 14); ground(23, 27, 13); ground(28, 31, 12); ground(32, 44, 14); pit(45, 49); row(46, 48, 10, '=');
   ground(50, 62, 14); row(54, 58, 9, '='); ground(63, 66, 12); ground(67, 78, 14); pit(79, 84); row(80, 81, 11, '='); row(83, 84, 9, '=');
-  ground(85, 98, 14); ground(92, 95, 12); ground(99, 149, 14); row(102, 106, 9, '=');
+  ground(85, 98, 14); ground(92, 95, 12); ground(99, 149, 14); // a flat clearing for Olad's ambush
   put(3, 13, 'P');
-  [[9, 12], [10, 12], [25, 11], [30, 10], [40, 12], [47, 9], [56, 8], [57, 8], [65, 10], [73, 12], [84, 8], [90, 12], [94, 10], [104, 8]].forEach(([c, r]) => put(c, r, 'c'));
-  put(14, 13, 'q'); put(36, 13, 'q'); put(42, 13, 'j'); put(60, 13, 'q'); put(71, 13, 'q'); put(76, 13, 'j'); put(88, 13, 'q'); put(99, 13, 'q');   // the last spearman patrols clear of Olad's arena platform
+  [[9, 12], [20, 12], [25, 11], [30, 10], [40, 12], [47, 8], [56, 7], [65, 10], [73, 12], [84, 7], [90, 12], [94, 10], [104, 12]].forEach(([c, r]) => put(c, r, 'c'));
+  put(14, 13, 'q'); put(36, 13, 'q'); put(42, 13, 'j'); put(60, 13, 'q'); put(71, 13, 'q'); put(76, 13, 'j'); put(88, 13, 'q'); put(102, 13, 'q');   // the last spearman patrols clear of Olad's arena platform
   put(24, 12, 'F'); put(52, 13, 'F');
   put(130, 13, 'O');
   row(115, 118, 10, '=');                                  // Olad's arena (112 to 142): one short ledge on the left (KEEP5)
@@ -381,7 +381,7 @@ const ENCOUNTERS = {
   2: [[15,11,19],[33,31,36],[42,40,48],[38,34,43],[62,60,65],[68,65,72],[81,80,86],[84,80,86],[90,86,92],[101,98,104],[115,114,119],[120,119,125]],
   3: [[13,9,17],[24,22,32],[36,33,40],[53,49,57],[60,57,65],[68,64,74],[74,71,80],[88,87,93],[95,93,101]],
   4: [[16,12,20],[29,25,35],[38,35,40],[42,40,46],[63,58,67],[70,67,73],[77,74,80],[99,96,104],[96,94,104]],
-  5: [[14,10,22],[36,33,45],[42,33,45],[60,56,63],[71,68,79],[76,68,79],[88,85,92],[99,96,104]],
+  5: [[14,10,22],[36,33,45],[42,33,45],[60,56,63],[71,68,79],[76,68,79],[88,85,92],[102,99,106]],
   6: [[15,11,20],[30,26,37],[49,48,57],[53,48,57],[112,109,116]],
   7: [[14,10,19],[30,27,35],[37,35,41],[49,48,53],[61,57,67],[70,67,72],[78,74,85],[91,89,94],[101,99,105],[116,114,118],[124,121,131],[139,137,142]]
 };
@@ -675,14 +675,19 @@ const FOES = {
   // Olad's spearmen march, and thrust when Rostam comes within reach
   spearman: {
     tex: 'spearman-walk', hp: 2,
+    init(s, f) { f.harmless = () => !f.leap; },
     tick(s, f, k, p) {
       f.cool = (f.cool || 0) - k;
-      if (f.thrust) { f.setVelocityX(0); return; }
+      if (f.thrust || f.leap) { f.setVelocityX(0); return; }
       const d = p.x - f.x;
       if (canHunt(s, f, p) && f.cool <= 0 && Math.abs(d) < 84 && Math.abs(p.body.bottom - f.body.bottom) < 24 && reserveAttack(s, f)) {
-        const attackId = f.attackId; f.thrust = true; f.dir = Math.sign(d) || 1; f.setFlipX(f.dir < 0); f.setVelocityX(0); f.play('spearman-thrust'); sfx('swing');
-        s.time.delayedCall(180, () => { if (f.active && f.body.enable && f.attackId === attackId) s.hazard(f.dir > 0 ? f.x + 6 : f.x - 50, f.body.top + 12, 44, 12, 160); });
-        f.once('animationcomplete', () => { if (!f.active) return; f.thrust = false; f.cool = 70; f.play('spearman-walk'); });
+        const attackId = f.attackId; f.thrust = true; f.dir = Math.sign(d) || 1; f.setFlipX(f.dir < 0); f.setVelocityX(0); s.hold(f, 'spearman-thrust', 1);
+        s.time.delayedCall(450, () => {
+          if (!f.active || !f.body.enable || f.attackId !== attackId) return;
+          f.leap = true; f.play({ key: 'spearman-thrust', startFrame: 2 }); sfx('swing');
+          s.hazard(f.dir > 0 ? f.x + 6 : f.x - 50, f.body.top + 12, 44, 12, 160);
+          f.once('animationcomplete', () => { if (!f.active) return; f.thrust = f.leap = false; f.cool = 70; f.play('spearman-walk'); });
+        });
         return;
       }
       patrol(s, f, 34);
@@ -818,7 +823,7 @@ const STANDS = {
   4: { at: 92.5, L: 91, R: 110, waves: [['n', 'b'], ['n', 'b', 'n'], ['b', 'N', 'n']], foe: { n: 'serpent', b: 'bat' }, lead: 0xb0ff80, flame: 0x9aff60, fa: 'باغِ جادو', title: 'The garden wakes', held: 'The garden is still',
     start: () => 'The fire wakes the garden: <b>its serpents and bats come for the light</b>. Strike a serpent as it rears; swing as a bat swoops low.',
     wave: (n, N) => n === N ? 'The witch’s own serpent comes for the fire!' : `The garden stirs: ${n} of ${N}`, end: 'The garden falls quiet. Roast lamb lies by the fire.' },
-  5: { at: 107.5, L: 99, R: 111, waves: [['q', 'j'], ['j', 'q', 'j'], ['q', 'Q', 'j']], foe: { q: 'spearman', j: 'jackal' }, lead: 0xffc070, fa: 'کمینِ اولاد', title: 'Olad’s ambush', held: 'The ambush is broken',
+  5: { at: 107.5, L: 97, R: 113, waves: [['q', 'j'], ['j', 'q', 'j'], ['q', 'Q', 'j']], foe: { q: 'spearman', j: 'jackal' }, lead: 0xffc070, fa: 'کمینِ اولاد', title: 'Olad’s ambush', held: 'The ambush is broken',
     start: () => 'An ambush! <b>Olad’s men close on the fire.</b> Draw the jackals away from the spears, and close in right after a thrust.',
     wave: (n, N) => n === N ? 'Olad’s captain leads the last charge!' : `Olad’s men: ${n} of ${N}`, end: 'The ambush breaks. Roast lamb lies by the fire. Olad waits ahead.' },
   7: { at: 44.5, L: 41, R: 53, waves: [['w', 'b'], ['d', 'w', 'b'], ['w', 'W', 'd']], foe: { w: 'divwarrior', d: 'div', b: 'bat' }, lead: 0xc8e8ff, flame: 0x8ad8ff, fa: 'نگهبانانِ کوه', title: 'The mountain guard', held: 'The path is open',
@@ -1242,7 +1247,7 @@ const LEVELS = {
       'Serpents rear back, then lunge. Strike them as they rear, or step back from the lunge.', 'Lanterns and fire altars keep the garden lit.', 'Roast lamb waits on the high balconies.']
   },
   5: {
-    epithet: 'Young lord of the green marches, and their sword', hud: 'Khan V &middot; Olad', winTitle: 'Olad yields', name: 'The Green Land', fa: 'اولاد', bossName: 'Olad, Warden of the Marches', bossFa: 'اولاد', tiles: 'tiles-5', map: map5,
+    epithet: 'Young lord of the green marches, and their sword', hud: 'Khan V &middot; Olad', winTitle: 'Olad yields', name: 'The Green Land', fa: 'اولاد', bossName: 'Olad, Warden of the Marches', bossFa: 'اولاد', tiles: 'tiles-5', map: map5, feathers: [[48, 6], [57, 4], [110, 10]],
     smoothSteps: true,
     load(L, q) {
       L.spritesheet('k5-slopes', 'assets/k5/slopes.png' + q, { frameWidth: 16, frameHeight: 16 }); L.image('tiles-5', 'assets/k5/tiles.png' + q); L.image('k5-far', 'assets/k5/far.png' + q); L.image('altar', 'assets/altar.png' + q); },
@@ -1251,12 +1256,12 @@ const LEVELS = {
       s.fgReeds = s.add.tileSprite(0, 10, W, H, 'fg-reeds').setOrigin(0).setScrollFactor(0).setDepth(12).setTint(0x2a5a20).setAlpha(0.9);
     },
     scroll(s, sx) { s.fgReeds.tilePositionX = Math.round(sx * 1.25); },
-    food: (c, r, n) => (c === 84 && r === 8) || (c === 104 && r === 9) ? 'lamb' : FOOD[1 + (n % 3)],
+    food: (c, r, n) => (c === 56 && r === 7) || (c === 84 && r === 7) || (c === 104 && r === 12) ? 'lamb' : FOOD[1 + (n % 3)],
     parse(s, ch, x, y) { if (ch === 'q') s.spawnFoe('spearman', x, y); else if (ch === 'O') s.oladAt = { x, y }; },
     create(s) { toast('Morning in Mazandaran. The fields are green, and the warden Olad keeps watch with his men.'); hint('Spearmen have a long reach. <b>Close in right after they thrust</b>.'); },
     sky: { veil: 0x0e161e, cloud: 0x5a6a7c, glow: 0xffe0a0, sun: [0.8, 0.2], bolt: 0xe8f0ff, every: [130, 230], edge: 0x0a1018, fx: 'rain', dim: 0.4, paint: 'k5/storm.png' },
-    fires: [107], hearts: [105],
-    update(s, k, time, p) { if (!s.bossOn && !s.guideDone && p.x > 114 * TS) s.startOlad(); },
+    fires: [107], hearts: [109],
+    update(s, k, time, p) { if (!s.bossOn && !s.guideDone && p.x > 114 * TS && p.body.blocked.down) s.startOlad(); },
     win: 'Rostam lassos Olad and spares his life. Olad swears to guide him to the camp of Arzhang Div and to the White Div\'s cave, and he is promised the throne of Mazandaran.',
     tips: ['Olad\'s shield blocks blows from the front. Step back when he flashes, then strike while he glows. His back is always open.', 'In every boss fight, the boss bar flashes Strike now! when your blow will land.', 'Spearmen have a long reach. Close in after their thrust.',
       'Land on a foe from above to strike twice as hard.', 'Fire altars mark where you return if you fall.']
@@ -2084,7 +2089,7 @@ class Play extends Phaser.Scene {
     if (LIVE && !rush && cur === 1) for (let c = 89; c <= 92; c++) if (map[10][c] === '=') map[10][c] = '.';
     if (LIVE && !rush && hasLasso()) hangRing(map);
     // fewer, more meaningful provisions: of two side by side, one is kept (a roast lamb always stays)
-    if (LIVE && !rush && cur > 4) map.forEach((row, r) => row.forEach((ch, c) => { if (ch === 'c' && lv.food(c, r, 0) !== 'lamb' && (row[c - 1] === 'c' || (c * 7 + r) % 3 === 0)) row[c] = '.'; }));
+    if (LIVE && !rush && cur > 5) map.forEach((row, r) => row.forEach((ch, c) => { if (ch === 'c' && lv.food(c, r, 0) !== 'lamb' && (row[c - 1] === 'c' || (c * 7 + r) % 3 === 0)) row[c] = '.'; }));
     this.slopes = LIVE && !rush && this.lv.smoothSteps ? cutSlopes(map) : {};
     $('lbl').innerHTML = lv.hud; $('waterPill').classList.add('hidden'); $('bossName').textContent = lv.bossName || lv.name;
     this.levelW = C * TS;
@@ -3697,7 +3702,7 @@ class Play extends Phaser.Scene {
     o.keep = KEEP5; o.lines = { intro: 'olad1' }; o.ai = () => this.oladAI(); o.onDown = () => this.oladYields();
     this.arena(112 * TS, o, 9); this.olad = o;
     toast('Olad rides out to meet you, sword drawn: "Who are you, to cross the marches of Mazandaran?"');
-    hint('Olad may <b>slash, thrust or throw a knife</b>; the boss bar warns which. Strike a knife to parry it. His <b>shield blocks you from the front</b>. When he <b>flashes, step back</b> from his sword; then he glows and lowers his guard: <b>strike!</b> Or <b>jump twice</b> over him and hit his back. Strike when the <b>gold arrow</b> shows.');
+    hint('Olad may <b>slash, thrust or throw a knife</b>; the boss bar warns which. Strike a knife to parry it. His <b>shield blocks you from the front</b>. When he <b>flashes, step back</b> from his sword; then he glows and lowers his guard: <b>strike!</b> Or <b>jump twice</b> over him and hit his back. Watch the <b>boss bar</b> for the opening.');
   }
   oladAI() {
     const o = this.olad, p = this.player; o.tm -= this.bossStep(); const d = p.x - o.x;
@@ -3729,7 +3734,7 @@ class Play extends Phaser.Scene {
       o.setVelocityX(-o.dir * 105); if (o.tm <= 0 || (o.dir > 0 ? o.body.blocked.left : o.body.blocked.right)) { const ledge = this.bossRead(o).ledge; o.state = ledge ? 'knifeReady' : 'ready'; o.tm = ledge ? 48 : 40; o.attackMove = ledge ? 'knife' : 'thrust'; this.bossAim(o, ledge ? 'Knife drawn: dodge or parry' : 'Sword levelled: a long thrust'); o.setVelocityX(0); }
     } else if (o.state === 'ready') {
       // he draws back his sword, flashing: a moment to step out of reach
-      o.setVelocityX(0); o.setTintFill(Math.floor(o.tm / 4) % 2 ? 0xffffff : 0xffe0a0); if (o.tm % 8 < 4) o.clearTint();
+      o.setVelocityX(0); this.hold(o, 'olad-slash', 1); o.setTintFill(Math.floor(o.tm / 4) % 2 ? 0xffffff : 0xffe0a0); if (o.tm % 8 < 4) o.clearTint();
       if (o.tm <= 0) { o.clearTint(); o.state = 'slash'; o.tm = 30; o.setVelocityX(o.dir * (o.attackMove === 'thrust' ? 110 : 40)); o.play('olad-slash'); sfx('swing'); o.hit = false; }
     } else if (o.state === 'slash') {
       if (!o.hit && o.tm < 20) { o.hit = true; const reach = o.attackMove === 'thrust' ? 68 : 42; this.hazard(o.dir > 0 ? o.x + 4 : o.x - reach - 4, o.body.top + 4, reach, 30, 140); }
@@ -3745,8 +3750,10 @@ class Play extends Phaser.Scene {
   }
   oladYields() {
     // Olad is not slain: he kneels, Rostam's lasso binds him, and he becomes the guide
-    this.calmSky();
-    const o = this.olad, p = this.player; o.state = 'down'; o.setVelocity(0); o.body.enable = false; o.play('olad-kneel'); this.hideMark();
+    this.calmSky(); this.banish(0, this.levelW); this.hazards = []; this.shots.clear(true, true);
+    const o = this.olad, p = this.player, x = o.x - 3 * TS, floor = (this.groundAt(x) ?? 14) * TS;
+    p.body.reset(x, floor - 1 - 0.47 * p.displayHeight);   // room to see the kneeling captive and the noose
+    o.state = 'down'; o.setVelocity(0); o.body.enable = false; o.play('olad-kneel'); this.hideMark();
     $('boss').classList.add('hidden'); this.wall?.destroy(); this.wallR?.destroy(); p.setVelocityX(0); sfx('win');
     const first = !hasLasso(); store.set('sh-lasso', '1'); refreshLassoBtn(); trackGame('boss_defeat', { level_name: String(cur), hearts_left: this.hp });
     // Rostam throws the noose himself: the first throw of the lasso he will carry from here on

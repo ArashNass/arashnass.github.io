@@ -69,3 +69,13 @@ const summons={player:{x:134.4*16},foes:{getChildren:()=>[{active:true,body:{ena
 const summon=ctx.foeSpot(summons,136.8*16,112*16,142*16);
 assert(summon!=null);assert(Math.abs(summon-summons.player.x)>=96);assert(Math.abs(summon-119.5*16)>=32);
 console.log('Witch summons respect six-tile player and two-tile foe clearance.');
+vm.runInContext(source.slice(source.indexOf('function map5()'),source.indexOf('// Khan VI:',source.indexOf('function map5()'))),ctx);
+const marches=ctx.map5();assert.equal(marches.flat().filter(ch=>ch==='c').length,13);
+for(let c=97;c<113;c++){assert.equal(marches[14][c],'#');for(let r=0;r<14;r++)assert.notEqual(marches[r][c],'=','The ambush stays flat and has no refuge ledges');}
+const spearCode=source.slice(source.indexOf('spearman: {\n    tex:'),source.indexOf('\n  serpent:',source.indexOf('spearman: {\n    tex:'))).replace(/^spearman: /,'(').replace(/,$/,')');
+const spear=vm.runInContext(spearCode,ctx), spearCalls=[], spearDone={};let spearHazards=0;
+const guard={active:true,x:100,body:{enable:true,bottom:224,top:180},setFlipX(){},setVelocityX(){},play(){},once(e,fn){spearDone[e]=fn}};
+const spearScene={hold(){},time:{delayedCall(ms,fn){spearCalls.push({ms,fn})}},hazard(){spearHazards++}};
+spear.init(spearScene,guard);spear.tick(spearScene,guard,1,{x:150,body:{bottom:224}});assert(guard.harmless());assert.equal(spearCalls[0].ms,450);assert.equal(spearHazards,0);
+spearCalls[0].fn();assert.equal(guard.harmless(),false);assert.equal(spearHazards,1);spearDone.animationcomplete();assert(guard.harmless());assert.equal(guard.cool,70);
+console.log('Marches supplies, wider flat ambush and spear tell/recovery passed.');

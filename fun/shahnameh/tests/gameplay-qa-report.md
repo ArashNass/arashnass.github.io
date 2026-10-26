@@ -172,3 +172,40 @@ Two complete muted playthroughs reached the ending: the collection run finished 
 - Beauty, transformation, hag, vanish, dazed and death frames are all 225 px. Observed fitted height remained 108. Reflected curses dazed and damaged the witch; direct attacks worked while she was solid; teleport and serpent summons occurred only after unmasking.
 - Living bridges still vanish after their violet warning. Waiting on one caused damage; crossing without stopping avoided that failure. Earlier deaths from mistimed approaches and attacks facing away are not treated as engine failures or hidden.
 - The final summon-placement guard has focused unit coverage rather than a third complete route. This report does not certify every random attack sequence. Labours V–VII and the final live regression remain outstanding.
+
+
+# Labour V — hands-on QA, 26 October 2026
+
+Two muted routes reached the ending: the collection route finished with four hearts; the faster route finished with two after a normal boss-checkpoint retry. Earlier deaths are retained in local captures. No recorded script errors. The faster run deliberately skipped optional food and feathers; the collection route recorded all three feathers.
+
+## Findings and fixes
+
+- `map5()` places thirteen fixed provisions and separate feathers, bypassing blanket thinning. Lambs at (56,7), (84,7), (104,12) support difficult crossings and the stand.
+- `STANDS[5]` expands 99–111 to 97–113, a flat sixteen-tile arena. Removed the 102–106 ledge. The old twelve-tile arena could delay queued entries until Rostam moved, with only 4.72 tiles of clearance. The final eight-entry capture records minimum player clearance **6.031 tiles**, minimum foe clearance **2.104 tiles**; all three waves completed. No overlapping entries or wave deadlock in the final pass.
+- Moved the final resident spear guard to column 102 and the heart to 109, separating them from the stand approach and lamb.
+- Spearmen hold a visible raised-spear pose for 450 ms, commit their thrust direction and recover for 70 frames. Only the active thrust hurts on contact. Jumping over the thrust and countering worked; charging straight into it still costs health.
+- Olad enters only after column 114 with Rostam grounded. Sword warnings hold a visible raised weapon; knife warnings advance through the draw frames. Intent remains in the boss bar. All observed Olad states retained fitted height 92 (233-pixel frames).
+- A knife parry at roughly four tiles returned damage and opened his guard without harming Rostam. Shield-facing attacks were blocked; jumping behind him and attacking during openings worked. The final retry ended with two hearts. Blindly charging or attacking away from him caused failed attempts.
+- `oladYields()` clears remaining road foes and projectiles and stages Rostam three tiles beside the kneeling captive. The second ending verified their separation, normal lasso-key binding, guide movement and completion feather. A cleared stand stayed cleared after the boss retry.
+
+## Pickup reachability
+
+| Cell | Normal route |
+| --- | --- |
+| 9,12 | Walk starting ground |
+| 20,12 | Walk after first spear guard |
+| 25,11 | Jump the raised bank |
+| 30,10 | Jump onto second bank |
+| 40,12 | Walk beyond mixed patrol |
+| 47,8 | Jump onto crossing shelf |
+| 56,7 — lamb | Double jump onto high shelf |
+| 65,10 | Drop to lower shelf |
+| 73,12 | Walk beyond the spear approach |
+| 84,7 — lamb | Double jump onto upper bank |
+| 90,12 | Drop beyond guard |
+| 94,10 | Jump to bank before stand |
+| 104,12 — lamb | Walk into clearing |
+
+**13/13 reachable**, collected across the careful route and its normal fire-checkpoint retry. Feathers at (48,6), (57,4), (110,10) were collected using jump/double jump without needing the newly earned lasso. The faster route collected enough to earn Rakhsh's boss aid.
+
+Flame centres span 225 px (roughly 243 with art), versus maximum double-jump rises 151.24 base / 179.90 upgraded. The stand bounds retained Rostam until completion, then dropped normally and released the earned lamb. Capture `labour-V-1793041256047.json` records the final arena entries; later captures record separated surrender. These checks do not certify every random boss sequence. VI–VII and the final live regression remain outstanding.
