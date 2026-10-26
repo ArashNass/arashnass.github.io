@@ -79,3 +79,20 @@ const spearScene={hold(){},time:{delayedCall(ms,fn){spearCalls.push({ms,fn})}},h
 spear.init(spearScene,guard);spear.tick(spearScene,guard,1,{x:150,body:{bottom:224}});assert(guard.harmless());assert.equal(spearCalls[0].ms,450);assert.equal(spearHazards,0);
 spearCalls[0].fn();assert.equal(guard.harmless(),false);assert.equal(spearHazards,1);spearDone.animationcomplete();assert(guard.harmless());assert.equal(guard.cool,70);
 console.log('Marches supplies, wider flat ambush and spear tell/recovery passed.');
+vm.runInContext(source.slice(source.indexOf('function map6()'),source.indexOf('// Khan VII:',source.indexOf('function map6()'))),ctx);
+const camp=ctx.map6();assert.equal(camp.flat().filter(ch=>ch==='c').length,13);
+const hordeTickCode=source.slice(source.indexOf('  hordeTick() {'),source.indexOf('  startArzhang() {')).trim().replace(/^hordeTick\(/,'function hordeTick(');
+vm.runInContext(hordeTickCode,ctx);ctx.HORDE=[[],[],[],[],[],[]];let waves=0;
+const hordeScene={time:{now:0},horde:{wave:0,live:[],pending:0,spawning:Infinity},hordeWave(){waves++;this.horde.wave++;this.horde.waiting=false;this.horde.spawning=this.time.now+1000;}};
+ctx.hordeTick.call(hordeScene);assert.equal(waves,0,'No wave before the scheduled first entry');
+hordeScene.hordeWave();hordeScene.time.now=1001;ctx.hordeTick.call(hordeScene);assert.equal(waves,1,'Clearing begins a breather, not a second immediate wave');
+hordeScene.time.now=2700;ctx.hordeTick.call(hordeScene);assert.equal(waves,1);hordeScene.time.now=2701;ctx.hordeTick.call(hordeScene);assert.equal(waves,2);
+hordeScene.horde.pending=1;hordeScene.time.now=10000;ctx.hordeTick.call(hordeScene);assert.equal(waves,2,'Pending entries cannot be mistaken for a cleared wave');
+assert(source.includes('pending: 0, spawning: Infinity'),'The first-wave timer starts closed');
+console.log('Camp supplies, single first wave, pending entries and post-clear breather passed.');
+for(const [kind,end] of [['divwarrior','  // Olad\'s spearmen'],['ghul','  // vultures']]){
+ const start=source.indexOf('  '+kind+': {'), code=source.slice(start,source.indexOf(end,start)).trim().replace(new RegExp('^'+kind+': '),'(').replace(/,$/,')');
+ const rule=vm.runInContext(code,ctx), actor={leap:false};rule.init({},actor);assert(actor.harmless());actor.leap=true;assert.equal(actor.harmless(),false);
+ assert(code.includes('delayedCall(450'),'A visible warning precedes the damaging attack');
+}
+console.log('Warrior and ghul contact damage is limited to active attacks.');

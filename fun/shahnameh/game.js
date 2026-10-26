@@ -328,7 +328,7 @@ function map6() {
   // He keeps out of mace reach of it (KEEP6), so it is a refuge, never a perch to strike him from
   row(127, 130, 10, '=');
   put(3, 13, 'P');
-  [[9, 8], [16, 7], [22, 10], [23, 10], [32, 12], [39, 8], [48, 12], [90, 10], [97, 7], [104, 12]].forEach(([c, r]) => put(c, r, 'c'));
+  [[9, 8], [16, 7], [22, 10], [32, 12], [39, 8], [45, 12], [57, 12], [72, 7], [82, 12], [90, 10], [97, 7], [104, 12], [120, 12]].forEach(([c, r]) => put(c, r, 'c'));
   put(15, 13, 'd'); put(30, 13, 'w'); put(49, 13, 'd'); put(53, 13, 'w'); put(112, 13, 'w');
   // war fires, kept well apart from each other and from the altars (44, 100, 118)
   [[12, 13], [28, 13], [67, 13], [134, 13]].forEach(([c, r]) => put(c, r, 'B'));
@@ -642,6 +642,7 @@ const FOES = {
   // Div warriors stomp about and smash their clubs into the ground when Rostam comes close
   divwarrior: {
     tex: 'divwarrior-walk', hp: 3,
+    init(s, f) { f.harmless = () => !f.leap; },
     tick(s, f, k, p) {
       f.cool = (f.cool || 0) - k;
       if (f.smash) { f.setVelocityX(0); return; }
@@ -657,9 +658,10 @@ const FOES = {
       }
       f.turnT = undefined;
       if (canHunt(s, f, p) && f.cool <= 0 && Math.abs(d) < 90 && Math.abs(p.body.bottom - f.body.bottom) < 30 && f.body.blocked.down && reserveAttack(s, f)) {
-        const attackId = f.attackId; f.smash = true; f.setVelocityX(0); f.play('divwarrior-smash');
-        s.time.delayedCall(420, () => { if (!f.active || !f.body.enable || f.attackId !== attackId) return; s.hazard(f.dir > 0 ? f.x + 8 : f.x - 48, f.body.top + 20, 40, 30, 160); s.fx('dust', f.x + f.dir * 30, f.body.bottom, { depth: 8 }); s.cam.shake(120, 0.006); sfx('hit'); });
-        f.once('animationcomplete', () => { if (!f.active) return; f.smash = false; f.cool = 90; f.play('divwarrior-walk'); });
+        const attackId = f.attackId; f.smash = true; f.setVelocityX(0); s.hold(f, 'divwarrior-smash', 1);
+        s.time.delayedCall(450, () => { if (!f.active || !f.body.enable || f.attackId !== attackId) return; f.leap = true; f.play({ key: 'divwarrior-smash', startFrame: 2 }); s.hazard(f.dir > 0 ? f.x + 8 : f.x - 48, f.body.top + 20, 40, 30, 160); s.fx('dust', f.x + f.dir * 30, f.body.bottom, { depth: 8 }); s.cam.shake(120, 0.006); sfx('hit');
+          f.once('animationcomplete', () => { if (!f.active) return; f.smash = f.leap = false; f.cool = 90; f.play('divwarrior-walk'); });
+        });
         return;
       }
       if (Math.abs(d) < 200 && f.body.blocked.down) {
@@ -738,13 +740,19 @@ const FOES = {
   // Ghuls scuttle on all fours and pounce when Rostam comes close
   ghul: {
     tex: 'ghul-crawl', hp: 2,
+    init(s, f) { f.harmless = () => !f.leap; },
     tick(s, f, k, p) {
       f.cool = (f.cool ?? 40) - k;
+      if (f.thrust) { f.setVelocityX(0); return; }
       if (f.leap) { if (f.body.blocked.down && (f.leapT -= k) <= 0) { f.leap = false; f.cool = 80; f.play('ghul-crawl'); } return; }
       if (above(f, p)) { pace(s, f, 40); return; }
       const d = p.x - f.x, face = Math.sign(d) || f.dir;
       if (canHunt(s, f, p) && f.cool <= 0 && Math.abs(d) < 120 && Math.abs(p.body.bottom - f.body.bottom) < 30 && f.body.blocked.down && reserveAttack(s, f)) {
-        f.leap = true; f.leapT = 12; f.dir = face; f.setFlipX(face < 0); f.play('ghul-leap'); f.setVelocity(hopVelocity(f, face * 200, 0.6), -250); sfx('swing');
+        const attackId = f.attackId; f.thrust = true; f.dir = face; f.setFlipX(face < 0); f.setVelocityX(0); s.hold(f, 'ghul-leap', 0);
+        s.time.delayedCall(450, () => {
+          if (!f.active || !f.body.enable || f.attackId !== attackId) return;
+          f.thrust = false; f.leap = true; f.leapT = 12; f.play('ghul-leap'); f.setVelocity(hopVelocity(f, face * 200, 0.6), -250); sfx('swing');
+        });
         return;
       }
       if (Math.abs(d) < 240) f.dir = face;
@@ -1278,7 +1286,8 @@ const LEVELS = {
       s.embers = s.add.particles(0, 0, 'sand', { x: { min: 0, max: W }, y: H + 4, speedY: { min: -60, max: -25 }, speedX: { min: -10, max: 10 }, lifespan: 4500, frequency: 90, tint: [0xff8a2a, 0xffd060, 0xe8501a], alpha: { start: 1, end: 0 } }).setScrollFactor(0).setDepth(11);
     },
     scroll(s, sx, time) { s.smoke.tilePositionX = Math.round(sx * 0.3 + time * 0.006); },
-    food: (c, r, n) => (c === 39 && r === 8) || (c === 97 && r === 7) ? 'lamb' : FOOD[1 + (n % 3)],
+    feathers: [[16, 5], [74, 6], [108, 8]],
+    food: (c, r, n) => [39, 57, 97, 120].includes(c) ? 'lamb' : FOOD[1 + (n % 3)],
     parse(s, ch, x, y) {
       if (ch === 'w') s.spawnFoe('divwarrior', x, y);
       else if (ch === 'b') s.spawnFoe('bat', x, y);
@@ -1299,7 +1308,7 @@ const LEVELS = {
       if (!s.hordeDone && !s.horde && p.x > s.hordeAt.x - 2 * TS) s.startHorde();
       s.oladTick();
       if (s.horde) s.hordeTick();
-      if (!s.bossOn && p.x > 124 * TS) s.startArzhang();
+      if (!s.bossOn && p.x > 124 * TS && p.body.blocked.down) s.startArzhang();
     },
     win: 'Rostam tears Arzhang from the field and the Div host scatters into the night. Now only the White Div remains, in his cave beyond the seven mountains.',
     tips: ['When Arzhang stamps and flushes red, he charges. Leap onto a platform; if he hits the wall, strike him while he is dazed.', 'Arzhang\'s red glow shows where his axe will strike: the floor, or the platforms. Be where it is not, then strike him while he rests.', 'When the drums sound, the gates shut. Jump twice to reach the high platforms; Divs cannot follow you up there.', 'A Div warrior turns slowly. Drop behind him and strike his back before he faces you.', 'Fire Divs lob fireballs from afar: close in right after a throw.', 'Ghuls pounce when you are close: jump the leap, then strike as they land.', 'A heart waits on the high platform of the horde\'s arena, and grows back.', 'Jump over the shockwaves from a Div warrior\'s club.',
@@ -2089,7 +2098,7 @@ class Play extends Phaser.Scene {
     if (LIVE && !rush && cur === 1) for (let c = 89; c <= 92; c++) if (map[10][c] === '=') map[10][c] = '.';
     if (LIVE && !rush && hasLasso()) hangRing(map);
     // fewer, more meaningful provisions: of two side by side, one is kept (a roast lamb always stays)
-    if (LIVE && !rush && cur > 5) map.forEach((row, r) => row.forEach((ch, c) => { if (ch === 'c' && lv.food(c, r, 0) !== 'lamb' && (row[c - 1] === 'c' || (c * 7 + r) % 3 === 0)) row[c] = '.'; }));
+    if (LIVE && !rush && cur > 6) map.forEach((row, r) => row.forEach((ch, c) => { if (ch === 'c' && lv.food(c, r, 0) !== 'lamb' && (row[c - 1] === 'c' || (c * 7 + r) % 3 === 0)) row[c] = '.'; }));
     this.slopes = LIVE && !rush && this.lv.smoothSteps ? cutSlopes(map) : {};
     $('lbl').innerHTML = lv.hud; $('waterPill').classList.add('hidden'); $('bossName').textContent = lv.bossName || lv.name;
     this.levelW = C * TS;
@@ -3814,7 +3823,7 @@ class Play extends Phaser.Scene {
       heldBeat(this, { fa: 'رستم', title: 'The champion’s war cry', pose: this.mounted ? 'ride-rear' : 'rostam-warcry', text: '<b>Rostam’s challenge shakes the camp.</b> The horde is about to answer.', voice: 'rostam-warcry', min: 2300 }, () => { this.cam.shake(650, 0.012); this.startHorde(); }); return;
     }
     // gates of fire close behind and before Rostam while the Divs come in waves
-    this.horde = { wave: 0, live: [] }; const x = this.hordeAt.x;
+    const x = this.hordeAt.x; this.horde = { wave: 0, live: [], entries: [], L: x - 13 * TS, R: x + 13 * TS, pending: 0, spawning: Infinity };
     this.gates = [x - 13 * TS, x + 13 * TS].map((gx, i) => {
       const r = this.add.rectangle(gx, -400, 12, ROWS * TS + 400, 0, 0).setOrigin(0.5, 0); this.physics.add.existing(r, true); this.physics.add.collider(this.foes, r);
       // the gate drops from above and slams into the ground, shaking the camp
@@ -3827,7 +3836,7 @@ class Play extends Phaser.Scene {
     // the camera settles on the arena, so both gates are in view while it lasts
     this.cam.stopFollow(); this.tweens.add({ targets: this.cam, scrollX: Phaser.Math.Clamp(x - W / 2, 0, this.levelW - W), duration: 600, ease: 'Sine.easeInOut' });
     // one bat circles high over the platforms, to harry Rostam up there
-    this.hordeBat = this.spawnFoe('bat', x, 4 * TS);
+    this.hordeBat = this.spawnFoe('bat', x + 10 * TS, 4 * TS);
     banner('سپاهِ دیوان', 'The Horde of the Divs'); hint('The gates are shut! <b>Defeat six waves of Divs</b>. <b>Jump twice</b> to reach the high platform, drop behind a Div to strike, then leap back up.'); this.drums = this.time.addEvent({ delay: 420, loop: true, callback: () => sfx('drum') });
     this.time.delayedCall(900, () => this.hordeWave());
     if (!rush) this.time.delayedCall(1600, () => this.oladJoins());
@@ -3863,28 +3872,36 @@ class Play extends Phaser.Scene {
     } else if (o.anims.isPlaying) { o.anims.stop(); o.setFrame(0); }
   }
   hordeWave() {
-    const h = this.horde, x = this.hordeAt.x, list = HORDE[h.wave]; h.wave++;
+    const h = this.horde, x = this.hordeAt.x, list = HORDE[h.wave]; h.wave++; h.pending = list.length; h.waiting = false;
     toast(`Wave ${h.wave} of ${HORDE.length}: ${h.wave === 1 ? 'the Divs pour in!' : h.wave === HORDE.length ? 'the last of them!' : 'more come!'}`);
-    list.forEach((k, i) => this.time.delayedCall(i * 420, () => {
-      const side = i % 2 ? 1 : -1, sx = x + side * 10 * TS;
-      const spawnX = Math.abs(this.player.x - sx) < 44 ? Phaser.Math.Clamp(sx + (this.player.x >= sx ? -52 : 52), x - 11 * TS, x + 11 * TS) : sx;
+    list.forEach((k, i) => { const enter = () => {
+      if (this.horde !== h || this.done) return;
+      const side = i % 2 ? 1 : -1, spawnX = waveSpot(this, h, side);
+      if (spawnX == null) { this.time.delayedCall(250, enter); return; }
+      h.entries.push(spawnX);
       const mark = this.add.ellipse(spawnX, 14 * TS - 2, 34, 8, 0xffb84d, 0.45).setStrokeStyle(1, 0xffe7a2).setDepth(7);
       this.tweens.add({ targets: mark, alpha: 0.15, yoyo: true, repeat: 2, duration: 75 });
-      this.time.delayedCall(450, () => {
-      mark.destroy(); if (this.horde !== h || this.done) return;
-      this.fx('poof', spawnX, 13 * TS + 8, { depth: 10 });
-      const f = this.spawnFoe({ w: 'divwarrior', f: 'firediv', g: 'ghul' }[k] || 'div', spawnX, 14 * TS); f.dir = -side; f.setFlipX(f.dir < 0);
-      f.post = x + (i - (list.length - 1) / 2) * 4 * TS;          // spread out across the arena
-      h.live.push(f);
+      this.time.delayedCall(480, () => {
+        mark.destroy(); if (this.horde !== h || this.done) return;
+        h.entries.splice(h.entries.indexOf(spawnX), 1);
+        if (!waveClear(this, h, spawnX)) { this.time.delayedCall(250, enter); return; }
+        this.fx('poof', spawnX, 13 * TS + 8, { depth: 10 });
+        const f = this.spawnFoe({ w: 'divwarrior', f: 'firediv', g: 'ghul' }[k] || 'div', spawnX, 14 * TS);
+        f.dir = -side; f.setFlipX(f.dir < 0); f.roam = [h.L + 8, h.R - 8];
+        f.post = x + (i - (list.length - 1) / 2) * 4 * TS;
+        h.live.push(f); h.pending--;
       });
-    }));
+    }; this.time.delayedCall(i * 420, enter); });
     h.spawning = this.time.now + list.length * 420 + 650;
   }
   hordeTick() {
     const h = this.horde;
-    if (this.time.now < h.spawning) return;
+    if (this.time.now < h.spawning || h.pending > 0) return;
     if (h.live.every(f => !f.active || !f.body.enable)) {
-      if (h.wave < HORDE.length) { h.live = []; this.hordeWave(); return; }
+      if (h.wave < HORDE.length) {
+        if (!h.waiting) { h.waiting = true; h.spawning = this.time.now + 1700; return; }
+        h.live = []; this.hordeWave(); return;
+      }
       // the last wave is broken: the gates of fire die down
       this.horde = null; this.hordeDone = true; this.drums.remove(); sfx('win'); hint('The gates open. <b>Arzhang waits ahead</b>: light the last fire before you face him.');
       // only the way on opens: the gate behind stays shut
@@ -3937,7 +3954,7 @@ class Play extends Phaser.Scene {
     } else if (a.state === 'smash') {
       if (a.tm <= 0) {
         if (a.combo.length) this.windUp(a, a.combo[0] === 'split' ? Math.max(hurt ? 52 : 60, this.reachT(127, 131)) : hurt ? 52 : 60);   // the second blow comes quicker
-        else { a.state = 'rest'; a.tm = hurt ? 120 : 140; this.daze(a, 'arzhang-dazed') || a.setFrame(4); a.setTint(0xffc0a0); a.setVelocityX(0);
+        else { a.state = 'rest'; a.intent = ''; a.tm = hurt ? 120 : 140; this.daze(a, 'arzhang-dazed') || a.setFrame(4); a.setTint(0xffc0a0); a.setVelocityX(0);
           this.stars = this.fx('stun', a.x, a.body.top - 4, { depth: 10, follow: a }); hint('Arzhang <b>rests on his axe: strike him now!</b>'); }
       }
     } else if (a.state === 'rest') {

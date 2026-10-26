@@ -209,3 +209,33 @@ Two muted routes reached the ending: the collection route finished with four hea
 **13/13 reachable**, collected across the careful route and its normal fire-checkpoint retry. Feathers at (48,6), (57,4), (110,10) were collected using jump/double jump without needing the newly earned lasso. The faster route collected enough to earn Rakhsh's boss aid.
 
 Flame centres span 225 px (roughly 243 with art), versus maximum double-jump rises 151.24 base / 179.90 upgraded. The stand bounds retained Rostam until completion, then dropped normally and released the earned lamb. Capture `labour-V-1793041256047.json` records the final arena entries; later captures record separated surrender. These checks do not certify every random boss sequence. VI–VII and the final live regression remain outstanding.
+
+# Labour VI — hands-on QA, 26 October 2026
+
+Two complete muted routes reached the ending, with three and two hearts. The second horde ended at five hearts. Earlier startup/pickup attempts and the overlapping-wave failure were retained in local captures. No script errors recorded.
+
+- Fixed a real first-wave race: `hordeTick()` could start wave one before the 900 ms callback, which then started wave two over it. Five foes were observed together. Startup now blocks the tick until its scheduled wave begins.
+- Horde entries reuse reserved, warned positions with a post-warning clearance check. Pending entries cannot count as cleared waves. Each clear has a 1.7-second breather. All six waves completed twice without deadlock; the second capture recorded sixteen entries including the bat, minimum player distance **7.580 tiles**, minimum foe distance **2.469 tiles**. Maximum wave size is three, plus the single bat.
+- Div warriors and ghuls now hold a 450 ms warning before their committed strike/leap. Body contact during warning/recovery is harmless. The second road pass countered the last warrior without losing health; earlier always-damaging contact had cost multiple hearts during recovery.
+- `map6()` places thirteen fixed food pickups with separate feathers; blanket thinning is bypassed. All thirteen were reached across the collection attempts and completed route. The faster route skips some. Optional lasso-ring supplies and champion/streak drops are excluded from the fixed count.
+- Both war drums can be broken by normal strikes on the high platform. Olad moves, attacks and fades after the horde. The right gate opens after the last foe. The remaining left gate holds normally.
+- Arzhang's entrance now requires grounded Rostam. Observed walk, raise, smash, stomp, rest and death states retain fitted height 136 with 259-pixel frames. Stale warning text is cleared during axe recovery. The first fight took roughly 27 seconds of active controls after the first observed axe sequence; this is a verified completion, not a claim that every careful player will take 1–3 minutes. Missed floor/high-band warnings still cost health. Ordinary mace attacks during recovery killed him in both routes.
+- Floor fire runs across the 30-tile arena after the red warning; the corner platform provides refuge from floor strikes, while high sweeps require dropping. The second pass deliberately mistimed these and lost health; the warnings did not produce unmarked damage. No art, music or narration changes.
+
+| Fixed food | Reach |
+| --- | --- |
+| 9,8 | Double jump onto first platform |
+| 16,7 | Jump from first platform to higher shelf |
+| 22,10 | Drop onto raised bank |
+| 32,12 | Walk after first warrior |
+| 39,8 — lamb | Jump from crossing's lower shelf |
+| 45,12 | Walk past first checkpoint |
+| 57,12 — lamb | Walk before gates |
+| 72,7 | Double jump to horde platform |
+| 82,12 | Walk out of horde |
+| 90,10 | Jump onto bank |
+| 97,7 — lamb | Jump/double jump onto crossing shelf |
+| 104,12 | Walk before final bank |
+| 120,12 — lamb | Walk before boss |
+
+Feathers (16,5), (74,6), (108,8) were reached by jumps without lasso; the first completion recorded 3/3. The horde gates use tall full-height positional bounds rather than the smaller fire-stand walls. Shared stands retain 225-pixel flame-centre height against 151.24/179.90-pixel maximum double jumps. The high horde platform is intentionally retained as a taught combat refuge. Focused tests cover startup, pending entries, breather timing, food count and harmless recovery contact. VII and the final live regression remain outstanding.
