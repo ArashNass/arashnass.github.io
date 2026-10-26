@@ -106,7 +106,12 @@ const hasLasso = () => store.get('sh-lasso') === '1' || unlocked() >= 6;
 const refreshLassoBtn = () => document.querySelector('.tb.lasso')?.classList.toggle('hidden', !hasLasso());
 const ROMAN = ['', 'I', 'II', 'III', 'IV', 'V', 'VI', 'VII'];
 
-const W = 480, H = 270, TS = 16, ROWS = 17;
+// the view is 270 world pixels tall; on a phone wider than 16:9 it widens to match the screen (up to 600), showing
+// more of the road instead of dark bars at the sides
+const H = 270, W = (() => { try {
+  const t = matchMedia('(pointer:coarse)').matches || 'ontouchstart' in window, a = Math.max(screen.width, screen.height) / Math.min(screen.width, screen.height);
+  return t && a > 16 / 9 + 0.03 ? Math.min(600, Math.round(H * a / 2) * 2) : 480;
+} catch (e) { return 480; } })(), TS = 16, ROWS = 17;
 const OUT = '#1a0f2e';
 const PAL = { skin: '#e2a574', tiger: '#e9a43c', stripe: '#3a1f10', chain: '#a9b4c8', red: '#b8303f', boot: '#5a3418', helm: '#f1ead8', beard: '#2a1a12', mace: '#e8c25a', wood: '#7a4a22' };
 
@@ -1055,7 +1060,7 @@ const LEVELS = {
     backdrop(s) {
       // the far desert is drawn in 2px bands so each band can waver: heat shimmer above the dunes
       const t = s.textures.get('k2-far');
-      if (!t.has('band0')) for (let y = 0; y < H; y += 2) t.add('band' + y, 0, 0, y, W, 2);
+      if (!t.has('band0')) for (let y = 0; y < H; y += 2) t.add('band' + y, 0, 0, y, t.source[0].width, 2);
       s.bands = [];
       for (let y = 0; y < H; y += 2) s.bands.push(s.add.image(0, y, 'k2-far', 'band' + y).setOrigin(0).setScrollFactor(0));
       s.oasis = s.add.image(0, 0, 'k2-oasis').setOrigin(0).setScrollFactor(0).setAlpha(0);
@@ -2001,6 +2006,23 @@ addEventListener('blur', clearInput);
 /* ---------------------------- scene ---------------------------- */
 let game = null, playing = false;
 const touch = matchMedia('(pointer:coarse)').matches || 'ontouchstart' in window;
+const isPhone = () => touch && Math.min(innerWidth, innerHeight) < 560;
+const markPhone = () => { document.body.classList.toggle('phone', isPhone()); document.body.classList.toggle('upright', isPhone() && innerHeight > innerWidth); };
+// where the game's 16:9 picture leaves dark bars at the sides, the thumb buttons move into them, off the picture
+const fitGutters = () => {
+  const c = game?.canvas; if (!c) return; const r = c.getBoundingClientRect(), gut = Math.max(0, r.left);
+  document.documentElement.style.setProperty('--gut', gut + 'px'); document.documentElement.style.setProperty('--cw', r.width + 'px');
+  document.body.classList.toggle('gutters', isPhone() && gut >= 128);
+};
+const relayout = () => { markPhone(); setTimeout(fitGutters, 120); setTimeout(fitGutters, 600); };
+markPhone(); addEventListener('resize', relayout); addEventListener('orientationchange', () => setTimeout(relayout, 200));
+document.addEventListener('fullscreenchange', relayout);
+// on a phone the browser's own bars eat the screen: a labour plays full screen, held sideways
+const goFull = () => {
+  const d = document.documentElement; if (!isPhone() || document.fullscreenElement || !d.requestFullscreen) return;
+  d.requestFullscreen({ navigationUI: 'hide' }).then(() => screen.orientation?.lock?.('landscape').catch(() => {})).catch(() => {});
+};
+addEventListener('pointerdown', e => { if (document.body.classList.contains('playing') ? e.target.closest('#touch') : e.target.closest('#rideBtn,#heroGo,[data-play],.endMenu button,.road button,.road a')) goFull(); }, true);
 
 class Play extends Phaser.Scene {
   constructor() { super('play'); }
@@ -2050,6 +2072,9 @@ class Play extends Phaser.Scene {
     this.levelW = C * TS;
     for (const [k, f] of Object.entries(FX)) if (!this.anims.exists('fx-' + k)) this.anims.create({ key: 'fx-' + k, frames: this.anims.generateFrameNumbers('fx-' + k, { start: 0, end: f.n - 1 }), frameRate: f.fps, repeat: f.loop ? -1 : 0 });
     lv.backdrop(this);
+    // a widened view: the painted backdrops (480 wide) are scaled to cover it
+    if (W > 480) for (const o of this.children.list) if (o.type === 'Image' && o.scrollFactorX === 0 && o.originX === 0 && o.width >= 300 && o.width < W)
+      o.height < H / 2 ? o.setScale(W / o.width, 1) : o.setScale(Math.max(W / o.width, H / o.height));
     const data = map.map((row, r) => row.map((ch, c) => { const t = ch === '#' ? (r > 0 && (map[r - 1][c] === '#' || this.slopes[c + ',' + (r - 1)]) ? 1 : 0) : ch === '=' ? 2 : ch === '^' ? 3 : -1; return t < 0 ? t : t + (lv.tileShift?.(c) || 0); }));
     const tm = this.make.tilemap({ data, tileWidth: TS, tileHeight: TS });
     const ts = tm.addTilesetImage(lv.tiles, lv.tiles, TS, TS, 0, 0);
@@ -2155,7 +2180,7 @@ class Play extends Phaser.Scene {
     // offset centres Rostam, and the bounds and tile culling are worked out for the zoomed view
     this.cam.setZoom(ZOOM).setOrigin(0, 0);
     this.cam.clampX = x => Phaser.Math.Clamp(x, 0, Math.max(0, this.levelW - W)); this.cam.clampY = y => Phaser.Math.Clamp(y, 0, Math.max(0, ROWS * TS - H));
-    this.layer.setCullPadding(W / TS, H / TS);
+    this.layer.setCullPadding(Math.ceil(W / TS), Math.ceil(H / TS));   // whole tiles: a fractional padding makes Phaser draw no tiles at all
     this.cam.setBounds(0, 0, this.levelW, ROWS * TS);
     this.cam.startFollow(this.player, true, 0.12, 0.12, W / 2, H / 2);
     this.cam.setRoundPixels(true);
@@ -2201,6 +2226,7 @@ class Play extends Phaser.Scene {
     this.light(h, 0.5, 0.1); return h;
   }
   combatWord(text, color = '#ffe7a2') {
+    if (isPhone()) return;
     const p = this.player, word = this.add.text(p.x, p.body.top - 12, text, { fontFamily: 'Georgia, serif', fontSize: '10px', color, stroke: '#181125', strokeThickness: 3, resolution: 4 }).setOrigin(0.5, 1).setDepth(14);
     this.tweens.add({ targets: word, y: word.y - 18, alpha: 0, delay: 250, duration: 650, onComplete: () => word.destroy() });
   }
@@ -2210,7 +2236,7 @@ class Play extends Phaser.Scene {
     const glow = this.add.image(x, y - 27, 'glow').setScale(0.55).setTint(0xffdc87).setAlpha(0.65).setBlendMode(Phaser.BlendModes.ADD).setDepth(3);
     const marker = this.add.image(x, y - 27, 'feather').setScale(0.2).setTint(0xffdf8d).setDepth(4);
     this.tweens.add({ targets: [marker, glow], y: y - 32, yoyo: true, repeat: -1, duration: 1000, ease: 'Sine.easeInOut' });
-    const label = this.add.text(x, y - 80, 'Simurgh trial', { fontFamily: 'Georgia, serif', fontSize: '9px', color: '#ffe5a0', stroke: '#181125', strokeThickness: 3, resolution: 4 }).setOrigin(0.5, 1).setDepth(10);
+    const label = this.add.text(x, y - 80, 'Simurgh trial', { fontFamily: 'Georgia, serif', fontSize: '9px', color: '#ffe5a0', stroke: '#181125', strokeThickness: 3, resolution: 4 }).setOrigin(0.5, 1).setDepth(10).setVisible(!isPhone());
     const ribbonFrame = this.add.rectangle(W / 2, 39, 180, 16, 0x181125, 0.95).setStrokeStyle(1, 0xcaa65e).setScrollFactor(0).setDepth(13).setVisible(false);
     const ribbon = this.add.text(W / 2, 39, '', { fontFamily: 'Georgia, serif', fontSize: '9px', color: '#ffe5a0', padding: { x: 6, y: 2 }, resolution: 4 }).setOrigin(0.5).setScrollFactor(0).setDepth(14).setVisible(false);
     this.trial = { cfg, x, y, marker, glow, label, ribbon, ribbonFrame, state: 'ready', sparks: [], count: 0, best: trialRecords()[cur]?.best || 0 };
@@ -3304,7 +3330,7 @@ class Play extends Phaser.Scene {
   stormSky() {
     const S = this.lv.sky; if (!S || this.sky) return;
     const list = this.children.list;
-    let at = 0; list.forEach((o, i) => { if (o.type === 'Image' && o.scrollFactorX === 0 && o.depth === 0 && o.width >= W) at = i + 1; });
+    let at = 0; list.forEach((o, i) => { if (o.type === 'Image' && o.scrollFactorX === 0 && o.depth === 0 && o.displayWidth >= W - 1) at = i + 1; });
     const put = o => { o.setScrollFactor(0); this.children.moveTo(o, Math.min(at++, list.length - 1)); return o; };
     const [sx, sy] = S.sun;
     const sky = this.sky = { S, v: 0, calm: false, boltT: 90, time: 0, mids: list.filter(o => o.type === 'TileSprite' && o.scrollFactorX === 0 && o.depth === 0) };
@@ -5442,14 +5468,16 @@ function hint(html) {
   const h = $('hint'); if (!html) { h.classList.add('hidden'); h.dataset.t = ''; return; }
   if (h.dataset.t === html) return; h.dataset.t = html; h.innerHTML = html; refreshControlLabels(h);
   h.classList.remove('hidden', 'new', 'dim'); void h.offsetWidth; h.classList.add('new');
-  clearTimeout(hint.t); hint.t = setTimeout(() => h.classList.add('dim'), 7000);
+  h.classList.remove('full', 'tucked'); hint.at = Date.now(); clearTimeout(hint.t); hint.t = setTimeout(() => h.classList.add(isPhone() ? 'tucked' : 'dim'), isPhone() ? 3500 : 7000);
 }
-function toast(msg) { if ($('sub').classList.contains('on')) return; const t = $('toast'); t.textContent = controlText(msg); t.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('on'), 3200); }
+$('hint').addEventListener('click', () => { if (!isPhone()) return; const h = $('hint'), open = h.classList.contains('tucked'); h.classList.remove('dim', 'tucked'); h.classList.toggle('full', open); clearTimeout(hint.t); if (open) hint.t = setTimeout(() => h.classList.add('tucked'), 6000); else h.classList.add('tucked'); });
+function toast(msg) { if ($('sub').classList.contains('on')) return; if (isPhone() && Date.now() - (hint.at || 0) < 1800) return; const t = $('toast'); t.textContent = controlText(msg); t.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('on'), isPhone() ? 2400 : 3200); }
 function banner(fa, name, ep = '') {
   const lv = LEVELS[cur], b = $('banner');
   b.querySelector('.fa').textContent = fa || lv.bossFa || lv.fa; b.querySelector('h2').textContent = name || lv.bossName || lv.name;
   b.querySelector('.ep').textContent = ep; b.classList.toggle('grand', !!ep);
   b.classList.remove('on'); void b.offsetWidth; b.classList.add('on');
+  document.body.classList.add('bannering'); clearTimeout(banner.t); banner.t = setTimeout(() => document.body.classList.remove('bannering'), 3400);   // on a phone the hint steps aside for it
 }
 // the tale, paged like a manuscript
 let pages = [], pg = 0, storyFrom = null, storyReading = false;
@@ -5520,6 +5548,7 @@ game = new Phaser.Game({
   physics: { default: 'arcade', arcade: { gravity: { y: 900 }, debug: location.hash === '#physics' } },
   scene: [Play]
 });
+game.scale.on('resize', () => setTimeout(fitGutters, 50)); setTimeout(fitGutters, 300);
 $('playBtn').onclick = () => (unlocked() > 1 ? openMap() : begin(1)); $('againBtn').onclick = () => $('winTitle').textContent === 'The boss rush is done' ? startRush() : begin(); $('retryBtn').onclick = () => rush ? startRush() : begin(cur, true); $('freshBtn').onclick = () => begin();
 $('muteBtn').onclick = () => { audio(); setMuted(!A.muted); };
 setMuted(A.muted); document.body.classList.toggle('backgrounded', A.background);
