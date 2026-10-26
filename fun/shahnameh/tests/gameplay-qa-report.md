@@ -91,3 +91,43 @@ Water skins: (23,11), (44,8), (100,8), (116,11), (132,12), all collected. Hearts
 - Ram prayer, leading, pawing and sand-heave sequence preceded both Queen fights. No early Queen was observed. Both fights were won with ordinary attacks and movement; reflected venom and post-emergence openings caused damage as described by the hints. The faster run received the earned Rakhsh assist.
 - Queen strips remain 256 px per frame and fitted height 150 in observed emerge, walk, sting, spit, underground and exposed states. Underground cropping is intentional; it does not rescale her.
 - Rushing the well fight caused a death. This is recorded rather than concealed: the test demonstrates recovery, not guaranteed survival or a universal difficulty assessment. Later labours still require their own pass, including shared flyer and checkpoint regressions.
+
+# Labour III — hands-on QA, 26 October 2026
+
+Careful collection reached all thirteen fixed provisions and three separate feathers. Early stand attempts required ordinary checkpoint retries; these failures are retained in the QA captures. The final faster regression on the completed fixes ran from the starting point to victory without a death, finishing with three hearts. All movement, attacks, jumps and Farr calls used normal inputs, normal speed and earned resources; audio remained muted. No recorded script errors.
+
+## Findings and fixes
+
+- `map3()` and `LEVELS[3].feathers`: seven fixed provisions after thinning/conversion were insufficient. Thirteen deliberate provisions now survive, with feathers placed independently. Lamb at (79,9) gives a recovery opportunity before the night stand.
+- Removed the bat posts at columns 74 and 95: they crowded the stand's approach and final crossing. The three-wave fight retains its own bats and jackals.
+- `FOES.jackal.init`: contact during stalking/crouching now stays harmless; only an unspent committed lunge damages. Jumping that lunge and countering recovery worked in play. Shared later jackals require their later-labour regression.
+- `LEVELS[3].update`: waits for grounded feet before starting the dragon warnings; crossing the trigger airborne no longer starts a rearing pose in midair.
+- Player attack start clears `ride-rear`, allowing the mounted strike to interrupt the cosmetic warning pose. Observed `pose:null` with `ride-strike` in the final fight.
+- `startDragon()`: body contact damages only during the committed lunge. Breath and fireballs retain their own hazards. This removed damage from mere overlap during reveal/repositioning; the final fight still lost two hearts to attacks.
+
+## Pickups
+
+| Cell | Normal route |
+| --- | --- |
+| 8,12 | Ride starting ground |
+| 19,10 | Jump onto raised dune |
+| 29,8 | Jump onto first pit ledge |
+| 38,12 | Ride beyond jackal |
+| 47,10 | Jump onto raised bank |
+| 55,12 | Ride before broken crossing |
+| 61,7 — lamb | Jump across the upper crossing |
+| 70,12 | Ride beyond pack leader |
+| 79,9 — lamb | Jump onto raised bank before stand |
+| 86,12 | Ride into clearing |
+| 95,8 — lamb | Jump onto last pit ledge after stand |
+| 100,12 | Drop onto final bank |
+| 109,12 | Ride off the raised fire platform |
+
+**13/13 fixed provisions reachable, plus the earned stand lamb.** The careful snapshot at column 109.8 had no remaining fixed food; only the last feather remained, then collected before the entrance. Feathers (30,6), (79,6), (110,10) were reached by jumps/double jumps without a lasso. The heart at column 105 was reached by jumping onto the raised platform.
+
+## Stand, sizes and limits
+
+- Arena 81–93: twelve tiles wide, flat row-14 floor. Flame centres span 225 px versus maximum double-jump rises 151.24 px base / 179.90 px upgraded; positional bounds also retain the rider. Walls faded after the final kill and the lamb healed normally.
+- Three waves cleared with no pending-entry deadlock. Alternating directions, jumping dives and jumping the leader's lunge all worked; blindly repeating attacks in the wrong direction caused earlier deaths. The final pass used earned Farr against the final leader.
+- All dragon strips are 257 px per frame and fitted height stayed 136 across observed lurk, reveal, lunge, breath, fireball, exposed and death states. Rider strips are 282 px and retain SIZE.rider. Complete ART frame/fit table: `gameplay-sprite-sizes.md`.
+- Scripted dragon chase and marked fire remain dangerous during the road. Stopping in marked fire caused damage, while riding through it cleanly avoided that damage. This pass does not certify every random boss sequence or every future upgrade combination. Labours IV–VII remain outstanding.

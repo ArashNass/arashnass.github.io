@@ -36,3 +36,13 @@ Object.assign(ctx,{cur:2,rush:false,resumeAt:{n:2,i:0},sting(){},banner(){},hint
 const altar={x:57.5*16,y:13*16}, won={time:{now:5000},player:{body:{left:900,right:916,velocity:{x:0}}},altars:[altar],gainFarr(){},pickup(x,y){return{x,y}},fx(){},siege:{S:{waves:[],at:57.5},wave:0,live:[],next:0,L:49*16,R:65*16,walls:[]}};
 ctx.standTick(won);assert.equal(ctx.resumeAt.standDone,true,'A won stand is remembered by its checkpoint');
 console.log('Desert clearing, provisions, flyer recovery safety and checkpoint completion passed.');
+vm.runInContext(source.slice(source.indexOf('function map3()'),source.indexOf('// Khan IV:',source.indexOf('function map3()'))),ctx);
+const night=ctx.map3(), nightFood=[];night.forEach((row,r)=>row.forEach((ch,c)=>{if(ch==='c')nightFood.push([c,r])}));
+assert.equal(nightFood.length,13,'The mounted road retains thirteen deliberate provisions');
+for(let c=81;c<93;c++)assert.equal(night[14][c],'#','The night stand floor remains flat');
+assert(!night.some(row=>row[74]==='b'||row[95]==='b'),'Adjacent bats do not crowd the night stand');
+const jackalCode=source.slice(source.indexOf('jackal: { tex:'),source.indexOf('\n  div:',source.indexOf('jackal: { tex:'))).replace(/^jackal: /,'(').replace(/,$/,')');
+const jackal=vm.runInContext(jackalCode,ctx), pack={setVelocityX(){},once(){}};jackal.init({},pack);
+for(const state of ['stalk','crouch','recover']){pack.js=state;assert(pack.harmless(),`${state} does not inflict untelegraphed contact damage`)}
+pack.js='lunge';pack.bit=false;assert.equal(pack.harmless(),false);pack.bit=true;assert(pack.harmless());
+console.log('Night provisions, clear stand approaches and committed jackal attacks passed.');

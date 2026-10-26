@@ -260,9 +260,9 @@ function map3() {
   ground(45, 49, 12); ground(50, 56, 14); pit(57, 63); row(58, 59, 11, '='); row(61, 62, 9, '='); ground(64, 76, 14);
   ground(77, 80, 11); ground(81, 92, 14); pit(93, 97); row(94, 96, 10, '='); ground(98, 155, 14); ground(104, 107, 12);
   put(3, 13, 'P');
-  [[8, 12], [19, 10], [29, 8], [38, 12], [47, 10], [61, 7], [70, 12], [79, 9], [86, 12], [95, 8], [102, 12]].forEach(([c, r]) => put(c, r, 'c'));
-  put(13, 13, 'j'); put(24, 7, 'b'); put(36, 13, 'j'); put(53, 8, 'b'); put(60, 6, 'b'); put(68, 13, 'j'); put(74, 8, 'b');
-  put(88, 13, 'j'); put(95, 6, 'b'); // leave the fire at 84 and the final approach clear
+  [[8, 12], [19, 10], [29, 8], [38, 12], [47, 10], [55, 12], [61, 7], [70, 12], [79, 9], [86, 12], [95, 8], [100, 12], [109, 12]].forEach(([c, r]) => put(c, r, 'c'));
+  put(13, 13, 'j'); put(24, 7, 'b'); put(36, 13, 'j'); put(53, 8, 'b'); put(60, 6, 'b'); put(68, 13, 'j');
+  put(88, 13, 'j'); // leave the fire at 84 and the final approach clear
   [[11, 11], [26, 10], [58, 8], [70, 10]].forEach(([c, r]) => put(c, r, 'm'));          // marsh lights, never beside an altar
   put(42, 13, 'F'); put(84, 13, 'F');
   put(117, 13, 'K'); put(146, 13, 'D');
@@ -604,7 +604,7 @@ function unearth(s, f, frames) {
   s.fx('dust', f.x, f.body.bottom, { depth: 3 }).setScale(0.7);
 }
 const FOES = {
-  jackal: { tex: 'jackal-run', hp: 1, init: (s, f) => { f.setVelocityX(-55); f.once('destroy', () => f.glint?.destroy()); f.harmless = () => f.js === 'recover' || (f.js === 'lunge' && f.bit); }, tick: (s, f, k, p) => jackalHunt(s, f, k, p) },
+  jackal: { tex: 'jackal-run', hp: 1, init: (s, f) => { f.setVelocityX(-55); f.once('destroy', () => f.glint?.destroy()); f.harmless = () => f.js !== 'lunge' || f.bit; }, tick: (s, f, k, p) => jackalHunt(s, f, k, p) },
   div: {
     tex: 'div-hop', hp: 2,
     tick(s, f, k, p) {
@@ -1142,7 +1142,7 @@ const LEVELS = {
   },
   3: {
     epithet: 'No lion or elephant dares cross the plain where it sleeps', hud: 'Khan III &middot; The Dragon', winTitle: 'The dragon is slain', name: 'The Dragon of the Night', fa: 'اژدها', bossName: 'The Dragon', tiles: 'tiles-3', map: map3, mounted: true,
-    smoothSteps: true,
+    smoothSteps: true, feathers: [[30, 6], [79, 6], [110, 10]],
     load(L, q) {
       L.spritesheet('k3-slopes', 'assets/k3/slopes.png' + q, { frameWidth: 16, frameHeight: 16 }); L.image('tiles-3', 'assets/k3/tiles.png' + q); L.image('k3-far', 'assets/k3/far.png' + q); L.image('altar', 'assets/altar.png' + q); },
     backdrop(s) {
@@ -1152,7 +1152,7 @@ const LEVELS = {
       s.fgReeds = s.add.tileSprite(0, 6, W, H, 'fg-reeds').setOrigin(0).setScrollFactor(0).setDepth(12);
     },
     scroll(s, sx, time) { s.mist.tilePositionX = Math.round(sx * 0.25 + time * 0.003); s.hills.tilePositionX = Math.round(sx * 0.4); s.fgReeds.tilePositionX = Math.round(sx * 1.25); },
-    food: (c, r, n) => (c === 61 && r === 7) || (c === 95 && r === 8) ? 'lamb' : FOOD[1 + (n % 3)],
+    food: (c, r, n) => (c === 61 && r === 7) || (c === 79 && r === 9) || (c === 95 && r === 8) ? 'lamb' : FOOD[1 + (n % 3)],
     parse(s, ch, x, y) {
       if (ch === 'b') s.spawnFoe('bat', x, y);
       else if (ch === 'm') {                                  // a will-o'-the-wisp over the bog: a little light in the dark
@@ -1172,7 +1172,7 @@ const LEVELS = {
     },
     sky: { veil: 0x12062a, cloud: 0x5a3090, glow: 0x6aff9a, sun: [0.7, 0.22], bolt: 0xc8a0ff, every: [110, 200], edge: 0x20063a, fx: 'ash', paint: 'k3/storm.png' },
     fires: [107], hearts: [105],
-    update(s, k, time, p) { if (!s.bossOn && p.x > 113 * TS) s.startDragon(); },
+    update(s, k, time, p) { if (!s.bossOn && p.x > 113 * TS && p.body.blocked.down) s.startDragon(); },
     win: 'With Rakhsh at his side Rostam slays the dragon that ruled the night. At dawn he rides on, and the road leads into a garden where a feast is laid.',
     tips: ['The dragon hides in the dark. Wait for Rakhsh to rear and neigh: then it shows itself.', 'Strike the dragon while it is revealed, and jump its fire.',
       'Fire altars and marsh lights push back the dark.', 'Bats dive at you. Swing as they swoop.', 'Two roast lambs wait on the high ledges.']
@@ -2066,7 +2066,7 @@ class Play extends Phaser.Scene {
     if (LIVE && !rush && cur === 1) for (let c = 89; c <= 92; c++) if (map[10][c] === '=') map[10][c] = '.';
     if (LIVE && !rush && hasLasso()) hangRing(map);
     // fewer, more meaningful provisions: of two side by side, one is kept (a roast lamb always stays)
-    if (LIVE && !rush && cur > 2) map.forEach((row, r) => row.forEach((ch, c) => { if (ch === 'c' && lv.food(c, r, 0) !== 'lamb' && (row[c - 1] === 'c' || (c * 7 + r) % 3 === 0)) row[c] = '.'; }));
+    if (LIVE && !rush && cur > 3) map.forEach((row, r) => row.forEach((ch, c) => { if (ch === 'c' && lv.food(c, r, 0) !== 'lamb' && (row[c - 1] === 'c' || (c * 7 + r) % 3 === 0)) row[c] = '.'; }));
     this.slopes = LIVE && !rush && this.lv.smoothSteps ? cutSlopes(map) : {};
     $('lbl').innerHTML = lv.hud; $('waterPill').classList.add('hidden'); $('bossName').textContent = lv.bossName || lv.name;
     this.levelW = C * TS;
@@ -3132,6 +3132,7 @@ class Play extends Phaser.Scene {
     this.counterT = Math.max(0, (this.counterT || 0) - k);
     this.attackBuf = pressed.attack && !this.frozen ? 7 : Math.max(0, (this.attackBuf || 0) - k);
     if (this.attackBuf > 0 && this.cool <= 0 && !(this.dodgeT > 0) && !this.frozen) {
+      if (this.pose === 'ride-rear') { this.pose = null; p.setAngle(0); }
       this.attackBuf = 0; this.counterStrike = this.counterT > 0; this.counterT = 0;
       // three quick blows make a combo: the third is a hard overhead finisher
       this.combo = this.comboT > 0 && !this.mounted ? (this.combo || 0) + 1 : 1; this.comboT = 46;
@@ -3490,7 +3491,7 @@ class Play extends Phaser.Scene {
     const d = this.physics.add.sprite(Math.min(this.dragonAt.x, 134 * TS), this.dragonAt.y - 60, 'dragon-move', 0).setDepth(4).setFlipX(true).setAlpha(0.05);
     this.fit(d, 'dragon'); d.play('dragon-move'); d.state = 'lurk'; d.tm = 170; d.dir = -1;
     this.light(d, 2.4, 0.04);                                         // when it shows itself, it can be seen
-    d.calm = () => d.state === 'exposed'; d.open = d.calm;
+    d.calm = () => d.state === 'exposed'; d.open = d.calm; d.contact = () => d.state === 'lunge';
     d.immune = () => d.alpha < 0.5; d.immuneMsg = 'Your mace passes through shadow. Wait for Rakhsh to warn you!';
     d.keep = KEEP3; d.ai = () => this.dragonAI(); d.onDown = () => this.bossFall(d);
     this.arena(112 * TS, d, 12);
