@@ -230,11 +230,12 @@ function map2() {
   row(43, 46, 10, '='); ground(53, 59, 13); ground(60, 64, 14); pit(65, 70); row(66, 69, 11, '=');
   ground(71, 85, 14); ground(76, 79, 11); ground(86, 91, 13); ground(92, 97, 12); pit(98, 103); row(99, 102, 10, '=');
   ground(104, 113, 14); ground(114, 118, 13); ground(119, 167, 14); ground(124, 127, 13); ground(141, 144, 13);
+  ground(49, 64, 13);                                    // a flat, sixteen-tile clearing around the well
   put(3, 13, 'P');
-  [[23, 11], [44, 9], [100, 9], [116, 11], [132, 12]].forEach(([c, r]) => put(c, r, 'w'));
-  [[9, 12], [11, 11], [13, 12], [28, 10], [29, 10], [47, 12], [57, 11], [74, 12], [77, 9], [78, 9], [89, 11], [94, 10], [109, 12], [121, 12], [138, 12]].forEach(([c, r]) => put(c, r, 'c'));
+  [[23, 11], [44, 8], [100, 8], [116, 11], [132, 12]].forEach(([c, r]) => put(c, r, 'w'));
+  [[9, 12], [21, 11], [28, 10], [46, 8], [51, 11], [60, 11], [73, 12], [77, 9], [89, 11], [94, 10], [109, 12], [123, 12], [136, 12]].forEach(([c, r]) => put(c, r, 'c'));
   // 'a' is a scorpion buried in the sand: a mound and a stir of grains, until Rostam comes near
-  put(15, 13, 'j'); put(33, 12, 's'); put(48, 13, 'a'); put(38, 7, 'v'); put(62, 13, 'j'); put(68, 6, 'v'); put(81, 13, 'a'); put(84, 13, 'a');
+  put(15, 13, 'j'); put(33, 12, 's'); put(42, 13, 'a'); put(38, 7, 'v'); put(62, 12, 'j'); put(81, 13, 'a'); put(84, 13, 'a');
   put(90, 12, 's'); put(101, 6, 'v'); put(115, 12, 'a'); put(120, 7, 'v'); // one storm encounter, then a clear path for the ram and bells
   put(57, 12, 'O'); put(107, 13, 'O');
   row(141, 144, 10, '=');                                  // the Scorpion Queen's arena (138 to 168): one short ledge on the left (KEEP2)
@@ -372,7 +373,7 @@ function map7() {
 // Map encounters stop before rest areas and story triggers. Bounds are tile edges,
 // shared by deliberate pairs, and do not apply to boss summons or horde waves.
 const ENCOUNTERS = {
-  2: [[15,11,19],[33,31,36],[48,42,53],[38,34,43],[62,60,65],[68,65,72],[81,80,86],[84,80,86],[90,86,92],[101,98,104],[115,114,119],[120,119,125]],
+  2: [[15,11,19],[33,31,36],[42,40,48],[38,34,43],[62,60,65],[68,65,72],[81,80,86],[84,80,86],[90,86,92],[101,98,104],[115,114,119],[120,119,125]],
   3: [[13,9,17],[24,22,32],[36,33,40],[53,49,57],[60,57,65],[68,64,74],[74,71,80],[88,87,93],[95,93,101]],
   4: [[16,12,20],[29,25,35],[38,35,40],[42,40,46],[63,58,67],[70,67,73],[77,74,80],[99,96,104],[96,94,104]],
   5: [[14,10,22],[36,33,45],[42,33,45],[60,56,63],[71,68,79],[76,68,79],[88,85,92],[99,96,104]],
@@ -740,14 +741,14 @@ const FOES = {
 function flyer(tex, { range, dive, rest, offY, speed = 0.012 }) {
   return {
     tex, hp: 1,
-    init(s, f) { f.body.setAllowGravity(false); f.body.setOffset(f.body.offset.x, offY - f.body.height / f.scaleY / 2); f.t = Math.random() * 6; f.state = 'circle'; f.cool = 60 + Math.random() * 60; },
+    init(s, f) { f.body.setAllowGravity(false); f.body.setOffset(f.body.offset.x, offY - f.body.height / f.scaleY / 2); f.harmless = () => f.state !== 'dive'; f.t = Math.random() * 6; f.state = 'circle'; f.cool = 60 + Math.random() * 60; },
     tick(s, f, k, p) {
       f.t += speed * k; f.cool -= k;
       if (f.state === 'circle') {
         const tx = f.roam ? Phaser.Math.Clamp(f.home.x + Math.sin(f.t) * range, f.roam[0] + f.body.width / 2 + 1, f.roam[1] - f.body.width / 2 - 1) : f.home.x + Math.sin(f.t) * range, ty = f.home.y + Math.sin(f.t * 2) * 10;
         f.setVelocity((tx - f.x) * 2.2, (ty - f.y) * 2.2); f.setFlipX(Math.cos(f.t) < 0);
         if (canHunt(s, f, p) && f.cool <= 0 && Math.abs(p.x - f.x) < 170 && p.y > f.y && reserveAttack(s, f)) {
-          f.state = 'warn'; f.tm = 18; f.aim = { x: p.body.center.x, y: p.body.center.y };
+          f.state = 'warn'; f.tm = 30; f.aim = { x: p.body.center.x, y: p.body.center.y };
           f.setVelocity(0); f.setTint(0xffd27a); f.anims.timeScale = 0.4;
         }
       } else if (f.state === 'warn') {
@@ -796,7 +797,7 @@ const STANDS = {
     start: () => `The pack closes on the fire! When a jackal <b>drops its head</b>, ${touch ? 'dodge' : keyHTML('dodge') + ' dodge'} or jump the lunge, then strike while it pants.`,
     wave: (n, N) => n === N ? 'The pack leader comes for the fire!' : `The pack comes: ${n} of ${N}`, end: 'The pack scatters. Roast lamb lies by the fire.',
     after: s => s.time.delayedCall(1500, () => { if (s.done) return; sfx('roar'); s.cam.shake(700, 0.006); toast('Far off in the reeds, the lion answers.'); }) },
-  2: { at: 57.5, L: 53, R: 65, waves: [['s', 'v'], ['s', 's', 'v'], ['v', 'S', 's']], foe: { s: 'scorpion', v: 'vulture' }, lead: 0xffb060, fa: 'چاهِ بیابان', title: 'The well is guarded', held: 'The well is yours',
+  2: { at: 57.5, L: 49, R: 65, waves: [['s', 'v'], ['s', 's', 'v'], ['v', 'S', 's']], foe: { s: 'scorpion', v: 'vulture' }, lead: 0xffb060, fa: 'چاهِ بیابان', title: 'The well is guarded', held: 'The well is yours',
     start: () => 'The desert’s creatures come to the water! <b>Bait a sting, step back, then strike</b>; watch the sky for diving vultures.',
     wave: (n, N) => n === N ? 'The great scorpion of the well comes!' : `They come for the water: ${n} of ${N}`, end: 'The well is yours. Roast lamb lies by the water.' },
   3: { at: 84.5, L: 81, R: 93, waves: [['j', 'b'], ['b', 'j', 'b'], ['j', 'J', 'b']], foe: { j: 'jackal', b: 'bat' }, lead: 0xc8a0ff, fa: 'شبِ اژدها', title: 'The night closes in', held: 'The night draws back',
@@ -829,9 +830,10 @@ function fireStand(s, S) {
     s.fx('dust', x, floor, { depth: 8 }); return { flames, glow };
   };
   // the foes already in the clearing are drawn into the fight, and hunt Rostam even beside the fire
-  for (const f of s.foes.getChildren()) if (f.active && f.x > L && f.x < R) { f.roam = [L + 6, R - 6]; f.encounter = false; }
+  const residents = s.foes.getChildren().filter(f => f.active && f.body.enable && f.x > L && f.x < R);
+  for (const f of residents) { f.roam = [L + 6, R - 6]; f.encounter = false; }
   const floor = x => (s.groundAt(x) ?? 14) * TS;
-  s.siege = { S, wave: 0, live: [], L, R, next: s.time.now + 1300, walls: [wall(L, floor(L + 2)), wall(R, floor(R - 2))] };
+  s.siege = { S, wave: 0, live: residents, residents: residents.length > 0, L, R, next: s.time.now + 1300, walls: [wall(L, floor(L + 2)), wall(R, floor(R - 2))] };
   sfx('fire'); sfx('roar'); s.cam.shake(300, 0.008);
   banner(S.fa, S.title); hint(S.start()); s.time.delayedCall(600, () => rostamSays('stand'));
   trackGame('stand_start', { level_name: String(cur) });
@@ -858,9 +860,9 @@ function standTick(s) {
   if (s.time.now < g.next || g.pending > 0) return;
   if (g.live.some(f => f.active && f.body.enable)) return;
   // The breather starts when the wave is cleared, rather than when it spawned.
-  if (g.wave > 0 && g.wave < N && !g.waiting) { g.waiting = true; g.next = s.time.now + 1700; return; }
+  if ((g.wave > 0 || g.residents) && g.wave < N && !g.waiting) { g.waiting = true; g.next = s.time.now + 1700; return; }
   if (g.wave < N) {
-    const list = S.waves[g.wave++]; g.live = []; g.entries = []; g.pending = list.length; g.waiting = false; g.next = s.time.now + list.length * 380 + 900;
+    const list = S.waves[g.wave++]; g.live = []; g.entries = []; g.pending = list.length; g.waiting = false; g.residents = false; g.next = s.time.now + list.length * 380 + 900;
     toast(S.wave(g.wave, N));
     list.forEach((k, i) => { const enter = () => {
       if (s.siege !== g || s.done) return;
@@ -890,6 +892,7 @@ function standTick(s) {
   for (const w of g.walls) { w.flames.forEach((f, i) => s.tweens.add({ targets: f, alpha: 0, delay: i * 60, duration: 300, onComplete: () => f.destroy() })); s.tweens.add({ targets: w.glow, alpha: 0, duration: 500, onComplete: () => w.glow.destroy() }); }
   sting('victory', () => sfx('win')); s.gainFarr(30); banner(S.fa, S.held); hint(null);
   const a = s.altars.find(a => Math.abs(a.x / TS - S.at) < 1), drop = s.pickup(a.x + 18, a.y - 8, 'food', 0, 'lamb');
+  if (resumeAt?.n === cur && s.altars[resumeAt.i] === a) resumeAt.standDone = true;
   s.fx('pickup', drop.x, drop.y); toast(S.end);
   trackGame('stand_end', { level_name: String(cur) });
   S.after?.(s);
@@ -1071,11 +1074,11 @@ const LEVELS = {
       s.oasis.setAlpha(oa);
       s.dunes.tilePositionX = Math.round(sx * 0.35);
     },
-    // two roast lambs on the high perches heal; dates and fruit everywhere else
-    food: (c, r, n) => (c === 77 && r === 9) || (c === 94 && r === 10) ? 'lamb' : n % 4 === 3 ? 'dates' : FOOD[1 + (n % 3)],
-    epithet: 'She guards the only water in the waste, and nothing that drinks there lives', smoothSteps: true,
+    // Lamb before the well fight and the later crossings; dates and fruit elsewhere
+    food: (c, r, n) => (c === 46 && r === 8) || (c === 77 && r === 9) || (c === 94 && r === 10) ? 'lamb' : n % 4 === 3 ? 'dates' : FOOD[1 + (n % 3)],
+    epithet: 'She guards the only water in the waste, and nothing that drinks there lives', smoothSteps: true, feathers: [[29, 8], [92, 8], [137, 9]],
     sky: { veil: 0x3a1806, cloud: 0xc07a34, glow: 0xffb040, sun: [0.74, 0.3], bolt: 0xffe0a0, every: [240, 380], edge: 0x5a2804, fx: 'dust', paint: 'k2/storm.png' },
-    hearts: [110, 142],                              // one before the sandstorm, one where the storm parts
+    hearts: [112, 142],                              // one before the sandstorm, one where the storm parts
     parse(s, ch, x, y) {
       if (ch === 'w') s.pickup(x, y - 6, 'props', 0, 'skin');
       else if (ch === 's') s.spawnFoe('scorpion', x, y);
@@ -1118,6 +1121,8 @@ const LEVELS = {
       // thirst: water drains in the heat, twice as fast in the storm
       if (!s.frozen && (!s.prayed || (LIVE && s.ram && !s.ramDug)) && !s.bossOn) s.water = Math.max(0, s.water - k * (0.045 + s.stormOn * 0.045) * (gentle() ? 0.6 : legend() ? 1.3 : 1));
       if (s.water < 25 && !s.saidThirst && LIVE) { s.saidThirst = true; rostamSays('thirst'); } else if (s.water > 50) s.saidThirst = false;
+      // A lit well remains a water source when Rostam returns, including during its defence.
+      if (b.blocked.down && s.altars.some(a => a.onLight && a.lit && Math.abs(p.x - a.x) < 20)) s.water = 100;
       if (s.water <= 0) { s.thirstT += k; if (s.thirstT > 150) { s.thirstT = 0; s.hurt(p.x, true); toast('Rostam is dying of thirst. Find water!'); } }
       s.renderWater();
       if (!s.prayed && s.ramAt && p.x > s.ramAt.x) s.prayForWater();
@@ -2039,7 +2044,7 @@ class Play extends Phaser.Scene {
     if (LIVE && !rush && cur === 1) for (let c = 89; c <= 92; c++) if (map[10][c] === '=') map[10][c] = '.';
     if (LIVE && !rush && hasLasso()) hangRing(map);
     // fewer, more meaningful provisions: of two side by side, one is kept (a roast lamb always stays)
-    if (LIVE && !rush && cur !== 1) map.forEach((row, r) => row.forEach((ch, c) => { if (ch === 'c' && lv.food(c, r, 0) !== 'lamb' && (row[c - 1] === 'c' || (c * 7 + r) % 3 === 0)) row[c] = '.'; }));
+    if (LIVE && !rush && cur > 2) map.forEach((row, r) => row.forEach((ch, c) => { if (ch === 'c' && lv.food(c, r, 0) !== 'lamb' && (row[c - 1] === 'c' || (c * 7 + r) % 3 === 0)) row[c] = '.'; }));
     this.slopes = LIVE && !rush && this.lv.smoothSteps ? cutSlopes(map) : {};
     $('lbl').innerHTML = lv.hud; $('waterPill').classList.add('hidden'); $('bossName').textContent = lv.bossName || lv.name;
     this.levelW = C * TS;
@@ -2183,7 +2188,11 @@ class Play extends Phaser.Scene {
     this.noPursuit = LIVE;   // Khan V: Olad is first met in his own arena, not in a chase before it
     if (!rush) this.journey = window.ShahnamehJourney.create(this, cur, { hint, toast, banner, sfx, unearth, TS, W, H });
     if (rush) this.rushSetup();
-    if (R) { lv.resume?.(this); toast(R.well ? 'Rostam rises again beside the well.' : 'Rostam rises again beside the sacred fire.'); }
+    if (R) {
+      lv.resume?.(this); this.siegeDone = !!R.standDone;
+      const a = this.altars[R.i], stand = a && standAt(this, a); if (stand) fireStand(this, stand);
+      toast(R.well ? 'Rostam rises again beside the well.' : 'Rostam rises again beside the sacred fire.');
+    }
   }
   // a heart: one more life, glowing so it can be found even in the dark
   heart(x, y) {

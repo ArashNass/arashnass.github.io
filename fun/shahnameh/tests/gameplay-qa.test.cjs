@@ -20,3 +20,19 @@ assert(Math.abs(at-entryScene.player.x)>=96,'An occupied right entry must use th
 arena.entries.push(at);const next=ctx.waveSpot(entryScene,arena,1);assert(next==null||Math.abs(next-at)>=32,'Pending entries keep two tiles of spacing');
 entryScene.player.x=at;assert.equal(ctx.waveClear(entryScene,arena,at),false,'A player entering the warning cancels that spawn');
 console.log('Reserved wave entry spacing and post-warning recheck passed.');
+ctx.PLINTHS=[];
+vm.runInContext(source.slice(source.indexOf('function map2()'),source.indexOf('// Khan III:',source.indexOf('function map2()'))),ctx);
+const desert=ctx.map2(), desertFood=[];
+desert.forEach((row,r)=>row.forEach((ch,c)=>{if(ch==='c')desertFood.push([c,r])}));
+assert.equal(desertFood.length,13,'The desert retains thirteen deliberate provisions');
+for(let c=49;c<65;c++){assert.equal(desert[13][c],'#');assert.notEqual(desert[12][c],'#','The well arena stays flat');}
+assert.equal(desert[12][62],'j','The resident guard stands on the raised clearing');
+vm.runInContext(source.slice(source.indexOf('function flyer('),source.indexOf('/* --------------------------- labours')),ctx);
+const bird={scaleY:1,body:{offset:{x:0},height:20,setAllowGravity(){},setOffset(){}}};
+ctx.flyer('vulture-fly',{offY:62}).init({},bird);
+for(const state of ['circle','warn','rise']){bird.state=state;assert.equal(bird.harmless(),true,`${state} must offer a safe approach`)}
+bird.state='dive';assert.equal(bird.harmless(),false,'The committed dive remains dangerous');
+Object.assign(ctx,{cur:2,rush:false,resumeAt:{n:2,i:0},sting(){},banner(){},hint(){},toast(){},trackGame(){}});
+const altar={x:57.5*16,y:13*16}, won={time:{now:5000},player:{body:{left:900,right:916,velocity:{x:0}}},altars:[altar],gainFarr(){},pickup(x,y){return{x,y}},fx(){},siege:{S:{waves:[],at:57.5},wave:0,live:[],next:0,L:49*16,R:65*16,walls:[]}};
+ctx.standTick(won);assert.equal(ctx.resumeAt.standDone,true,'A won stand is remembered by its checkpoint');
+console.log('Desert clearing, provisions, flyer recovery safety and checkpoint completion passed.');

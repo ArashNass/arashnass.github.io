@@ -48,3 +48,46 @@ Coordinates below are map cells (zero based); item centres are at column + 0.5. 
 ## Limits
 
 Two successful playthroughs and targeted checks do not establish that every random attack sequence is bug-free. The narrow stand configurations in later labours still need their individual gameplay pass; the shared entry helper scales its player clearance to available arena width. No later labour is counted as completed by this report.
+
+# Labour II — hands-on QA, 26 October 2026
+
+Two normal-speed route passes reached the restored spring: careful collection (one heart remaining) and faster traversal (two hearts remaining, with one ordinary well-checkpoint retry). Both muted. No recorded script errors. The faster route intentionally skipped optional ledge pickups; it was not a no-death speedrun.
+
+## Findings and fixes
+
+- `map2()` now places thirteen fixed provisions deliberately, with separate feathers; Labour II bypasses blanket thinning. Three lambs precede the well fight and difficult crossings.
+- The well arena widened from twelve to sixteen tiles (49–65), with a flat row-13 floor. The resident jackal starts above the floor; its clearance precedes the incoming waves rather than adding an extra attacker to them.
+- Moved the buried scorpion before the clearing, removed the immediately adjacent vulture, separated the storm heart from food, and raised two water skins clear of their ledges.
+- `fireStand()` / `standTick()` count resident foes and preserve the post-clear delay. Checkpoint restoration restarts an unfinished stand; a completed stand is marked in `resumeAt` so it is not repeated.
+- A lit well now refills water when revisited. Returning during defence visibly restored water to 100; leaving it still drains water normally.
+- `flyer()` now gives a half-second warning and contact damage only during the actual dive, leaving circling and recovery safe. Vultures remained killable by ordinary mace attacks.
+
+## Reachable pickups
+
+All thirteen fixed provisions were collected in the careful run, without a lasso. Snapshot inventory at the end contained only an uncollected bonus champion lamb, not a fixed-route pickup.
+
+| Cell | Route |
+| --- | --- |
+| 9,12 | Walk starting ground |
+| 21,11 | Walk up dune before gap |
+| 28,10 | Jump across first gap |
+| 46,8 — lamb | Jump onto row-10 perch |
+| 51,11 | Walk into flat well clearing |
+| 60,11 | Walk during well defence |
+| 73,12 | Land beyond post-well gap |
+| 77,9 — lamb | Jump onto raised dune |
+| 89,11 | Walk across sand |
+| 94,10 — lamb | Hop onto raised ground |
+| 109,12 | Walk past second well |
+| 123,12 | Walk after storm vulture |
+| 136,12 | Walk following ram |
+
+Water skins: (23,11), (44,8), (100,8), (116,11), (132,12), all collected. Hearts at columns 112 and 142, both reached; the latter by double-jumping onto the corner ledge. Feathers (29,8), (92,8), (137,9), all collected using ordinary jumps/double jumps. **13/13 fixed provisions reachable, plus the earned stand lamb**, excluding champion/streak rewards.
+
+## Stand, boss and limits
+
+- Arena 49–65 is sixteen tiles wide and flat. Same continuous flames as Labour I: centres span 225 px versus theoretical double-jump rise 151.24 px (179.90 px upgraded). Position bounds also retain airborne players.
+- The retry test reproduced the unfinished stand with normal health, rather than silently removing it. All three waves subsequently cleared and walls fell; the earned lamb healed Rostam.
+- Ram prayer, leading, pawing and sand-heave sequence preceded both Queen fights. No early Queen was observed. Both fights were won with ordinary attacks and movement; reflected venom and post-emergence openings caused damage as described by the hints. The faster run received the earned Rakhsh assist.
+- Queen strips remain 256 px per frame and fitted height 150 in observed emerge, walk, sting, spit, underground and exposed states. Underground cropping is intentional; it does not rescale her.
+- Rushing the well fight caused a death. This is recorded rather than concealed: the test demonstrates recovery, not guaranteed survival or a universal difficulty assessment. Later labours still require their own pass, including shared flyer and checkpoint regressions.
