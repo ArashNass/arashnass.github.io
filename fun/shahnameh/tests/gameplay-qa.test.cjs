@@ -46,3 +46,26 @@ const jackal=vm.runInContext(jackalCode,ctx), pack={setVelocityX(){},once(){}};j
 for(const state of ['stalk','crouch','recover']){pack.js=state;assert(pack.harmless(),`${state} does not inflict untelegraphed contact damage`)}
 pack.js='lunge';pack.bit=false;assert.equal(pack.harmless(),false);pack.bit=true;assert(pack.harmless());
 console.log('Night provisions, clear stand approaches and committed jackal attacks passed.');
+vm.runInContext(source.slice(source.indexOf('function map4()'),source.indexOf('// Khan V:',source.indexOf('function map4()'))),ctx);
+const garden=ctx.map4();assert.equal(garden.flat().filter(ch=>ch==='c').length,13);
+for(let c=91;c<110;c++){assert.equal(garden[14][c],'#');for(let r=0;r<14;r++)assert.notEqual(garden[r][c],'=','The garden stand has no refuge ledge inside its walls');}
+const snakeCode=source.slice(source.indexOf('serpent: {\n    tex:'),source.indexOf('\n  // Fire Divs',source.indexOf('serpent: {\n    tex:'))).replace(/^serpent: /,'(').replace(/,$/,')');
+const snake=vm.runInContext(snakeCode,ctx), calls=[], callbacks={};
+Object.assign(ctx,{canHunt:()=>true,reserveAttack:(s,f)=>{f.attackId=(f.attackId||0)+1;return true},hopVelocity:(f,v)=>v,sfx(){}});
+const snakeActor={active:true,x:100,scaleY:1,body:{enable:true,blocked:{down:true},bottom:224,top:200,left:90,right:110,height:24},setFlipX(){},setVelocityX(){},setVelocity(){},play(){},once(event,fn){callbacks[event]=fn}};
+const snakeScene={hold(){},time:{delayedCall(ms,fn){calls.push({ms,fn})}},hazard(){}};
+snake.init(snakeScene,snakeActor);assert(snakeActor.harmless());snake.tick(snakeScene,snakeActor,1,{x:150,body:{bottom:224}});
+assert(snakeActor.thrust);assert(snakeActor.harmless());assert.equal(calls[0].ms,450);
+calls[0].fn();assert(snakeActor.leap);assert.equal(snakeActor.harmless(),false);
+callbacks.animationcomplete();assert(snakeActor.harmless());assert.equal(snakeActor.cool,70);
+console.log('Garden provisions, unobstructed stand and serpent warning/recovery passed.');
+const bossFallCode=source.slice(source.indexOf('  bossFall(B, then) {'),source.indexOf('  /* ---- Khan III:',source.indexOf('  bossFall(B, then) {'))).trim().replace(/^bossFall\(/,'function bossFall(');
+vm.runInContext(bossFallCode,ctx);let banished=null, cleared=false;
+ctx.$=()=>({classList:{add(){}}});ctx.bossFall.call({levelW:2400,banish(a,b){banished=[a,b]},bossDeath:()=>0,shots:{clear(){cleared=true}},hazards:[1],time:{delayedCall(){}}},{});
+assert.deepEqual(banished,[0,2400],'Victory disables remaining summons across the route');assert(cleared);
+console.log('Boss victory clears remaining summons and projectiles.');
+vm.runInContext(source.slice(source.indexOf('function foeSpot('),source.indexOf('function waveClear(')),ctx);
+const summons={player:{x:134.4*16},foes:{getChildren:()=>[{active:true,body:{enable:true},x:119.5*16}]},groundAt:()=>14,layer:{getTileAtWorldXY:()=>({collides:true,index:0})}};
+const summon=ctx.foeSpot(summons,136.8*16,112*16,142*16);
+assert(summon!=null);assert(Math.abs(summon-summons.player.x)>=96);assert(Math.abs(summon-119.5*16)>=32);
+console.log('Witch summons respect six-tile player and two-tile foe clearance.');

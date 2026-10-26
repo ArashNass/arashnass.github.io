@@ -131,3 +131,44 @@ Careful collection reached all thirteen fixed provisions and three separate feat
 - Three waves cleared with no pending-entry deadlock. Alternating directions, jumping dives and jumping the leader's lunge all worked; blindly repeating attacks in the wrong direction caused earlier deaths. The final pass used earned Farr against the final leader.
 - All dragon strips are 257 px per frame and fitted height stayed 136 across observed lurk, reveal, lunge, breath, fireball, exposed and death states. Rider strips are 282 px and retain SIZE.rider. Complete ART frame/fit table: `gameplay-sprite-sizes.md`.
 - Scripted dragon chase and marked fire remain dangerous during the road. Stopping in marked fire caused damage, while riding through it cleanly avoided that damage. This pass does not certify every random boss sequence or every future upgrade combination. Labours IV–VII remain outstanding.
+
+# Labour IV — hands-on QA, 26 October 2026
+
+Two complete muted playthroughs reached the ending: the collection run finished with three hearts and the second with four. Earlier failed attempts exposed checkpoint and combat issues and are retained in the local QA captures. The careful inventory confirmed thirteen fixed provisions and three feathers collected; remaining food consisted only of bonus lamb drops. No recorded script errors.
+
+## Findings and fixes
+
+- `map4()` now places thirteen provisions explicitly, independently of feathers. Lambs at (72,7), (81,10) and (109,12) support the crossings, stand and boss approach. Labour IV bypasses blanket thinning.
+- Removed the row-10 ledge inside the stand at columns 96–100. Arena 91–110 is nineteen tiles wide, flat and unobstructed. Moved the final checkpoint fire from 107 to 112: the old fire was inside the active arena and could replace its checkpoint before the waves were finished.
+- `FOES.serpent`: holds a raised-head warning for 450 ms, then lunges in its committed direction. Resting/winding-up contact is harmless; the lunge and jaws remain damaging. Animation completion creates a 70-frame recovery. The existing heavy/lasso cancellation flags prevent an interrupted tell from becoming stuck.
+- Baiting the tell from four to five tiles, jumping the lunge and countering its landing repeatedly worked. The first two stand waves were cleared without health loss on both completed regression routes; the second final wave cost one heart. Remaining healing pickups restored health before the witch.
+- `feastStory()` positions Rostam beside the ground-level feast instead of carrying his balcony height into the tanbur scene. The second route visibly placed him on the ground beside the table.
+- `bossFall()` disables remaining summoned foes before the victory walk and clears hazards/projectiles. Previously a surviving serpent caused damage after the witch had died. A focused test verifies the cleanup call; the second ending had no surviving active foe or further damage.
+- `foeSpot()` now places witch summons on safe ground at least six tiles from Rostam and two from other foes. The recorded failure case (player 134.4, attempted summon 136.8) is covered by a focused geometry test. This last placement change was unit-tested after the two complete routes; it has not received a third complete playthrough.
+
+## Pickup reachability
+
+| Cell | Route |
+| --- | --- |
+| 10,8 | Double jump onto starting shelf |
+| 22,10 | Jump onto first raised bank |
+| 30,12 | Walk beyond second serpent |
+| 37,9 | Jump onto permanent ledge above living bridge |
+| 45,8 | Vertical double jump from ground onto upper shelf |
+| 55,10 | Jump the two-tile bank |
+| 59,12 | Walk before crossing serpent |
+| 69,8 | Jump onto lower crossing ledge |
+| 72,7 — lamb | Hop to upper crossing ledge |
+| 81,10 — lamb | Jump onto raised bank before stand |
+| 94,12 | Walk into stand |
+| 101,12 | Walk through cleared resident position |
+| 109,12 — lamb | Walk to right side of stand |
+
+**13/13 fixed provisions reachable, plus the earned stand lamb.** Feathers (12,6), (71,5), (111,10) were reached with jumps/double jumps; no lasso was required. Heart 105 was collected on flat arena ground. Optional champion and streak rewards are excluded from the fixed count.
+
+## Walls, animation and limits
+
+- Flame centres span 225 world pixels (roughly 243 including the art), versus theoretical double-jump rises of 151.24 base / 179.90 upgraded. Positional bounds retained Rostam until all waves cleared. Walls then faded and the reward appeared normally.
+- Beauty, transformation, hag, vanish, dazed and death frames are all 225 px. Observed fitted height remained 108. Reflected curses dazed and damaged the witch; direct attacks worked while she was solid; teleport and serpent summons occurred only after unmasking.
+- Living bridges still vanish after their violet warning. Waiting on one caused damage; crossing without stopping avoided that failure. Earlier deaths from mistimed approaches and attacks facing away are not treated as engine failures or hidden.
+- The final summon-placement guard has focused unit coverage rather than a third complete route. This report does not certify every random attack sequence. Labours V–VII and the final live regression remain outstanding.

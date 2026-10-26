@@ -279,9 +279,9 @@ function map4() {
   const pit = (a, b) => { ground(a, b, 16); row(a, b, 15, '^'); };
   ground(0, 20, 14); row(8, 12, 10, '='); ground(21, 24, 12); ground(25, 34, 14); pit(35, 39); row(36, 38, 11, '=');
   ground(40, 52, 14); row(44, 47, 10, '='); ground(53, 57, 12); ground(58, 66, 14); pit(67, 72); row(68, 69, 10, '='); row(71, 72, 9, '=');
-  ground(73, 86, 14); ground(80, 83, 12); pit(87, 90); ground(91, 149, 14); row(96, 100, 10, '=');
+  ground(73, 86, 14); ground(80, 83, 12); pit(87, 90); ground(91, 149, 14); // keep the garden stand's floor and airspace clear
   put(3, 13, 'P');
-  [[10, 9], [11, 9], [22, 10], [30, 12], [37, 10], [45, 9], [46, 9], [55, 10], [62, 12], [69, 9], [72, 8], [81, 10], [94, 12], [98, 9]].forEach(([c, r]) => put(c, r, 'c'));
+  [[10, 8], [22, 10], [30, 12], [37, 9], [45, 8], [55, 10], [59, 12], [69, 8], [72, 7], [81, 10], [94, 12], [101, 12], [109, 12]].forEach(([c, r]) => put(c, r, 'c'));
   put(16, 13, 'n'); put(29, 13, 'n'); put(38, 7, 'b'); put(42, 13, 'n'); put(63, 13, 'n'); put(70, 6, 'b'); put(77, 13, 'n'); put(99, 13, 'n'); put(96, 7, 'b');   // serpents lie in the open, never in a pocket Rostam would have to drop into
   [[6, 11], [28, 11], [64, 11], [78, 11], [132, 11], [146, 11]].forEach(([c, r]) => put(c, r, 'l'));   // lanterns, never beside an altar
   put(48, 13, 'F'); put(92, 13, 'F');
@@ -690,14 +690,21 @@ const FOES = {
   },
   serpent: {
     tex: 'serpent', hp: 2,
+    init(s, f) { f.harmless = () => !f.leap; },
     tick(s, f, k, p) {
-      const d = p.x - f.x; f.setFlipX(d < 0); f.cool = (f.cool || 0) - k;
+      f.cool = (f.cool || 0) - k;
+      if (f.thrust || f.leap) return;   // keep the tell and the committed lunge facing one way
+      const d = p.x - f.x; f.setFlipX(d < 0);
       if (canHunt(s, f, p) && f.cool <= 0 && Math.abs(d) < 80 && Math.abs(p.body.bottom - f.body.bottom) < 30 && f.body.blocked.down && reserveAttack(s, f)) {
-        // it rears back, then lunges with its jaws wide
-        const attackId = f.attackId; const dir = Math.sign(d) || 1; f.cool = 100; f.setVelocityX(0); f.play('serpent-strike');
-        s.time.delayedCall(230, () => { if (f.active && f.body.enable && f.attackId === attackId) { f.setVelocity(hopVelocity(f, dir * 190, 0.32), -110); sfx('swing');
-          s.time.delayedCall(90, () => f.active && f.body.enable && f.attackId === attackId && s.hazard(dir > 0 ? f.body.right - 6 : f.body.left - 46, f.body.top - 10, 52, f.body.height + 14, 160)); } });   // the jaws snap shut a full lunge ahead
-        f.once('animationcomplete', () => f.active && f.play('serpent'));
+        const attackId = f.attackId, dir = Math.sign(d) || 1;
+        f.thrust = true; f.cool = 100; f.setVelocityX(0); s.hold(f, 'serpent-strike', 2);
+        s.time.delayedCall(450, () => {
+          if (!f.active || !f.body.enable || f.attackId !== attackId) return;
+          f.thrust = false; f.leap = true; f.play({ key: 'serpent-strike', startFrame: 3 });
+          f.setVelocity(hopVelocity(f, dir * 190, 0.32), -110); sfx('swing');
+          s.time.delayedCall(90, () => f.active && f.body.enable && f.attackId === attackId && s.hazard(dir > 0 ? f.body.right - 6 : f.body.left - 46, f.body.top - 10, 52, f.body.height + 14, 160));
+          f.once('animationcomplete', () => { if (!f.active) return; f.leap = false; f.cool = 70; f.setVelocityX(0); f.play('serpent'); });
+        });
       } else if (f.body.blocked.down) f.setVelocityX(0);
     }
   },
@@ -844,6 +851,17 @@ function fireStand(s, S) {
   trackGame('stand_start', { level_name: String(cur) });
 }
 // Reserve a clear entry, and recheck it after the warning so running at the marker cannot cause a contact hit.
+// Summons choose open ground away from Rostam and from existing foes.
+function foeSpot(s, wanted, L, R) {
+  const choices = [wanted]; for (let x = L + 2 * TS; x <= R - 2 * TS; x += TS) choices.push(x);
+  choices.sort((a, b) => Math.abs(a - wanted) - Math.abs(b - wanted));
+  return choices.find(x => {
+    if (x < L + TS || x > R - TS || Math.abs(x - s.player.x) < 6 * TS) return false;
+    if (s.foes.getChildren().some(f => f.active && f.body.enable && Math.abs(f.x - x) < 2 * TS)) return false;
+    const r = s.groundAt(x), t = r != null && s.layer.getTileAtWorldXY(x, r * TS + 2);
+    return r < 15 && t?.collides && t.index % 4 !== 3;
+  });
+}
 function waveClear(s, g, x) {
   const gap = Math.min(6 * TS, (g.R - g.L) / 2 - 26);
   return Math.abs(s.player.x - x) >= gap && !s.foes.getChildren().some(f => f.active && f.body.enable && Math.abs(f.x - x) < 2 * TS);
@@ -1178,7 +1196,7 @@ const LEVELS = {
       'Fire altars and marsh lights push back the dark.', 'Bats dive at you. Swing as they swoop.', 'Two roast lambs wait on the high ledges.']
   },
   4: {
-    hud: 'Khan IV &middot; The Witch', winTitle: 'The witch unmasked', name: 'The Enchanted Garden', fa: 'زنِ جادوگر', bossName: 'The Witch', bossFa: 'زنِ جادوگر', tiles: 'tiles-4', map: map4,
+    hud: 'Khan IV &middot; The Witch', winTitle: 'The witch unmasked', name: 'The Enchanted Garden', fa: 'زنِ جادوگر', bossName: 'The Witch', bossFa: 'زنِ جادوگر', tiles: 'tiles-4', map: map4, feathers: [[12, 6], [71, 5], [111, 10]],
     smoothSteps: true,
     load(L, q) {
       L.spritesheet('k4-slopes', 'assets/k4/slopes.png' + q, { frameWidth: 16, frameHeight: 16 }); L.image('tiles-4', 'assets/k4/tiles.png' + q); L.image('k4-far', 'assets/k4/far.png' + q); L.image('altar', 'assets/altar.png' + q); },
@@ -1188,7 +1206,7 @@ const LEVELS = {
       s.add.image(0, 0, 'vignette').setOrigin(0).setScrollFactor(0).setDepth(13);
     },
     scroll(s, sx, time) { s.mist.tilePositionX = Math.round(sx * 0.25 + time * 0.003); },
-    food: (c, r, n) => (c === 72 && r === 8) || (c === 98 && r === 9) ? 'lamb' : FOOD[1 + (n % 3)],
+    food: (c, r, n) => (c === 72 && r === 7) || (c === 81 && r === 10) || (c === 109 && r === 12) ? 'lamb' : FOOD[1 + (n % 3)],
     parse(s, ch, x, y) {
       if (ch === 'n') s.spawnFoe('serpent', x, y);
       else if (ch === 'b') s.spawnFoe('bat', x, y);
@@ -1212,7 +1230,7 @@ const LEVELS = {
       const glow = s.add.image(f.x, f.y - 20, 'glow').setScale(1.2).setTint(0xffd08a).setBlendMode(Phaser.BlendModes.ADD).setDepth(1); s.light(glow, 1.4, 0.05);
     },
     sky: { veil: 0x1a0828, cloud: 0x6a3090, glow: 0x9aff60, sun: [0.66, 0.26], bolt: 0xa8ff90, every: [170, 290], edge: 0x1a3a08, fx: 'spores', paint: 'k4/storm.png' },
-    fires: [107], hearts: [105],
+    fires: [112], hearts: [105],
     update(s, k, time, p) {
       if (!s.bossOn) poppyTick(s, k, time);
       if (!s.bossOn && p.x > 33 * TS - 90 && !s.toldPoppy) { s.toldPoppy = true; hint('<b>Sleep-poppies.</b> Their violet pollen makes you drowsy and slow. Strike a bud before it opens.'); }
@@ -2066,7 +2084,7 @@ class Play extends Phaser.Scene {
     if (LIVE && !rush && cur === 1) for (let c = 89; c <= 92; c++) if (map[10][c] === '=') map[10][c] = '.';
     if (LIVE && !rush && hasLasso()) hangRing(map);
     // fewer, more meaningful provisions: of two side by side, one is kept (a roast lamb always stays)
-    if (LIVE && !rush && cur > 3) map.forEach((row, r) => row.forEach((ch, c) => { if (ch === 'c' && lv.food(c, r, 0) !== 'lamb' && (row[c - 1] === 'c' || (c * 7 + r) % 3 === 0)) row[c] = '.'; }));
+    if (LIVE && !rush && cur > 4) map.forEach((row, r) => row.forEach((ch, c) => { if (ch === 'c' && lv.food(c, r, 0) !== 'lamb' && (row[c - 1] === 'c' || (c * 7 + r) % 3 === 0)) row[c] = '.'; }));
     this.slopes = LIVE && !rush && this.lv.smoothSteps ? cutSlopes(map) : {};
     $('lbl').innerHTML = lv.hud; $('waterPill').classList.add('hidden'); $('bossName').textContent = lv.bossName || lv.name;
     this.levelW = C * TS;
@@ -3455,7 +3473,8 @@ class Play extends Phaser.Scene {
   }
   // a big boss falls: flash, smoke and light, then the labour is won
   bossFall(B, then) {
-    this.drums?.remove();
+    this.drums?.remove(); this.banish(0, this.levelW);   // summoned foes cannot spoil the victory walk
+
     const at = this.bossDeath(B); this.chargeWarn?.destroy(); this.stars?.destroy(); this.stars = null;
     $('boss').classList.add('hidden'); this.wall?.destroy(); this.wallR?.destroy(); this.hazards = []; this.shots.clear(true, true);
     this.time.delayedCall(at + 200, () => this.cam.startFollow(this.player, true, 0.12, 0.12, W / 2, H / 2));
@@ -3572,7 +3591,8 @@ class Play extends Phaser.Scene {
   /* ---- Khan IV: the feast, the name of God, and the witch ---- */
   feastStory() {
     if (this.feastOn) return; this.feastOn = true;
-    this.player.body.reset(this.feastAt.x - 25, this.player.y);
+    const x = this.feastAt.x - TS, floor = (this.groundAt(x) ?? 14) * TS;
+    this.player.body.reset(x, floor - 1 - 0.47 * this.player.displayHeight);
     heldBeat(this, { fa: 'تنبور', title: 'The song at the feast', pose: 'rostam-tanbur', min: 3000,
       text: '<b>Rostam sits at the feast and plays the tanbur.</b> A beautiful lady hears his song and approaches.', voice: 'khan4-feast' }, () => {
       this.feastOn = false; this.feastDone = true; this.startWitch();
@@ -3618,7 +3638,7 @@ class Play extends Phaser.Scene {
     const w = this.witch, p = this.player; if (!this.unmasked || w.state === undefined) return;
     w.tm -= this.bossStep(); const toP = Math.sign(p.x - w.x) || -1; if (w.state === 'float') w.dir = toP; w.setFlipX((w.dir || toP) < 0);
     const hurt = w.hp <= w.max / 2;
-    if (hurt && !w.summoned && w.state === 'float') { w.summoned = true; w.tm = Math.max(w.tm, 90); for (const dx of [-120, 120]) { const x = Phaser.Math.Clamp(w.x + dx, 113 * TS, this.levelW - 30); this.fx('poof', x, 13 * TS); this.spawnFoe('serpent', x, 14 * TS); } toast('The witch calls serpents from the roses!'); }
+    if (hurt && !w.summoned && w.state === 'float') { w.summoned = true; w.tm = Math.max(w.tm, 90); for (const dx of [-120, 120]) { const x = foeSpot(this, w.x + dx, this.wall.x, this.wallR.x); if (x == null) continue; this.fx('poof', x, 13 * TS); this.spawnFoe('serpent', x, (this.groundAt(x) ?? 14) * TS); } toast('The witch calls serpents from the roses!'); }
     const y = w.baseY + Math.sin(this.time.now * 0.004) * 8;
     if (w.state === 'float') {
       const target = Number.isFinite(w.tx) ? Phaser.Math.Clamp(w.tx, this.wall.x + 55, this.wallR.x - 55) : w.x;
