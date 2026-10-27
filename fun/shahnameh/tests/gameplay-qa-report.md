@@ -274,3 +274,13 @@ The final live Labour I regression and a follow-up of Labour III's narrower entr
 ## Labour III follow-up — strict entry clearance, 27 October 2026
 
 The original twelve-tile stand could only use a reduced player gap at its centre. Expanded its left edge from 81 to 77 and flattened the old 77–80 bank to row 14, preserving the pit at 93–97 and its ledge. The complete road approach and all three stand waves were replayed with ordinary mounted movement/attacks and earned Farr. The stand cleared, flames dropped and the lamb appeared. This was a targeted stand regression, not another complete dragon fight. The run finished the stand at one heart after mistimed/facing-away counters; no script errors or entry deadlock. All eight new entries recorded at least **6.319 tiles from Rostam / 2.060 tiles from another foe**. The supply at 79 remained reachable and was collected on the flattened approach. The arena is now sixteen tiles wide; this supersedes the twelve-tile arena description above.
+
+# Final deployed regression — 27 October 2026
+
+Opened the actual `https://arashnassirpour.com/fun/shahnameh/?live#debug` in Chrome and verified its loaded script was **game.js?v=214**. Music and effects volumes were set to zero, narration disabled, and master sound muted before gameplay. Used native keyboard movement, jumps, attacks, pause and earned Farr; no local QA injection or game-state edits were used on the live origin.
+
+Played Labour I from the starting bank through the first fire stand. A mistimed initial jump caused a normal pit fall and respawn; the next timed double jump crossed successfully. Both jackal patrols and the road Div were countered, the sacred-fire checkpoint lit, and all three stand waves completed. The visible **“The fire holds”** banner appeared, both fire walls faded, the reward appeared, and Rostam had **five hearts**. The live browser recorded no console errors during the check. Paused at the cleared stand and left audio muted. This used the existing live save's Legend's road/upgrades, and does not replace the earlier route checks on the local default profile.
+
+Local screenshot proof: `outputs/shahnameh-gameplay-qa/live-labour-I-stand-cleared.png`. No artificial `sh-unlocked` value was set during this final live check; existing user progression was preserved.
+
+All seven labours have completed sampled careful/faster play checks, fixes are pushed, and the final live opening regression is complete. Failed attempts, normal checkpoint retries and the limited random boss states sampled are documented above. This does not certify every random encounter, every upgrade combination, or a perfectly balanced 1–3-minute boss duration.
