@@ -31,6 +31,21 @@ const path = require('node:path');
     }
     await page.locator('#prologueBtn').click();
     await page.locator('#clipList [data-play]').first().click();
+    assert.equal(await page.locator('#cineSound').count(), 0);
+    for (const viewport of [{ width: 1440, height: 900 }, { width: 390, height: 844 }, { width: 844, height: 390 }]) {
+      await page.setViewportSize(viewport);
+      const narrator = await page.locator('#cineNarrator').boundingBox(), skip = await page.locator('#cineSkip').boundingBox();
+      assert(narrator.y <= 24 && skip.y === narrator.y, 'Story buttons align at the screen top');
+      assert(narrator.height >= 44 && skip.height >= 44, 'Touch targets remain usable');
+      assert(narrator.x + narrator.width < skip.x && skip.x + skip.width <= viewport.width, 'Controls fit without overlap');
+    }
+    await page.locator('#cineNarrator').click();
+    assert.equal(await page.locator('#cineNarrator').getAttribute('aria-pressed'), 'false');
+    assert.equal(await page.evaluate(() => JSON.parse(localStorage.getItem('sh-set')).narrator), false);
+    await page.locator('#cineNarrator').click();
+    assert.equal(await page.locator('#cineNarrator').getAttribute('aria-pressed'), 'true');
+    if (process.env.SCREENSHOT) await page.screenshot({ path: process.env.SCREENSHOT });
+    await page.setViewportSize({ width: 1440, height: 900 });
     await page.locator('#cineSkip').click();
     assert.deepEqual(await state(), { display: 'flex', inert: true, backing: true });
     await page.locator('#clipDone').click();
@@ -53,7 +68,7 @@ const path = require('node:path');
       await page.locator(close).click();
     }
     assert.deepEqual(errors, []);
-    console.log('Menu backgrounds passed: five home panels, cinematic return, mobile Settings, and current-level pause preservation.');
+    console.log('Passed: menu backgrounds, cinematic return, mobile Settings, current-level pause preservation, and top story controls at desktop/portrait/landscape sizes.');
   } finally { await browser.close(); }
 })().catch(error => { console.error(error); process.exitCode = 1; });
 

@@ -1969,7 +1969,6 @@ function setMuted(m) {
   A.muted = m; store.set('sh-muted', m ? '1' : '0'); if (A.master) A.master.gain.value = m || A.background ? 0 : 0.8; if (m) hush(true);
   if (typeof storyReading !== 'undefined') refreshStoryListen();
   $('muteIco').setAttribute('d', m ? 'M4 9v6h4l5 4V5L8 9z M17 9l5 6 M22 9l-5 6' : 'M4 9v6h4l5 4V5L8 9z M16 9a4 4 0 0 1 0 6 M19 6a8 8 0 0 1 0 12');
-  if ($('cineSound')) { $('cineSound').setAttribute('aria-pressed', String(!m)); $('cineSound').querySelector('.spk-l').textContent = m ? 'Sound off' : 'Sound on'; }
   refreshMusicBtn();
   music(!m && game && game.scene.isActive('play') && playing);
 }
@@ -5264,7 +5263,6 @@ function setNarrator(on, readScene = false) {
   if (on && readScene && !A.muted && cine && !cine.credits) cineShow(cine.i);
 }
 $('setNarrator').onclick = () => setNarrator(!narratorEnabled());
-$('cineSound').onclick = () => $('muteBtn').click();
 $('cineNarrator').onclick = () => setNarrator(!narratorEnabled(), true);
 // the readings play through the game's own sound engine (unlocked by the first click, so no browser blocks them),
 // each decoded once and kept
@@ -5339,7 +5337,7 @@ function cinema(name, done, start = 0, panels = null) {
   cine.from?.classList.add('hidden'); $('credits').classList.add('hidden'); $('cineSkip').textContent = 'Skip ›';
   ov.querySelector('.cdots').innerHTML = P.map((_, k) => `<i title="Picture ${k + 1}" data-k="${k}"></i>`).join('');
   imgs.forEach(im => im.classList.remove('on'));
-  ov.classList.remove('hidden'); refreshNarratorControls(); $('cineSound').setAttribute('aria-pressed', String(!A.muted)); $('cineSound').querySelector('.spk-l').textContent = A.muted ? 'Sound off' : 'Sound on'; music(true); P.forEach(([img]) => voiceBuf(img)?.catch(() => {})); cineNext(); $('cineNext').focus();
+  ov.classList.remove('hidden'); refreshNarratorControls(); music(true); P.forEach(([img]) => voiceBuf(img)?.catch(() => {})); cineNext(); $('cineNext').focus();
 }
 function cineShow(i) {
   const c = cine, [img, fa, text] = c.P[i], ov = $('s-cine'), imgs = ov.querySelectorAll('.cimg'), im = imgs[i % 2], old = imgs[(i + 1) % 2];
