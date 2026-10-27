@@ -239,3 +239,34 @@ Two complete muted routes reached the ending, with three and two hearts. The sec
 | 120,12 — lamb | Walk before boss |
 
 Feathers (16,5), (74,6), (108,8) were reached by jumps without lasso; the first completion recorded 3/3. The horde gates use tall full-height positional bounds rather than the smaller fire-stand walls. Shared stands retain 225-pixel flame-centre height against 151.24/179.90-pixel maximum double jumps. The high horde platform is intentionally retained as a taught combat refuge. Focused tests cover startup, pending entries, breather timing, food count and harmless recovery contact. VII and the final live regression remain outstanding.
+
+# Labour VII — hands-on QA, 26–27 October 2026
+
+Two routes reached the White Div's death, king rescue and final story ending, with two and four hearts. The faster route required normal sacred-fire retries after failed stand attempts; these failures are retained, not presented as clean runs. The final retry cleared the stand at three hearts. No recorded script errors.
+
+- Expanded the mountain stand from 41–53 to **41–58**, seventeen tiles, and flattened the raised bank at 53–56 to the same row-13 floor. Three waves completed on both routes; the final capture records minimum entry distance **6.069 tiles from Rostam / 2 tiles from another foe**. Pending entries waited for clear ground and then arrived, with no deadlock.
+- Placed thirteen fixed food pickups and independent feathers. Removed the last blanket thinning rule: all seven labour maps now use deliberate provisions. Moved the cave-approach food off the column of the guard at 116.
+- Blue Divs previously damaged Rostam on resting contact and gave only a 250 ms wind-up. Failed stand attempts exposed the cost of their overlapping contact/recovery. They now warn for 450 ms, commit their facing, and hurt on contact only during the pounce. The final retry killed the second-wave blue Div without losing health to its resting body. A bat dive still caused damage when the counter was late; facing away or waiting through an attack still fails.
+- Div warriors step back when within 32 px of Rostam during recovery, reducing the overlap observed beside the ice seal. The faster cave pass countered both sleepers and broke the seal normally. Sleeping hits, wake-up, crumbling platforms, their recovery, the final cave checkpoint and grounded White Div entrance were exercised.
+- White Div warning text now clears when his club is stuck. Observed walk, raise, slam, stuck, roar, spent and death states stayed at height 204 (384-pixel frames). Moving off marked ice avoided its strikes; attacks during stuck/spent openings damaged him. Standing in a blue floor warning or marked ice caused health loss. Throw and charge variants were not both sampled in these two random fights; the ART audit confirms their consistent frame sizes, not every possible combat sequence.
+- After death, remaining foes/projectiles were cleared. Walking to Kay Kavus triggered the anointing animation, rescue and ending in both completed routes. No art or sound files changed in this gameplay pass.
+
+| Fixed food | Reach |
+| --- | --- |
+| 10,12 | Walk starting ground |
+| 24,8 — lamb | Jump up the stepped mountain |
+| 31,11 | Drop behind first warrior |
+| 38,8 | Double jump across first gap |
+| 47,11 | Walk into stand |
+| 55,9 — lamb | Jump from flat stand floor |
+| 62,12 | Walk beyond stand |
+| 79,11 | Walk across raised bank |
+| 94,12 | Walk to checkpoint before jumping |
+| 102,7 — lamb | Double jump across cracking shelves |
+| 114,12 | Drop off bank before cave checkpoint |
+| 128,10 — lamb | Jump onto cave bank |
+| 141,12 — lamb | Walk after sleeping guards |
+
+**13/13 were reached across the collection route and faster/retry route**; (94,12) was skipped on the first route and collected on the second. Feathers (25,6), (87,8), (128,7) were reached by jumps/double jumps; all three were recorded in the first completed route. Optional lasso-ring supplies and earned drops are separate from the fixed count. Stand flames span 225 px at their centres (about 243 including art), against maximum double-jump rises 151.24 base / 179.90 upgraded. Positional bounds retained Rostam until the last foe died, then the flames faded and the lamb appeared.
+
+The final live Labour I regression and a follow-up of Labour III's narrower entry clearance remain pending. This report is evidence of sampled playthroughs and fixes, not a claim that every random sequence or upgrade combination is flawless.

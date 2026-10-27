@@ -360,14 +360,14 @@ function map7() {
   const row = (a, b, r, ch) => { for (let c = a; c <= b; c++) g[r][c] = ch; };
   const pit = (a, b) => { for (let c = a; c <= b; c++) for (let r = 0; r < 16; r++) g[r][c] = '.'; ground(a, b, 16); row(a, b, 15, '^'); };
   ground(0, 18, 14); ground(19, 22, 12); ground(23, 26, 10); ground(27, 34, 13); pit(35, 40); row(36, 37, 10, '='); row(39, 40, 9, '=');
-  ground(41, 52, 13); ground(53, 56, 11); ground(57, 66, 14); pit(67, 71); row(68, 70, 11, '='); ground(72, 84, 13); ground(85, 88, 11);
+  ground(41, 57, 13); ground(58, 66, 14); pit(67, 71); row(68, 70, 11, '='); ground(72, 84, 13); ground(85, 88, 11);
   ground(89, 98, 14); pit(99, 104); row(100, 101, 10, '='); row(103, 104, 9, '='); ground(105, 199, 14); ground(110, 113, 12);
   ground(126, 129, 12); pit(133, 136); row(134, 135, 11, '=');   // laid after the floor: pit() digs it out
   // the White Div's arena (146 to 176): one short ice ledge on the left, safe from his slam. He keeps out of mace
   // reach of it (KEEP7)
   row(149, 152, 10, '=');
   put(3, 13, 'P');
-  [[10, 12], [24, 8], [25, 8], [31, 11], [38, 8], [47, 11], [55, 9], [62, 12], [69, 9], [79, 11], [87, 9], [94, 12], [102, 7], [116, 12], [128, 10], [140, 12]].forEach(([c, r]) => put(c, r, 'c'));
+  [[10, 12], [24, 8], [31, 11], [38, 8], [47, 11], [55, 9], [62, 12], [79, 11], [94, 12], [102, 7], [114, 12], [128, 10], [141, 12]].forEach(([c, r]) => put(c, r, 'c'));
   put(14, 13, 'd'); put(30, 12, 'w'); put(37, 7, 'b'); put(49, 12, 'd'); put(61, 13, 'w'); put(70, 7, 'b'); put(78, 12, 'w'); put(91, 13, 'd'); put(101, 6, 'b');
   put(116, 13, 'w'); put(124, 8, 'b'); put(139, 13, 'w');
   put(44, 12, 'F'); put(96, 13, 'F'); put(143, 13, 'F');
@@ -607,17 +607,18 @@ const FOES = {
   jackal: { tex: 'jackal-run', hp: 1, init: (s, f) => { f.setVelocityX(-55); f.once('destroy', () => f.glint?.destroy()); f.harmless = () => f.js !== 'lunge' || f.bit; }, tick: (s, f, k, p) => jackalHunt(s, f, k, p) },
   div: {
     tex: 'div-hop', hp: 2,
+    init(s, f) { f.harmless = () => !f.leap; },
     tick(s, f, k, p) {
-      f.hopT -= k; if (!f.body.blocked.down) return;
+      f.hopT -= k; if (!f.body.blocked.down) return; f.leap = false;
       if (f.anims.currentAnim?.key === 'div-pounce' && !f.dw) f.play('div-hop');   // landed from a pounce
       if (canHunt(s, f, p) && above(f, p)) { if (f.dw > 0) { f.dw = 0; f.setAngle(0); f.anims.resume(); } f.setVelocityX(0); if (f.hopT <= 0) { const post = postOf(s, f); f.dir = Math.abs(f.x - post) > TS ? Math.sign(post - f.x) : (Math.random() < 0.5 ? -1 : 1); f.setFlipX(f.dir < 0); f.setVelocity(hopVelocity(f, crowded(s, f, f.dir) ? 0 : f.dir * 50, 0.48), -200); f.hopT = 80 + Math.random() * 40; } return; }
-      f.dir = Math.sign(p.x - f.x) || 1; f.setFlipX(f.dir < 0); f.setVelocityX(0);
+      if (!(f.dw > 0)) f.dir = Math.sign(p.x - f.x) || 1; f.setFlipX(f.dir < 0); f.setVelocityX(0);
       if (f.dw > 0) {                                                // the wind-up: it sinks on its haunches, then springs
-        f.dw -= k; if (s.anims.exists('div-pounce')) s.hold(f, 'div-strike', f.dw > 8 ? 1 : 2); else { f.anims.pause(); f.setFrame(0); } f.setAngle(Math.sin(s.time.now * 0.09) * 3);
-        if (f.dw <= 0) { f.dw = 0; f.setAngle(0); if (s.anims.exists('div-pounce')) f.play('div-pounce'); else f.anims.resume(); f.setVelocity(hopVelocity(f, crowded(s, f, f.dir) ? 0 : f.dir * 70, 0.55), -230); f.hopT = 70; s.fx('dust', f.x, f.body.bottom, { depth: 6 }); }
+        f.dw -= k; if (s.anims.exists('div-pounce')) s.hold(f, 'div-strike', f.dw > 14 ? 1 : 2); else { f.anims.pause(); f.setFrame(0); } f.setAngle(Math.sin(s.time.now * 0.09) * 3);
+        if (f.dw <= 0) { f.dw = 0; f.leap = true; f.setAngle(0); if (s.anims.exists('div-pounce')) f.play('div-pounce'); else f.anims.resume(); f.setVelocity(hopVelocity(f, crowded(s, f, f.dir) ? 0 : f.dir * 70, 0.55), -230); f.hopT = 70; s.fx('dust', f.x, f.body.bottom, { depth: 6 }); }
         return;
       }
-      if (canHunt(s, f, p) && f.hopT <= 0 && Math.abs(p.x - f.x) < 200 && reserveAttack(s, f)) f.dw = 15;
+      if (canHunt(s, f, p) && f.hopT <= 0 && Math.abs(p.x - f.x) < 200 && reserveAttack(s, f)) f.dw = 27;
     }
   },
   // scorpions creep, then scuttle at Rostam when he comes close on the same level, and lash out with the sting
@@ -664,6 +665,7 @@ const FOES = {
         });
         return;
       }
+      if (Math.abs(d) < 32 && f.body.blocked.down) { f.setVelocityX(-want * 38); return; }   // leave room beside Rostam during recovery
       if (Math.abs(d) < 200 && f.body.blocked.down) {
         const ahead = s.layer.getTileAtWorldXY(f.x + f.dir * 14, f.body.bottom + 4), edge = !ahead || ahead.index % 4 === 3;
         const go = !crowded(s, f, f.dir) && !edge; f.setVelocityX(go ? f.dir * 38 : 0);
@@ -834,7 +836,7 @@ const STANDS = {
   5: { at: 107.5, L: 97, R: 113, waves: [['q', 'j'], ['j', 'q', 'j'], ['q', 'Q', 'j']], foe: { q: 'spearman', j: 'jackal' }, lead: 0xffc070, fa: 'کمینِ اولاد', title: 'Olad’s ambush', held: 'The ambush is broken',
     start: () => 'An ambush! <b>Olad’s men close on the fire.</b> Draw the jackals away from the spears, and close in right after a thrust.',
     wave: (n, N) => n === N ? 'Olad’s captain leads the last charge!' : `Olad’s men: ${n} of ${N}`, end: 'The ambush breaks. Roast lamb lies by the fire. Olad waits ahead.' },
-  7: { at: 44.5, L: 41, R: 53, waves: [['w', 'b'], ['d', 'w', 'b'], ['w', 'W', 'd']], foe: { w: 'divwarrior', d: 'div', b: 'bat' }, lead: 0xc8e8ff, flame: 0x8ad8ff, fa: 'نگهبانانِ کوه', title: 'The mountain guard', held: 'The path is open',
+  7: { at: 44.5, L: 41, R: 58, waves: [['w', 'b'], ['d', 'w', 'b'], ['w', 'W', 'd']], foe: { w: 'divwarrior', d: 'div', b: 'bat' }, lead: 0xc8e8ff, flame: 0x8ad8ff, fa: 'نگهبانانِ کوه', title: 'The mountain guard', held: 'The path is open',
     start: () => 'The fire draws <b>the White Div’s mountain guard</b>. Give the clubs room, then strike from behind.',
     wave: (n, N) => n === N ? 'The captain of the guard comes!' : `The guard comes: ${n} of ${N}`, end: 'The guard is broken. Roast lamb lies by the fire. Beyond the mountains, the cave waits.',
     after: s => s.time.delayedCall(1500, () => { if (s.done) return; sfx('roar'); s.cam.shake(900, 0.008); }) }
@@ -1332,7 +1334,8 @@ const LEVELS = {
       s.cave.setAlpha(ca); s.mist.setAlpha(1 - ca); s.snow.emitting = ca < 0.5; s.mist.tilePositionX = Math.round(sx * 0.3 + time * 0.01);
       if (s.dark) s.darkA = 0.15 + ca * 0.65;
     },
-    food: (c, r, n) => (c === 24 && r === 8) || (c === 102 && r === 7) || (c === 128 && r === 10) ? 'lamb' : FOOD[1 + (n % 3)],
+    feathers: [[25, 6], [87, 8], [128, 7]],
+    food: (c, r, n) => [24, 55, 102, 128, 141].includes(c) ? 'lamb' : FOOD[1 + (n % 3)],
     parse(s, ch, x, y) {
       if (ch === 'w') s.spawnFoe('divwarrior', x, y); else if (ch === 'b') s.spawnFoe('bat', x, y);
       else if (ch === 'X') s.whiteAt = { x, y };
@@ -1351,7 +1354,7 @@ const LEVELS = {
         s.boltT -= k;
         if (s.boltT <= 0) { s.boltT = 110 + Math.random() * 70; const x = p.x + Phaser.Math.Between(-60, 140); if (!nearRest(s, p.x) && !nearRest(s, x)) s.lightning(x); }
       }
-      if (!s.bossOn && p.x > 148 * TS) s.startWhiteDiv();
+      if (!s.bossOn && p.x > 148 * TS && p.body.blocked.down) s.startWhiteDiv();
       if (s.whiteDown && !s.ended && p.x > s.kavus.x - 46 && p.body.blocked.down) s.freeKing();
     },
     win: 'The blood of the White Div\'s heart restores the sight of Kay Kavus and all his warriors. The king is free, and Rostam, son of Zal, has completed the Seven Labours.',
@@ -2097,8 +2100,7 @@ class Play extends Phaser.Scene {
     // the golden rings and their sky ledges appear only once Rostam carries the lasso that reaches them
     if (LIVE && !rush && cur === 1) for (let c = 89; c <= 92; c++) if (map[10][c] === '=') map[10][c] = '.';
     if (LIVE && !rush && hasLasso()) hangRing(map);
-    // fewer, more meaningful provisions: of two side by side, one is kept (a roast lamb always stays)
-    if (LIVE && !rush && cur > 6) map.forEach((row, r) => row.forEach((ch, c) => { if (ch === 'c' && lv.food(c, r, 0) !== 'lamb' && (row[c - 1] === 'c' || (c * 7 + r) % 3 === 0)) row[c] = '.'; }));
+    // Provisions are deliberately placed in each map; feathers have independent positions.
     this.slopes = LIVE && !rush && this.lv.smoothSteps ? cutSlopes(map) : {};
     $('lbl').innerHTML = lv.hud; $('waterPill').classList.add('hidden'); $('bossName').textContent = lv.bossName || lv.name;
     this.levelW = C * TS;
@@ -4133,7 +4135,7 @@ class Play extends Phaser.Scene {
       }
       if (w.tm <= 0) {
         // the club bites deep into the ice: the opening
-        w.state = 'stuck'; w.tm = mad ? 135 : 165; w.anims.stop(); w.setFrame(7); w.setTint(0xbfe0ff);
+        w.state = 'stuck'; w.intent = ''; w.tm = mad ? 135 : 165; w.anims.stop(); w.setFrame(7); w.setTint(0xbfe0ff);
         this.stars = this.fx('stun', w.x, w.body.top - 4, { depth: 10, follow: w }); hint('His club is <b>stuck in the ice: drop down and strike him now!</b>');
       }
     } else if (w.state === 'stuck') {

@@ -96,3 +96,12 @@ for(const [kind,end] of [['divwarrior','  // Olad\'s spearmen'],['ghul','  // vu
  assert(code.includes('delayedCall(450'),'A visible warning precedes the damaging attack');
 }
 console.log('Warrior and ghul contact damage is limited to active attacks.');
+vm.runInContext(source.slice(source.indexOf('function map7()'),source.indexOf('// Map encounters',source.indexOf('function map7()'))),ctx);
+const mountain=ctx.map7();assert.equal(mountain.flat().filter(ch=>ch==='c').length,13);
+for(let c=41;c<58;c++){assert.equal(mountain[13][c],'#');for(let r=0;r<13;r++)assert.notEqual(mountain[r][c],'#','The mountain stand has no raised bank');}
+assert.equal(mountain[12][116],'.','Food no longer shares the cave guard spawn column');
+assert(!source.includes('(c * 7 + r) % 3'),'All seven maps use deliberate provisions');
+console.log('Final-labour supplies, clear guard spawn and flat seventeen-tile stand passed.');
+const blueStart=source.indexOf('  div: {\n    tex:'),blueCode=source.slice(blueStart,source.indexOf('  // scorpions',blueStart)).trim().replace(/^div: /,'(').replace(/,$/,')');
+const blue=vm.runInContext(blueCode,ctx), blueActor={};blue.init({},blueActor);assert(blueActor.harmless());blueActor.leap=true;assert.equal(blueActor.harmless(),false);assert(blueCode.includes('f.dw = 27;'),'Blue Div has a 450 ms warning');
+console.log('Blue Div warning/recovery is harmless; only its committed pounce damages on contact.');
