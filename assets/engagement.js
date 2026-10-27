@@ -37,7 +37,6 @@
     if (!action && target?.closest('button[data-preset],button[role=tab],button[data-mode]')) { engage(); pending = true; emit('tool_action', { action_name: 'change_view_or_example' }); }
     const link = target?.closest('a[href]');
     if (link && /^(mailto:|tel:)/i.test(link.getAttribute('href'))) emit('contact_click', { method: /^mailto:/i.test(link.getAttribute('href')) ? 'email' : 'phone' });
-    if (link?.closest('.platform-guide')) emit('related_tool_click', { action_name: 'open_related_tool' });
   }, true);
   document.addEventListener('input', e => {
     if (!e.isTrusted || tool === 'fun/shahnameh') return;

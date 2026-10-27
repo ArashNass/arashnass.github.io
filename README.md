@@ -58,6 +58,4 @@ Shared `/assets/engagement.js` records input-free action names, successful user-
 
 `/assets/vitals.js` uses the vendored official `web-vitals` library to send actual LCP, INP and CLS field measurements to GA4. LCP/INP are milliseconds; CLS is a unitless score. These are measurements, not a Lighthouse score. The library version and license are in `assets/vendor/`.
 
-Tool guides are static HTML with a worked example and related links, styled by `/assets/tool-guide.css`. Child tool repositories load these shared assets from the domain root. Keep the shared assets deployed before updating a child repository. The earthquake dashboard injects its guide through the Python build template.
-
 Run metrics tests with `node tests/platform-metrics.cjs`. The canonical sitemap remains the source for IndexNow submissions.
