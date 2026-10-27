@@ -2780,17 +2780,28 @@ class Play extends Phaser.Scene {
     at(5200, () => { L.play('lion-roar'); sfx('roar'); g.play('rakhsh-idle'); });
     // the noise wakes Rostam
     at(6300, () => {
-      this.snore?.remove(); this.snore = null; s.play('rostam-rise'); this.fx('dust', s.x, 14 * TS, { depth: 6 });
+      this.snore?.remove(); this.snore = null;
+      s.once('animationcomplete', () => { if (s.active) s.play('rostam-idle'); });
+      s.play('rostam-rise'); this.fx('dust', s.x, 14 * TS, { depth: 6 });
       banner('رستم', 'Rostam wakes');
     });
     const finish = () => {
       // Rakhsh wheels away into the reeds, the lion paces back to its ground, and the fight is Rostam's
       const corner = 89 * TS; g.setFlipX(true); g.play(this.anims.exists('rakhsh-trot') ? 'rakhsh-trot' : 'rakhsh-gallop'); sfx('neigh'); this.tweens.add({ targets: g, x: corner, duration: 1200, ease: 'Sine.easeInOut', onComplete: () => { g.setFlipX(false); g.play('rakhsh-idle'); } });
       L.setFlipX(false); L.play('lion-walk'); this.tweens.add({ targets: L, x: this.lionAt.x, duration: 1100, ease: 'Sine.easeInOut' });
+      // Hide the decorative-to-physics sprite swap behind a brief dip to black.
+      at(1200, () => this.cam.fadeOut(180, 0, 0, 0));
       at(1400, () => {
-        L.destroy(); const p = this.player; p.setVisible(true); p.body.reset(s.x, p.y); this.face = 1; s.destroy(); const gx = g.x; g.destroy(); this.sleeper = this.guard = null; this.rakhshAt1 = gx;
+        L.destroy(); const p = this.player; p.setVisible(true); p.body.reset(s.x, p.y);
+        p.y += 14 * TS - 1 - p.body.bottom; p.body.reset(p.x, p.y); p.setVelocity(0); p.setFlipX(false); p.play('rostam-idle');
+        this.face = 1; s.destroy(); const gx = g.x; g.destroy(); this.sleeper = this.guard = null; this.rakhshAt1 = gx;
         $('cine').classList.remove('on'); document.body.classList.remove('cine'); this.intro = false; this.frozen = false;
-        this.startBoss();
+        // A held story-advance key must not become an immediate attack or jump.
+        for (const k in keys) keys[k] = false;
+        for (const k in pressed) pressed[k] = false;
+        this.atk = this.buf = this.attackBuf = this.dodgeBuf = this.chargeT = 0;
+        this.inv = Math.max(this.inv || 0, 60);
+        this.startBoss(); this.cam.fadeIn(320, 0, 0, 0);
       });
     };
     at(8300, () => wakeArt ? cinema('wake1', () => { game.scene.resume('play'); playing = true; finish(); }) : finish());
