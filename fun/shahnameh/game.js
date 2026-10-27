@@ -4658,6 +4658,7 @@ class Play extends Phaser.Scene {
 
 let resumeAt = null;           // the last fire lit in this labour: { n, i, well, coins, kills, t }
 function begin(n = cur, rise = false, keepRush = false, afterStory = false) {
+  clearMenuBackdrop();
   if (audio()) prepareScore(n);                                    // the labour's music loads while its story plays
   // Labour I saves its sleeping painting for the den. Other fresh journeys get their illustrated opening.
   if (n !== 1 && !rise && !keepRush && !afterStory && CINE['intro' + n]) {
@@ -4871,12 +4872,27 @@ function showGuide(i) {
   $('gcount').textContent = `${gpg + 1} of ${CODEX.length} · ${CODEX.filter(known).length} met`;
   refreshControlLabels($('gleaf')); $('gleaf').scrollTop = 0; animateSprites($('s-guide'), 's-guide');
 }
+// Keep the journey screen behind its submenus without exposing its controls to
+// keyboard, pointer or gamepad navigation. It stays logically hidden to menu routing.
+function keepMenuBackdrop(from) {
+  if (from !== $('s-map')) return;
+  from.classList.add('menu-backdrop'); from.inert = true;
+  from.setAttribute('aria-hidden', 'true');
+}
+function clearMenuBackdrop() {
+  const map = $('s-map'); map.classList.remove('menu-backdrop'); map.inert = false;
+  map.removeAttribute('aria-hidden');
+}
+function restoreMenuParent(from) {
+  if (from === $('s-map')) clearMenuBackdrop();
+  from.classList.remove('hidden'); from.querySelector('.btn')?.focus();
+}
 function openGuide(n) {
   if (playing) setPaused(true);
-  guideFrom = document.querySelector('.ov:not(.hidden):not(#s-guide)'); guideFrom?.classList.add('hidden');
+  guideFrom = document.querySelector('.ov:not(.hidden):not(#s-guide)'); keepMenuBackdrop(guideFrom); guideFrom?.classList.add('hidden');
   $('s-guide').classList.remove('hidden'); showGuide(Math.max(0, typeof n === 'string' ? CODEX.findIndex(c => c.id === n) : CODEX.findIndex(c => c.k === n))); $('gNext').focus();
 }
-function closeGuide() { $('s-guide').classList.add('hidden'); if (guideFrom) { guideFrom.classList.remove('hidden'); guideFrom.querySelector('.btn')?.focus(); } else openMap(false); }
+function closeGuide() { $('s-guide').classList.add('hidden'); if (guideFrom) { restoreMenuParent(guideFrom); } else openMap(false); }
 // where each labour sits on the night map (percent of its width and height): river reeds, desert, the dragon's hills, garden, castle, Div camp, cave
 const MAP_AT = [null, [12.5, 51], [25, 56], [40, 40], [49, 57], [61.5, 42], [76.5, 52], [92.5, 48]];
 // the gentle road: two more hearts, a longer breath after each wound, bosses with less life, and slower thirst
@@ -5099,6 +5115,7 @@ function cardArt(art, src) {
 $('journeyMenu').onclick = () => { const open = $('journeyMenu').getAttribute('aria-expanded') !== 'true'; $('journeyMenu').setAttribute('aria-expanded', String(open)); $('journeyMenu').parentNode.classList.toggle('open', open); };
 $('journeyMenu').parentNode.addEventListener('click', e => { if (e.target.closest('.journey-nav-link:not(#journeyMenu)')) { $('journeyMenu').setAttribute('aria-expanded', 'false'); $('journeyMenu').parentNode.classList.remove('open'); } });
 function openMap(e) {
+  clearMenuBackdrop();
   if (e !== false) music(A.want);                                  // a click: the menu theme may begin
   if (playing) setPaused(true);
   mapFrom = document.querySelector('.ov:not(.hidden):not(#s-map)'); mapFrom?.classList.add('hidden');
@@ -5407,6 +5424,8 @@ const CLIP_NAMES = { 'khan5-lasso': 'Olad is bound — The lasso won', 'khan7-no
   "khan7-intro": "The White Div — The road ahead",
 };
 function openClips() {
+  if (playing) setPaused(true);
+  keepMenuBackdrop(document.querySelector('.ov:not(.hidden):not(#s-clips)'));
   // one group per Khan: the paintings before it and after it, each sealed until the player has earned it
   const part = (name, locked, need) => CINE[name].map(([img], k) => ({ name, k, img, locked, need }));
   const groups = [{ title: 'The Prologue', clips: part('opening', false) }];
@@ -5453,10 +5472,10 @@ function finishRebind(k) {
   renderSettings(); $('keyList').querySelector(`[data-a="${r.a}"][data-i="${r.i}"]`)?.focus();
 }
 function openSettings() {
-  if (playing) setPaused(true); setFrom = document.querySelector('.ov:not(.hidden):not(#s-set)'); setFrom?.classList.add('hidden');
+  if (playing) setPaused(true); setFrom = document.querySelector('.ov:not(.hidden):not(#s-set)'); keepMenuBackdrop(setFrom); setFrom?.classList.add('hidden');
   renderSettings(); $('s-set').classList.remove('hidden'); $('setDone').focus();
 }
-function closeSettings() { rebind = null; $('s-set').classList.add('hidden'); if (setFrom) { setFrom.classList.remove('hidden'); setFrom.querySelector('.btn')?.focus(); } else openMap(false); }
+function closeSettings() { rebind = null; $('s-set').classList.add('hidden'); if (setFrom) { restoreMenuParent(setFrom); } else openMap(false); }
 function resetProgress() {
   if (!window.confirm('Reset all game progress?\n\nAll unlocked levels, achievements, best times, feathers, provisions, upgrades, Farr and the lasso will be erased on this browser. You will start again at the first labour. Your settings will be kept.\n\nThis cannot be undone.')) return;
   try {
@@ -5523,8 +5542,8 @@ addEventListener('gamepadconnected', () => { toast('Gamepad connected. Press Sta
 requestAnimationFrame(padPoll);
 // how to play: a page of the manuscript, opened from the home map and the menu
 let helpFrom = null;
-function openHelp() { refreshControlLabels(); if (playing) setPaused(true); helpFrom = document.querySelector('.ov:not(.hidden):not(#s-help)'); helpFrom?.classList.add('hidden'); $('s-help').classList.remove('hidden'); $('helpDone').focus(); }
-function closeHelp() { $('s-help').classList.add('hidden'); if (helpFrom) { helpFrom.classList.remove('hidden'); helpFrom.querySelector('.btn')?.focus(); } else openMap(false); }
+function openHelp() { refreshControlLabels(); if (playing) setPaused(true); helpFrom = document.querySelector('.ov:not(.hidden):not(#s-help)'); keepMenuBackdrop(helpFrom); helpFrom?.classList.add('hidden'); $('s-help').classList.remove('hidden'); $('helpDone').focus(); }
+function closeHelp() { $('s-help').classList.add('hidden'); if (helpFrom) { restoreMenuParent(helpFrom); } else openMap(false); }
 document.querySelectorAll('[data-help]').forEach(b => b.onclick = openHelp); $('helpDone').onclick = closeHelp; $('helpClose').onclick = closeHelp;
 document.querySelectorAll('[data-guide]').forEach(b => b.onclick = () => openGuide($('s-map').classList.contains('hidden') ? cur : pick));
 $('gPrev').onclick = () => showGuide(gpg - 1); $('gNext').onclick = () => showGuide(gpg + 1); $('guideClose').onclick = closeGuide;
@@ -5590,9 +5609,9 @@ function openStory(i = 0, n = cur) {
   $('s-story').setAttribute('aria-label', 'The tale of ' + NAMES[n][0]);
   pages = [...(document.getElementById('tale-' + n) || $('tale-1')).content.querySelectorAll('article')];
   storyFrom = document.querySelector('.ov:not(.hidden):not(#s-story)');
-  storyFrom?.classList.add('hidden'); $('s-story').classList.remove('hidden'); showPage(i); $('nextPg').focus();
+  keepMenuBackdrop(storyFrom); storyFrom?.classList.add('hidden'); $('s-story').classList.remove('hidden'); showPage(i); $('nextPg').focus();
 }
-function closeStory() { stopStoryReading(); $('s-story').classList.add('hidden'); if (storyFrom) { storyFrom.classList.remove('hidden'); storyFrom.querySelector('.btn')?.focus(); } else openMap(false); }
+function closeStory() { stopStoryReading(); $('s-story').classList.add('hidden'); if (storyFrom) { restoreMenuParent(storyFrom); } else openMap(false); }
 document.querySelectorAll('[data-story]').forEach(b => b.onclick = () => openStory(+b.dataset.story || 0, cur));
 $('prevPg').onclick = () => turn(-1); $('nextPg').onclick = () => turn(1); $('storyClose').onclick = closeStory;
 $('pauseBtn').onclick = () => setPaused(true); $('resumeBtn').onclick = () => setPaused(false);
