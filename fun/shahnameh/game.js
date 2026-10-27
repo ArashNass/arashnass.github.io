@@ -258,7 +258,7 @@ function map3() {
   const pit = (a, b) => { ground(a, b, 16); row(a, b, 15, '^'); };
   ground(0, 16, 14); ground(17, 21, 12); ground(22, 26, 13); pit(27, 31); row(28, 30, 10, '='); ground(32, 44, 14);
   ground(45, 49, 12); ground(50, 56, 14); pit(57, 63); row(58, 59, 11, '='); row(61, 62, 9, '='); ground(64, 76, 14);
-  ground(77, 80, 11); ground(81, 92, 14); pit(93, 97); row(94, 96, 10, '='); ground(98, 155, 14); ground(104, 107, 12);
+  ground(77, 92, 14); pit(93, 97); row(94, 96, 10, '='); ground(98, 155, 14); ground(104, 107, 12);
   put(3, 13, 'P');
   [[8, 12], [19, 10], [29, 8], [38, 12], [47, 10], [55, 12], [61, 7], [70, 12], [79, 9], [86, 12], [95, 8], [100, 12], [109, 12]].forEach(([c, r]) => put(c, r, 'c'));
   put(13, 13, 'j'); put(24, 7, 'b'); put(36, 13, 'j'); put(53, 8, 'b'); put(60, 6, 'b'); put(68, 13, 'j');
@@ -827,7 +827,7 @@ const STANDS = {
   2: { at: 57.5, L: 49, R: 65, waves: [['s', 'v'], ['s', 's', 'v'], ['v', 'S', 's']], foe: { s: 'scorpion', v: 'vulture' }, lead: 0xffb060, fa: 'چاهِ بیابان', title: 'The well is guarded', held: 'The well is yours',
     start: () => 'The desert’s creatures come to the water! <b>Bait a sting, step back, then strike</b>; watch the sky for diving vultures.',
     wave: (n, N) => n === N ? 'The great scorpion of the well comes!' : `They come for the water: ${n} of ${N}`, end: 'The well is yours. Roast lamb lies by the water.' },
-  3: { at: 84.5, L: 81, R: 93, waves: [['j', 'b'], ['b', 'j', 'b'], ['j', 'J', 'b']], foe: { j: 'jackal', b: 'bat' }, lead: 0xc8a0ff, fa: 'شبِ اژدها', title: 'The night closes in', held: 'The night draws back',
+  3: { at: 84.5, L: 77, R: 93, waves: [['j', 'b'], ['b', 'j', 'b'], ['j', 'J', 'b']], foe: { j: 'jackal', b: 'bat' }, lead: 0xc8a0ff, fa: 'شبِ اژدها', title: 'The night closes in', held: 'The night draws back',
     start: () => 'The sacred fire holds the dragon back, but things of the night come for its light. <b>Strike from the saddle</b> as the jackals lunge and the bats swoop.',
     wave: (n, N) => n === N ? 'A great black jackal leads the last of them!' : `The night stirs: ${n} of ${N}`, end: 'The night draws back. Roast lamb lies by the fire. Rakhsh tosses his head: something vast is out there.' },
   4: { at: 92.5, L: 91, R: 110, waves: [['n', 'b'], ['n', 'b', 'n'], ['b', 'N', 'n']], foe: { n: 'serpent', b: 'bat' }, lead: 0xb0ff80, flame: 0x9aff60, fa: 'باغِ جادو', title: 'The garden wakes', held: 'The garden is still',

@@ -105,3 +105,5 @@ console.log('Final-labour supplies, clear guard spawn and flat seventeen-tile st
 const blueStart=source.indexOf('  div: {\n    tex:'),blueCode=source.slice(blueStart,source.indexOf('  // scorpions',blueStart)).trim().replace(/^div: /,'(').replace(/,$/,')');
 const blue=vm.runInContext(blueCode,ctx), blueActor={};blue.init({},blueActor);assert(blueActor.harmless());blueActor.leap=true;assert.equal(blueActor.harmless(),false);assert(blueCode.includes('f.dw = 27;'),'Blue Div has a 450 ms warning');
 console.log('Blue Div warning/recovery is harmless; only its committed pounce damages on contact.');
+for(let c=77;c<93;c++){assert.equal(night[14][c],'#');for(let r=0;r<14;r++)assert.notEqual(night[r][c],'#','The expanded night clearing has no raised bank');}
+console.log('Expanded sixteen-tile night clearing preserves flat ground and the final pit.');
