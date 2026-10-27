@@ -408,7 +408,7 @@ body.calm #banner.on{animation-name:banCalm}@keyframes banCalm{0%{opacity:0}15%,
 /* a phone held upright: the top bar tightens, and if it still cannot fit it wraps rather than running off the screen */
 @media (max-width:520px){#hud{gap:4px;flex-wrap:wrap}#hud>.row{gap:4px;flex-wrap:wrap;justify-content:flex-end;margin-left:auto}#hud .pill{padding:0 7px;gap:4px}#pauseBtn{font-size:0;width:32px;padding:0;justify-content:center}#pauseBtn svg{margin:0}#hearts img{width:14px;height:12px}.fbar{width:30px}.wbar{width:34px}#hud .food{width:16px;height:16px}}
 /* the standing hint steps back after a while so it never hides the road; it comes forward again when it changes */
-#hint{transition:opacity .6s}#hint.dim{opacity:.38}
+#hint{transition:opacity .6s}#hint.dim{opacity:1}
 
 /* A map-first opening: one journey, one selected chapter, one primary action. */
 #s-map,#s-map.home{display:flex;align-items:center;justify-content:flex-start;padding:24px 28px;background:#080e17;overflow:auto;isolation:isolate}
@@ -913,11 +913,11 @@ body.phone #hud{padding-top:max(6px,env(safe-area-inset-top))}
 body.phone #boss{top:calc(max(6px,env(safe-area-inset-top)) + 40px);font-size:11px}
 body.phone #boss i{width:160px;height:7px;margin-top:3px}
 body.phone #boss .st{font-size:10.5px;margin-top:3px;padding:1px 8px}
-/* the standing hint: one slim slip, two lines at most (tap to read it all), fading after a few seconds */
+/* Persistent, opaque guidance; tap on phones to expand or collapse it. */
 body.phone #hint{top:calc(max(6px,env(safe-area-inset-top)) + 40px);max-width:min(70vw,520px);padding:5px 14px;font-size:15.5px;line-height:1.3;outline-offset:-4px;border-width:1.5px;pointer-events:auto;
   display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 body.phone #hint.full{-webkit-line-clamp:unset;max-width:min(80vw,560px)}
-body.phone #hint.dim{opacity:.45}
+body.phone #hint.dim{opacity:1}
 body.phone #boss:not(.hidden)~#hint{top:calc(max(6px,env(safe-area-inset-top)) + 92px)}
 /* the toast: a small slip high on the screen, never over the fighting ground */
 body.phone #toast{top:calc(max(6px,env(safe-area-inset-top)) + 84px);bottom:auto;max-width:min(64vw,480px);padding:5px 14px;font-size:15.5px;line-height:1.3;border-width:1.5px;outline-offset:-4px}
@@ -1347,6 +1347,6 @@ body.phone #touch .strike svg.sword{width:40px;height:40px}
 <script src="boot.js?v=92"></script>
 <script src="assets/vendor/phaser-3.80.1.min.js" data-game-script="engine"></script>
 <script src="journey-events.js?v=124" data-game-script="journey"></script>
-<script src="game.js?v=219" data-game-script="game"></script>
+<script src="game.js?v=220" data-game-script="game"></script>
 </body>
 </html>
