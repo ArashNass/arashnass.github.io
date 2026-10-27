@@ -5457,6 +5457,22 @@ function openSettings() {
   renderSettings(); $('s-set').classList.remove('hidden'); $('setDone').focus();
 }
 function closeSettings() { rebind = null; $('s-set').classList.add('hidden'); if (setFrom) { setFrom.classList.remove('hidden'); setFrom.querySelector('.btn')?.focus(); } else openMap(false); }
+function resetProgress() {
+  if (!window.confirm('Reset all game progress?\n\nAll unlocked levels, achievements, best times, feathers, provisions, upgrades, Farr and the lasso will be erased on this browser. You will start again at the first labour. Your settings will be kept.\n\nThis cannot be undone.')) return;
+  try {
+    // Keep preferences and other games' saves on this same site.
+    const keep = new Set(['sh-set', 'sh-muted', 'sh-diff']);
+    const keys = Object.keys(localStorage).filter(k => k.startsWith('sh-') && !keep.has(k));
+    for (const k of keys) localStorage.removeItem(k);
+  } catch (_) {
+    window.alert('Progress could not be fully reset. Please allow browser storage and try again.');
+    return;
+  }
+  // Stop the old scene from saving again while the fresh page loads.
+  playing = false; clearInput(); game.scene.stop('play');
+  location.reload();
+}
+$('resetProgress').onclick = resetProgress;
 document.querySelectorAll('[data-settings]').forEach(b => b.onclick = openSettings); $('setDone').onclick = closeSettings; $('setClose').onclick = closeSettings;
 $('setMusic').oninput = e => { SET.music = +e.target.value; $('setMusicV').textContent = SET.music + '%'; applySettings(); saveSet(); };
 $('setFx').oninput = e => { SET.fx = +e.target.value; $('setFxV').textContent = SET.fx + '%'; applySettings(); saveSet(); };
