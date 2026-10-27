@@ -2550,6 +2550,12 @@ class Play extends Phaser.Scene {
     if (f === this.boss) f.hitReadyAt = this.time.now + (gentle() ? 240 : 320);
     if (f.asleep) { if (!force) n *= 2; this.wake(f); }   // a sleeper's blow
     if (!force && f.boundUntil > this.time.now) { n += 1; f.boundUntil = 0; this.fx('impact', f.x, f.body.center.y - 4, { depth: 10 }); }   // a bound foe takes the blow full
+    // The lion gives short punish windows; upgraded heavies must not skip the hunt.
+    if (f === this.lion && !force) {
+      if (f.openHits >= 2 || f.openDamageLeft <= 0) return false;
+      n = Math.min(n, this.counterStrike ? 3 : 2, f.openDamageLeft);
+      f.openHits++; f.openDamageLeft -= n;
+    }
     f.hp -= n; if (!force) this.streakHit();
     if (f !== this.boss && f.hp > 0 && f.body.allowGravity && !force && (this.heavy || this.counterStrike)) {
       f.attackId = (f.attackId || 0) + 1; f.staggerUntil = this.time.now + 420;
@@ -2724,7 +2730,7 @@ class Play extends Phaser.Scene {
     this.cam.stopFollow(); this.tweens.add({ targets: this.cam, scrollX: Math.min(this.levelW - W, x0), duration: 700, ease: 'Sine.easeInOut' });
     this.arenaWalls(x0);
     const l = this.lion = this.physics.add.sprite(this.lionAt.x, this.lionAt.y - 40, 'lion-walk', 0);
-    this.fit(l, 'lion'); this.placeBoss(l); l.hp = l.max = gentle() ? 6 : legend() ? 11 : 8; l.state = 'roar'; l.tm = 70; l.dir = -1; l.setFlipX(true); l.play('lion-roar'); l.setDepth(4);
+    this.fit(l, 'lion'); this.placeBoss(l); l.hp = l.max = gentle() ? 8 : legend() ? 16 : 12; l.state = 'roar'; l.tm = 70; l.dir = -1; l.setFlipX(true); l.play('lion-roar'); l.setDepth(4);
     this.boss = l; l.keep = 91; l.onDown = () => this.lionDown(); l.ai = () => this.lionAI();
     l.calm = () => ['stun', 'recover'].includes(l.state); l.contact = () => ['charge', 'pounce'].includes(l.state);
     l.immune = () => !l.calm(); l.immuneMsg = 'The lion\'s hide turns your blow. Jump its charge so it runs into the rocks, then strike while it is dazed.';
@@ -2957,7 +2963,7 @@ class Play extends Phaser.Scene {
       if (l.tm <= 0) this.lionOpening(l, 'recover', 58);
     } else if (l.calm()) {
       l.setVelocityX(0); this.stars?.setPosition(Math.round(l.x), Math.round(l.body.top - 6));
-      if (l.tm <= 0) { l.clearTint(); l.anims.resume(); this.stars?.destroy(); this.stars = null; l.state = 'prowl'; l.tm = (mad ? 28 : 45) + Math.random() * 30; }
+      if (l.tm <= 0 || l.openHits >= 2 || l.openDamageLeft <= 0) { l.clearTint(); l.anims.resume(); this.stars?.destroy(); this.stars = null; l.state = 'prowl'; l.tm = (mad ? 28 : 45) + Math.random() * 30; }
     }
     l.setFlipX(l.dir < 0);
   }
@@ -2966,7 +2972,7 @@ class Play extends Phaser.Scene {
   // Rakhsh takes his corner of the den as the fight begins
   rakhshCorner(x) {
     const y = 14 * TS + 2, r = this.ally = this.add.sprite(x ?? this.cam.scrollX + 3 * TS, y, 'rakhsh-idle', 0).setOrigin(0.5, 0.97).setDepth(3.6).setScale(RAKHSH1);
-    r.state = 'post'; r.next = this.time.now + 3000; this.allyRest(r);
+    r.state = 'post'; r.next = this.time.now + 5500; this.allyRest(r);
     const dust = this.time.addEvent({ delay: 110, loop: true, callback: () => r.active && (r.state === 'charge' || r.state === 'return') && this.fx('dust', r.x - (r.flipX ? -26 : 26), y - 1, { depth: 6, flip: r.flipX }) });
     r.once('destroy', () => dust.remove());
   }
@@ -3006,13 +3012,14 @@ class Play extends Phaser.Scene {
       if ((r.cdir > 0 && r.x >= r.end) || (r.cdir < 0 && r.x <= r.end)) { r.state = 'return'; r.setFlipX(home < r.x); r.anims.timeScale = 0.6; }
     } else if (r.state === 'return') {
       const d = Math.sign(home - r.x); r.x += d * 3 * this.bossStep();
-      if (!d || Math.sign(home - r.x) !== d) { r.x = home; r.state = 'post'; r.setFlipX(false); this.allyRest(r); r.next = now + (this.rakhshFed ? 4200 : 6200); }
+      if (!d || Math.sign(home - r.x) !== d) { r.x = home; r.state = 'post'; r.setFlipX(false); this.allyRest(r); r.next = now + (this.rakhshFed ? 6500 : 9000); }
     }
   }
   // At rest, Rakhsh uses his planted idle loop; galloping and rearing keep their existing actions.
   allyRest(r) { this.allyWake(r); r.play('rakhsh-idle'); }
   allyWake(r) { r.breath?.remove(); r.breath = null; r.stamp?.remove(); r.stamp = null; r.anims.timeScale = 1; r.setScale(r.scaleX); }
   lionOpening(l, state, frames) {
+    l.openHits = 0; l.openDamageLeft = gentle() ? 4 : 3;
     l.state = state; l.tm = frames; l.intent = ''; l.setVelocityX(0); if (!this.anims.exists('lion-dazed')) { l.play('lion-walk'); l.anims.pause(); } else l.play('lion-dazed'); l.setTint(0xffd8a0);
     this.stars?.destroy(); this.stars = this.fx('stun', l.x, l.body.top - 6, { depth: 10, follow: l });
     this.fx('dust', l.x, l.body.bottom, { depth: 8 });
@@ -4641,8 +4648,8 @@ class Play extends Phaser.Scene {
 let resumeAt = null;           // the last fire lit in this labour: { n, i, well, coins, kills, t }
 function begin(n = cur, rise = false, keepRush = false, afterStory = false) {
   if (audio()) prepareScore(n);                                    // the labour's music loads while its story plays
-  // A fresh journey gets its illustrated opening; a checkpoint retry and the boss rush go straight back to play.
-  if (!rise && !keepRush && !afterStory && CINE['intro' + n]) {
+  // Labour I saves its sleeping painting for the den. Other fresh journeys get their illustrated opening.
+  if (n !== 1 && !rise && !keepRush && !afterStory && CINE['intro' + n]) {
     if (!keepRush) rush = null;
     cinema('intro' + n, () => begin(n, rise, keepRush, true));
     return;

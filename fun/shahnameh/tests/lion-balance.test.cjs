@@ -1,0 +1,26 @@
+const assert = require('node:assert/strict');
+const fs = require('node:fs'), vm = require('node:vm');
+const src = fs.readFileSync(require('node:path').join(__dirname, '../game.js'), 'utf8');
+const extract = (name, next) => src.slice(src.indexOf('  '+name+'('), src.indexOf('  '+next+'(', src.indexOf('  '+name+'('))).trim();
+const context = {gentle:()=>false, legend:()=>true, sfx(){}, toast(){}, Phaser:{Math:{Clamp:(v,a,b)=>Math.max(a,Math.min(b,v))}}};
+vm.createContext(context);
+// Compile the production methods, with rendering and sound stubbed out.
+const damage = src.slice(src.indexOf('  damage('), src.indexOf('\n  }',src.indexOf('  damage('))+4).trim();
+const opening = extract('lionOpening','lionDown');
+const methods = vm.runInContext('({'+damage+','+opening+'})',context);
+const fx = {destroy(){}};
+const scene = Object.assign({time:{now:1000,delayedCall(){}},anims:{exists:()=>true},fx:()=>fx,face:1,cam:{shake(){}},hitStop(){},streakHit(){},counterStrike:false},methods);
+const foe = ()=>({active:true,hp:12,max:12,body:{enable:true,left:0,right:40,top:0,bottom:40,center:{y:20}},setVelocityX(){},play(){},setTint(){},setTintFill(){},clearTint(){},immune:()=>false});
+const lion = scene.lion = scene.boss = foe();
+scene.lionOpening(lion,'stun',86);
+assert(scene.damage(lion,6));assert.equal(lion.hp,10,'Upgraded heavy is limited to two damage');
+assert.equal(scene.damage(lion,6),false);assert.equal(lion.openDamageLeft,1,'Cooldown rejection preserves the opening budget');
+scene.time.now+=400;assert(scene.damage(lion,6));assert.equal(lion.hp,9);
+scene.time.now+=400;assert.equal(scene.damage(lion,6),false,'One opening cannot erase the lion');
+scene.lionOpening(lion,'recover',58);scene.counterStrike=true;
+scene.time.now+=400;assert(scene.damage(lion,6));assert.equal(lion.hp,6,'A timed counter can use the three-damage opening');
+assert(scene.damage(lion,2,true));assert.equal(lion.hp,4,'Farr and Rakhsh keep their forced damage');
+scene.boss=foe();scene.time.now+=400;assert(scene.damage(scene.boss,6));assert.equal(scene.boss.hp,6,'Other bosses retain their damage rules');
+assert(src.includes("if (n !== 1 && !rise && !keepRush && !afterStory && CINE['intro' + n])"));
+assert(src.includes("cinema('guard1'"),'Sleeping scene remains at the lion encounter');
+console.log('Lion opening damage, cooldown, counter, forced damage, other bosses and story timing passed.');
