@@ -17,7 +17,7 @@ now=6200;assert.equal(ctx.cineHoldRemaining(),2000);ctx.A.background=true;
 now=20000;assert.equal(ctx.cineHoldRemaining(),2000,'Background time does not satisfy the hold');ctx.A.background=false;
 now=21999;ctx.cineEnd();assert.equal(ended,1);now=22000;ctx.cineEnd();assert.equal(ended,2);
 const begins=[];
-Object.assign(ctx,{audio:()=>null,CINE:Object.fromEntries(Array.from({length:7},(_,i)=>['intro'+(i+1),[1]])),cinema:(name,done)=>begins.push(name),rush:null});
+Object.assign(ctx,{clearMenuBackdrop(){},audio:()=>null,CINE:Object.fromEntries(Array.from({length:7},(_,i)=>['intro'+(i+1),[1]])),cinema:(name,done)=>begins.push(name),rush:null});
 vm.runInContext(source.slice(source.indexOf('function begin(n ='),source.indexOf('// the road of seven labours:',source.indexOf('function begin(n ='))),ctx);
 for(let n=1;n<=7;n++)ctx.begin(n);
 ctx.begin(1,true);ctx.begin(2,false,true);

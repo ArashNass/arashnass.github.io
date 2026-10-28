@@ -544,9 +544,10 @@ function hopVelocity(f, vx, flight) {
 }
 function patrol(s, f, speed) {
   const bound = f.roam && ((f.dir < 0 && f.body.left - speed / 30 <= f.roam[0]) || (f.dir > 0 && f.body.right + speed / 30 >= f.roam[1]));
-  const ahead = s.layer.getTileAtWorldXY(f.x + f.dir * 12, f.body.bottom + 4);
+  const edge = f.dir > 0 ? f.body.right : f.body.left;
+  const ahead = s.layer.getTileAtWorldXY(edge + f.dir * (speed / 30 + 2), f.body.bottom + 4);
   const wall = f.dir < 0 ? f.body.blocked.left : f.body.blocked.right;
-  if (bound || wall || (f.body.blocked.down && (!ahead || ahead.index % 4 === 3))) f.dir *= -1;
+  if (bound || wall || (f.body.blocked.down && (!ahead?.collides || ahead.index % 4 === 3))) f.dir *= -1;
   f.setVelocityX(f.dir * speed); f.setFlipX(f.dir < 0);
 }
 // The jackal hunts in the open. It closes to striking distance and keeps it, then stops, edges back and drops its head
@@ -573,6 +574,7 @@ function jackalHunt(s, f, k, p) {
   }
   if (f.js === 'recover') { f.setVelocityX(0); if (f.jt <= 0) { f.js = 'stalk'; f.anims.timeScale = 1; f.jt = 24 + Math.random() * 36; } return; }
   f.anims.timeScale = 1;
+  if (f.openingPatrol && f.body.blocked.down && (Math.abs(p.x - f.x) > 110 || p.x < f.roam[0] || p.x > f.roam[1])) { patrol(s, f, 42); return; }
   if (!canHunt(s, f, p) || above(f, p) || !f.body.blocked.down) { if (f.body.blocked.down) pace(s, f, 55); return; }
   const dx = p.x - f.x, near = Math.abs(dx), level = Math.abs(p.body.bottom - f.body.bottom) < 24;
   f.dir = Math.sign(dx) || f.dir; f.setFlipX(f.dir < 0);
@@ -828,10 +830,9 @@ function cutSlopes(map) {
   return slopes;
 }
 const STANDS = {
-  1: { at: 52.5, L: 40, R: 60, waves: [['j', 'j'], ['d', 'j', 'j'], ['d', 'j', 'J']], foe: { j: 'jackal', d: 'div' }, lead: 0xd9a46a, fa: 'آتشِ نیستان', title: 'Hold the fire', held: 'The fire holds',
+  1: { at: 52.5, L: 32, R: 60, reeds: true, waves: [['d', 'd'], ['d', 'd', 'd'], ['d', 'D', 'd']], foe: { d: 'div' }, lead: 0xd9a46a, fa: 'آتشِ نیستان', title: 'The reeds catch fire', held: 'The road is open',
     start: () => null,
-    wave: (n, N) => `Wave ${n}/${N}`, end: 'The path is clear. Lamb restores a heart.',
-    after: s => s.time.delayedCall(1500, () => { if (s.done) return; sfx('roar'); s.cam.shake(700, 0.006); toast('Far off in the reeds, the lion answers.'); }) },
+    wave: (n, N) => `Wave ${n}/${N}`, end: 'The flames fade. The road is clear, and a feast waits by the sacred fire.' },
   2: { at: 57.5, L: 49, R: 65, waves: [['s', 'v'], ['s', 's', 'v'], ['v', 'S', 's']], foe: { s: 'scorpion', v: 'vulture' }, lead: 0xffb060, fa: 'چاهِ بیابان', title: 'The well is guarded', held: 'The well is yours',
     start: () => 'The desert’s creatures come to the water! <b>Bait a sting, step back, then strike</b>; watch the sky for diving vultures.',
     wave: (n, N) => n === N ? 'The great scorpion of the well comes!' : `They come for the water: ${n} of ${N}`, end: 'The well is yours. Roast lamb lies by the water.' },
@@ -849,7 +850,31 @@ const STANDS = {
     wave: (n, N) => n === N ? 'The captain of the guard comes!' : `The guard comes: ${n} of ${N}`, end: 'The guard is broken. Roast lamb lies by the fire. Beyond the mountains, the cave waits.',
     after: s => s.time.delayedCall(1500, () => { if (s.done) return; sfx('roar'); s.cam.shake(900, 0.008); }) }
 };
-const standAt = (s, a) => { const S = STANDS[cur]; return S && !rush && !s.siegeDone && Math.abs(a.x / TS - S.at) < 1 && s.player.x < (S.R - 1) * TS ? S : null; };
+const standAt = (s, a) => { const S = STANDS[cur]; return S && !rush && !s.siege && !s.siegeDone && Math.abs(a.x / TS - S.at) < 1 && s.player.x < (S.R - 1) * TS ? S : null; };
+// A planted reed-bed spans the clearing before the drop, visible before it ignites.
+function prepareReedBed(s) {
+  const S = STANDS[1], L = S.L * TS, R = S.R * TS, y = 14 * TS;
+  const reeds = s.add.graphics().setDepth(1.5), ash = s.add.graphics().setDepth(1.4).setAlpha(0);
+  for (let x = L; x < R; x += 4) {
+    const n = Math.abs(Math.sin(x * 13.17)), h = 18 + n * 24, lean = Math.sin(x * 0.7) * 7;
+    reeds.lineStyle(1, n > 0.5 ? 0x8b9a60 : 0x526c49).lineBetween(x, y, x + lean, y - h);
+    reeds.lineStyle(2, 0x9e8250).lineBetween(x + lean, y - h, x + lean + 1, y - h - 5);
+    reeds.lineStyle(1, 0x718753).lineBetween(x, y - h * 0.4, x + 7, y - h * 0.7);
+    ash.lineStyle(1, 0x403c35).lineBetween(x, y, x + lean * 0.3, y - 3 - n * 5);
+  }
+  s.reedBed = { reeds, ash, L, R, y, burnt: false };
+}
+function igniteReedBed(s) {
+  const bed = s.reedBed, flames = [];
+  for (let x = bed.L + 6; x < bed.R; x += 12) {
+    const scale = 0.85 + Math.abs(Math.sin(x * 0.13)) * 0.65;
+    const f = s.fx('fire', x, bed.y + 1, { depth: 1.7 }).setScale(scale, 0.05).setAlpha(0);
+    f.anims.setProgress(Math.random()); f.anims.timeScale = 0.8 + Math.random() * 0.4;
+    s.tweens.add({ targets: f, scaleY: scale * 1.5, alpha: 0.95, delay: Math.abs(x - s.player.x) * 1.4, duration: 500, ease: 'Sine.easeOut' }); flames.push(f);
+  }
+  const glow = s.add.image((bed.L + bed.R) / 2, bed.y - 12, 'glow').setTint(0xff8a32).setBlendMode(Phaser.BlendModes.ADD).setDepth(1.3).setDisplaySize(bed.R - bed.L, 100).setAlpha(0.45);
+  return { flames, glow };
+}
 function fireStand(s, S) {
   const L = S.L * TS, R = S.R * TS;
   // the burning reeds hold Rostam and the pack inside by position, not by a physics wall he could climb by jumping into it
@@ -868,11 +893,14 @@ function fireStand(s, S) {
   const residents = s.foes.getChildren().filter(f => f.active && f.body.enable && f.x > L && f.x < R);
   for (const f of residents) { f.roam = [L + 6, R - 6]; f.encounter = false; }
   const floor = x => (s.groundAt(x) ?? 14) * TS;
-  s.siege = { S, wave: 0, live: residents, residents: residents.length > 0, L, R, next: s.time.now + 1300, walls: [wall(L, floor(L + 2)), wall(R, floor(R - 2))] };
-  sfx('fire'); sfx('roar'); s.cam.shake(300, 0.008);
+  s.siege = { S, wave: 0, live: residents, residents: residents.length > 0, L, R, next: s.time.now + 1300, walls: S.reeds ? [igniteReedBed(s)] : [wall(L, floor(L + 2)), wall(R, floor(R - 2))] };
+  if (S.reeds) {
+    s.cam.stopFollow(); s.tweens.add({ targets: s.cam, scrollX: (L + R - W) / 2, duration: 650, ease: 'Sine.easeInOut' });
+    s.time.delayedCall(650, () => { if (s.siege?.S === S && !s.done) { sfx('roar'); s.cam.shake(450, 0.008); } });
+  } else { sfx('roar'); s.cam.shake(300, 0.008); }
+  sfx('fire');
+  banner(S.fa, S.title); hint(S.start()); s.time.delayedCall(600, () => rostamSays('stand'));
   if (cur === 1) { $('standStatus').textContent = S.title; $('standStatus').classList.remove('hidden'); }
-  else banner(S.fa, S.title);
-  hint(S.start()); s.time.delayedCall(600, () => rostamSays('stand'));
   trackGame('stand_start', { level_name: String(cur) });
 }
 // Reserve a clear entry, and recheck it after the warning so running at the marker cannot cause a contact hit.
@@ -936,13 +964,26 @@ function standTick(s) {
     }; s.time.delayedCall(i * (cur === 1 ? 700 : 380), enter); });
     return;
   }
+  // Keep the road closed until the reed flames have visibly died out.
+  if (S.reeds && !g.cleared) {
+    g.cleared = true; g.next = s.time.now + 1000;
+    for (const w of g.walls) {
+      s.tweens.add({ targets: w.flames, alpha: 0, scaleY: 0.05, duration: 900, onComplete: () => w.flames.forEach(f => f.destroy()) });
+      s.tweens.add({ targets: w.glow, alpha: 0, duration: 900, onComplete: () => w.glow.destroy() });
+    }
+    g.walls = []; s.reedBed.burnt = true;
+    s.tweens.add({ targets: s.reedBed.reeds, alpha: 0, duration: 900 });
+    s.tweens.add({ targets: s.reedBed.ash, alpha: 1, duration: 900 });
+    return;
+  }
   // the stand is won: the flames die down, and a roast lamb lies by the fire
   s.siege = null; s.siegeDone = true;
   if (cur === 1) $('standStatus').classList.add('hidden');
+  if (S.reeds) s.cam.startFollow(s.player, true, 0.08, 0.08);
   for (const w of g.walls) { w.flames.forEach((f, i) => s.tweens.add({ targets: f, alpha: 0, delay: i * 60, duration: 300, onComplete: () => f.destroy() })); s.tweens.add({ targets: w.glow, alpha: 0, duration: 500, onComplete: () => w.glow.destroy() }); }
   sting('victory', () => sfx('win')); s.gainFarr(30); banner(S.fa, S.held); hint(null);
   const a = s.altars.find(a => Math.abs(a.x / TS - S.at) < 1), drop = s.pickup(a.x + 18, a.y - 8, 'food', 0, 'lamb');
-  if (resumeAt?.n === cur && s.altars[resumeAt.i] === a) resumeAt.standDone = true;
+  if (resumeAt?.n === cur && (S.reeds || s.altars[resumeAt.i] === a)) resumeAt.standDone = true;
   s.fx('pickup', drop.x, drop.y); toast(S.end);
   trackGame('stand_end', { level_name: String(cur) });
   S.after?.(s);
@@ -1065,9 +1106,12 @@ const LEVELS = {
     food: (c, r, n) => c === 80 && r === 5 ? 'lamb' : FOOD[1 + (n % 3)],
     create(s) {
       for (const fx of [14, 37, 58, 76, 98, 118]) s.add.sprite(fx * TS, 160, 'fx-fireflies').play({ key: 'fx-fireflies', startFrame: fx % 16 }).setDepth(11).setAlpha(0.9);
+      s.khan1Beat = 0;
+      if (!rush) prepareReedBed(s);
       for (const f of s.foes.getChildren()) {
         const c = f.home.x / TS;
-        f.roam = (c < 22 ? [11, 21] : c < 40 ? [28.5, 39] : c < 48 ? [41.5, 47] : f.kind === 'div' ? [70, 79] : [71, 81]).map(x => x * TS);
+        f.openingPatrol = c < 22;
+        f.roam = (c < 22 ? [5, 22] : c < 40 ? [28.5, 39] : c < 48 ? [41.5, 47] : f.kind === 'div' ? [70, 79] : [71, 81]).map(x => x * TS);
       }
       if (s.start.x < 10 * TS) lesson1(s, 'move', touch ? 'Follow the road <b>→</b>' : `${keyHTML('left')} ${keyHTML('right')} <b>Move</b>`);
     },
@@ -1077,6 +1121,8 @@ const LEVELS = {
     update(s, k, time, p) {
       if (s.bossOn) return;
       if (($('hint').dataset.lesson === 'move' && p.x > 6 * TS) || ($('hint').dataset.lesson === 'strike' && s.atk > 0) || ($('hint').dataset.lesson === 'gap' && s.didDouble)) hint(null);
+      if (!rush && !s.siege && !s.siegeDone && p.x >= 34 * TS && p.x < 60 * TS) { fireStand(s, STANDS[1]); return; }
+      if (s.siege) return;
       if (p.x > 88 * TS && p.body.blocked.down && !s.prologueOn) { s.lionPrologue(); return; }
       if (!p.body.blocked.down && s.airJumps === 0) s.didDouble = true;
       if (p.x > 9 * TS && p.x < 17 * TS) lesson1(s, 'strike', touch ? '<b>Strike</b> with the mace button' : `${keyHTML('attack')} <b>Strike</b>`);
@@ -1175,7 +1221,7 @@ const LEVELS = {
       if (s.ram) s.ramGuide(k);
       if (LIVE) { if (s.ram && !s.ramDug && s.ram.x >= s.springAt.x - 2 * TS && p.x > s.ram.x - 9 * TS) s.ramDigs(); }
       else if (s.ram && !s.puzzle && p.x > 143 * TS && s.ram.x >= s.ramStand - 10) s.startStones();
-      if (s.springOpen && !s.drank && p.x > s.springAt.x - 6 && b.blocked.down) s.reachSpring();
+      if (s.springOpen && !s.drank && p.x > s.springAt.x - 35 && b.blocked.down) s.reachSpring();
     },
     win: 'Rostam drinks from the spring the ram revealed and gives thanks. Refreshed, he rides on toward the dragon of the third labour.',
     tips: ['Mounds in the sand hide scorpions. When one shudders, step back: it bursts out with its sting raised.', 'In the sandstorm, jump the rolling rocks or smash them with your mace.', 'Water drains in the heat. Water skins refill a little; the wells refill it all.', 'Vultures circle, then dive. Strike them as they swoop low.',
@@ -1397,6 +1443,11 @@ function makeTextures(scene) {
     const fl = [0, 1, 2, 1][i];
     paint(x, o, 0, [Ell(8, 14 - fl, 4, 6 + fl, '#ff8a2a'), Ell(8, 15 - fl, 2, 4, '#ffe08a', 1)]);
   });
+  // Reuse just the stone bowl from the painted altar; its baked flame is excluded.
+  if (T.exists('altar') && !T.exists('altar-cold')) {
+    const image = T.get('altar').getSourceImage(), [c, x] = canvas(image.width, image.height - 10);
+    x.drawImage(image, 0, 10, image.width, image.height - 10, 0, 0, c.width, c.height); T.addCanvas('altar-cold', c);
+  }
   strip('altar-cold', 1, 16, 32, (x, o) => paint(x, o, 0, [R(3, 22, 10, 9, '#d9c6a0'), R(2, 20, 12, 3, '#b8a07a'), R(5, 25, 6, 2, '#8a7356', 1)]));
   strip('feather', 1, 16, 32, (x, o) => paint(x, o, 0, [Ln(8, 30, 8, 4, 1, '#f1ead8'), Ell(8, 16, 5, 12, '#2fa8b5'), Ell(8, 14, 3, 8, '#e8c25a', 1), Ell(8, 12, 2, 3, '#b8303f', 1), Ell(8, 12, 1, 1, OUT, 1)]));
   // tiles: 0 ground top, 1 ground fill, 2 glazed ledge, 3 thorns
@@ -1978,7 +2029,6 @@ function setMuted(m) {
   A.muted = m; store.set('sh-muted', m ? '1' : '0'); if (A.master) A.master.gain.value = m || A.background ? 0 : 0.8; if (m) hush(true);
   if (typeof storyReading !== 'undefined') refreshStoryListen();
   $('muteIco').setAttribute('d', m ? 'M4 9v6h4l5 4V5L8 9z M17 9l5 6 M22 9l-5 6' : 'M4 9v6h4l5 4V5L8 9z M16 9a4 4 0 0 1 0 6 M19 6a8 8 0 0 1 0 12');
-  if ($('cineSound')) { $('cineSound').setAttribute('aria-pressed', String(!m)); $('cineSound').querySelector('.spk-l').textContent = m ? 'Sound off' : 'Sound on'; }
   refreshMusicBtn();
   music(!m && game && game.scene.isActive('play') && playing);
 }
@@ -2094,7 +2144,7 @@ class Play extends Phaser.Scene {
     $('standStatus').classList.add('hidden');
     // the scene object is reused from labour to labour: forget whatever the last one left behind
     for (const k of ['dark', 'lights', 'lamp', 'wall', 'wallR', 'stars', 'pose', 'swingFx', 'witch', 'unmasked', 'olad', 'rakhsh', 'dragonSeen', 'horde', 'hordeDone',
-      'gates', 'hordeBat', 'toldRock', 'toldFarr', 'toldOffer', 'atAltar', 'bossT', 'maceHit', 'toldIce', 'chargeWarn', 'toldCharge', 'shards', 'shardG', 'mark', 'markGlow', 'markOpen', 'bossHeart', 'bossHeartT', 'floorWarn', 'highWarn', 'regrow', 'drums', 'sky', 'flashA', 'intro', 'fgReeds', 'mound', 'swirl', 'qx', 'puddles', 'combo', 'comboT', 'heavy', 'heavyGo', 'chargeT', 'chargeFull', 'chargeGlow', 'dodgeT', 'dodgeCd', 'dodgeDir', 'whiteDown', 'ended', 'mounted', 'prayed', 'drank', 'toldImmune', 'toldDeflect', 'toldVenom', 'cage', 'kavus', 'stones', 'puzzle', 'springOpen', 'pool', 'victory', 'attackBuf', 'dodgeBuf', 'counterT', 'counterStrike', 'dodgeRewarded', 'trial', 'nearTrial', 'journey', 'siege', 'siegeDone', 'ally', 'phase2', 'streak', 'didDouble', 'rocks', 'rockT', 'poppies', 'drowsy', 'toldPoppy', 'oladAlly', 'rope', 'ropeG', 'lassoCd', 'toldBossLasso', 'sleeper', 'snore', 'guard', 'prologue', 'prologueOn', 'ringObj', 'grapple', 'toldBossHold', 'oladBind', 'sleepers', 'toldSleep', 'saidLow', 'ramDug', 'ramAmbush', 'toldRamWait', 'climbTo', 'rakhshDrinks', 'shove', 'saidThirst', 'storyHold', 'dragonStoryDone', 'dragonStoryOn', 'feastDone', 'feastOn', 'warcryDone', 'oladGuide', 'guideDone', 'rakhshAt1', 'motionKey', 'motionUntil', 'turnFrom']) delete this[k];
+      'gates', 'hordeBat', 'toldRock', 'toldFarr', 'toldOffer', 'atAltar', 'bossT', 'maceHit', 'toldIce', 'chargeWarn', 'toldCharge', 'shards', 'shardG', 'mark', 'markGlow', 'markOpen', 'bossHeart', 'bossHeartT', 'floorWarn', 'highWarn', 'regrow', 'drums', 'sky', 'flashA', 'intro', 'fgReeds', 'mound', 'swirl', 'qx', 'puddles', 'combo', 'comboT', 'heavy', 'heavyGo', 'chargeT', 'chargeFull', 'chargeGlow', 'dodgeT', 'dodgeCd', 'dodgeDir', 'whiteDown', 'ended', 'mounted', 'prayed', 'drank', 'toldImmune', 'toldDeflect', 'toldVenom', 'cage', 'kavus', 'stones', 'puzzle', 'springOpen', 'pool', 'victory', 'attackBuf', 'dodgeBuf', 'counterT', 'counterStrike', 'dodgeRewarded', 'trial', 'nearTrial', 'journey', 'siege', 'siegeDone', 'ally', 'phase2', 'streak', 'didDouble', 'rocks', 'rockT', 'poppies', 'drowsy', 'toldPoppy', 'oladAlly', 'rope', 'ropeG', 'lassoCd', 'toldBossLasso', 'sleeper', 'snore', 'guard', 'prologue', 'prologueOn', 'ringObj', 'grapple', 'toldBossHold', 'oladBind', 'sleepers', 'toldSleep', 'saidLow', 'ramDug', 'ramAmbush', 'toldRamWait', 'climbTo', 'rakhshDrinks', 'shove', 'saidThirst', 'storyHold', 'dragonStoryDone', 'dragonStoryOn', 'feastDone', 'feastOn', 'warcryDone', 'oladGuide', 'guideDone', 'rakhshAt1', 'motionKey', 'motionUntil', 'turnFrom', 'reedBed', 'springScene', 'prologueLion', 'prologueExchanges', 'wakeStartedAt', 'wakeStandingAt']) delete this[k];
     this.denTimers = []; this.denFinished = false; this.denLion = null;
     this.physics.resume();
     refreshLassoBtn();
@@ -2179,12 +2229,12 @@ class Play extends Phaser.Scene {
       else if (ch === 'P') this.start = { x, y };
       else if (ch === 'j') this.spawnFoe('jackal', x, y);
       else if (ch === 'd') this.spawnFoe('div', x, y);
-      else if (ch === 'F') { const a = this.add.image(x, y, 'altar').setOrigin(0.5, 1).setDepth(2); a.lit = false; this.altars.push(a); }
+      else if (ch === 'F') { const a = this.add.image(x, y, 'altar-cold').setOrigin(0.5, 1).setDepth(2); a.lit = false; this.altars.push(a); }
       else if (ch === 'L') this.lionAt = { x, y };
       else if (lv.parse) lv.parse(this, ch, x, y, c, r);
     }));
     // the labour's own extra fires (one before every boss) and hearts, set on the ground of their column
-    for (const c of lv.fires || []) { const r = topAt(map, c, true); if (r != null) { const a = this.add.image(c * TS + TS / 2, r * TS, 'altar').setOrigin(0.5, 1).setDepth(2); a.lit = false; this.altars.push(a); } }
+    for (const c of lv.fires || []) { const r = topAt(map, c, true); if (r != null) { const a = this.add.image(c * TS + TS / 2, r * TS, 'altar-cold').setOrigin(0.5, 1).setDepth(2); a.lit = false; this.altars.push(a); } }
     this.altars.sort((a, b) => a.x - b.x);
     this.regrow = [];
     for (const c of lv.hearts || []) { const r = topAt(map, c); if (r != null) { const h = this.heart(c * TS + TS / 2, r * TS - 12); h.regrow = lv.regrow?.includes(c); } }
@@ -2263,6 +2313,7 @@ class Play extends Phaser.Scene {
     if (rush) this.rushSetup();
     if (R) {
       lv.resume?.(this); this.siegeDone = !!R.standDone;
+      if (this.reedBed && (this.siegeDone || this.start.x >= this.reedBed.R)) { this.reedBed.reeds.setAlpha(0); this.reedBed.ash.setAlpha(1); this.reedBed.burnt = true; this.siegeDone = true; }
       const a = this.altars[R.i], stand = a && standAt(this, a); if (stand) fireStand(this, stand);
       if (cur !== 1) toast(R.well ? 'Rostam rises again beside the well.' : 'Rostam rises again beside the sacred fire.');
     }
@@ -2334,12 +2385,18 @@ class Play extends Phaser.Scene {
   }
   // light a fire altar (or drink at a well): the checkpoint
   kindle(a, quiet = false) {
+    if (a.lit) return;
     a.lit = true; this.respawn = { x: a.x, y: a.y };
     if (a.onLight) { if (!quiet) { a.onLight(); const stand = standAt(this, a); if (stand) fireStand(this, stand); } return; }
-    const g = this.add.image(a.x, a.y - 22, 'glow').setDepth(1).setScale(2).setBlendMode(Phaser.BlendModes.ADD);
-    this.tweens.add({ targets: g, alpha: 0.6, yoyo: true, repeat: -1, duration: 700, ease: 'Sine.easeInOut' });
+    // The brazier is cold until reached; one anchored, looping flame stays lit on retries too.
+    const flameY = a.y - 11;
+    const g = a.glow = this.add.image(a.x, flameY - 6, 'glow').setDepth(1).setScale(0.7).setAlpha(0).setBlendMode(Phaser.BlendModes.ADD);
+    const f = a.flame = this.fx('fire', a.x, flameY, { depth: 3 }).setScale(0.65, quiet ? 0.85 : 0.05);
+    this.tweens.add({ targets: g, alpha: 0.65, duration: quiet ? 0 : 650 });
+    if (!quiet) this.tweens.add({ targets: f, scaleY: 0.85, duration: 700, ease: 'Sine.easeOut' });
+    if (this.dark) this.light(f, 0.7, 0.08);
     if (quiet) return;
-    sting('fire', () => sfx('fire')); this.fx('fire', a.x, a.y - 20, { depth: 3 }); this.fx('pickup', a.x, a.y - 18);
+    sting('fire', () => sfx('fire')); this.fx('pickup', a.x, flameY);
     const stand = standAt(this, a); if (stand) { fireStand(this, stand); return; }
     if (this.lv.kindled?.(this, a)) return;
     toast(cur === 1 ? 'Checkpoint lit' : 'The sacred fire is lit. If Rostam falls, he will rise again here.');
@@ -2801,22 +2858,47 @@ class Play extends Phaser.Scene {
     const g = this.guard, s = this.sleeper, lh = this.textures.get('lion-walk').get(0).height, at = (ms, fn) => this.denAt(ms, fn);
     $('denSkip').classList.remove('hidden'); $('denSkip').onclick = () => this.finishLionPrologue();
     const L = this.denLion = this.add.sprite(119 * TS, 14 * TS + 1, 'lion-walk', 0).setOrigin(0.5, 0.97).setScale(SIZE.lion / lh).setFlipX(true).setDepth(4);
-    // the lion creeps out of the reeds, and roars
+    this.prologueLion = L; this.prologueExchanges = 0;
+    const floor = 14 * TS + 1;
+    // First exchange: a committed pounce meets Rakhsh's forehooves.
     L.play('lion-walk'); this.tweens.add({ targets: L, x: 105 * TS, duration: 2200, ease: 'Sine.easeOut' });
-    at(2300, () => { L.play('lion-roar'); sfx('roar'); this.cam.shake(400, 0.006); });
-    // it springs at the sleeper; Rakhsh rears and drives it back
-    at(3900, () => { L.play('lion-run'); this.tweens.add({ targets: L, x: 99 * TS, duration: 420, ease: 'Quad.easeIn' }); });
-    at(3950, () => { g.play('rakhsh-rear'); sfx('neigh'); });
-    at(4330, () => {
-      this.fx('hit', 97.5 * TS, 14 * TS - 34, { depth: 10 }); this.fx('dust', 99 * TS, 14 * TS, { depth: 8 }); sfx('hit'); this.cam.shake(320, 0.012); this.hitStop(90);
-      L.anims.stop(); L.setFrame(0); this.tweens.add({ targets: L, x: 106 * TS, duration: 650, ease: 'Quad.easeOut' });
+    at(2300, () => { L.play('lion-roar'); sfx('roar'); });
+    at(3600, () => { this.hold(L, 'lion-pounce', 1); g.play('rakhsh-idle'); });
+    at(4200, () => { g.play('rakhsh-rear'); sfx('neigh'); });
+    at(4050, () => {
+      L.play('lion-leap'); this.tweens.add({ targets: L, x: 100 * TS, duration: 550, ease: 'Sine.easeIn' });
+      this.tweens.add({ targets: L, y: floor - 22, duration: 275, yoyo: true, ease: 'Sine.easeOut' });
+      this.tweens.add({ targets: g, x: 96 * TS, duration: 400, ease: 'Sine.easeOut' });
     });
-    at(5200, () => { L.play('lion-roar'); sfx('roar'); g.play('rakhsh-idle'); });
-    // the noise wakes Rostam
-    at(6300, () => {
+    at(4610, () => {
+      this.prologueExchanges++; this.fx('hit', 98.5 * TS, floor - 42, { depth: 10 }); sfx('hit'); this.cam.shake(160, 0.006);
+      this.daze(L, 'lion-dazed'); this.tweens.add({ targets: L, x: 105 * TS, y: floor, duration: 650, ease: 'Quad.easeOut' });
+      this.fx('dust', L.x, floor, { depth: 8 });
+    });
+    // Both recover and reposition; then the lion swipes and the horse drives it back a second time.
+    at(5100, () => g.play('rakhsh-idle'));
+    at(5500, () => { L.play('lion-walk'); this.tweens.add({ targets: L, x: 101 * TS, duration: 1100, ease: 'Sine.easeInOut' }); });
+    at(6700, () => { this.hold(L, 'lion-swipe', 1); g.play('rakhsh-trot'); this.tweens.add({ targets: g, x: 97 * TS, duration: 550 }); });
+    at(7300, () => { L.play('lion-paw'); g.play('rakhsh-rear'); sfx('swing'); sfx('neigh'); });
+    at(7600, () => {
+      this.prologueExchanges++; this.fx('hit', 99 * TS, floor - 39, { depth: 10 }); sfx('hit'); this.cam.shake(180, 0.007);
+      this.daze(L, 'lion-dazed'); this.tweens.add({ targets: L, x: 108 * TS, y: floor, duration: 800, ease: 'Quad.easeOut' });
+      this.fx('dust', 102 * TS, floor, { depth: 8 });
+    });
+    at(8600, () => { L.play('lion-roar'); sfx('roar'); g.play('rakhsh-idle'); });
+    at(10200, () => {
       this.snore?.remove(); this.snore = null;
-      s.once('animationcomplete', () => { if (s.active) s.play('rostam-idle'); });
-      s.play('rostam-rise'); this.fx('dust', s.x, 14 * TS, { depth: 6 });
+      // Show every rising frame, then hold the standing pose before the painting or handoff.
+      this.wakeStartedAt = this.time.now;
+      s.once('animationcomplete', () => {
+        if (!s.active || this.done) return;
+        this.wakeStandingAt = this.time.now;
+        at(2200, () => {
+          s.play('rostam-idle');
+          if (wakeArt) cinema('wake1', () => { game.scene.resume('play'); playing = true; finish(); }); else finish();
+        });
+      });
+      s.play({ key: 'rostam-rise', frameRate: 2 }); this.fx('dust', s.x, floor, { depth: 6 });
       banner('رستم', 'Rostam wakes');
     });
     const finish = () => {
@@ -2827,7 +2909,6 @@ class Play extends Phaser.Scene {
       at(1200, () => this.cam.fadeOut(180, 0, 0, 0));
       at(1400, () => this.finishLionPrologue());
     };
-    at(8300, () => wakeArt ? cinema('wake1', () => { game.scene.resume('play'); playing = true; finish(); }) : finish());
   }
   // Both watching and skipping use the same single, grounded handoff.
   denAt(ms, fn) {
@@ -3375,7 +3456,7 @@ class Play extends Phaser.Scene {
       }
     }
     // checkpoint
-    for (const a of this.altars) if (!a.lit && p.x > a.x) { this.kindle(a); resumeAt = { n: cur, i: this.altars.indexOf(a), well: !!a.onLight }; trackGame('checkpoint', { level_name: String(cur), fire: resumeAt.i, seconds: Math.round((this.time.now - this.t0) / 1000) }); }
+    for (const a of this.altars) if (!a.lit && p.x > a.x) { this.kindle(a); resumeAt = { n: cur, i: this.altars.indexOf(a), well: !!a.onLight, standDone: !!this.siegeDone }; trackGame('checkpoint', { level_name: String(cur), fire: resumeAt.i, seconds: Math.round((this.time.now - this.t0) / 1000) }); }
     // a taken platform heart grows back once Rostam has been away from it for 2 s
     this.regrow = this.regrow.filter(h => {
       const near = Math.abs(p.x - h.x) < 3 * TS && Math.abs(b.bottom - (h.y + 12)) < 10;
@@ -4394,6 +4475,7 @@ class Play extends Phaser.Scene {
   // each rise; if Rostam falls far behind it turns and waits
   ramLeads(k) {
     const r = this.ram, p = this.player, d = r.x - p.x, end = this.springAt.x - TS;
+    if (this.springScene) return;
     if (this.ramDug) { r.setVelocityX(0); r.glow.setPosition(r.x, r.y + 2); return; }
     if (this.frozen) { r.setVelocityX(0); r.glow.setPosition(r.x, r.y + 2); return; }   // it waits while Rostam kneels
     const vx = r.x >= end ? 0 : d > 170 ? 0 : d < 24 ? 100 : 66;   // it walks on ahead at its own pace, waits when Rostam is far behind
@@ -4436,20 +4518,31 @@ class Play extends Phaser.Scene {
     });
   }
   afterQueen() {
-    const at = (ms, fn) => this.time.delayedCall(ms, () => { if (!this.done) fn(); }), sx = this.springAt.x;
-    at(900, () => {                                        // her body sinks back into the sand it came from
-      for (const o of this.children.list) if (o.texture?.key?.startsWith('queen') && o.active) { this.tweens.add({ targets: o, alpha: 0, y: o.y + 24, duration: 1300, ease: 'Sine.easeIn', onComplete: () => o.destroy() }); this.fx('dust', o.x, 14 * TS, { depth: 8 }); }
+    this.springScene = true;
+    const at = (ms, fn) => this.time.delayedCall(ms, () => { if (!this.done) fn(); });
+    const centre = this.levelW - W / 2, y = 14 * TS;
+    this.springAt = { x: centre - 26, y }; this.pool.setPosition(centre, y + 3);
+    this.cam.stopFollow(); this.cam.setScroll(centre - W / 2, this.cam.scrollY);
+    at(900, () => {
+      for (const o of this.children.list) if (o.texture?.key?.startsWith('queen') && o.active) {
+        this.tweens.add({ targets: o, alpha: 0, y: o.y + 24, duration: 1300, onComplete: () => o.destroy() });
+      }
     });
     at(2600, () => { this.springFlows(); banner('آب', 'Water from the rock'); });
-    at(4200, () => {                                       // the ram comes back to watch over the water
-      const r = this.ram; if (!r) return; r.clearTint(); r.body.enable = false; r.setPosition(sx - 14 * TS, (this.groundAt(sx - 14 * TS) ?? 14) * TS - r.displayHeight * (0.97 - r.originY) - 2); r.setDepth(3.4);   // on the rise behind, watching, as in the picture
-      r.setFlipX(true); r.play(this.anims.exists('ram-idle') ? 'ram-idle' : 'ram-walk'); this.tweens.add({ targets: r, alpha: 1, duration: 900 }); r.glow?.setPosition(r.x, r.y + 2); if (r.glow) this.tweens.add({ targets: r.glow, alpha: 0.8, duration: 900 });
+    at(3500, () => {
+      const r = this.ram; if (!r) return;
+      r.clearTint(); r.body.enable = false; r.setDepth(4).setAlpha(1).setFlipX(true);
+      r.setPosition(this.cam.scrollX + W + 40, y - r.displayHeight * (0.97 - r.originY)); r.play('ram-walk');
+      r.glow?.setAlpha(0);
+      this.tweens.add({ targets: r, x: centre + 85, duration: 1800, ease: 'Sine.easeOut', onComplete: () => {
+        if (r.active) { r.play(this.anims.exists('ram-glance') ? 'ram-glance' : 'ram-idle'); r.once('animationcomplete', () => r.active && r.play('ram-idle')); }
+      } });
     });
-    at(4600, () => {                                       // and Rakhsh trots in to drink
-      const y = 14 * TS + 2, k = this.rakhshDrinks = this.add.sprite(this.cam.scrollX - 60, y, 'rakhsh-trot', 0).setOrigin(0.5, 0.97).setDepth(3.6).setScale(RAKHSH1).play(this.anims.exists('rakhsh-trot') ? 'rakhsh-trot' : 'rakhsh-gallop');
-      sfx('neigh'); this.tweens.add({ targets: k, x: sx - 3 * TS, duration: 2600, ease: 'Sine.easeOut', onComplete: () => { if (k.active) k.play(this.anims.exists('rakhsh-drink') ? 'rakhsh-drink' : 'rakhsh-idle'); } });
+    at(3900, () => {
+      const k = this.rakhshDrinks = this.add.sprite(this.cam.scrollX - 60, y + 2, 'rakhsh-trot', 0).setOrigin(0.5, 0.97).setDepth(3.6).setScale(RAKHSH1).play('rakhsh-trot');
+      this.tweens.add({ targets: k, x: centre - 72, duration: 2400, ease: 'Sine.easeOut', onComplete: () => { if (k.active) k.play('rakhsh-drink'); } });
     });
-    at(6800, () => { this.springOpen = true; hint('<b>Walk to the water</b> and drink.'); });
+    at(6500, () => { this.springOpen = true; hint('<b>Join Rakhsh at the left bank</b> and drink.'); });
   }
   // the guardian is dead, and the water bursts from the rock
   springFlows() {
@@ -4548,9 +4641,10 @@ class Play extends Phaser.Scene {
     q.body.setAllowGravity(false); q.y = y - q.displayHeight * (0.97 - q.originY); q.groundY = q.y; this.sink(q, false, 900);
     q.immune = () => q.state !== 'stuck' && q.state !== 'surfaced'; q.calm = () => !q.immune(); q.contact = () => q.state === 'walk' || q.state === 'turn';
     q.immuneMsg = 'Her armour turns the blow. Let her sting miss: when it sticks in the sand, strike!';
-    q.lines = { intro: 'queen1', rage: 'queen2' };
+    q.lines = { intro: 'queen1' };
+    q.noMark = () => q.state.startsWith('brood');
     // her own venom, knocked back by the mace, stuns her: an opening as good as a stuck sting
-    q.onBack = () => { if (q.state === 'under' || !q.body.enable) return; this.damage(q, 1, true); if (q.hp <= 0) return;
+    q.onBack = () => { if (q.state === 'under' || q.state.startsWith('brood') || !q.body.enable) return; this.damage(q, 1, true); if (q.hp <= 0) return;
       q.state = 'stuck'; q.tm = 110; q.setVelocityX(0); this.daze(q, 'queen-dazed') || q.setTexture('queen-sting', 5); q.setTint(0xb8ff90); this.stars?.destroy(); this.stars = this.fx('stun', q.x, q.body.top - 4, { depth: 10, follow: q });
       if (!this.toldVenom) { this.toldVenom = true; toast('Her own venom stuns her! Strike while she reels.'); } }; q.kickable = () => ['walk', 'turn', 'aim', 'sting', 'spit'].includes(q.state) && !q.sinking; q.ai = () => this.queenAI(); q.onDown = () => { this.stars?.destroy(); this.stars = null; this.mound?.destroy(); this.swirl?.destroy(); this.puddles?.forEach(o => o.destroy()); this.bossFall(q, () => this.queenFallen()); };
     this.arena(138 * TS, q, 9); this.light(q, 1.6); this.recede();
@@ -4597,8 +4691,64 @@ class Play extends Phaser.Scene {
       this.tweens.add({ targets: pd, alpha: 0, scaleX: 0.5, delay: 1000, duration: 400, onComplete: () => pd.destroy() });
     });
   }
+  queenBrood(q) {
+    q.broodUsed = true; q.state = 'brood-call'; q.setVelocity(0); q.clearTint();
+    this.stars?.destroy(); this.stars = null; this.hideMark();
+    this.hazards = []; this.shots.clear(true, true); this.puddles?.forEach(o => o.destroy());
+    this.daze(q, 'queen-dazed'); hint('The Queen calls her brood. <b>Prepare for the scorpions!</b>');
+    let called = false;
+    const withdraw = () => {
+      if (called || this.done || this.boss !== q || !q.active || q.hp <= 0) return; called = true;
+      q.state = 'brood-sink'; q.broodAt = this.time.now + 950; this.playIf(q, 'queen-burrow'); this.sink(q, true, 850);
+    };
+    if (!say('queen2', { then: withdraw })) this.time.delayedCall(2600, withdraw);
+    // Audio loading must not strand the encounter if the narration never completes.
+    this.time.delayedCall(11000, withdraw);
+  }
+  queenBroodTick(q) {
+    q.setVelocity(0);
+    if (q.state === 'brood-sink' && this.time.now >= q.broodAt) {
+      q.setAlpha(0); q.body.enable = false; q.state = 'brood';
+      q.brood = { L: this.wall.x + 12, R: this.wallR.x - 12, entries: [], live: [], pending: 8, next: this.time.now + 600 };
+      hint('<b>Defeat the Queen’s brood.</b> She waits beneath the sand until every scorpion is gone.');
+    }
+    const g = q.brood;
+    if (q.state === 'brood' && g) {
+      g.live = g.live.filter(f => f.active && f.body.enable);
+      if (g.pending && g.live.length < 6 && this.time.now >= g.next) {
+        const side = g.pending % 2 ? 1 : -1, x = waveSpot(this, g, side);
+        g.next = this.time.now + 600;
+        if (x != null) {
+          g.pending--; g.entries.push(x);
+          const y = 14 * TS, mark = this.add.ellipse(x, y - 2, 28, 6, 0xffd890, 0.6).setDepth(8);
+          this.time.delayedCall(650, () => {
+            mark.destroy(); g.entries.splice(g.entries.indexOf(x), 1);
+            if (this.done || this.boss !== q || q.state !== 'brood') return;
+            if (!waveClear(this, g, x)) { g.pending++; return; }
+            const f = this.spawnFoe('scorpion', x, y); f.roam = [g.L + 4, g.R - 4]; f.encounter = false; f.cool = 50;
+            f.dir = -side; f.setFlipX(side > 0); g.live.push(f); this.fx('dust', x, y, { depth: 8 });
+          });
+        }
+      }
+      if (!g.pending && !g.entries.length && !g.live.length) {
+        q.state = 'brood-return'; q.broodAt = this.time.now + 1700;
+        q.x = this.player.x < (g.L + g.R) / 2 ? g.R - 70 : g.L + 70;
+        q.dir = this.player.x < q.x ? -1 : 1;
+        this.swirl = this.add.ellipse(q.x, 14 * TS - 2, 80, 10).setStrokeStyle(2, 0xffd890).setDepth(8);
+        hint('The brood is defeated. <b>The Queen returns!</b> Keep clear of the swirling sand.');
+      }
+    }
+    if (q.state === 'brood-return' && this.time.now >= q.broodAt) {
+      this.swirl?.destroy(); this.swirl = null; q.setAlpha(1); q.setFlipX(q.dir < 0); q.setTexture('queen-walk', 0);
+      q.body.enable = true; q.body.reset(q.x, q.groundY); this.sink(q, false, 700);
+      q.state = 'emerge'; q.tm = 60; q.stingCd = 90; q.spitCd = 120; q.brood = null; sfx('roar');
+    }
+  }
   queenAI() {
-    const q = this.boss, p = this.player; const read = this.bossRead(q); q.think = (q.think || 0) - this.bossStep(); q.diveAge = (q.diveAge || 0) + this.bossStep(); q.tm -= this.bossStep(); q.stingCd -= this.bossStep(); q.spitCd -= this.bossStep(); const d = p.x - q.x, mad = q.hp <= q.max / 2;
+    const q = this.boss, p = this.player;
+    if (q.state.startsWith('brood')) { this.queenBroodTick(q); return; }
+    if (!q.broodUsed && q.hp <= q.max / 2 && !q.sinking && q.body.enable && !['dive', 'under', 'surfacing'].includes(q.state)) { this.queenBrood(q); return; }
+    const read = this.bossRead(q); q.think = (q.think || 0) - this.bossStep(); q.diveAge = (q.diveAge || 0) + this.bossStep(); q.tm -= this.bossStep(); q.stingCd -= this.bossStep(); q.spitCd -= this.bossStep(); const d = p.x - q.x, mad = q.hp <= q.max / 2;
     const L = KEEP2 * TS + 4, R = 165 * TS, floorY = 14 * TS, onLedge = p.body.bottom < 12.5 * TS;
     // she belongs to the sand: pinned to the ground unless she is sinking into it or rising out of it
     q.body.setVelocityY(0); if (!q.sinking) q.y = q.groundY;
@@ -4699,12 +4849,12 @@ class Play extends Phaser.Scene {
   }
   reachSpring() {
     if (LIVE) {
-      this.drank = true; this.frozen = true; const p = this.player; p.setVelocityX(0); this.face = 1; p.setFlipX(false); p.body.reset(this.springAt.x + 6, p.y); this.cam.pan(this.springAt.x - 2 * TS, this.cam.midPoint.y, 600, 'Sine.easeInOut');   // at the water's edge, the scene framed
+      this.drank = true; this.frozen = true; hint(null); const p = this.player; p.setVelocityX(0); this.face = 1; p.setFlipX(false); p.body.reset(this.pool.x - 35, p.y); this.cam.stopFollow(); this.cam.setScroll(this.pool.x - W / 2, this.cam.scrollY);   // at the water's edge, the scene framed
       this.pose = 'rostam-sip'; if (this.anims.exists('rostam-sip')) p.play('rostam-sip'); else { p.play({ key: 'rostam-fall', frameRate: 5 }); }
       this.time.delayedCall(700, () => { this.fx('splash', p.x + 18, p.body.bottom - 2, { depth: 6 }); sfx('coin'); this.water = 100; this.renderWater(); });
       this.time.delayedCall(2000, () => rostamSays('thanks'));
-      this.time.delayedCall(4300, () => this.cam.fadeOut(1100, 0, 0, 0));
-      this.time.delayedCall(5500, () => this.win({ destroy() {} }));
+      this.time.delayedCall(6000, () => this.cam.fadeOut(1100, 0, 0, 0));
+      this.time.delayedCall(7200, () => this.win({ destroy() {} }));
       return;
     }
     this.drank = true; this.frozen = true; const p = this.player; p.setVelocityX(0); this.banish(p.x - 10 * TS, this.levelW);
@@ -4717,6 +4867,7 @@ class Play extends Phaser.Scene {
 
 let resumeAt = null;           // the last fire lit in this labour: { n, i, well, coins, kills, t }
 function begin(n = cur, rise = false, keepRush = false, afterStory = false) {
+  clearMenuBackdrop();
   if (audio()) prepareScore(n);                                    // the labour's music loads while its story plays
   // Every level entry, including retries, shows its illustration before gameplay.
   if (!afterStory && CINE['intro' + n]) {
@@ -4930,12 +5081,27 @@ function showGuide(i) {
   $('gcount').textContent = `${gpg + 1} of ${CODEX.length} · ${CODEX.filter(known).length} met`;
   refreshControlLabels($('gleaf')); $('gleaf').scrollTop = 0; animateSprites($('s-guide'), 's-guide');
 }
+// Keep the journey screen behind its submenus without exposing its controls to
+// keyboard, pointer or gamepad navigation. It stays logically hidden to menu routing.
+function keepMenuBackdrop(from) {
+  if (from !== $('s-map')) return;
+  from.classList.add('menu-backdrop'); from.inert = true;
+  from.setAttribute('aria-hidden', 'true');
+}
+function clearMenuBackdrop() {
+  const map = $('s-map'); map.classList.remove('menu-backdrop'); map.inert = false;
+  map.removeAttribute('aria-hidden');
+}
+function restoreMenuParent(from) {
+  if (from === $('s-map')) clearMenuBackdrop();
+  from.classList.remove('hidden'); from.querySelector('.btn')?.focus();
+}
 function openGuide(n) {
   if (playing) setPaused(true);
-  guideFrom = document.querySelector('.ov:not(.hidden):not(#s-guide)'); guideFrom?.classList.add('hidden');
+  guideFrom = document.querySelector('.ov:not(.hidden):not(#s-guide)'); keepMenuBackdrop(guideFrom); guideFrom?.classList.add('hidden');
   $('s-guide').classList.remove('hidden'); showGuide(Math.max(0, typeof n === 'string' ? CODEX.findIndex(c => c.id === n) : CODEX.findIndex(c => c.k === n))); $('gNext').focus();
 }
-function closeGuide() { $('s-guide').classList.add('hidden'); if (guideFrom) { guideFrom.classList.remove('hidden'); guideFrom.querySelector('.btn')?.focus(); } else openMap(false); }
+function closeGuide() { $('s-guide').classList.add('hidden'); if (guideFrom) { restoreMenuParent(guideFrom); } else openMap(false); }
 // where each labour sits on the night map (percent of its width and height): river reeds, desert, the dragon's hills, garden, castle, Div camp, cave
 const MAP_AT = [null, [12.5, 51], [25, 56], [40, 40], [49, 57], [61.5, 42], [76.5, 52], [92.5, 48]];
 // the gentle road: two more hearts, a longer breath after each wound, bosses with less life, and slower thirst
@@ -5158,6 +5324,7 @@ function cardArt(art, src) {
 $('journeyMenu').onclick = () => { const open = $('journeyMenu').getAttribute('aria-expanded') !== 'true'; $('journeyMenu').setAttribute('aria-expanded', String(open)); $('journeyMenu').parentNode.classList.toggle('open', open); };
 $('journeyMenu').parentNode.addEventListener('click', e => { if (e.target.closest('.journey-nav-link:not(#journeyMenu)')) { $('journeyMenu').setAttribute('aria-expanded', 'false'); $('journeyMenu').parentNode.classList.remove('open'); } });
 function openMap(e) {
+  clearMenuBackdrop();
   if (e !== false) music(A.want);                                  // a click: the menu theme may begin
   if (playing) setPaused(true);
   mapFrom = document.querySelector('.ov:not(.hidden):not(#s-map)'); mapFrom?.classList.add('hidden');
@@ -5322,7 +5489,6 @@ function setNarrator(on, readScene = false) {
   if (on && readScene && !A.muted && cine && !cine.credits) cineShow(cine.i);
 }
 $('setNarrator').onclick = () => setNarrator(!narratorEnabled());
-$('cineSound').onclick = () => $('muteBtn').click();
 $('cineNarrator').onclick = () => setNarrator(!narratorEnabled(), true);
 // the readings play through the game's own sound engine (unlocked by the first click, so no browser blocks them),
 // each decoded once and kept
@@ -5354,12 +5520,15 @@ function narrate(key, then) {
 // what the foes and the king say aloud, shown as a subtitle with the speaker's name
 // Rostam speaks at a few great moments only: a boss's entrance, its fall, the Simurgh's call, binding Olad, a fire's
 // stand, and his first brush with death in a labour. Each is read once its file is in assets/voice
-const ROSTAM_SAYS = { rakhsh: 'Why do you wake me, Rakhsh?', god: 'In the name of God, the Merciful', warcry: 'I am Rostam! Who will stand against me?',  pray: 'O Lord, You alone can save me now.', thanks: 'Blessed be the One who sent you.', thirst: 'Water… I need water.', boss: 'Come then, and meet the son of Zal!', win: 'It is done. On, Rakhsh!', farr: 'Simurgh, lend me your light!', bind: 'Yield, Olad. Your life is in my noose.', stand: 'Let them come to the fire.', low: 'Not yet… not while Iran waits.' };
+const ROSTAM_SAYS = { rakhsh: 'Why do you wake me, Rakhsh?', god: 'In the name of God, the Merciful', warcry: 'I am Rostam! Who will stand against me?',  pray: 'O Lord, You alone can save me now.', thanks: 'Blessed be the One who sent you.', thirst: 'Water… I need water.', boss: 'Come then, and meet the son of Zal!', win: 'The way is clear. Ride with me, Rakhsh!', farr: 'Simurgh, lend me your light!', bind: 'Yield, Olad. Your life is in my noose.', stand: 'Let them come to the fire.', low: 'Not yet… not while Iran waits.' };
 let rostamFace = '../rostam';
 fetch(`assets/ui/port/rostam.png?v=${V}`, { method: 'HEAD' }).then(r => { if (r.ok) rostamFace = 'rostam'; }).catch(() => {});
-for (const k of Object.keys(ROSTAM_SAYS)) fetch(`assets/voice/rostam-${k}.mp3?v=${V}`, { method: 'HEAD' }).then(r => { if (r.ok) VOICED.add('rostam-' + k); }).catch(() => {});
+for (const k of Object.keys(ROSTAM_SAYS).filter(k => k !== 'win')) fetch(`assets/voice/rostam-${k}.mp3?v=${V}`, { method: 'HEAD' }).then(r => { if (r.ok) VOICED.add('rostam-' + k); }).catch(() => {});
 // speak, and carry on when done (or at once, when the line is silent: no file, muted, or the narrator off)
-function rostamSays(k, then) { if (!say('rostam-' + k, { then })) then?.(); }
+function rostamSays(k, then) {
+  if (k === 'win') { toast(ROSTAM_SAYS.win); then?.(); return; }
+  if (!say('rostam-' + k, { then })) then?.();
+}
 const STORY_BEAT_LINES = {
   'khan4-feast': 'Rostam sat at the feast and took up the tanbur. His song rose through the enchanted garden. A beautiful lady came to share the wine, but her welcome hid a dark enchantment.'
 };
@@ -5413,7 +5582,7 @@ function cinema(name, done, start = 0, panels = null) {
   cine.from?.classList.add('hidden'); $('credits').classList.add('hidden'); $('cineSkip').textContent = 'Skip ›'; $('cineSkip').disabled = false;
   ov.querySelector('.cdots').innerHTML = P.map((_, k) => `<i title="Picture ${k + 1}" data-k="${k}"></i>`).join('');
   imgs.forEach(im => im.classList.remove('on'));
-  ov.classList.remove('hidden'); refreshNarratorControls(); $('cineSound').setAttribute('aria-pressed', String(!A.muted)); $('cineSound').querySelector('.spk-l').textContent = A.muted ? 'Sound off' : 'Sound on'; music(true); P.forEach(([img]) => voiceBuf(img)?.catch(() => {})); cineNext(); $('cineNext').focus();
+  ov.classList.remove('hidden'); refreshNarratorControls(); music(true); P.forEach(([img]) => voiceBuf(img)?.catch(() => {})); cineNext(); $('cineNext').focus();
 }
 function cineShow(i) {
   const c = cine, [img, fa, text] = c.P[i], ov = $('s-cine'), imgs = ov.querySelectorAll('.cimg'), im = imgs[i % 2], old = imgs[(i + 1) % 2];
@@ -5518,6 +5687,8 @@ const CLIP_NAMES = { 'khan5-lasso': 'Olad is bound — The lasso won', 'khan7-no
   "khan7-intro": "The White Div — The road ahead",
 };
 function openClips() {
+  if (playing) setPaused(true);
+  keepMenuBackdrop(document.querySelector('.ov:not(.hidden):not(#s-clips)'));
   // one group per Khan: the paintings before it and after it, each sealed until the player has earned it
   const part = (name, locked, need) => CINE[name].map(([img], k) => ({ name, k, img, locked, need }));
   const groups = [{ title: 'The Prologue', clips: part('opening', false) }];
@@ -5564,10 +5735,26 @@ function finishRebind(k) {
   renderSettings(); $('keyList').querySelector(`[data-a="${r.a}"][data-i="${r.i}"]`)?.focus();
 }
 function openSettings() {
-  if (playing) setPaused(true); setFrom = document.querySelector('.ov:not(.hidden):not(#s-set)'); setFrom?.classList.add('hidden');
+  if (playing) setPaused(true); setFrom = document.querySelector('.ov:not(.hidden):not(#s-set)'); keepMenuBackdrop(setFrom); setFrom?.classList.add('hidden');
   renderSettings(); $('s-set').classList.remove('hidden'); $('setDone').focus();
 }
-function closeSettings() { rebind = null; $('s-set').classList.add('hidden'); if (setFrom) { setFrom.classList.remove('hidden'); setFrom.querySelector('.btn')?.focus(); } else openMap(false); }
+function closeSettings() { rebind = null; $('s-set').classList.add('hidden'); if (setFrom) { restoreMenuParent(setFrom); } else openMap(false); }
+function resetProgress() {
+  if (!window.confirm('Reset all game progress?\n\nAll unlocked levels, achievements, best times, feathers, provisions, upgrades, Farr and the lasso will be erased on this browser. You will start again at the first labour. Your settings will be kept.\n\nThis cannot be undone.')) return;
+  try {
+    // Keep preferences and other games' saves on this same site.
+    const keep = new Set(['sh-set', 'sh-muted', 'sh-diff']);
+    const keys = Object.keys(localStorage).filter(k => k.startsWith('sh-') && !keep.has(k));
+    for (const k of keys) localStorage.removeItem(k);
+  } catch (_) {
+    window.alert('Progress could not be fully reset. Please allow browser storage and try again.');
+    return;
+  }
+  // Stop the old scene from saving again while the fresh page loads.
+  playing = false; clearInput(); game.scene.stop('play');
+  location.reload();
+}
+$('resetProgress').onclick = resetProgress;
 document.querySelectorAll('[data-settings]').forEach(b => b.onclick = openSettings); $('setDone').onclick = closeSettings; $('setClose').onclick = closeSettings;
 $('setMusic').oninput = e => { SET.music = +e.target.value; $('setMusicV').textContent = SET.music + '%'; applySettings(); saveSet(); };
 $('setFx').oninput = e => { SET.fx = +e.target.value; $('setFxV').textContent = SET.fx + '%'; applySettings(); saveSet(); };
@@ -5618,8 +5805,8 @@ addEventListener('gamepadconnected', () => { toast('Gamepad connected. Press Sta
 requestAnimationFrame(padPoll);
 // how to play: a page of the manuscript, opened from the home map and the menu
 let helpFrom = null;
-function openHelp() { refreshControlLabels(); if (playing) setPaused(true); helpFrom = document.querySelector('.ov:not(.hidden):not(#s-help)'); helpFrom?.classList.add('hidden'); $('s-help').classList.remove('hidden'); $('helpDone').focus(); }
-function closeHelp() { $('s-help').classList.add('hidden'); if (helpFrom) { helpFrom.classList.remove('hidden'); helpFrom.querySelector('.btn')?.focus(); } else openMap(false); }
+function openHelp() { refreshControlLabels(); if (playing) setPaused(true); helpFrom = document.querySelector('.ov:not(.hidden):not(#s-help)'); keepMenuBackdrop(helpFrom); helpFrom?.classList.add('hidden'); $('s-help').classList.remove('hidden'); $('helpDone').focus(); }
+function closeHelp() { $('s-help').classList.add('hidden'); if (helpFrom) { restoreMenuParent(helpFrom); } else openMap(false); }
 document.querySelectorAll('[data-help]').forEach(b => b.onclick = openHelp); $('helpDone').onclick = closeHelp; $('helpClose').onclick = closeHelp;
 document.querySelectorAll('[data-guide]').forEach(b => b.onclick = () => openGuide($('s-map').classList.contains('hidden') ? cur : pick));
 $('gPrev').onclick = () => showGuide(gpg - 1); $('gNext').onclick = () => showGuide(gpg + 1); $('guideClose').onclick = closeGuide;
@@ -5644,9 +5831,9 @@ function hint(html) {
   const h = $('hint'); if (!html) { h.classList.add('hidden'); h.dataset.t = ''; h.dataset.lesson = ''; clearTimeout(hint.t); return; }
   if (h.dataset.t === html) return; h.dataset.t = html; h.dataset.lesson = ''; h.innerHTML = html; refreshControlLabels(h);
   h.classList.remove('hidden', 'new', 'dim'); void h.offsetWidth; h.classList.add('new');
-  h.classList.remove('full', 'tucked'); hint.at = Date.now(); clearTimeout(hint.t); hint.t = setTimeout(() => h.classList.add(isPhone() ? 'tucked' : 'dim'), isPhone() ? 3500 : 7000);
+  h.classList.remove('full', 'tucked'); hint.at = Date.now(); clearTimeout(hint.t); hint.t = null;
 }
-$('hint').addEventListener('click', () => { if (!isPhone()) return; const h = $('hint'), open = h.classList.contains('tucked'); h.classList.remove('dim', 'tucked'); h.classList.toggle('full', open); clearTimeout(hint.t); if (open) hint.t = setTimeout(() => h.classList.add('tucked'), 6000); else h.classList.add('tucked'); });
+$('hint').addEventListener('click', () => { if (!isPhone()) return; const h = $('hint'), open = h.classList.contains('tucked'); h.classList.remove('dim', 'tucked'); h.classList.toggle('full', open); clearTimeout(hint.t); if (!open) h.classList.add('tucked'); });
 function toast(msg) { if ($('sub').classList.contains('on')) return; if (isPhone() && Date.now() - (hint.at || 0) < 1800) return; const t = $('toast'); t.textContent = controlText(msg); t.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('on'), isPhone() ? 2400 : 3200); }
 function banner(fa, name, ep = '') {
   const lv = LEVELS[cur], b = $('banner');
@@ -5685,9 +5872,9 @@ function openStory(i = 0, n = cur) {
   $('s-story').setAttribute('aria-label', 'The tale of ' + NAMES[n][0]);
   pages = [...(document.getElementById('tale-' + n) || $('tale-1')).content.querySelectorAll('article')];
   storyFrom = document.querySelector('.ov:not(.hidden):not(#s-story)');
-  storyFrom?.classList.add('hidden'); $('s-story').classList.remove('hidden'); showPage(i); $('nextPg').focus();
+  keepMenuBackdrop(storyFrom); storyFrom?.classList.add('hidden'); $('s-story').classList.remove('hidden'); showPage(i); $('nextPg').focus();
 }
-function closeStory() { stopStoryReading(); $('s-story').classList.add('hidden'); if (storyFrom) { storyFrom.classList.remove('hidden'); storyFrom.querySelector('.btn')?.focus(); } else openMap(false); }
+function closeStory() { stopStoryReading(); $('s-story').classList.add('hidden'); if (storyFrom) { restoreMenuParent(storyFrom); } else openMap(false); }
 document.querySelectorAll('[data-story]').forEach(b => b.onclick = () => openStory(+b.dataset.story || 0, cur));
 $('prevPg').onclick = () => turn(-1); $('nextPg').onclick = () => turn(1); $('storyClose').onclick = closeStory;
 $('pauseBtn').onclick = () => setPaused(true); $('resumeBtn').onclick = () => setPaused(false);
