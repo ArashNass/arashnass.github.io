@@ -284,3 +284,17 @@ Played Labour I from the starting bank through the first fire stand. A mistimed 
 Local screenshot proof: `outputs/shahnameh-gameplay-qa/live-labour-I-stand-cleared.png`. No artificial `sh-unlocked` value was set during this final live check; existing user progression was preserved.
 
 All seven labours have completed sampled careful/faster play checks, fixes are pushed, and the final live opening regression is complete. Failed attempts, normal checkpoint retries and the limited random boss states sampled are documented above. This does not certify every random encounter, every upgrade combination, or a perfectly balanced 1–3-minute boss duration.
+
+# Level I minimal UI and gameplay polish — local, 27 October 2026
+
+Local page now references `game.js?v=217`; this work is not deployed. Short, action-dismissed lessons replace persistent opening/route instructions. The narrow chapter action precedes the map; Level I has compact Rakhsh/Farr and wave feedback, gradual lion move introduction, one-sentence retry advice, and a skippable den scene. The shared watched/skipped handoff now applies Arcade body offsets immediately: a fresh browser check caught the prior next-frame drop into the floor, which the old reset-only mock missed.
+
+All seven Node test files pass. The new `labour-one-ux.html#debug` browser runner passed 26 assertions without script errors, including all three stand waves/eight incoming foes, cue expiry/action dismissal, skipped-scene timer cancellation, actual strike-collision lion victory and retry focus. The skip unit regression covers six timeline points. Fresh desktop/narrow/simulated-touch layouts were inspected with all audio muted. Production saves and assets were untouched.
+
+Combat fixtures isolate integration with positioning/invulnerability; this is not another normal-health full playthrough or real-device touch/controller difficulty assessment. The prior deployed report does not certify this local revision.
+
+## Intro artwork minimum — local v218, 27 October 2026
+
+Restored the illustrated opening before Labour I; all seven fresh labour starts now show their intro. The den retains its animation without repeating the same opening painting. Each intro waits for image decoding and the 1.2-second fade, then requires at least three seconds in the foreground. Skip, Escape, advancement and picture-dot navigation cannot bypass that hold; checkpoint retries remain immediate. Existing narration/reading pauses may keep a picture longer.
+
+All eight Node test files pass, including all seven entry routes, unloaded-image protection, fade exclusion, early Skip/Escape and background timing. A muted browser check loaded all seven artworks, rejected early skips, and released each after 4.35 seconds of observed full-opacity display. A normal Begin journey click also visibly opened Level I’s painting. Changes remain local and uncommitted.

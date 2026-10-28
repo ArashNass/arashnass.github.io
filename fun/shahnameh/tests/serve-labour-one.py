@@ -8,12 +8,12 @@ class Handler(SimpleHTTPRequestHandler):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, directory=str(ROOT), **kwargs)
     def do_GET(self):
-        if self.path.split("?")[0] not in ["/labour-one.html", "/labour-one-play.html"]:
+        if self.path.split("?")[0] not in ["/labour-one.html", "/labour-one-play.html", "/labour-one-ux.html"]:
             return super().do_GET()
         page = (ROOT / "index.html").read_text()
         mute = '<script>localStorage.clear();localStorage.setItem("sh-muted","1");localStorage.setItem("sh-prologue","1");</script>'
         page = page.replace('<script src="boot.js', mute + '<script src="boot.js', 1)
-        script = 'tests/labour-one-play.js' if self.path.split('?')[0] == '/labour-one-play.html' else 'tests/labour-one.js'
+        script = {'/labour-one.html': 'tests/labour-one.js', '/labour-one-play.html': 'tests/labour-one-play.js', '/labour-one-ux.html': 'tests/labour-one-ux.js'}[self.path.split('?')[0]]
         page = page.replace('</body>', f'<script src="{script}"></script></body>')
         data = page.encode()
         self.send_response(200)

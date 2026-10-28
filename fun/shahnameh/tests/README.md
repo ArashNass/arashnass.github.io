@@ -65,3 +65,9 @@ Coverage: absence of added lion/horse spawns in the first labour opening; low-ro
 Paused normal-health previews: `/journey-play.html?level=1#debug` through `?level=7#debug`. Optional `&at=60` places the player at tile column 60. Audio remains disabled. Keep preview and automated suites on separate localhost origins.
 
 Narration checks also cover the explicit Settings and cinematic Narrator switches, preserved voice volume, silent Settings changes, cancellation of in-flight readings, preventing delayed starts after Off, re-enabling Listen, and story navigation without narration. The audio context stays suspended with master gain zero. A legacy saved voice volume of zero migrates to Narrator Off with a remembered default volume. The story audit records one outstanding ElevenLabs retake: the last gameplay note in `tale-6-2` still says three waves while the corrected visible instruction says six.
+
+## Minimal Level I UI regression
+
+Run `python3 fun/shahnameh/tests/serve-labour-one.py` from the repository root and open <http://127.0.0.1:8776/labour-one-ux.html#debug>. This isolated origin seeds master mute before the game loads; the runner also disables music, effects and narration. Require `LEVEL ONE UX REVIEW COMPLETE`, all probes passing, and no script errors. Results use the server's existing temporary JSON output.
+
+Covers short cue timing and action dismissal, retry suppression, Rakhsh/Farr labels, all eight stand entries and three waves, grounded scene skipping, timer cancellation, gradual lion introduction, victory through actual strike collisions, relevant death guidance and retry focus. Geometry fixtures and invulnerability isolate combat integration; this is not a normal-health difficulty assessment. Check responsive layouts visually as well.

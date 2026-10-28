@@ -72,6 +72,13 @@ const V = 105;
 const RAKHSH1 = 128 / 229;                                               // Rakhsh's scale in Khan I: his strip is 229 px, the horse a little larger than the lion
 const REVISED_STORY_ART = new Set(['khan1-intro', 'khan4-intro', 'khan4-outro', 'khan5-intro', 'khan5-outro', 'khan7-intro', 'end2', 'open1', 'open2', 'open3', 'open4', 'open5', 'open6', 'khan1-outro', 'khan2-intro', 'khan2-outro', 'khan3-intro', 'khan3-outro', 'khan6-intro', 'khan6-outro', 'end1', 'end3']);
 let wakeArt = false, lionPrologueSeen = false;
+// Lessons belong to this visit, so a checkpoint retry does not repeat the tutorial.
+const lessons1 = new Set();
+function lesson1(s, id, text, ms = 3200) {
+  if (lessons1.has(id) || starsOf()[1] || rush) return;
+  lessons1.add(id); hint(text); $('hint').dataset.lesson = id;
+  s.time.delayedCall(ms, () => { if ($('hint').dataset.t === text) hint(null); });
+}
 // the waking's narration (assets/voice/khan1-wake.mp3, the same ElevenLabs narrator) is read once the file is there
 fetch(`assets/voice/khan1-wake.mp3?v=${V}`, { method: 'HEAD' }).then(r => { if (r.ok && typeof VOICED !== 'undefined') VOICED.add('khan1-wake'); }).catch(() => {}); { const im = new Image(); im.onload = () => { wakeArt = true; }; im.src = `assets/cine/khan1-wake.png?v=${V}`; }   // an optional painting
 const storyArt = key => `assets/cine/${key}${REVISED_STORY_ART.has(key) ? '-v2' : ''}.png?v=${V}`;
@@ -410,6 +417,7 @@ const ROUTE_CUES = {
   7: [[27,'<b>A mountain guard.</b> Give its club room, then strike from behind.'],[41,'<b>A sheltered fire.</b> Rest here; lightning avoids the sacred fires.'],[57,'<b>Broken mountain paths.</b> Fight on solid ground before taking the next jump.'],[89,'<b>The next fire is near.</b> Draw the blue Div away from the crossing.'],[114,'<b>The cave mouth.</b> Pass the guard before following the bat into the dark.'],[132,'<b>A final thorn crossing.</b> Land first, then face the last guard.'],[142,'<b>The final fire.</b> The White Div waits beyond the darkness.']]
 };
 function routeCue(s, p) {
+  if (cur === 1) return; // The opening road teaches one action at its point of use.
   if (s.bossOn || s.horde || s.siege || s.frozen || s.done || (cur === 2 && p.x >= 112 * TS)) return;
   const cues = ROUTE_CUES[cur]; if (!cues || legend() || starsOf()[cur]) return;   // a guide for the first walk only
   let beat = -1; for (let i = 0; i < cues.length; i++) if (p.x >= cues[i][0] * TS) beat = i;
@@ -820,9 +828,9 @@ function cutSlopes(map) {
   return slopes;
 }
 const STANDS = {
-  1: { at: 52.5, L: 40, R: 60, waves: [['j', 'j'], ['j', 'd', 'j'], ['d', 'J', 'j']], foe: { j: 'jackal', d: 'div' }, lead: 0xd9a46a, fa: 'آتشِ نیستان', title: 'Hold the fire', held: 'The fire holds',
-    start: () => `The pack closes on the fire! When a jackal <b>drops its head</b>, ${touch ? 'dodge' : keyHTML('dodge') + ' dodge'} or jump the lunge, then strike while it pants.`,
-    wave: (n, N) => n === N ? 'The pack leader comes for the fire!' : `The pack comes: ${n} of ${N}`, end: 'The pack scatters. Roast lamb lies by the fire.',
+  1: { at: 52.5, L: 40, R: 60, waves: [['j', 'j'], ['d', 'j', 'j'], ['d', 'j', 'J']], foe: { j: 'jackal', d: 'div' }, lead: 0xd9a46a, fa: 'آتشِ نیستان', title: 'Hold the fire', held: 'The fire holds',
+    start: () => null,
+    wave: (n, N) => `Wave ${n}/${N}`, end: 'The path is clear. Lamb restores a heart.',
     after: s => s.time.delayedCall(1500, () => { if (s.done) return; sfx('roar'); s.cam.shake(700, 0.006); toast('Far off in the reeds, the lion answers.'); }) },
   2: { at: 57.5, L: 49, R: 65, waves: [['s', 'v'], ['s', 's', 'v'], ['v', 'S', 's']], foe: { s: 'scorpion', v: 'vulture' }, lead: 0xffb060, fa: 'چاهِ بیابان', title: 'The well is guarded', held: 'The well is yours',
     start: () => 'The desert’s creatures come to the water! <b>Bait a sting, step back, then strike</b>; watch the sky for diving vultures.',
@@ -862,7 +870,9 @@ function fireStand(s, S) {
   const floor = x => (s.groundAt(x) ?? 14) * TS;
   s.siege = { S, wave: 0, live: residents, residents: residents.length > 0, L, R, next: s.time.now + 1300, walls: [wall(L, floor(L + 2)), wall(R, floor(R - 2))] };
   sfx('fire'); sfx('roar'); s.cam.shake(300, 0.008);
-  banner(S.fa, S.title); hint(S.start()); s.time.delayedCall(600, () => rostamSays('stand'));
+  if (cur === 1) { $('standStatus').textContent = S.title; $('standStatus').classList.remove('hidden'); }
+  else banner(S.fa, S.title);
+  hint(S.start()); s.time.delayedCall(600, () => rostamSays('stand'));
   trackGame('stand_start', { level_name: String(cur) });
 }
 // Reserve a clear entry, and recheck it after the warning so running at the marker cannot cause a contact hit.
@@ -898,10 +908,11 @@ function standTick(s) {
   if (s.time.now < g.next || g.pending > 0) return;
   if (g.live.some(f => f.active && f.body.enable)) return;
   // The breather starts when the wave is cleared, rather than when it spawned.
-  if ((g.wave > 0 || g.residents) && g.wave < N && !g.waiting) { g.waiting = true; g.next = s.time.now + 1700; return; }
+  if ((g.wave > 0 || g.residents) && g.wave < N && !g.waiting) { g.waiting = true; g.next = s.time.now + 1700; if (cur === 1) $('standStatus').textContent = 'Catch your breath'; return; }
   if (g.wave < N) {
     const list = S.waves[g.wave++]; g.live = []; g.entries = []; g.pending = list.length; g.waiting = false; g.residents = false; g.next = s.time.now + list.length * 380 + 900;
-    toast(S.wave(g.wave, N));
+    if (cur === 1) { $('standStatus').textContent = S.wave(g.wave, N); $('standStatus').classList.remove('hidden'); }
+    else toast(S.wave(g.wave, N));
     list.forEach((k, i) => { const enter = () => {
       if (s.siege !== g || s.done) return;
       const side = i % 2 ? 1 : -1, x = waveSpot(s, g, side);
@@ -922,11 +933,12 @@ function standTick(s) {
         }
         f.roam = [g.L + 6, g.R - 6]; f.dir = -side; f.setFlipX(f.dir < 0); f.jt = 30 + i * 20; g.live.push(f); g.pending--;
       });
-    }; s.time.delayedCall(i * 380, enter); });
+    }; s.time.delayedCall(i * (cur === 1 ? 700 : 380), enter); });
     return;
   }
   // the stand is won: the flames die down, and a roast lamb lies by the fire
   s.siege = null; s.siegeDone = true;
+  if (cur === 1) $('standStatus').classList.add('hidden');
   for (const w of g.walls) { w.flames.forEach((f, i) => s.tweens.add({ targets: f, alpha: 0, delay: i * 60, duration: 300, onComplete: () => f.destroy() })); s.tweens.add({ targets: w.glow, alpha: 0, duration: 500, onComplete: () => w.glow.destroy() }); }
   sting('victory', () => sfx('win')); s.gainFarr(30); banner(S.fa, S.held); hint(null);
   const a = s.altars.find(a => Math.abs(a.x / TS - S.at) < 1), drop = s.pickup(a.x + 18, a.y - 8, 'food', 0, 'lamb');
@@ -1053,27 +1065,23 @@ const LEVELS = {
     food: (c, r, n) => c === 80 && r === 5 ? 'lamb' : FOOD[1 + (n % 3)],
     create(s) {
       for (const fx of [14, 37, 58, 76, 98, 118]) s.add.sprite(fx * TS, 160, 'fx-fireflies').play({ key: 'fx-fireflies', startFrame: fx % 16 }).setDepth(11).setAlpha(0.9);
-      s.khan1Beat = 0;
       for (const f of s.foes.getChildren()) {
         const c = f.home.x / TS;
         f.roam = (c < 22 ? [11, 21] : c < 40 ? [28.5, 39] : c < 48 ? [41.5, 47] : f.kind === 'div' ? [70, 79] : [71, 81]).map(x => x * TS);
       }
-      hint(`Night in the reeds. <b>Strike</b> with ${touch ? 'the mace button' : keyHTML('attack')}, or <b>jump onto a foe</b>.`);
+      if (s.start.x < 10 * TS) lesson1(s, 'move', touch ? 'Follow the road <b>→</b>' : `${keyHTML('left')} ${keyHTML('right')} <b>Move</b>`);
     },
     // the storm over each boss fight: veil and cloud colours, the sun or moon behind it, lightning colour and pace, and its weather
     sky: { veil: 0x3a0a06, cloud: 0xa8401c, glow: 0xff7a2a, sun: [0.76, 0.34], bolt: 0xffd0a0, every: [260, 420], edge: 0x6a1004, fx: 'dust', paint: 'bg/storm.png' },
     fires: [82], hearts: [85],                       // a last fire and a heart before the lion's den
     update(s, k, time, p) {
       if (s.bossOn) return;
-      if (p.x > 88 * TS && !s.prologueOn) { s.lionPrologue(); return; }
+      if (($('hint').dataset.lesson === 'move' && p.x > 6 * TS) || ($('hint').dataset.lesson === 'strike' && s.atk > 0) || ($('hint').dataset.lesson === 'gap' && s.didDouble)) hint(null);
+      if (p.x > 88 * TS && p.body.blocked.down && !s.prologueOn) { s.lionPrologue(); return; }
       if (!p.body.blocked.down && s.airJumps === 0) s.didDouble = true;
-      // a few words only where something new is asked of Rostam; the reeds and the fires speak for themselves
-      const beat = p.x < 17 * TS ? 0 : p.x < 25 * TS ? 1 : p.x < 60 * TS ? 2 : 3;
-      if (beat <= s.khan1Beat) return;
-      s.khan1Beat = beat;
-      if (beat === 1 && !s.didDouble) hint('<b>A gap ahead.</b> Jump, then <b>jump again in the air</b>.');
-      else if (beat === 3) hint('<b>The rafts sink under you.</b> Keep moving, or take the high road over the reeds.');
-      else hint(null);
+      if (p.x > 9 * TS && p.x < 17 * TS) lesson1(s, 'strike', touch ? '<b>Strike</b> with the mace button' : `${keyHTML('attack')} <b>Strike</b>`);
+      if (p.x > 18 * TS && p.x < 23 * TS && !s.didDouble) lesson1(s, 'gap', touch ? '<b>Jump twice</b> across the gap' : `${keyHTML('jump')} <b>Jump · press again in the air</b>`, 4000);
+      if (p.x > 59 * TS && p.x < 64 * TS) lesson1(s, 'rafts', '<b>Sinking rafts</b> · keep moving');
     },
     win: 'With the lion of the reeds slain, Rostam takes up a feather of the Simurgh. Ahead lies the waterless desert of the second labour.',
     tips: ['A jackal drops its head before it lunges. Dodge or jump the lunge, then strike while it pants.', 'At half strength the lion meets Rakhsh. Lure the lion into his charge.', 'The lion\'s hide turns your blows. Leap its charge so it runs into the rocks, then strike while it is dazed and the stars circle its head.',
@@ -1601,7 +1609,7 @@ function makeTextures(scene) {
 // The music is recorded: four Pixabay tracks (free to use, no credit needed) that crossfade as the game
 // moves between the menus, the road, the darker labours and the bosses. The sound effects are synthesised:
 // a santur and a tar from a plucked-string model and a daf frame drum, in a small hall of reverb.
-const A = { ctx: null, master: null, muted: store.get('sh-muted') === '1', bufs: {}, tracks: {}, cur: null, want: false, failed: false, background: document.hidden || !document.hasFocus() };
+const A = { landingMusic: false, ctx: null, master: null, muted: store.get('sh-muted') === '1', bufs: {}, tracks: {}, cur: null, want: false, failed: false, background: document.hidden || !document.hasFocus() };
 function audio() {
   if (!A.ctx) {
     const C = window.AudioContext || window.webkitAudioContext; if (!C) return null;
@@ -1805,7 +1813,8 @@ function fadeOut(name, hard = false) {
   if (hard) o.el.pause(); else o.stop = setTimeout(() => o.el.pause(), 2200);
 }
 function setTrack(name) {
-  if (A.cur === name) return;
+  // A browser may reject playback until a gesture; retry the same paused track.
+  if (A.cur === name && (!name || !A.tracks[name]?.el.paused)) return;
   const now = A.ctx.currentTime;
   if (A.cur) fadeOut(A.cur);
   A.cur = name; if (!name) return;
@@ -1873,7 +1882,7 @@ function mixScore(sc, boss = false) {
 // which track fits this moment
 function pickTrack() {
   if (!A.ctx) return;
-  if (A.muted || A.background || A.failed) return setTrack(null);
+  if (A.muted || A.background || A.failed || (!A.landingMusic && !$('s-map').classList.contains('hidden'))) return setTrack(null);
   if (!A.want) return setTrack('menu');
   const sc = game?.scene.getScene('play'), boss = sc && sc.bossOn && !sc.done && sc.boss?.active && sc.boss.hp > 0, S = SCORE[cur];
   const own = `k${cur}-boss`, tune = LABOUR_SYNTH && TUNES[cur] && !S?.stems;
@@ -2047,6 +2056,7 @@ const markPhone = () => { document.body.classList.toggle('phone', isPhone()); do
 const fitGutters = () => {
   const c = game?.canvas; if (!c) return; const r = c.getBoundingClientRect(), gut = Math.max(0, r.left);
   document.documentElement.style.setProperty('--gut', gut + 'px'); document.documentElement.style.setProperty('--cw', r.width + 'px');
+  document.documentElement.style.setProperty('--play-top', r.top + 'px');
   document.body.classList.toggle('gutters', isPhone() && gut >= 128);
 };
 const relayout = () => { markPhone(); setTimeout(fitGutters, 120); setTimeout(fitGutters, 600); };
@@ -2079,9 +2089,13 @@ class Play extends Phaser.Scene {
     if (cur === 7) L.image('cage', `assets/k7/cage.png${q}`);   // Kay Kavus's cage, which Rostam breaks open                       // the labour's ground litter, 32 px frames in a row   // the arena repainted for the boss fight
   }
   create() {
+    document.body.classList.toggle('labour-one', cur === 1);
+    $('denSkip').classList.add('hidden'); $('denSkip').onclick = null;
+    $('standStatus').classList.add('hidden');
     // the scene object is reused from labour to labour: forget whatever the last one left behind
     for (const k of ['dark', 'lights', 'lamp', 'wall', 'wallR', 'stars', 'pose', 'swingFx', 'witch', 'unmasked', 'olad', 'rakhsh', 'dragonSeen', 'horde', 'hordeDone',
       'gates', 'hordeBat', 'toldRock', 'toldFarr', 'toldOffer', 'atAltar', 'bossT', 'maceHit', 'toldIce', 'chargeWarn', 'toldCharge', 'shards', 'shardG', 'mark', 'markGlow', 'markOpen', 'bossHeart', 'bossHeartT', 'floorWarn', 'highWarn', 'regrow', 'drums', 'sky', 'flashA', 'intro', 'fgReeds', 'mound', 'swirl', 'qx', 'puddles', 'combo', 'comboT', 'heavy', 'heavyGo', 'chargeT', 'chargeFull', 'chargeGlow', 'dodgeT', 'dodgeCd', 'dodgeDir', 'whiteDown', 'ended', 'mounted', 'prayed', 'drank', 'toldImmune', 'toldDeflect', 'toldVenom', 'cage', 'kavus', 'stones', 'puzzle', 'springOpen', 'pool', 'victory', 'attackBuf', 'dodgeBuf', 'counterT', 'counterStrike', 'dodgeRewarded', 'trial', 'nearTrial', 'journey', 'siege', 'siegeDone', 'ally', 'phase2', 'streak', 'didDouble', 'rocks', 'rockT', 'poppies', 'drowsy', 'toldPoppy', 'oladAlly', 'rope', 'ropeG', 'lassoCd', 'toldBossLasso', 'sleeper', 'snore', 'guard', 'prologue', 'prologueOn', 'ringObj', 'grapple', 'toldBossHold', 'oladBind', 'sleepers', 'toldSleep', 'saidLow', 'ramDug', 'ramAmbush', 'toldRamWait', 'climbTo', 'rakhshDrinks', 'shove', 'saidThirst', 'storyHold', 'dragonStoryDone', 'dragonStoryOn', 'feastDone', 'feastOn', 'warcryDone', 'oladGuide', 'guideDone', 'rakhshAt1', 'motionKey', 'motionUntil', 'turnFrom']) delete this[k];
+    this.denTimers = []; this.denFinished = false; this.denLion = null;
     this.physics.resume();
     refreshLassoBtn();
     // turn loaded strips into square frames; anything missing falls back to placeholder art
@@ -2227,7 +2241,7 @@ class Play extends Phaser.Scene {
       this.inv = 120;
     }
     if (this.coinCount >= FED && cur !== 3) this.rakhshFed = true;
-    this.renderHearts(); $('coins').textContent = purse(); this.renderFarr(); hint(null); this.streak = 0; this.renderStreak();
+    this.renderHearts(); $('coins').textContent = purse(); this.renderFarr(); this.renderFeed(); hint(null); this.streak = 0; this.renderStreak();
     this.parts = this.add.particles(0, 0, 'coin-spin', { frame: 0, speed: { min: 30, max: 90 }, lifespan: 450, scale: { start: 0.8, end: 0 }, gravityY: 120, emitting: false }).setDepth(9);
     this.shots = this.physics.add.group({ allowGravity: false }); this.hazards = [];
     this.physics.add.collider(this.shots, this.layer, sh => sh.destroy());
@@ -2250,7 +2264,7 @@ class Play extends Phaser.Scene {
     if (R) {
       lv.resume?.(this); this.siegeDone = !!R.standDone;
       const a = this.altars[R.i], stand = a && standAt(this, a); if (stand) fireStand(this, stand);
-      toast(R.well ? 'Rostam rises again beside the well.' : 'Rostam rises again beside the sacred fire.');
+      if (cur !== 1) toast(R.well ? 'Rostam rises again beside the well.' : 'Rostam rises again beside the sacred fire.');
     }
   }
   // a heart: one more life, glowing so it can be found even in the dark
@@ -2296,7 +2310,7 @@ class Play extends Phaser.Scene {
     t.completed = true; t.elapsed = Math.max(1, Math.round(this.time.now - t.started));
     const records = trialRecords(), previous = records[cur], first = !previous?.best;
     records[cur] = { best: Math.min(previous?.best || Infinity, t.elapsed) }; t.best = records[cur].best; store.set('sh-trials', JSON.stringify(records));
-    if (first) { this.coinCount += 3; setPurse(purse() + 3); $('coins').textContent = purse(); this.gainFarr(30); if (this.coinCount >= FED && cur !== 3) this.rakhshFed = true; }
+    if (first) { this.coinCount += 3; setPurse(purse() + 3); $('coins').textContent = purse(); this.gainFarr(30); if (this.coinCount >= FED && cur !== 3) this.rakhshFed = true; this.renderFeed(); }
     if (cur === 2) { this.water = Math.min(100, this.water + 30); this.renderWater(); }
     this.sparkle(this.player.x, this.player.body.center.y, 0xffdf8d); this.combatWord('Trial complete'); sfx('coin');
     toast(`${t.cfg.name} — ${(t.elapsed / 1000).toFixed(1)}s.${first ? ' Three provisions and golden Farr earned!' : t.elapsed < previous.best ? ' A new personal best!' : ' Trail mastered again.'}`);
@@ -2328,7 +2342,7 @@ class Play extends Phaser.Scene {
     sting('fire', () => sfx('fire')); this.fx('fire', a.x, a.y - 20, { depth: 3 }); this.fx('pickup', a.x, a.y - 18);
     const stand = standAt(this, a); if (stand) { fireStand(this, stand); return; }
     if (this.lv.kindled?.(this, a)) return;
-    toast('The sacred fire is lit. If Rostam falls, he will rise again here.');
+    toast(cur === 1 ? 'Checkpoint lit' : 'The sacred fire is lit. If Rostam falls, he will rise again here.');
   }
   // a hidden Simurgh feather: glowing and turning slowly; one already found is only a faint shimmer
   hiddenFeather(x, y, k) {
@@ -2380,13 +2394,13 @@ class Play extends Phaser.Scene {
       this.fx('pickup', c.x, c.y); this.fx('heal', this.player.x, this.player.body.bottom - 4, { depth: 6 }); cry(); this.gainFarr(25);
       const here = [0, 1, 2].filter(k => F[cur + ':' + k]).length, all = Object.keys(F).length;
       if (all >= 21) { banner('سیمرغ', 'The Simurgh\'s Blessing'); toast('All twenty-one feathers! The Simurgh blesses Rostam: one more heart, for ever.'); this.maxHp++; this.hp++; this.renderHearts(); }
-      else toast(`A Simurgh feather! ${here} of 3 in this labour, ${all} of 21 in all.`);
+      else toast(cur === 1 ? `Simurgh feather · ${here}/3` : `A Simurgh feather! ${here} of 3 in this labour, ${all} of 21 in all.`);
       return;
     }
     if (c.kind === 'heart') {
       if (c.regrow) this.regrow.push({ x: c.x, y: c.y, away: 0 });
       c.glow?.destroy(); c.beacon?.destroy(); c.destroy(); this.fx('heal', this.player.x, this.player.body.bottom - 4, { depth: 6 }); sfx('fire');
-      if (this.hp < this.maxHp) { this.hp++; this.renderHearts(); toast('A heart! Rostam\'s strength returns.'); } else toast('A heart, but Rostam is already whole.');
+      if (this.hp < this.maxHp) { this.hp++; this.renderHearts(); toast(cur === 1 ? 'Strength restored' : 'A heart! Rostam\'s strength returns.'); } else if (cur !== 1) toast('A heart, but Rostam is already whole.');
       return;
     }
     const heal = c.kind === 'lamb' && this.hp < this.maxHp;
@@ -2401,7 +2415,13 @@ class Play extends Phaser.Scene {
   // the Farr: a golden bar that fills as Rostam gathers provisions and slays foes
   gather(n) {
     const was = this.coinCount; this.coinCount += n; setPurse(purse() + n); $('coins').textContent = purse();
-    if (was < FED && this.coinCount >= FED && cur !== 3 && !this.rakhshFed) { this.rakhshFed = true; toast(cur === 1 ? 'Rakhsh is well fed! He will charge more often when he joins the fight.' : 'Rakhsh is well fed! He will gallop to your aid when you face the boss.'); }
+    if (was < FED && this.coinCount >= FED && cur !== 3 && !this.rakhshFed) { this.rakhshFed = true; toast(cur === 1 ? 'Rakhsh is ready · faster charges' : 'Rakhsh is well fed! He will gallop to your aid when you face the boss.'); }
+    this.renderFeed();
+  }
+  renderFeed() {
+    const el = $('feedStatus'); el.classList.toggle('hidden', cur !== 1 || !!rush);
+    el.textContent = this.rakhshFed ? 'Rakhsh ready' : `Rakhsh ${Math.min(FED, this.coinCount)}/${FED}`;
+    el.title = 'Gather eight provisions for faster Rakhsh charges in the lion fight';
   }
   // the unbroken run: every blow that lands without Rostam being hurt in between adds to it, and every fifth pays out
   streakHit() {
@@ -2418,9 +2438,15 @@ class Play extends Phaser.Scene {
   }
   gainFarr(n) {
     const was = this.farr >= 100; this.farr = Math.min(100, this.farr + n); store.set('sh-farr', this.farr); this.renderFarr();
-    if (!was && this.farr >= 100) { sfx('fire'); toast(`Your Farr is full! Press ${keyLabel('farr')}, or tap the golden Farr, to call on the Simurgh.`); }
+    if (!was && this.farr >= 100) { sfx('fire'); if (cur !== 1) toast(`Your Farr is full! Press ${keyLabel('farr')}, or tap the golden Farr, to call on the Simurgh.`); }
   }
-  renderFarr() { $('farrFill').style.width = this.farr + '%'; const full = this.farr >= 100; $('farrBtn').classList.toggle('full', full); document.querySelector('.tb.farr')?.classList.toggle('hidden', !full); }
+  renderFarr() {
+    $('farrFill').style.width = this.farr + '%'; const full = this.farr >= 100, b = $('farrBtn');
+    b.classList.toggle('full', full); b.setAttribute('aria-label', full ? `Call the Simurgh${touch ? '' : ' · ' + keyLabel('farr')}` : `Farr ${Math.round(this.farr)} percent · gather provisions to charge`);
+    b.querySelector('.fl').textContent = full && cur === 1 ? 'Simurgh' : 'Farr';
+    $('farrKey').textContent = full ? (touch ? 'Tap' : keyLabel('farr')) : '';
+    document.querySelector('.tb.farr')?.classList.toggle('hidden', !full);
+  }
   // the Simurgh's blast: a ring of golden light that strikes every foe on screen and wounds a boss through any guard
   farrBlast() {
     if (this.farr < 100 || this.frozen || this.done) return;
@@ -2433,7 +2459,7 @@ class Play extends Phaser.Scene {
     this.sparkle(p.x, p.body.bottom, 0xf6dc8c); this.fx('beam', p.x, p.body.bottom, { depth: 12 });
     for (const f of this.foes.getChildren()) if (f.active && f.body.enable && f.x > cx - 10 && f.x < cx + W + 10) { this.fx('heal', f.x, f.body.bottom, { depth: 10 }); this.damage(f, 3, true); }
     const B = this.boss; if (B?.active && B.hp > 0 && B.body.enable) { this.fx('heal', B.x, B.body.bottom, { depth: 10 }); this.damage(B, 2, true); }
-    if (!this.toldFarr) { this.toldFarr = true; toast('The Simurgh answers! Golden light strikes every foe around you.'); }
+    if (!this.toldFarr) { this.toldFarr = true; if (cur !== 1) toast('The Simurgh answers! Golden light strikes every foe around you.'); }
   }
   hurt(fromX, thirst = false, cause = 'attack') {
     if ((this.inv > 0 && !thirst) || this.done || this.frozen) return;
@@ -2453,11 +2479,15 @@ class Play extends Phaser.Scene {
       this.done = true; playing = false; music(false); sting('fall'); document.body.classList.remove('playing'); hint(null);
       trackGame('player_death', { level_name: String(cur), cause, boss: !!this.bossOn, column: Math.round(this.player.x / TS), seconds: Math.round((this.time.now - this.t0) / 1000), mode: rush ? 'boss_rush' : 'story' });
       if (this.anims.exists('rostam-fall') && !this.mounted) { this.pose = 'rostam-fall'; this.player.anims.stop(); this.player.play('rostam-fall'); this.tweens.addCounter({ from: 255, to: 150, duration: 900, onUpdate: tw => { const c = Math.round(tw.getValue()); this.player.setTint((c << 16) | (c << 8) | c); } }); } else this.player.setTint(0x777777);
-      const t = this.lv.tips; $('deadTip').textContent = controlText((!this.bossOn && this.journey?.getTip()) || t[Math.floor(Math.random() * t.length)]);
+      const t = this.lv.tips;
+      const attacker = cur === 1 && !this.bossOn ? this.foes.getChildren().find(f => f.active && Math.abs(f.x - fromX) < 2) : null;
+      const tip1 = cause === 'terrain' ? (this.player.x > 60 * TS && this.player.x < 84 * TS ? 'Keep moving across the sinking rafts.' : 'Jump, then jump again in the air.') : this.bossOn ? (this.lion?.state === 'paw' ? 'Step back from the raised paw.' : this.lion?.state === 'pounce' ? 'Move clear when the lion crouches.' : 'Jump the charge. Strike while the stars circle.') : attacker?.kind === 'div' ? 'Give the Div room. Strike as it lands.' : this.siege ? 'Leave room. Jump the lunge, then strike.' : 'Let the jackal lunge, then turn and strike.';
+      $('deadTip').textContent = controlText(cur === 1 ? tip1 : ((!this.bossOn && this.journey?.getTip()) || t[Math.floor(Math.random() * t.length)]));
+      $('standStatus').classList.add('hidden');
       const cp = resumeAt?.n === cur;
       if (cp) Object.assign(resumeAt, { coins: this.coinCount, kills: this.kills, t: this.time.now - this.t0 });
       $('retryBtn').textContent = rush ? 'Start the rush again' : cp ? (resumeAt.well ? 'Rise at the well' : 'Rise at the sacred fire') : 'Try again'; $('freshBtn').classList.toggle('hidden', !cp || !!rush);
-      setTimeout(() => { if (!playing && this.done) $('s-dead').classList.remove('hidden'); }, 900);
+      setTimeout(() => { if (!playing && this.done) { $('s-dead').classList.remove('hidden'); $('retryBtn').focus(); } }, 900);
       setTimeout(() => say('fall' + (1 + Math.floor(Math.random() * 3)), { sub: false }), 1000);   // "Rise, son of Zal"
     }
   }
@@ -2557,6 +2587,7 @@ class Play extends Phaser.Scene {
       f.openHits++; f.openDamageLeft -= n;
     }
     f.hp -= n; if (!force) this.streakHit();
+    if (!force && this.counterStrike && !this.counterShown) { this.counterShown = true; this.combatWord('Counter', '#b7f3ff'); }
     if (f !== this.boss && f.hp > 0 && f.body.allowGravity && !force && (this.heavy || this.counterStrike)) {
       f.attackId = (f.attackId || 0) + 1; f.staggerUntil = this.time.now + 420;
       f.smash = f.cast = f.sting = f.thrust = f.leap = false; f.cool = Math.max(f.cool || 0, 45);
@@ -2733,20 +2764,22 @@ class Play extends Phaser.Scene {
     this.fit(l, 'lion'); this.placeBoss(l); l.hp = l.max = gentle() ? 8 : legend() ? 16 : 12; l.state = 'roar'; l.tm = 70; l.dir = -1; l.setFlipX(true); l.play('lion-roar'); l.setDepth(4);
     this.boss = l; l.keep = 91; l.onDown = () => this.lionDown(); l.ai = () => this.lionAI();
     l.calm = () => ['stun', 'recover'].includes(l.state); l.contact = () => ['charge', 'pounce'].includes(l.state);
-    l.immune = () => !l.calm(); l.immuneMsg = 'The lion\'s hide turns your blow. Jump its charge so it runs into the rocks, then strike while it is dazed.';
+    l.immune = () => !l.calm(); l.immuneMsg = 'Wait for the stars, then strike.';
+    l.intent = 'Charge · jump'; l.openings = 0;
     this.physics.add.collider(l, this.layer, null, onFloor); this.physics.add.collider(l, [this.wall, this.wallR]);
     sfx('roar'); this.cam.shake(400, 0.006);
     $('boss').classList.remove('hidden'); this.bossBar(); this.bossIntro(l);
-    hint('<b>Roar:</b> it will charge, leap it so it hits the rocks. <b>Gold crouch:</b> a pounce. <b>Orange paw:</b> a swipe. Strike while the stars circle its head.');
+    hint(null);
   }
   // Khan I, as Ferdowsi tells it: Rostam lies down to sleep among the reeds; the lion comes out of the dark, and Rakhsh
   // drives it back until his master wakes. Told first in the story's painting, then played out on the arena in held
   // beats, with the player watching; then the fight begins. Once per visit: a retry goes straight to the fight
   lionPrologue() {
     this.prologueOn = true;
-    if (rush || !LIVE || lionPrologueSeen) return this.startBoss();
+    if (rush || !LIVE || lionPrologueSeen) { this.prologue = LIVE && !rush; return this.startBoss(); }
     lionPrologueSeen = true; this.prologue = true;
-    const p = this.player, x0 = 86 * TS, at = (ms, fn) => this.time.delayedCall(ms, () => { if (!this.done) fn(); });
+    this.denTimers = []; this.denFinished = false;
+    const p = this.player, x0 = 86 * TS, at = (ms, fn) => this.denAt(ms, fn);
     this.frozen = true; this.intro = true; p.setVelocity(0); hint(null);
     $('cine').classList.add('on'); document.body.classList.add('cine');
     this.cam.stopFollow(); this.cam.fadeOut(500, 0, 0, 0);
@@ -2762,11 +2795,12 @@ class Play extends Phaser.Scene {
       } });
       this.cam.fadeIn(700);
     });
-    at(1600, () => cinema('guard1', () => { game.scene.resume('play'); playing = true; this.prologueFight(); }));
+    at(1600, () => this.prologueFight());
   }
   prologueFight() {
-    const g = this.guard, s = this.sleeper, lh = this.textures.get('lion-walk').get(0).height, at = (ms, fn) => this.time.delayedCall(ms, () => { if (!this.done) fn(); });
-    const L = this.add.sprite(119 * TS, 14 * TS + 1, 'lion-walk', 0).setOrigin(0.5, 0.97).setScale(SIZE.lion / lh).setFlipX(true).setDepth(4);
+    const g = this.guard, s = this.sleeper, lh = this.textures.get('lion-walk').get(0).height, at = (ms, fn) => this.denAt(ms, fn);
+    $('denSkip').classList.remove('hidden'); $('denSkip').onclick = () => this.finishLionPrologue();
+    const L = this.denLion = this.add.sprite(119 * TS, 14 * TS + 1, 'lion-walk', 0).setOrigin(0.5, 0.97).setScale(SIZE.lion / lh).setFlipX(true).setDepth(4);
     // the lion creeps out of the reeds, and roars
     L.play('lion-walk'); this.tweens.add({ targets: L, x: 105 * TS, duration: 2200, ease: 'Sine.easeOut' });
     at(2300, () => { L.play('lion-roar'); sfx('roar'); this.cam.shake(400, 0.006); });
@@ -2791,20 +2825,43 @@ class Play extends Phaser.Scene {
       L.setFlipX(false); L.play('lion-walk'); this.tweens.add({ targets: L, x: this.lionAt.x, duration: 1100, ease: 'Sine.easeInOut' });
       // Hide the decorative-to-physics sprite swap behind a brief dip to black.
       at(1200, () => this.cam.fadeOut(180, 0, 0, 0));
-      at(1400, () => {
-        L.destroy(); const p = this.player; p.setVisible(true); p.body.reset(s.x, p.y);
-        p.y += 14 * TS - 1 - p.body.bottom; p.body.reset(p.x, p.y); p.setVelocity(0); p.setFlipX(false); p.play('rostam-idle');
-        this.face = 1; s.destroy(); const gx = g.x; g.destroy(); this.sleeper = this.guard = null; this.rakhshAt1 = gx;
-        $('cine').classList.remove('on'); document.body.classList.remove('cine'); this.intro = false; this.frozen = false;
-        // A held story-advance key must not become an immediate attack or jump.
-        for (const k in keys) keys[k] = false;
-        for (const k in pressed) pressed[k] = false;
-        this.atk = this.buf = this.attackBuf = this.dodgeBuf = this.chargeT = 0;
-        this.inv = Math.max(this.inv || 0, 60);
-        this.startBoss(); this.cam.fadeIn(320, 0, 0, 0);
-      });
+      at(1400, () => this.finishLionPrologue());
     };
     at(8300, () => wakeArt ? cinema('wake1', () => { game.scene.resume('play'); playing = true; finish(); }) : finish());
+  }
+  // Both watching and skipping use the same single, grounded handoff.
+  denAt(ms, fn) {
+    const event = this.time.delayedCall(ms, () => { if (!this.done && !this.denFinished) fn(); });
+    (this.denTimers ||= []).push(event); return event;
+  }
+  finishLionPrologue() {
+    if (this.denFinished || this.done || this.bossOn) return;
+    this.denFinished = true;
+    for (const event of this.denTimers || []) event.remove(false);
+    this.denTimers = []; this.snore?.remove(); this.snore = null;
+    const cast = [this.sleeper, this.guard, this.denLion].filter(Boolean);
+    this.tweens.killTweensOf([...cast, this.cam]);
+    this.cam.resetFX(); this.physics.world.resume(); this.anims.resumeAll();
+    const p = this.player, x = this.sleeper?.x ?? 90.5 * TS;
+    p.setVisible(true); p.play('rostam-idle');
+    p.body.reset(x, 14 * TS - 1 - 0.47 * p.displayHeight);
+    // Arcade reset uses the sprite's top-left; apply its fitted body offset now,
+    // rather than letting the following physics frame move the feet into the floor.
+    p.body.updateFromGameObject();
+    p.setVelocity(0); p.setFlipX(false); this.face = 1;
+    for (const actor of cast) actor.destroy();
+    this.sleeper = this.guard = this.denLion = null; this.rakhshAt1 = 89 * TS;
+    $('denSkip').classList.add('hidden'); $('denSkip').onclick = null;
+    $('cine').classList.remove('on'); document.body.classList.remove('cine');
+    $('banner').classList.remove('on'); document.body.classList.remove('bannering');
+    this.intro = false; this.frozen = false;
+    for (const k in keys) keys[k] = false;
+    for (const k in pressed) pressed[k] = false;
+    this.atk = this.buf = this.attackBuf = this.dodgeBuf = this.chargeT = 0;
+    this.pose = this.motionKey = null; this.dodgeT = this.cool = 0;
+    this.inv = Math.max(this.inv || 0, 60);
+    this.startBoss(); this.cam.fadeIn(320, 0, 0, 0);
+    game.canvas.focus({ preventScroll: true });
   }
   // Keep frame-authored patterns in real time, independent of render/update frequency.
   bossStep() { return this.bossDelta ?? 1; }
@@ -2862,7 +2919,7 @@ class Play extends Phaser.Scene {
     const open = !this.frozen && (B.open ? B.open() : !B.immune?.());
     if (open !== this.markOpen) {
       this.markOpen = open;
-      if (open) this.toldImmune = false;
+      if (open && cur !== 1) this.toldImmune = false;
       $('boss').classList.toggle('open', open);
     }
     const preparing = !['walk', 'prowl', 'lurk', 'float', 'guard', 'rest', 'stun', 'recover', 'stuck', 'dazed', 'exposed', 'surfaced'].includes(B.state);
@@ -2932,13 +2989,13 @@ class Play extends Phaser.Scene {
         const retreatRoom = toP < 0 ? right - l.x : l.x - left;
         const move = this.bossTactic(l, [
           { move: 'roar', weight: read.ledge ? 0 : read.distance > 130 ? 3 : 0.45 },
-          { move: 'crouch', weight: 1.2 + read.air * 3 + (read.ledge || read.camp > 2200 ? 3 : 0), cooldown: 1400 },
-          { move: 'pawReady', weight: groundedTarget && read.distance < 100 ? 4 : 0, cooldown: 1700 },
-          { move: 'circle', weight: retreatRoom > 90 ? (mad ? 1.5 + read.pressure * 2 : 0.6) : 0, cooldown: 4000 },
+          { move: 'crouch', weight: l.openings < 1 ? 0 : 1.2 + read.air * 3 + (read.ledge || read.camp > 2200 ? 3 : 0), cooldown: 1400 },
+          { move: 'pawReady', weight: l.openings >= 2 && groundedTarget && read.distance < 100 ? 4 : 0, cooldown: 1700 },
+          { move: 'circle', weight: l.openings >= 2 && retreatRoom > 90 ? (mad ? 1.5 + read.pressure * 2 : 0.6) : 0, cooldown: 4000 },
           { move: 'quake', weight: mad && groundedTarget ? 1.6 : 0, cooldown: 5200 }
         ]);
         if (!move) { l.tm = 8; return; }
-        this.bossAim(l, { roar: 'Roar: a charge is coming', crouch: 'Low crouch: a hunting leap', pawReady: 'Raised paw: step clear', circle: 'The lion circles you', quake: 'It rears: jump the shockwave' }[move]);
+        this.bossAim(l, { roar: 'Charge · jump', crouch: 'Pounce · move clear', pawReady: 'Paw · step back', circle: 'Circling', quake: 'Shockwave · jump' }[move]);
         l.state = move; l.tm = move === 'roar' ? 44 : move === 'circle' ? 30 : move === 'quake' ? 50 : 36; l.setVelocityX(0); l.anims.stop(); l.setFrame(0);
         if (move === 'roar') { l.play('lion-roar'); sfx('roar'); this.cam.shake(400, 0.006); }
         else if (move === 'quake') { l.play('lion-roar'); l.setTint(0xffe2a8); l.quaked = false; }
@@ -2956,7 +3013,7 @@ class Play extends Phaser.Scene {
       if ((l.dir < 0 ? l.body.blocked.left || l.hitKeep : l.body.blocked.right) || l.tm <= 0) this.lionOpening(l, 'stun', 86);
     } else if (l.state === 'circle') {
       l.setVelocityX(-l.dir * 70);
-      if (l.tm <= 0) { const swipe = !read.ledge && Math.abs(p.body.bottom - l.body.bottom) < 45 && read.distance < 90; this.bossAim(l, swipe ? 'Raised paw: step clear' : 'Low crouch: a hunting leap'); l.state = swipe ? 'pawReady' : 'crouch'; l.tm = 38; l.setVelocityX(0); }
+      if (l.tm <= 0) { const swipe = !read.ledge && Math.abs(p.body.bottom - l.body.bottom) < 45 && read.distance < 90; this.bossAim(l, swipe ? 'Paw · step back' : 'Pounce · move clear'); l.state = swipe ? 'pawReady' : 'crouch'; l.tm = 38; l.setVelocityX(0); }
     } else if (l.state === 'crouch') {
       l.setVelocityX(0); l.setTint(0xffdc9a); this.hold(l, 'lion-pounce', Math.min(2, Math.floor((38 - l.tm) / 13)));
       if (l.tm <= 0) {
@@ -3001,7 +3058,7 @@ class Play extends Phaser.Scene {
       if (!r.active) return; r.state = 'post'; this.allyRest(r); r.next = this.time.now + 1800;
       this.intro = false; if (!this.done) this.frozen = false;
       l.state = 'prowl'; l.tm = 50;
-      hint('<b>Rakhsh fights at your side!</b> When he rears, lure the lion into his charge, then strike it while it is down.');
+      lesson1(this, 'ally', '<b>Rakhsh charges</b> · lure the lion into his path', 4000);
     } });
   }
   allyTick(l) {
@@ -3030,6 +3087,7 @@ class Play extends Phaser.Scene {
   allyRest(r) { this.allyWake(r); r.play('rakhsh-idle'); }
   allyWake(r) { r.breath?.remove(); r.breath = null; r.stamp?.remove(); r.stamp = null; r.anims.timeScale = 1; r.setScale(r.scaleX); }
   lionOpening(l, state, frames) {
+    l.openings = (l.openings || 0) + 1;
     l.openHits = 0; l.openDamageLeft = gentle() ? 4 : 3;
     l.state = state; l.tm = frames; l.intent = ''; l.setVelocityX(0); if (!this.anims.exists('lion-dazed')) { l.play('lion-walk'); l.anims.pause(); } else l.play('lion-dazed'); l.setTint(0xffd8a0);
     this.stars?.destroy(); this.stars = this.fx('stun', l.x, l.body.top - 6, { depth: 10, follow: l });
@@ -3185,7 +3243,7 @@ class Play extends Phaser.Scene {
     this.attackBuf = pressed.attack && !this.frozen ? 7 : Math.max(0, (this.attackBuf || 0) - k);
     if (this.attackBuf > 0 && this.cool <= 0 && !(this.dodgeT > 0) && !this.frozen) {
       if (this.pose === 'ride-rear') { this.pose = null; p.setAngle(0); }
-      this.attackBuf = 0; this.counterStrike = this.counterT > 0; this.counterT = 0;
+      this.attackBuf = 0; this.counterStrike = this.counterT > 0; this.counterT = 0; this.counterShown = false;
       // three quick blows make a combo: the third is a hard overhead finisher
       this.combo = this.comboT > 0 && !this.mounted ? (this.combo || 0) + 1 : 1; this.comboT = 46;
       this.heavy = this.combo >= 3 ? 'finish' : null; if (this.heavy) this.combo = 0;
@@ -3241,10 +3299,10 @@ class Play extends Phaser.Scene {
     }
     if (this.ringObj && !hasLasso() && !store.get('sh-toldRing') && Math.abs(p.x - this.ringObj.x) < 70) { store.set('sh-toldRing', '1'); toast('A golden ring hangs high above. Rostam will need a lasso to reach it.'); }
     // standing by a lit fire altar, Rostam may make an offering of provisions at the Fire Temple
-    const altar = ground && !this.bossOn ? this.altars.find(a => a.lit && !a.onLight && Math.abs(a.x - p.x) < 30) : null;
+    const altar = ground && !this.bossOn && !(cur === 1 && this.siege) ? this.altars.find(a => a.lit && !a.onLight && Math.abs(a.x - p.x) < 30) : null;
     if (altar !== this.atAltar) {
       this.atAltar = altar; $('offerBtn').classList.toggle('hidden', !altar); if (altar) $('offerBtn').innerHTML = '&#128293; Offer';
-      if (altar && !this.toldOffer && purse() >= Math.min(...UPGRADES.map(u => u.costs[upg()[u.id] || 0] ?? Infinity))) { this.toldOffer = true; hint(`You stand at a sacred fire. Press ${keyHTML('offer')} or tap <b>Offer</b> to trade provisions for lasting gifts.`); }
+      if (altar && !this.toldOffer && purse() >= Math.min(...UPGRADES.map(u => u.costs[upg()[u.id] || 0] ?? Infinity))) { this.toldOffer = true; if (cur !== 1) hint(`You stand at a sacred fire. Press ${keyHTML('offer')} or tap <b>Offer</b> to trade provisions for lasting gifts.`); }
     }
     // at a bell tower during the ram's riddle, Down (or the Ring button) rings its bell
     const P = this.puzzle, bellAt = P && !P.done && !P.showing && !this.frozen && b.blocked.down ? this.stones.findIndex(st => Math.abs(p.x - st.x) < 22 && Math.abs(b.bottom - st.footY) < 6) : -1;
@@ -3471,6 +3529,7 @@ class Play extends Phaser.Scene {
     const lv = this.lv;
     trackGame('boss_start', { level_name: String(cur), retry: !!this.resuming });
     if (cur === 1 && LIVE && !rush && !this.ally) this.rakhshCorner(this.rakhshAt1);   // Rakhsh fights from the first moment, from his corner
+    if (cur === 1 && (this.resuming || this.prologue)) return;
     if (!lv.epithet || this.resuming || this.prologue) { banner(); return; }   // after the prologue, no second entrance
     sting('boss'); this.intro = true; this.frozen = true; this.player.setVelocityX(0); B.setVelocityX?.(0);
     $('cine').classList.add('on'); document.body.classList.add('cine');
@@ -4659,8 +4718,8 @@ class Play extends Phaser.Scene {
 let resumeAt = null;           // the last fire lit in this labour: { n, i, well, coins, kills, t }
 function begin(n = cur, rise = false, keepRush = false, afterStory = false) {
   if (audio()) prepareScore(n);                                    // the labour's music loads while its story plays
-  // Labour I saves its sleeping painting for the den. Other fresh journeys get their illustrated opening.
-  if (n !== 1 && !rise && !keepRush && !afterStory && CINE['intro' + n]) {
+  // Every level entry, including retries, shows its illustration before gameplay.
+  if (!afterStory && CINE['intro' + n]) {
     if (!keepRush) rush = null;
     cinema('intro' + n, () => begin(n, rise, keepRush, true));
     return;
@@ -5135,15 +5194,31 @@ function closeMap() { $('s-map').classList.add('hidden'); if (mapFrom) { mapFrom
 document.querySelectorAll('[data-map]').forEach(b => b.onclick = openMap);
 // the landing page's button is for the music alone; the voices and the sounds of the road keep their own settings
 function musicOn() { return !A.muted && SET.music > 0; }
+function musicPlaying() {
+  return musicOn() && A.ctx?.state === 'running' && !A.background && !!(A.menu || A.layers || (A.cur && A.tracks[A.cur] && !A.tracks[A.cur].el.paused));
+}
 function refreshMusicBtn() {
-  const b = $('journeySound'); if (!b) return; const on = musicOn();
-  b.querySelector('.spk-l').textContent = on ? 'Music on' : 'Music off'; b.setAttribute('aria-pressed', String(on));
+  const b = $('journeySound'); if (!b) return; const on = A.landingMusic && musicPlaying();
+  b.querySelector('.spk-l').textContent = on ? 'Music On' : 'Music Off'; b.setAttribute('aria-pressed', String(on));
 }
 $('journeySound').onclick = () => {
-  if (musicOn()) { SET.musicWas = SET.music; SET.music = 0; }
-  else { if (!SET.music) SET.music = SET.musicWas || 70; if (A.muted) setMuted(false); }
-  saveSet(); applySettings();
+  A.landingMusic = !(A.landingMusic && musicPlaying());
+  if (A.landingMusic) {
+    if (!SET.music) SET.music = SET.musicWas || 70;
+    if (A.muted) setMuted(false);
+  }
+  applySettings(); music(A.want);
+  A.ctx?.resume().then(refreshMusicBtn).catch(refreshMusicBtn);
 };
+// Unlock audio within a real gesture, retaining saved mute and volume choices.
+function unlockMusic(e) {
+  if (e.target.closest?.('#journeySound') || !musicOn() || A.failed) return;
+  music(A.want);
+  A.ctx?.resume().then(refreshMusicBtn).catch(refreshMusicBtn);
+}
+document.addEventListener('pointerdown', unlockMusic);
+document.addEventListener('keydown', unlockMusic);
+setInterval(refreshMusicBtn, 300);
 refreshMusicBtn();
 $('mapClose').onclick = closeMap; $('rideBtn').onclick = () => { if (pick === 1 && !store.get('sh-prologue')) { store.set('sh-prologue', '1'); cinema('opening', () => begin(1)); } else begin(pick); };
 $('mapTale').onclick = () => openStory(0, pick);
@@ -5302,8 +5377,24 @@ function say(k, { once = false, sub = true, then } = {}) {
 }
 // as a labour begins (the first time this visit) the narrator sets the scene
 function sayIntro(n) { say('khan' + n, { once: true }); }
+// Count only foreground time after the loaded painting's 1.2-second fade.
+function cineHoldRemaining(c = cine) {
+  if (!c?.intro || c.i < 0) return 0;
+  if (!c.artReady) return Infinity;
+  const now = Date.now();
+  if (!A.background) c.artSeen += Math.max(0, now - Math.max(c.artClock, c.artFadeUntil));
+  c.artClock = now;
+  return Math.max(0, 3000 - c.artSeen);
+}
+function cineHoldControls() {
+  const locked = cineHoldRemaining() > 0;
+  $('cineSkip').disabled = locked;
+  $('cineNext').setAttribute('aria-disabled', String(locked));
+  return locked;
+}
 function cineAdvanceAfter(ms) {
   const c = cine; if (!c) return;
+  if (c.intro && !c.artReady) { c.pendingAuto = ms; return; }
   if (c.shownAt) ms = Math.max(ms, c.shownAt + 9000 - Date.now());   // no picture leaves before it has been seen
   clearTimeout(c.auto); c.autoRemaining = null; c.autoDue = Date.now() + ms;
   if (A.background) { c.auto = 0; c.autoRemaining = ms; return; }
@@ -5317,9 +5408,9 @@ function cinema(name, done, start = 0, panels = null) {
   playing = false; hush(); $('sub').classList.remove('on');
   for (const k in keys) keys[k] = false;
   for (const k in pressed) pressed[k] = false;
-  cine = { P, i: start - 1, done, typing: 0, auto: 0, name, wasPlaying, sceneActive,
+  cine = { P, i: start - 1, done, typing: 0, auto: 0, name, wasPlaying, sceneActive, intro: /^intro[1-7]$/.test(name),
     from: document.querySelector('.ov:not(.hidden):not(#s-cine)') };
-  cine.from?.classList.add('hidden'); $('credits').classList.add('hidden'); $('cineSkip').textContent = 'Skip ›';
+  cine.from?.classList.add('hidden'); $('credits').classList.add('hidden'); $('cineSkip').textContent = 'Skip ›'; $('cineSkip').disabled = false;
   ov.querySelector('.cdots').innerHTML = P.map((_, k) => `<i title="Picture ${k + 1}" data-k="${k}"></i>`).join('');
   imgs.forEach(im => im.classList.remove('on'));
   ov.classList.remove('hidden'); refreshNarratorControls(); $('cineSound').setAttribute('aria-pressed', String(!A.muted)); $('cineSound').querySelector('.spk-l').textContent = A.muted ? 'Sound off' : 'Sound on'; music(true); P.forEach(([img]) => voiceBuf(img)?.catch(() => {})); cineNext(); $('cineNext').focus();
@@ -5328,13 +5419,32 @@ function cineShow(i) {
   const c = cine, [img, fa, text] = c.P[i], ov = $('s-cine'), imgs = ov.querySelectorAll('.cimg'), im = imgs[i % 2], old = imgs[(i + 1) % 2];
   // each painting drifts its own way: slowly in, across, or out
   const moves = [['1.06', '1.16', '-1%', '1%', '0', '-1%'], ['1.16', '1.06', '1%', '-1%', '0', '0'], ['1.1', '1.18', '1.5%', '-1.5%', '1%', '0']][i % 3];
+  const token = c.panelToken = {};
+  clearInterval(c.holdTimer); c.artReady = false; c.artSeen = 0; c.pendingAuto = null;
+  const ready = async () => {
+    try { await im.decode(); } catch (_) { /* onerror handles a missing painting */ }
+    if (cine !== c || c.panelToken !== token || c.artReady || !im.naturalWidth) return;
+    im.classList.add('on'); old.classList.remove('on');
+    c.shownAt = Date.now(); c.artReady = true; c.artClock = c.shownAt; c.artFadeUntil = c.shownAt + 1200;
+    cineHoldControls();
+    if (c.intro) c.holdTimer = setInterval(() => { if (cine !== c) return clearInterval(c.holdTimer); if (!cineHoldControls()) {
+      clearInterval(c.holdTimer); c.holdTimer = 0;
+      // Intro art advances itself after three fully visible seconds.
+      if (c.i + 1 < c.P.length) { hush(); clearInterval(c.typing); clearTimeout(c.auto); c.i++; cineShow(c.i); }
+      else cineEnd();
+    } }, 100);
+    if (c.pendingAuto != null) { const ms = c.pendingAuto; c.pendingAuto = null; cineAdvanceAfter(ms); }
+  };
+  im.onload = ready; im.onerror = () => { if (cine === c && c.panelToken === token) window.showGameLoadError?.(); };
   im.src = storyArt(img);
   im.style.cssText = `--s0:${moves[0]};--s1:${moves[1]};--x0:${moves[2]};--x1:${moves[3]};--y0:${moves[4]};--y1:${moves[5]};--d:14s`;
-  im.classList.remove('on'); void im.offsetWidth; im.classList.add('on'); old.classList.remove('on');
+  im.classList.remove('on'); void im.offsetWidth;
+  cineHoldControls();
+  if (im.complete && im.naturalWidth) ready();
   ov.querySelectorAll('.cdots i').forEach((d, k) => d.classList.toggle('on', k === i));
   const cap = ov.querySelector('.ccap'); cap.classList.remove('done'); cap.querySelector('.fa').textContent = fa; const p = cap.querySelector('p'); p.textContent = '';
   // the narration types out, a few letters at a time; the next picture follows on its own after a reading pause
-  clearInterval(c.typing); clearTimeout(c.auto); c.autoRemaining = null; c.shownAt = Date.now(); let n = 0;
+  clearInterval(c.typing); clearTimeout(c.auto); c.autoRemaining = null; c.shownAt = null; let n = 0;
   // with the narrator on, the words appear at his pace and the next picture waits for him to finish
   const panel = i, a = narrate(img, () => { if (cine === c && c.i === panel) { c.speaking = false; if (!c.typing) cineAdvanceAfter(3500); } });
   c.speaking = !!a;
@@ -5348,6 +5458,7 @@ function cineShow(i) {
 function cineNext() {
   const c = cine; if (!c) return;
   if (c.typing) { clearInterval(c.typing); c.typing = 0; const cap = $('s-cine').querySelector('.ccap'); cap.querySelector('p').textContent = c.P[c.i][2]; cap.classList.add('done'); clearTimeout(c.auto); if (!c.speaking) cineAdvanceAfter(2600 + c.P[c.i][2].length * 32); return; }
+  if (cineHoldControls()) return;
   if (c.credits) return cineEnd();
   if (++c.i >= c.P.length) return (c.name === 'ending' || c.name === 'all' && c.P.at(-1)[0] === 'end3') ? rollCredits() : cineEnd();
   cineShow(c.i); sfx('swing');
@@ -5377,7 +5488,7 @@ function rollCredits() {
   r.querySelector('.cr-track').addEventListener('animationend', () => { clearInterval(c.castTimer); r.classList.add('cr-done'); }, { once: true });
 }
 function cineEnd() {
-  const c = cine; if (!c) return; hush(); cine = null; clearInterval(c.typing); clearTimeout(c.auto); clearInterval(c.castTimer);
+  const c = cine; if (!c || cineHoldControls()) return; hush(); cine = null; clearInterval(c.holdTimer); clearInterval(c.typing); clearTimeout(c.auto); clearInterval(c.castTimer);
   if (c.credits) { $('roll').className = 'roll'; $('roll').innerHTML = ''; if (A.ctx) pickTrack(); }
   $('s-cine').classList.add('hidden'); $('credits').classList.add('hidden');
   if (c.from && !c.done) c.from.classList.remove('hidden');
@@ -5386,7 +5497,7 @@ function cineEnd() {
 }
 $('cineNext').onclick = cineNext; $('cineSkip').onclick = cineEnd;
 // the dots above a picture jump straight to that picture
-$('s-cine').querySelector('.cdots').onclick = e => { const k = +e.target.dataset?.k, c = cine; if (!c || isNaN(k) || c.credits) return; hush(); clearInterval(c.typing); c.typing = 0; clearTimeout(c.auto); c.i = k; cineShow(k); };
+$('s-cine').querySelector('.cdots').onclick = e => { const k = +e.target.dataset?.k, c = cine; if (!c || isNaN(k) || c.credits || cineHoldControls()) return; hush(); clearInterval(c.typing); c.typing = 0; clearTimeout(c.auto); c.i = k; cineShow(k); };
 // the tale in pictures: every picture of the prologue and the ending, to watch from wherever the player likes. The
 // ending stays sealed until the White Div has fallen
 const CLIP_NAMES = { 'khan5-lasso': 'Olad is bound — The lasso won', 'khan7-noon': 'At noon — The sleeping guards', open1: 'The minstrel at court', open2: 'The White Div’s storm', open3: 'The messenger', open4: 'Two roads', open5: 'Rostam and Rakhsh', open6: 'Riding out',
@@ -5530,8 +5641,8 @@ function setPaused(on) {
 let toastT = 0;
 // a standing line under the HUD: what to do right now. It changes as the labour unfolds.
 function hint(html) {
-  const h = $('hint'); if (!html) { h.classList.add('hidden'); h.dataset.t = ''; return; }
-  if (h.dataset.t === html) return; h.dataset.t = html; h.innerHTML = html; refreshControlLabels(h);
+  const h = $('hint'); if (!html) { h.classList.add('hidden'); h.dataset.t = ''; h.dataset.lesson = ''; clearTimeout(hint.t); return; }
+  if (h.dataset.t === html) return; h.dataset.t = html; h.dataset.lesson = ''; h.innerHTML = html; refreshControlLabels(h);
   h.classList.remove('hidden', 'new', 'dim'); void h.offsetWidth; h.classList.add('new');
   h.classList.remove('full', 'tucked'); hint.at = Date.now(); clearTimeout(hint.t); hint.t = setTimeout(() => h.classList.add(isPhone() ? 'tucked' : 'dim'), isPhone() ? 3500 : 7000);
 }
@@ -5584,6 +5695,7 @@ $('restartBtn').onclick = () => { const sc = game.scene.getScene('play'); trackG
 function syncBackgroundAudio() {
   const background = document.hidden || !document.hasFocus();
   if (background === A.background) return;
+  if (cine) cineHoldRemaining(cine);
   A.background = background; document.body.classList.toggle('backgrounded', background);
   if (background) {
     clearInput();

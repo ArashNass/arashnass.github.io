@@ -1,6 +1,6 @@
 const assert = require('node:assert/strict'), fs = require('node:fs'), vm = require('node:vm');
 const source = fs.readFileSync(require('node:path').join(__dirname, '../game.js'), 'utf8');
-const ctx = { ROWS:17 }; vm.createContext(ctx);
+const ctx = { ROWS:17, cur:1, $:()=>({textContent:'',classList:{add(){},remove(){}}}) }; vm.createContext(ctx);
 vm.runInContext(source.slice(source.indexOf('function buildMap()'), source.indexOf('// Khan II:', source.indexOf('function buildMap()'))),ctx);
 const map = ctx.buildMap(), food=[];
 map.forEach((row,r)=>row.forEach((ch,c)=>{if(ch==='c')food.push([c,r])}));

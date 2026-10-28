@@ -16,7 +16,7 @@ try{
   check(`${fps}Hz final hunters leave the last fire clear`,sc.foes.getChildren().filter(f=>f.home.x>69*16).every(f=>f.body.right<82*16));
  }
  dt=1000/60;
- {const sc=await load();const cues=[];for(const c of [3,19,28,40,50,70,82]){sc.player.body.reset(c*16,224-1-.47*sc.player.displayHeight);sc.player.setVelocity(0);step();cues.push(document.getElementById('hint').dataset.t||'');}check('context cues cover only the gap and the sinking rafts',cues[1].includes('gap ahead')&&cues[5].includes('rafts')&&!cues[2]&&!cues[3]);}
+ {const sc=await load();const cues=[];for(const c of [3,19,28,40,50,60,82]){sc.player.body.reset(c*16,224-1-.47*sc.player.displayHeight);sc.player.setVelocity(0);step();cues.push(document.getElementById('hint').dataset.t||'');step(250);}check('context cues cover only the gap and the sinking rafts',cues[1].includes('press again')&&cues[5].includes('rafts')&&!cues[2]&&!cues[3]);}
  const put=(sc,c,r=14)=>{sc.player.body.reset(c*16,r*16-1-.47*sc.player.displayHeight);sc.player.setVelocity(0);};
  // The midpoint fire: a three-wave stand inside burning reeds, then the lion's warned bound across the clearing.
  {const sc=await load();put(sc,50);step(2);S.keys.right=true;for(let i=0;i<40&&!sc.siege;i++)step();S.keys.right=false;

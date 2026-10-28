@@ -981,6 +981,45 @@ body.phone #banner.on{animation-duration:2.6s}
 #touch .strike svg.sword .edge{fill:none;stroke:#b8c4d8;stroke-width:.7}
 #touch .strike svg.sword rect,#touch .strike svg.sword circle{fill:#f3d27a}
 body.phone #touch .strike svg.sword{width:40px;height:40px}
+
+/* Keep the selected chapter and its action ahead of the map on a narrow screen. */
+#s-map .journey-main{grid-template-areas:"map chapter"}
+#s-map .journey-map{grid-area:map}
+#s-map .journey-card{grid-area:chapter}
+@media(max-width:760px) and (min-height:521px){
+ #s-map .journey-main{grid-template-areas:"chapter" "map"}
+ #s-map .journey-art{height:84px;flex-basis:84px}
+ #s-map .journey-art img{max-height:none;object-position:50% 28%}
+ #s-map .journey-card-body{padding:14px 16px!important}
+ #s-map .journey-status{display:none}
+ #s-map .journey-card h2{font-size:23px;margin-bottom:6px}
+ #s-map #mapInfo{font-size:14px;line-height:1.4;margin-bottom:10px}
+ #s-map #mapInfo .ftot{display:none}
+ #s-map .journey-options{margin-top:8px;padding:8px 0 0}
+ #s-map .journey-actions{grid-template-columns:1fr;gap:6px}
+ #s-map .journey-page #rideBtn,#s-map .journey-page #mapTale{font-size:13px;min-height:44px;height:44px;border-width:10px 14px}
+ #s-map .journey-page #mapTale{justify-self:center;width:auto;min-height:30px;height:30px;border:0;border-image:none;font:500 13px/1.4 Georgia,serif;color:#dfc58f}
+}
+#provisionPill{position:relative}
+#feedStatus{position:absolute;top:calc(100% + 5px);right:0;color:#e9d7b3;font:600 10px/1.4 Inter,sans-serif;text-shadow:0 1px 3px #000;white-space:nowrap}
+#farrKey:empty{display:none}
+#farrKey{font:700 10px/1 Inter,sans-serif;color:#fff1bd;border:1px solid #e4c77788;padding:3px 4px;border-radius:3px}
+body.labour-one .pill.farr .fl{display:inline;font:700 10px/1 Inter,sans-serif;letter-spacing:0}
+body.labour-one .fbar{width:36px}
+body.labour-one #hint{font:500 14px/1.4 Inter,sans-serif;padding:7px 12px;max-width:min(88vw,440px)}
+body.labour-one #hint kbd{font:700 12px/1.4 Inter,sans-serif}
+#standStatus{position:fixed;left:50%;top:calc(max(10px,env(safe-area-inset-top)) + 52px);transform:translateX(-50%);z-index:5;padding:5px 11px;border:1px solid #d9bf7d66;border-radius:4px;background:#101725e6;color:#f1dfb5;font:600 12px/1.4 Inter,sans-serif;pointer-events:none}
+#denSkip{position:fixed;right:max(16px,env(safe-area-inset-right));top:max(16px,env(safe-area-inset-top));z-index:7;font-size:12px;background:#0b101de6}
+body:has(#s-cine:not(.hidden)) #denSkip,body.paused #denSkip,body.backgrounded #denSkip{display:none}
+@media(max-width:760px),(max-height:440px){body.labour-one #hud #pauseBtn{font-size:0;width:36px;padding:0;justify-content:center;gap:0}body.labour-one #pauseBtn svg{flex-shrink:0}}
+@media(pointer:fine) and (min-height:521px){
+ body.labour-one #hud{top:max(0px,calc(var(--play-top,0px) - 52px))}
+ body.labour-one #hint,body.labour-one #standStatus{top:max(58px,calc(var(--play-top,0px) + 10px))}
+ body.labour-one #boss{top:max(58px,calc(var(--play-top,0px) + 10px))}
+ body.labour-one #boss:not(.hidden)~#hint{top:max(130px,calc(var(--play-top,0px) + 80px))}
+}
+@media(max-width:380px){body.labour-one #hud .row{gap:4px}body.labour-one #hud .pill{padding:0 7px}body.labour-one #hearts{gap:1px}body.labour-one #hearts img{width:15px;height:13px}body.labour-one .fbar{width:24px}}
+#cineSkip:disabled{opacity:.45;cursor:default}
 </style>
 
 <script defer src="/assets/engagement.js?v=1"></script>
@@ -1021,9 +1060,9 @@ body.phone #touch .strike svg.sword{width:40px;height:40px}
   <div class="row">
     <span class="pill hidden" id="waterPill" title="Water"><img class="food" src="assets/ui/waterskin.png?v=104" alt="Water"><i class="wbar"><b id="water"></b></i></span>
     <button class="pill hidden" id="offerBtn" aria-label="Make an offering at the sacred fire">&#128293; Offer</button>
-    <span class="pill" title="Provisions gathered"><img class="food" src="assets/ui/pomegranate.png?v=104" alt="Provisions"><span id="coins">0</span></span>
+    <span class="pill" id="provisionPill" title="Provisions gathered"><img class="food" src="assets/ui/pomegranate.png?v=104" alt="Provisions"><span id="coins">0</span><small id="feedStatus" class="hidden"></small></span>
     <span class="pill hidden" id="streakPill" title="Blows landed without being hurt"><span class="sx">Unbroken</span>&times;<b id="streak">0</b></span>
-    <button class="pill farr" id="farrBtn" aria-label="Farr: when full, call on the Simurgh"><span class="fl">Farr</span><i class="fbar"><b id="farrFill"></b></i></button>
+    <button class="pill farr" id="farrBtn" aria-label="Farr: when full, call on the Simurgh"><span class="fl">Farr</span><i class="fbar"><b id="farrFill"></b></i><span id="farrKey"></span></button>
     <span class="pill" id="hearts" role="img"></span>
     <button class="pill icon" id="muteBtn" aria-label="Toggle sound"><svg viewBox="0 0 24 24"><path id="muteIco" d=""/></svg></button>
     <button class="pill" id="pauseBtn" aria-label="Open the menu"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg>Menu</button>
@@ -1031,6 +1070,8 @@ body.phone #touch .strike svg.sword{width:40px;height:40px}
 </div>
 <div id="turnPhone" aria-live="polite"><svg viewBox="0 0 48 48" aria-hidden="true"><rect x="15" y="6" width="18" height="32" rx="3"/><path d="M8 30a16 16 0 0 0 16 12M40 18A16 16 0 0 0 24 6"/><path d="M21 42l3 0-1-3M27 6l-3 0 1 3"/></svg><p>Turn your phone sideways</p><span>The road to Mazandaran is wide</span></div>
 <div id="boss" class="hidden"><span id="bossName">The Lion of the Reeds</span><i><b id="bossHp"></b></i><span id="bossState" class="st">Guarded</span></div>
+<div id="standStatus" class="hidden" role="status" aria-live="polite"></div>
+<button id="denSkip" class="pill hidden">Skip scene ›</button>
 <div id="hint" class="hidden" role="status" aria-live="polite"></div>
 <div id="banner" aria-hidden="true"><div class="fa">شیرِ نیستان</div><h2>The Lion of the Reeds</h2><p class="ep"></p></div>
 <div id="cine" aria-hidden="true"><i></i><i></i></div>
@@ -1191,15 +1232,11 @@ body.phone #touch .strike svg.sword{width:40px;height:40px}
         <button id="prologueBtn" class="journey-nav-link">Story scenes</button>
         <button class="journey-nav-link" data-help>Controls</button>
         <button class="journey-nav-link" data-settings>Settings</button>
-        <button id="journeySound" class="journey-nav-link journey-sound" aria-label="Toggle music" aria-pressed="false"><svg class="spk" viewBox="0 0 24 24" aria-hidden="true"><path class="spk-body" d="M4 9.5h3.2L12 5.5v13l-4.8-4H4z"/><path class="spk-on" d="M15.5 9a4.2 4.2 0 0 1 0 6M18.2 6.4a8 8 0 0 1 0 11.2"/><path class="spk-off" d="M16 9.5l5 5M21 9.5l-5 5"/></svg><span class="spk-l">Sound on</span></button>
+        <button id="journeySound" class="journey-nav-link journey-sound" aria-label="Toggle music" aria-pressed="false"><svg class="spk" viewBox="0 0 24 24" aria-hidden="true"><path class="spk-body" d="M4 9.5h3.2L12 5.5v13l-4.8-4H4z"/><path class="spk-on" d="M15.5 9a4.2 4.2 0 0 1 0 6M18.2 6.4a8 8 0 0 1 0 11.2"/><path class="spk-off" d="M16 9.5l5 5M21 9.5l-5 5"/></svg><span class="spk-l">Music Off</span></button>
         <button id="mapClose" class="journey-close" aria-label="Close">&times;</button>
       </nav>
     </header>
     <div class="journey-main">
-      <section class="journey-map" aria-label="The road to Mazandaran">
-        <div class="journey-map-heading map-title"><p class="map-kicker" lang="fa">راهِ مازندران</p><h2>Your Journey to Mazandaran</h2></div><ul class="map-stats" id="heroStats" aria-label="Your journey so far"></ul><div class="map-scroll" id="mapScroll" tabindex="0" aria-label="Journey map. Scroll sideways to explore all seven labours."><ol class="road" id="road"></ol></div>
-
-      </section>
       <aside class="journey-card" aria-label="Selected labour">
         <div class="journey-art"><img id="journeyArt" src="assets/cine/khan1-intro-v2.png?v=92" fetchpriority="high" decoding="async" alt="The lion's night among the reeds" width="1536" height="1024"><span id="journeyChapter">Khan I</span></div>
         <div class="journey-card-body"><p class="journey-status" id="journeyStatus">The journey begins</p><h2 id="journeyTitle">The Lion</h2><p class="story" id="mapInfo" aria-live="polite"></p>
@@ -1207,6 +1244,10 @@ body.phone #touch .strike svg.sword{width:40px;height:40px}
           <details class="journey-options"><summary>Choose your road <span id="journeyDifficulty">Hero's road</span></summary><div class="diff" role="group" aria-label="Difficulty"><button data-diff="gentle" aria-pressed="false">Gentle road</button><button data-diff="hero" aria-pressed="true">Hero's road</button><button data-diff="legend" aria-pressed="false" title="Three hearts, stronger foes, no healing in the arenas">Legend's road</button></div><p>Gentle: more hearts. Hero: the classic road. Legend: three hearts, no arena healing.</p></details>
         </div>
       </aside>
+      <section class="journey-map" aria-label="The road to Mazandaran">
+        <div class="journey-map-heading map-title"><p class="map-kicker" lang="fa">راهِ مازندران</p><h2>Your Journey to Mazandaran</h2></div><ul class="map-stats" id="heroStats" aria-label="Your journey so far"></ul><div class="map-scroll" id="mapScroll" tabindex="0" aria-label="Journey map. Scroll sideways to explore all seven labours."><ol class="road" id="road"></ol></div>
+
+      </section>
     </div>
     <section class="jcast" aria-label="Heroes and foes">
       <div class="jcast-head"><h2>Heroes &amp; foes of the road<span class="jcast-fa" lang="fa">پهلوان‌نامه</span></h2><button class="journey-nav-link" id="castAll">Open the book</button></div>
@@ -1340,6 +1381,6 @@ body.phone #touch .strike svg.sword{width:40px;height:40px}
 <script src="boot.js?v=92"></script>
 <script src="assets/vendor/phaser-3.80.1.min.js" data-game-script="engine"></script>
 <script src="journey-events.js?v=124" data-game-script="journey"></script>
-<script src="game.js?v=216" data-game-script="game"></script>
+<script src="game.js?v=221" data-game-script="game"></script>
 </body>
 </html>
