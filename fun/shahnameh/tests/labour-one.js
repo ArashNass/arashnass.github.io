@@ -16,15 +16,15 @@ try{
   check(`${fps}Hz final hunters leave the last fire clear`,sc.foes.getChildren().filter(f=>f.home.x>69*16).every(f=>f.body.right<82*16));
  }
  dt=1000/60;
- {const sc=await load();const cues=[];for(const c of [3,19,28,40,50,60,82]){sc.player.body.reset(c*16,224-1-.47*sc.player.displayHeight);sc.player.setVelocity(0);step();cues.push(document.getElementById('hint').dataset.t||'');step(250);}check('context cues cover only the gap and the sinking rafts',cues[1].includes('press again')&&cues[5].includes('rafts')&&!cues[2]&&!cues[3]);}
+ {const sc=await load();sc.siegeDone=true;const cues=[];for(const c of [3,19,28,40,50,60,82]){sc.player.body.reset(c*16,224-1-.47*sc.player.displayHeight);sc.player.setVelocity(0);step();cues.push(document.getElementById('hint').dataset.t||'');step(250);}check('context cues cover only the gap and the sinking rafts',cues[1].includes('press again')&&cues[5].includes('rafts')&&!cues[2]&&!cues[3]);}
  const put=(sc,c,r=14)=>{sc.player.body.reset(c*16,r*16-1-.47*sc.player.displayHeight);sc.player.setVelocity(0);};
- // The midpoint fire: a three-wave stand inside burning reeds, then the lion's warned bound across the clearing.
+ // The reed stand: it lights as Rostam enters the reeds (column 34); one burning reed bed holds him in the 32-60 clearing for three waves, then the lion's warned bound across the clearing.
  {const sc=await load();put(sc,50);step(2);S.keys.right=true;for(let i=0;i<40&&!sc.siege;i++)step();S.keys.right=false;
-  check('the midpoint fire raises a burning-reed stand',!!sc.siege&&sc.siege.walls.length===2);
+  check('the midpoint fire raises a burning-reed stand',!!sc.siege&&sc.siege.walls.length===1&&sc.siege.L===32*16&&sc.siege.R===60*16);
   let waves=0,held=true;
   for(let i=0;i<60*90&&sc.siege;i++){sc.inv=99999;waves=Math.max(waves,sc.siege.wave);
-   for(const f of sc.foes.getChildren())if(f.active&&f.body.enable&&f.roam&&f.roam[0]>=40*16&&Math.random()<0.02)sc.damage(f,9,true);
-   S.keys.right=i%120<60;S.keys.left=!S.keys.right;step();if(sc.player.body.right>60*16+1||sc.player.body.left<40*16-1)held=false;if(i%240===0)await sleep(1);}
+   for(const f of sc.foes.getChildren())if(f.active&&f.body.enable&&f.roam&&f.roam[0]>=32*16&&Math.random()<0.02)sc.damage(f,9,true);
+   S.keys.right=i%120<60;S.keys.left=!S.keys.right;step();if(sc.player.body.right>60*16+1||sc.player.body.left<32*16-1)held=false;if(i%240===0)await sleep(1);}
   S.keys.right=S.keys.left=false;
   check('the stand keeps Rostam in the clearing through three waves',held&&waves===3&&sc.siegeDone,{waves,held,done:sc.siegeDone});
   check('the broken pack leaves roast lamb by the fire',sc.coins.getChildren().some(c=>c.kind==='lamb'&&Math.abs(c.x-53*16)<50));
