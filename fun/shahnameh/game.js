@@ -82,6 +82,7 @@ function lesson1(s, id, text, ms = 3200) {
 // the waking's narration (assets/voice/khan1-wake.mp3, the same ElevenLabs narrator) is read once the file is there
 fetch(`assets/voice/khan1-wake.mp3?v=${V}`, { method: 'HEAD' }).then(r => { if (r.ok && typeof VOICED !== 'undefined') VOICED.add('khan1-wake'); }).catch(() => {}); { const im = new Image(); im.onload = () => { wakeArt = true; }; im.src = `assets/cine/khan1-wake.png?v=${V}`; }   // an optional painting
 const storyArt = key => `assets/cine/${key}${REVISED_STORY_ART.has(key) ? '-v2' : ''}.png?v=${V}`;
+const ENTRY_TITLES = ['', 'The Reedlands', 'The Burning Desert', 'The Night Plain', 'The Enchanted Garden', 'The Green Land', 'The Mountain Camp', 'The Hidden Cavern'];
 const ZOOM = 2;                                                   // canvas pixels per world pixel   // bump to bust caches when assets change
 
 // PixelLab VFX strips in ./assets/fx: frame size, frame count, fps, and the effect's origin as a fraction of the frame
@@ -4872,7 +4873,7 @@ function begin(n = cur, rise = false, keepRush = false, afterStory = false) {
   // Every level entry, including retries, shows its illustration before gameplay.
   if (!afterStory && CINE['intro' + n]) {
     if (!keepRush) rush = null;
-    cinema('intro' + n, () => begin(n, rise, keepRush, true));
+    cinema('intro' + n, () => begin(n, rise, keepRush, true), 0, [[`entry-${n}`, '', '']]);
     return;
   }
   if (!keepRush) rush = null;
@@ -5142,7 +5143,7 @@ function renderMap() {
   $('journeyTitle').textContent = NAMES[pick][0];
   $('journeyChapter').textContent = `Khan ${ROMAN[pick]}`;
   $('journeyStatus').textContent = best ? 'A road already travelled' : pick === 1 ? 'The journey begins' : 'The next chapter awaits';
-  const art = $('journeyArt'), artPath = storyArt(`khan${pick}-intro`);
+  const art = $('journeyArt'), artPath = storyArt(`entry-${pick}`);
   cardArt(art, artPath); art.alt = `${NAMES[pick][0]}: ${BLURB[pick]}`;
   $('mapInfo').innerHTML = `${BLURB[pick]}<span class="ftot">Simurgh feathers <b>${found} / 3</b>${best ? `<br>Best time <b>${fmtTime(best * 1000)}</b>` : ''}${Object.keys(F).length >= 21 ? '<br>The Simurgh blesses you.' : ''}</span>`;
   $('rideBtn').querySelector('.journey-action-label').textContent = best ? 'Replay labour' : pick === 1 ? 'Begin journey' : 'Continue journey';
@@ -5579,13 +5580,20 @@ function cinema(name, done, start = 0, panels = null) {
   for (const k in pressed) pressed[k] = false;
   cine = { P, i: start - 1, done, typing: 0, auto: 0, name, wasPlaying, sceneActive, intro: /^intro[1-7]$/.test(name),
     from: document.querySelector('.ov:not(.hidden):not(#s-cine)') };
+  cine.entry = /^entry-([1-7])$/.exec(P[start][0])?.[1] || 0;
+  ov.classList.toggle('level-entry', !!cine.entry);
+  $('entryTitle').textContent = cine.entry ? ENTRY_TITLES[cine.entry] : '';
+  $('entryChapter').textContent = cine.entry ? `KHAN ${['', 'I', 'II', 'III', 'IV', 'V', 'VI', 'VII'][cine.entry]}` : '';
+  $('cineNext').setAttribute('aria-label', cine.entry ? 'Enter the level' : 'Next picture');
   cine.from?.classList.add('hidden'); $('credits').classList.add('hidden'); $('cineSkip').textContent = 'Skip ›'; $('cineSkip').disabled = false;
+  if (cine.entry) $('cineSkip').textContent = 'Enter ›';
   ov.querySelector('.cdots').innerHTML = P.map((_, k) => `<i title="Picture ${k + 1}" data-k="${k}"></i>`).join('');
   imgs.forEach(im => im.classList.remove('on'));
   ov.classList.remove('hidden'); refreshNarratorControls(); music(true); P.forEach(([img]) => voiceBuf(img)?.catch(() => {})); cineNext(); $('cineNext').focus();
 }
 function cineShow(i) {
   const c = cine, [img, fa, text] = c.P[i], ov = $('s-cine'), imgs = ov.querySelectorAll('.cimg'), im = imgs[i % 2], old = imgs[(i + 1) % 2];
+  im.alt = c.entry ? ENTRY_TITLES[c.entry] : '';
   // each painting drifts its own way: slowly in, across, or out
   const moves = [['1.06', '1.16', '-1%', '1%', '0', '-1%'], ['1.16', '1.06', '1%', '-1%', '0', '0'], ['1.1', '1.18', '1.5%', '-1.5%', '1%', '0']][i % 3];
   const token = c.panelToken = {};
@@ -5614,6 +5622,7 @@ function cineShow(i) {
   const cap = ov.querySelector('.ccap'); cap.classList.remove('done'); cap.querySelector('.fa').textContent = fa; const p = cap.querySelector('p'); p.textContent = '';
   // the narration types out, a few letters at a time; the next picture follows on its own after a reading pause
   clearInterval(c.typing); clearTimeout(c.auto); c.autoRemaining = null; c.shownAt = null; let n = 0;
+  if (c.entry) { c.typing = 0; c.speaking = false; return; }
   // with the narrator on, the words appear at his pace and the next picture waits for him to finish
   const panel = i, a = narrate(img, () => { if (cine === c && c.i === panel) { c.speaking = false; if (!c.typing) cineAdvanceAfter(3500); } });
   c.speaking = !!a;

@@ -1024,6 +1024,21 @@ body:has(#s-cine:not(.hidden)) #denSkip,body.paused #denSkip,body.backgrounded #
 <script defer src="/assets/engagement.js?v=1"></script>
 <script type="module" src="/assets/vitals.js?v=1"></script>
 <link rel="preload" as="script" href="assets/vendor/phaser-3.80.1.min.js">
+<style>
+/* Shared chapter title layout: proportional to the uncropped 16:9 artwork. */
+.entry-stage{display:none}
+#s-cine.level-entry{background:#070a13}
+#s-cine.level-entry .cimg{width:min(100vw,177.777778vh)!important;transition:none;animation:none!important}
+#s-cine.level-entry .cframe:after,#s-cine.level-entry .ccap,#s-cine.level-entry .cdots,#s-cine.level-entry #cineNarrator{display:none!important}
+#s-cine.level-entry .entry-stage{display:block;position:absolute;left:50%;top:50%;translate:-50% -50%;width:min(100vw,177.777778vh);aspect-ratio:16/9;container-type:inline-size;pointer-events:none;z-index:3}
+.entry-titles{position:absolute;top:12%;left:0;width:100%;text-align:center;color:#ffe6ad;text-shadow:2px 2px 0 #171224,-2px -1px 0 #171224,0 4px 0 #171224}
+#entryChapter{font:bold 1.8cqw/1 Georgia,serif;letter-spacing:.28em;padding-left:.28em}
+#s-cine #entryTitle{font:bold 4.3cqw/1.15 Georgia,serif;letter-spacing:.01em;margin:1.1cqw 0 1.7cqw;white-space:nowrap;color:inherit;text-transform:none}
+.entry-ornament{display:flex;align-items:center;justify-content:center;gap:1cqw;color:#dbb475;font-size:1.5cqw;line-height:1}
+.entry-ornament:before,.entry-ornament:after{content:"";width:6cqw;height:2px;background:#dbb475;box-shadow:1px 2px #171224}
+#s-cine.level-entry .cine-toolbar{display:flex;justify-content:flex-end}
+
+</style>
 </head>
 <body>
 <div id="bootSplash" role="status" aria-live="polite">
@@ -1143,6 +1158,7 @@ body:has(#s-cine:not(.hidden)) #denSkip,body.paused #denSkip,body.backgrounded #
 <div id="sub" aria-live="polite"></div>
 <section class="ov hidden cineOv" id="s-cine" role="dialog" aria-modal="true" aria-label="The tale told in pictures">
   <div class="cframe"><img class="cimg" alt=""><img class="cimg" alt=""></div>
+  <div class="entry-stage"><div class="entry-titles"><div id="entryChapter"></div><h2 id="entryTitle"></h2><div class="entry-ornament" aria-hidden="true">◆</div></div></div>
   <i class="cbar"></i><i class="cbar bot"></i>
   <button class="cnext" id="cineNext" aria-label="Next picture"></button>
   <div class="ccap" aria-live="polite"><div class="fa"></div><p></p><span class="chint">Click, tap or press Space to go on</span></div>
@@ -1388,6 +1404,6 @@ body:has(#s-cine:not(.hidden)) #denSkip,body.paused #denSkip,body.backgrounded #
 <script src="boot.js?v=92"></script>
 <script src="assets/vendor/phaser-3.80.1.min.js" data-game-script="engine"></script>
 <script src="journey-events.js?v=124" data-game-script="journey"></script>
-<script src="game.js?v=221" data-game-script="game"></script>
+<script src="game.js?v=222" data-game-script="game"></script>
 </body>
 </html>
